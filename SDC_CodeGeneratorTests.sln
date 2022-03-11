@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDC_CodeGeneratorTest1", "SDC_CodeGeneratorTest1\SDC_CodeGeneratorTest1.csproj", "{3B1B985A-7094-4FC5-966D-C032571443E8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDC_CodeGeneratorTest", "SDC_CodeGeneratorTest\SDC_CodeGeneratorTest.csproj", "{3B1B985A-7094-4FC5-966D-C032571443E8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDCObjectModelTests", "SDCObjectModelTests\SDCObjectModelTests.csproj", "{C2E21526-E47A-45D6-BCAE-775259A7860F}"
 EndProject
