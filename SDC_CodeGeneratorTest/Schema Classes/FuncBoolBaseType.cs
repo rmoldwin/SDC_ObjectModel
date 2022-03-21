@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -49,11 +50,10 @@ using System.Collections.Generic;
 [JsonObject("FuncBoolBaseType")]
 public abstract partial class FuncBoolBaseType : ExtensionBaseType
 {
-    private bool _shouldSerializereturnVal;
-    private bool _shouldSerializeallowNull;
     private bool _allowNull;
     private string _validationMessage;
-    private bool? _returnVal;
+    private bool _returnVal;
+    private bool returnValFieldSpecified;
     private bool _allowNullSpecified;
     private bool _validationMessageSpecified;
     /// <summary>
@@ -83,7 +83,6 @@ public abstract partial class FuncBoolBaseType : ExtensionBaseType
                 _allowNull = value;
                 OnPropertyChanged("allowNull", value);
             }
-            _shouldSerializeallowNull = true;
         }
     }
     
@@ -119,14 +118,7 @@ public abstract partial class FuncBoolBaseType : ExtensionBaseType
     {
         get
         {
-            if (_returnVal.HasValue)
-            {
-                return _returnVal.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _returnVal;
         }
         set
         {
@@ -135,7 +127,6 @@ public abstract partial class FuncBoolBaseType : ExtensionBaseType
                 _returnVal = value;
                 OnPropertyChanged("returnVal", value);
             }
-            _shouldSerializereturnVal = true;
         }
     }
     
@@ -144,13 +135,14 @@ public abstract partial class FuncBoolBaseType : ExtensionBaseType
     {
         get
         {
-            return _returnVal.HasValue;
+            return returnValFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((returnValFieldSpecified.Equals(value) != true))
             {
-                _returnVal = null;
+                returnValFieldSpecified = value;
+                OnPropertyChanged("returnValSpecified", value);
             }
         }
     }
@@ -181,30 +173,6 @@ public abstract partial class FuncBoolBaseType : ExtensionBaseType
         {
             _validationMessageSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether allowNull should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowNull()
-    {
-        if (_shouldSerializeallowNull)
-        {
-            return true;
-        }
-        return (allowNull != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether returnVal should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializereturnVal()
-    {
-        if (_shouldSerializereturnVal)
-        {
-            return true;
-        }
-        return (returnVal != default(bool));
     }
     
     /// <summary>

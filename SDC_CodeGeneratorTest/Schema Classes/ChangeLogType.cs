@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -27,7 +28,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// Inforamtion about changes to file or part of a file.
+/// Inforamtion about changes to file or part of a
+/// file.
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
 [Serializable]
@@ -101,6 +103,7 @@ public partial class ChangeLogType : ExtensionBaseType
     }
     
     [XmlElement(Order=2)]
+    [RequiredAttribute()]
     [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual DataTypes_SType ChangedFrom
     {
@@ -117,6 +120,9 @@ public partial class ChangeLogType : ExtensionBaseType
             if (((_changedFrom == null) 
                         || (_changedFrom.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "ChangedFrom";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _changedFrom = value;
                 OnPropertyChanged("ChangedFrom", value);
             }

@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -45,6 +46,7 @@ public partial class SubmissionRuleType : ExtensionBaseType
     private bool _formIDSpecified;
     private bool _ruleIDSpecified;
     [XmlElement("Destination", Order=0)]
+    [RequiredAttribute()]
     [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<DestinationType> Destination
     {
@@ -61,6 +63,9 @@ public partial class SubmissionRuleType : ExtensionBaseType
             if (((_destination == null) 
                         || (_destination.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "Destination";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _destination = value;
                 OnPropertyChanged("Destination", value);
             }

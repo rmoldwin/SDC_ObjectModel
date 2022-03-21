@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -41,21 +42,21 @@ using System.Collections.Generic;
 [JsonObject("ActSetAttributeType")]
 public partial class ActSetAttributeType : ExtensionBaseType
 {
-    private bool _shouldSerializeactReadOnly;
-    private bool _shouldSerializeactDeleteResponse;
-    private bool _shouldSerializeactSelect;
-    private bool _shouldSerializeactActivate;
-    private bool _shouldSerializeactEnable;
-    private bool _shouldSerializeactVisible;
     private string _targetNames;
-    private bool? _actVisible;
-    private bool? _actEnable;
+    private bool _actVisible;
+    private bool actVisibleFieldSpecified;
+    private bool _actEnable;
+    private bool actEnableFieldSpecified;
     private string _actMinCard;
     private string _actMaxCard;
-    private bool? _actActivate;
-    private bool? _actSelect;
-    private bool? _actDeleteResponse;
-    private bool? _actReadOnly;
+    private bool _actActivate;
+    private bool actActivateFieldSpecified;
+    private bool _actSelect;
+    private bool actSelectFieldSpecified;
+    private bool _actDeleteResponse;
+    private bool actDeleteResponseFieldSpecified;
+    private bool _actReadOnly;
+    private bool actReadOnlyFieldSpecified;
     private string _actType;
     private string _actStyleClass;
     private string _actSetTitleText;
@@ -112,14 +113,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     {
         get
         {
-            if (_actVisible.HasValue)
-            {
-                return _actVisible.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _actVisible;
         }
         set
         {
@@ -128,7 +122,6 @@ public partial class ActSetAttributeType : ExtensionBaseType
                 _actVisible = value;
                 OnPropertyChanged("actVisible", value);
             }
-            _shouldSerializeactVisible = true;
         }
     }
     
@@ -137,13 +130,14 @@ public partial class ActSetAttributeType : ExtensionBaseType
     {
         get
         {
-            return _actVisible.HasValue;
+            return actVisibleFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((actVisibleFieldSpecified.Equals(value) != true))
             {
-                _actVisible = null;
+                actVisibleFieldSpecified = value;
+                OnPropertyChanged("actVisibleSpecified", value);
             }
         }
     }
@@ -154,14 +148,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     {
         get
         {
-            if (_actEnable.HasValue)
-            {
-                return _actEnable.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _actEnable;
         }
         set
         {
@@ -170,7 +157,6 @@ public partial class ActSetAttributeType : ExtensionBaseType
                 _actEnable = value;
                 OnPropertyChanged("actEnable", value);
             }
-            _shouldSerializeactEnable = true;
         }
     }
     
@@ -179,13 +165,14 @@ public partial class ActSetAttributeType : ExtensionBaseType
     {
         get
         {
-            return _actEnable.HasValue;
+            return actEnableFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((actEnableFieldSpecified.Equals(value) != true))
             {
-                _actEnable = null;
+                actEnableFieldSpecified = value;
+                OnPropertyChanged("actEnableSpecified", value);
             }
         }
     }
@@ -255,14 +242,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     {
         get
         {
-            if (_actActivate.HasValue)
-            {
-                return _actActivate.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _actActivate;
         }
         set
         {
@@ -271,7 +251,6 @@ public partial class ActSetAttributeType : ExtensionBaseType
                 _actActivate = value;
                 OnPropertyChanged("actActivate", value);
             }
-            _shouldSerializeactActivate = true;
         }
     }
     
@@ -280,13 +259,14 @@ public partial class ActSetAttributeType : ExtensionBaseType
     {
         get
         {
-            return _actActivate.HasValue;
+            return actActivateFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((actActivateFieldSpecified.Equals(value) != true))
             {
-                _actActivate = null;
+                actActivateFieldSpecified = value;
+                OnPropertyChanged("actActivateSpecified", value);
             }
         }
     }
@@ -301,14 +281,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     {
         get
         {
-            if (_actSelect.HasValue)
-            {
-                return _actSelect.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _actSelect;
         }
         set
         {
@@ -317,7 +290,6 @@ public partial class ActSetAttributeType : ExtensionBaseType
                 _actSelect = value;
                 OnPropertyChanged("actSelect", value);
             }
-            _shouldSerializeactSelect = true;
         }
     }
     
@@ -326,13 +298,14 @@ public partial class ActSetAttributeType : ExtensionBaseType
     {
         get
         {
-            return _actSelect.HasValue;
+            return actSelectFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((actSelectFieldSpecified.Equals(value) != true))
             {
-                _actSelect = null;
+                actSelectFieldSpecified = value;
+                OnPropertyChanged("actSelectSpecified", value);
             }
         }
     }
@@ -347,14 +320,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     {
         get
         {
-            if (_actDeleteResponse.HasValue)
-            {
-                return _actDeleteResponse.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _actDeleteResponse;
         }
         set
         {
@@ -363,7 +329,6 @@ public partial class ActSetAttributeType : ExtensionBaseType
                 _actDeleteResponse = value;
                 OnPropertyChanged("actDeleteResponse", value);
             }
-            _shouldSerializeactDeleteResponse = true;
         }
     }
     
@@ -372,13 +337,14 @@ public partial class ActSetAttributeType : ExtensionBaseType
     {
         get
         {
-            return _actDeleteResponse.HasValue;
+            return actDeleteResponseFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((actDeleteResponseFieldSpecified.Equals(value) != true))
             {
-                _actDeleteResponse = null;
+                actDeleteResponseFieldSpecified = value;
+                OnPropertyChanged("actDeleteResponseSpecified", value);
             }
         }
     }
@@ -393,14 +359,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     {
         get
         {
-            if (_actReadOnly.HasValue)
-            {
-                return _actReadOnly.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _actReadOnly;
         }
         set
         {
@@ -409,7 +368,6 @@ public partial class ActSetAttributeType : ExtensionBaseType
                 _actReadOnly = value;
                 OnPropertyChanged("actReadOnly", value);
             }
-            _shouldSerializeactReadOnly = true;
         }
     }
     
@@ -418,13 +376,14 @@ public partial class ActSetAttributeType : ExtensionBaseType
     {
         get
         {
-            return _actReadOnly.HasValue;
+            return actReadOnlyFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((actReadOnlyFieldSpecified.Equals(value) != true))
             {
-                _actReadOnly = null;
+                actReadOnlyFieldSpecified = value;
+                OnPropertyChanged("actReadOnlySpecified", value);
             }
         }
     }
@@ -872,78 +831,6 @@ public partial class ActSetAttributeType : ExtensionBaseType
         {
             _actSetAssociatedValueFromRefSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether actVisible should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeactVisible()
-    {
-        if (_shouldSerializeactVisible)
-        {
-            return true;
-        }
-        return (actVisible != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether actEnable should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeactEnable()
-    {
-        if (_shouldSerializeactEnable)
-        {
-            return true;
-        }
-        return (actEnable != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether actActivate should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeactActivate()
-    {
-        if (_shouldSerializeactActivate)
-        {
-            return true;
-        }
-        return (actActivate != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether actSelect should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeactSelect()
-    {
-        if (_shouldSerializeactSelect)
-        {
-            return true;
-        }
-        return (actSelect != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether actDeleteResponse should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeactDeleteResponse()
-    {
-        if (_shouldSerializeactDeleteResponse)
-        {
-            return true;
-        }
-        return (actDeleteResponse != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether actReadOnly should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeactReadOnly()
-    {
-        if (_shouldSerializeactReadOnly)
-        {
-            return true;
-        }
-        return (actReadOnly != default(bool));
     }
     
     /// <summary>

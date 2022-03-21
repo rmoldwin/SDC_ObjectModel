@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -36,7 +37,6 @@ using System.Collections.Generic;
 public partial class PredActionType : FuncBoolBaseType
 {
     private bool _shouldSerializeboolOp;
-    private bool _shouldSerializenot;
     private List<ExtensionBaseType> _items;
     private ActionsType _actions;
     private List<PredActionType> _else;
@@ -147,7 +147,6 @@ public partial class PredActionType : FuncBoolBaseType
                 _not = value;
                 OnPropertyChanged("not", value);
             }
-            _shouldSerializenot = true;
         }
     }
     
@@ -256,18 +255,6 @@ public partial class PredActionType : FuncBoolBaseType
     public virtual bool ShouldSerializeElse()
     {
         return Else != null && Else.Count > 0;
-    }
-    
-    /// <summary>
-    /// Test whether not should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializenot()
-    {
-        if (_shouldSerializenot)
-        {
-            return true;
-        }
-        return (not != default(bool));
     }
     
     /// <summary>

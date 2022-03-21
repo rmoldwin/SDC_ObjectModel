@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -57,8 +58,7 @@ public partial class VersionType : ExtensionBaseType
     private bool _versionLevel4Specified;
     private bool _versionLevel5Specified;
     /// <summary>
-    /// Information about the document that describes the versioning methodology
-    /// nomenclature.
+    /// Information about the document that describes the versioning methodology nomenclature.
     /// </summary>
     [XmlElement(Order=0)]
     [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]

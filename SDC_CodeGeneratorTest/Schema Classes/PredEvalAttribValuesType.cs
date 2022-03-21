@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -43,31 +44,30 @@ using System.Collections.Generic;
 public partial class PredEvalAttribValuesType : FuncBoolBaseType
 {
     private bool _shouldSerializeboolOp;
-    private bool _shouldSerializehasValue;
-    private bool _shouldSerializeisReadOnly;
-    private bool _shouldSerializeisRequired;
-    private bool _shouldSerializeisEnabled;
-    private bool _shouldSerializeisVisible;
-    private bool _shouldSerializehasResponse;
-    private bool _shouldSerializeisActive;
-    private bool _shouldSerializeisSelected;
-    private bool _shouldSerializenot;
     private bool _not;
     private PredEvalAttribValuesTypeBoolOp _boolOp;
     private string _itemNames;
-    private bool? _isSelected;
-    private bool? _isActive;
+    private bool _isSelected;
+    private bool isSelectedFieldSpecified;
+    private bool _isActive;
+    private bool isActiveFieldSpecified;
     private string _hasSelectionsGTE;
     private string _hasSelectionsLTE;
     private string _hasSelectionsExact;
-    private bool? _hasResponse;
-    private bool? _isVisible;
-    private bool? _isEnabled;
-    private bool? _isRequired;
-    private bool? _isReadOnly;
+    private bool _hasResponse;
+    private bool hasResponseFieldSpecified;
+    private bool _isVisible;
+    private bool isVisibleFieldSpecified;
+    private bool _isEnabled;
+    private bool isEnabledFieldSpecified;
+    private bool _isRequired;
+    private bool isRequiredFieldSpecified;
+    private bool _isReadOnly;
+    private bool isReadOnlyFieldSpecified;
     private string _hasType;
     private string _hasStyleClass;
-    private bool? _hasValue;
+    private bool _hasValue;
+    private bool hasValueFieldSpecified;
     private string _supportDatesAndIntervals;
     private string _hasPattern;
     private string _hasValueEQ;
@@ -125,7 +125,6 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
                 _not = value;
                 OnPropertyChanged("not", value);
             }
-            _shouldSerializenot = true;
         }
     }
     
@@ -187,14 +186,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            if (_isSelected.HasValue)
-            {
-                return _isSelected.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _isSelected;
         }
         set
         {
@@ -203,7 +195,6 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
                 _isSelected = value;
                 OnPropertyChanged("isSelected", value);
             }
-            _shouldSerializeisSelected = true;
         }
     }
     
@@ -212,13 +203,14 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            return _isSelected.HasValue;
+            return isSelectedFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((isSelectedFieldSpecified.Equals(value) != true))
             {
-                _isSelected = null;
+                isSelectedFieldSpecified = value;
+                OnPropertyChanged("isSelectedSpecified", value);
             }
         }
     }
@@ -233,14 +225,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            if (_isActive.HasValue)
-            {
-                return _isActive.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _isActive;
         }
         set
         {
@@ -249,7 +234,6 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
                 _isActive = value;
                 OnPropertyChanged("isActive", value);
             }
-            _shouldSerializeisActive = true;
         }
     }
     
@@ -258,13 +242,14 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            return _isActive.HasValue;
+            return isActiveFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((isActiveFieldSpecified.Equals(value) != true))
             {
-                _isActive = null;
+                isActiveFieldSpecified = value;
+                OnPropertyChanged("isActiveSpecified", value);
             }
         }
     }
@@ -366,14 +351,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            if (_hasResponse.HasValue)
-            {
-                return _hasResponse.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _hasResponse;
         }
         set
         {
@@ -382,7 +360,6 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
                 _hasResponse = value;
                 OnPropertyChanged("hasResponse", value);
             }
-            _shouldSerializehasResponse = true;
         }
     }
     
@@ -391,13 +368,14 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            return _hasResponse.HasValue;
+            return hasResponseFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((hasResponseFieldSpecified.Equals(value) != true))
             {
-                _hasResponse = null;
+                hasResponseFieldSpecified = value;
+                OnPropertyChanged("hasResponseSpecified", value);
             }
         }
     }
@@ -408,14 +386,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            if (_isVisible.HasValue)
-            {
-                return _isVisible.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _isVisible;
         }
         set
         {
@@ -424,7 +395,6 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
                 _isVisible = value;
                 OnPropertyChanged("isVisible", value);
             }
-            _shouldSerializeisVisible = true;
         }
     }
     
@@ -433,13 +403,14 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            return _isVisible.HasValue;
+            return isVisibleFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((isVisibleFieldSpecified.Equals(value) != true))
             {
-                _isVisible = null;
+                isVisibleFieldSpecified = value;
+                OnPropertyChanged("isVisibleSpecified", value);
             }
         }
     }
@@ -450,14 +421,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            if (_isEnabled.HasValue)
-            {
-                return _isEnabled.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _isEnabled;
         }
         set
         {
@@ -466,7 +430,6 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
                 _isEnabled = value;
                 OnPropertyChanged("isEnabled", value);
             }
-            _shouldSerializeisEnabled = true;
         }
     }
     
@@ -475,13 +438,14 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            return _isEnabled.HasValue;
+            return isEnabledFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((isEnabledFieldSpecified.Equals(value) != true))
             {
-                _isEnabled = null;
+                isEnabledFieldSpecified = value;
+                OnPropertyChanged("isEnabledSpecified", value);
             }
         }
     }
@@ -496,14 +460,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            if (_isRequired.HasValue)
-            {
-                return _isRequired.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _isRequired;
         }
         set
         {
@@ -512,7 +469,6 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
                 _isRequired = value;
                 OnPropertyChanged("isRequired", value);
             }
-            _shouldSerializeisRequired = true;
         }
     }
     
@@ -521,13 +477,14 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            return _isRequired.HasValue;
+            return isRequiredFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((isRequiredFieldSpecified.Equals(value) != true))
             {
-                _isRequired = null;
+                isRequiredFieldSpecified = value;
+                OnPropertyChanged("isRequiredSpecified", value);
             }
         }
     }
@@ -538,14 +495,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            if (_isReadOnly.HasValue)
-            {
-                return _isReadOnly.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _isReadOnly;
         }
         set
         {
@@ -554,7 +504,6 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
                 _isReadOnly = value;
                 OnPropertyChanged("isReadOnly", value);
             }
-            _shouldSerializeisReadOnly = true;
         }
     }
     
@@ -563,13 +512,14 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            return _isReadOnly.HasValue;
+            return isReadOnlyFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((isReadOnlyFieldSpecified.Equals(value) != true))
             {
-                _isReadOnly = null;
+                isReadOnlyFieldSpecified = value;
+                OnPropertyChanged("isReadOnlySpecified", value);
             }
         }
     }
@@ -626,14 +576,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            if (_hasValue.HasValue)
-            {
-                return _hasValue.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _hasValue;
         }
         set
         {
@@ -642,7 +585,6 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
                 _hasValue = value;
                 OnPropertyChanged("hasValue", value);
             }
-            _shouldSerializehasValue = true;
         }
     }
     
@@ -651,13 +593,14 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     {
         get
         {
-            return _hasValue.HasValue;
+            return hasValueFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((hasValueFieldSpecified.Equals(value) != true))
             {
-                _hasValue = null;
+                hasValueFieldSpecified = value;
+                OnPropertyChanged("hasValueSpecified", value);
             }
         }
     }
@@ -1223,114 +1166,6 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         {
             _hasAssociatedValueGTESpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether not should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializenot()
-    {
-        if (_shouldSerializenot)
-        {
-            return true;
-        }
-        return (not != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether isSelected should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeisSelected()
-    {
-        if (_shouldSerializeisSelected)
-        {
-            return true;
-        }
-        return (isSelected != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether isActive should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeisActive()
-    {
-        if (_shouldSerializeisActive)
-        {
-            return true;
-        }
-        return (isActive != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether hasResponse should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializehasResponse()
-    {
-        if (_shouldSerializehasResponse)
-        {
-            return true;
-        }
-        return (hasResponse != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether isVisible should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeisVisible()
-    {
-        if (_shouldSerializeisVisible)
-        {
-            return true;
-        }
-        return (isVisible != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether isEnabled should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeisEnabled()
-    {
-        if (_shouldSerializeisEnabled)
-        {
-            return true;
-        }
-        return (isEnabled != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether isRequired should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeisRequired()
-    {
-        if (_shouldSerializeisRequired)
-        {
-            return true;
-        }
-        return (isRequired != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether isReadOnly should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeisReadOnly()
-    {
-        if (_shouldSerializeisReadOnly)
-        {
-            return true;
-        }
-        return (isReadOnly != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether hasValue should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializehasValue()
-    {
-        if (_shouldSerializehasValue)
-        {
-            return true;
-        }
-        return (hasValue != default(bool));
     }
     
     /// <summary>

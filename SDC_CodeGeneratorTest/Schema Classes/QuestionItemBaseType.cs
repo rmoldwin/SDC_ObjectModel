@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -38,13 +39,12 @@ using System.Collections.Generic;
 [JsonObject("QuestionItemBaseType")]
 public abstract partial class QuestionItemBaseType : RepeatingType
 {
-    private bool _shouldSerializenewData;
-    private bool _shouldSerializechangedData;
-    private bool _shouldSerializereadOnly;
     private ExtensionBaseType _item;
     private bool _readOnly;
-    private bool? _changedData;
-    private bool? _newData;
+    private bool _changedData;
+    private bool changedDataFieldSpecified;
+    private bool _newData;
+    private bool newDataFieldSpecified;
     private bool _itemSpecified;
     private bool _readOnlySpecified;
     /// <summary>
@@ -100,7 +100,6 @@ public abstract partial class QuestionItemBaseType : RepeatingType
                 _readOnly = value;
                 OnPropertyChanged("readOnly", value);
             }
-            _shouldSerializereadOnly = true;
         }
     }
     
@@ -110,14 +109,7 @@ public abstract partial class QuestionItemBaseType : RepeatingType
     {
         get
         {
-            if (_changedData.HasValue)
-            {
-                return _changedData.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _changedData;
         }
         set
         {
@@ -126,7 +118,6 @@ public abstract partial class QuestionItemBaseType : RepeatingType
                 _changedData = value;
                 OnPropertyChanged("changedData", value);
             }
-            _shouldSerializechangedData = true;
         }
     }
     
@@ -135,13 +126,14 @@ public abstract partial class QuestionItemBaseType : RepeatingType
     {
         get
         {
-            return _changedData.HasValue;
+            return changedDataFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((changedDataFieldSpecified.Equals(value) != true))
             {
-                _changedData = null;
+                changedDataFieldSpecified = value;
+                OnPropertyChanged("changedDataSpecified", value);
             }
         }
     }
@@ -152,14 +144,7 @@ public abstract partial class QuestionItemBaseType : RepeatingType
     {
         get
         {
-            if (_newData.HasValue)
-            {
-                return _newData.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _newData;
         }
         set
         {
@@ -168,7 +153,6 @@ public abstract partial class QuestionItemBaseType : RepeatingType
                 _newData = value;
                 OnPropertyChanged("newData", value);
             }
-            _shouldSerializenewData = true;
         }
     }
     
@@ -177,13 +161,14 @@ public abstract partial class QuestionItemBaseType : RepeatingType
     {
         get
         {
-            return _newData.HasValue;
+            return newDataFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((newDataFieldSpecified.Equals(value) != true))
             {
-                _newData = null;
+                newDataFieldSpecified = value;
+                OnPropertyChanged("newDataSpecified", value);
             }
         }
     }
@@ -214,42 +199,6 @@ public abstract partial class QuestionItemBaseType : RepeatingType
         {
             _readOnlySpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether readOnly should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializereadOnly()
-    {
-        if (_shouldSerializereadOnly)
-        {
-            return true;
-        }
-        return (readOnly != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether changedData should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializechangedData()
-    {
-        if (_shouldSerializechangedData)
-        {
-            return true;
-        }
-        return (changedData != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether newData should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializenewData()
-    {
-        if (_shouldSerializenewData)
-        {
-            return true;
-        }
-        return (newData != default(bool));
     }
     
     /// <summary>

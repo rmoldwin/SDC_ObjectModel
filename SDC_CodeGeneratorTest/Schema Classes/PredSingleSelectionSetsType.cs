@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -46,7 +47,6 @@ using System.Collections.Generic;
 [JsonObject("PredSingleSelectionSetsType")]
 public partial class PredSingleSelectionSetsType : FuncBoolBaseType
 {
-    private bool _shouldSerializemaxSelections;
     private string _listItemNames;
     private short _maxSelections;
     private bool _listItemNamesSpecified;
@@ -106,7 +106,6 @@ public partial class PredSingleSelectionSetsType : FuncBoolBaseType
                 _maxSelections = value;
                 OnPropertyChanged("maxSelections", value);
             }
-            _shouldSerializemaxSelections = true;
         }
     }
     
@@ -136,18 +135,6 @@ public partial class PredSingleSelectionSetsType : FuncBoolBaseType
         {
             _maxSelectionsSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether maxSelections should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemaxSelections()
-    {
-        if (_shouldSerializemaxSelections)
-        {
-            return true;
-        }
-        return (maxSelections != default(short));
     }
     
     /// <summary>

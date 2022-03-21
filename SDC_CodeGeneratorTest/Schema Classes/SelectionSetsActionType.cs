@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -33,7 +34,6 @@ using System.Collections.Generic;
 [JsonObject("SelectionSetsActionType")]
 public partial class SelectionSetsActionType : PredSingleSelectionSetsType
 {
-    private bool _shouldSerializenot;
     private ActionsType _actions;
     private List<PredActionType> _else;
     private bool _not;
@@ -110,7 +110,6 @@ public partial class SelectionSetsActionType : PredSingleSelectionSetsType
                 _not = value;
                 OnPropertyChanged("not", value);
             }
-            _shouldSerializenot = true;
         }
     }
     
@@ -162,18 +161,6 @@ public partial class SelectionSetsActionType : PredSingleSelectionSetsType
     public virtual bool ShouldSerializeElse()
     {
         return Else != null && Else.Count > 0;
-    }
-    
-    /// <summary>
-    /// Test whether not should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializenot()
-    {
-        if (_shouldSerializenot)
-        {
-            return true;
-        }
-        return (not != default(bool));
     }
     
     /// <summary>

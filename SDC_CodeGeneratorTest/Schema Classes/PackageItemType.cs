@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -34,10 +35,9 @@ using System.Collections.Generic;
 public partial class PackageItemType : ExtensionBaseType
 {
     private bool _shouldSerializeformat;
-    private bool _shouldSerializenewData;
-    private bool _shouldSerializechangedData;
     private string _formManagerURI;
-    private System.Nullable<PackageItemTypeFormat> _format;
+    private PackageItemTypeFormat _format;
+    private bool formatFieldSpecified;
     private string _packageID;
     private string _title;
     private string _baseURI;
@@ -50,8 +50,10 @@ public partial class PackageItemType : ExtensionBaseType
     private string _formInstanceURI;
     private string _formInstanceVersionURI;
     private string _formPreviousInstanceVersionURI;
-    private bool? _changedData;
-    private bool? _newData;
+    private bool _changedData;
+    private bool changedDataFieldSpecified;
+    private bool _newData;
+    private bool newDataFieldSpecified;
     private bool _formManagerURISpecified;
     private bool _packageIDSpecified;
     private bool _titleSpecified;
@@ -102,14 +104,7 @@ public partial class PackageItemType : ExtensionBaseType
     {
         get
         {
-            if (_format.HasValue)
-            {
-                return _format.Value;
-            }
-            else
-            {
-                return default(PackageItemTypeFormat);
-            }
+            return _format;
         }
         set
         {
@@ -127,13 +122,14 @@ public partial class PackageItemType : ExtensionBaseType
     {
         get
         {
-            return _format.HasValue;
+            return formatFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((formatFieldSpecified.Equals(value) != true))
             {
-                _format = null;
+                formatFieldSpecified = value;
+                OnPropertyChanged("formatSpecified", value);
             }
         }
     }
@@ -463,14 +459,7 @@ public partial class PackageItemType : ExtensionBaseType
     {
         get
         {
-            if (_changedData.HasValue)
-            {
-                return _changedData.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _changedData;
         }
         set
         {
@@ -479,7 +468,6 @@ public partial class PackageItemType : ExtensionBaseType
                 _changedData = value;
                 OnPropertyChanged("changedData", value);
             }
-            _shouldSerializechangedData = true;
         }
     }
     
@@ -488,13 +476,14 @@ public partial class PackageItemType : ExtensionBaseType
     {
         get
         {
-            return _changedData.HasValue;
+            return changedDataFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((changedDataFieldSpecified.Equals(value) != true))
             {
-                _changedData = null;
+                changedDataFieldSpecified = value;
+                OnPropertyChanged("changedDataSpecified", value);
             }
         }
     }
@@ -505,14 +494,7 @@ public partial class PackageItemType : ExtensionBaseType
     {
         get
         {
-            if (_newData.HasValue)
-            {
-                return _newData.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _newData;
         }
         set
         {
@@ -521,7 +503,6 @@ public partial class PackageItemType : ExtensionBaseType
                 _newData = value;
                 OnPropertyChanged("newData", value);
             }
-            _shouldSerializenewData = true;
         }
     }
     
@@ -530,13 +511,14 @@ public partial class PackageItemType : ExtensionBaseType
     {
         get
         {
-            return _newData.HasValue;
+            return newDataFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((newDataFieldSpecified.Equals(value) != true))
             {
-                _newData = null;
+                newDataFieldSpecified = value;
+                OnPropertyChanged("newDataSpecified", value);
             }
         }
     }
@@ -721,30 +703,6 @@ public partial class PackageItemType : ExtensionBaseType
         {
             _formPreviousInstanceVersionURISpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether changedData should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializechangedData()
-    {
-        if (_shouldSerializechangedData)
-        {
-            return true;
-        }
-        return (changedData != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether newData should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializenewData()
-    {
-        if (_shouldSerializenewData)
-        {
-            return true;
-        }
-        return (newData != default(bool));
     }
     
     /// <summary>

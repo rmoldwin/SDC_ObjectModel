@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -43,6 +44,7 @@ public partial class EmailType : ExtensionBaseType
     private bool _emailClassSpecified;
     private bool _usageSpecified;
     [XmlElement(Order=0)]
+    [RequiredAttribute()]
     [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual EmailAddressType EmailAddress
     {
@@ -59,6 +61,9 @@ public partial class EmailType : ExtensionBaseType
             if (((_emailAddress == null) 
                         || (_emailAddress.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "EmailAddress";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _emailAddress = value;
                 OnPropertyChanged("EmailAddress", value);
             }

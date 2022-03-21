@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -27,8 +28,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// This type represents any type of coding, terminology, classification, keyword, or local
-/// value system that may be applied to any displayable item in a FormDesign template.
+/// This type represents any type of coding, terminology, classification, keyword, or local value system that may be applied to any displayable item in a
+/// FormDesign template.
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
 [Serializable]
@@ -52,9 +53,8 @@ public partial class CodingType : ExtensionBaseType
     private bool _codeURISpecified;
     private bool _unitsSpecified;
     /// <summary>
-    /// A standard code, or a local value from a custom coding system, that can be
-    /// used to consistently identify, or provide a standard value for, the coded
-    /// item.
+    /// A standard code, or a local value from a custom coding system, that can be used to consistently identify, or provide a
+    /// standard value for, the coded item.
     /// </summary>
     [XmlElement(IsNullable=true, Order=0)]
     [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
@@ -80,11 +80,12 @@ public partial class CodingType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Data type enumeration derived from W3C XML Schema. If the code is derived
-    /// from a local value system (e.g., numbered answer choices such as clock positions, tumor
-    /// grades, or clinical scoring systems), then the data type of the local value may be
-    /// specified here. This may be important if the code value will need to be manipulated
-    /// mathematically.
+    /// Data type enumeration derived from W3C XML Schema. If
+    /// the code is derived from a local value system (e.g., numbered answer
+    /// choices such as clock positions, tumor grades, or clinical scoring
+    /// systems), then the data type of the local value may be specified
+    /// here. This may be important if the code value will need to be
+    /// manipulated mathematically.
     /// </summary>
     [XmlElement(Order=1)]
     [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
@@ -110,8 +111,8 @@ public partial class CodingType : ExtensionBaseType
     }
     
     /// <summary>
-    /// The human readable text that accompanies the assigned code and represents
-    /// the code's precise meaning (semantics) or usage.
+    /// The human readable text that accompanies the assigned code and represents the code's precise meaning (semantics) or
+    /// usage.
     /// </summary>
     [XmlElement(Order=2)]
     [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
@@ -137,8 +138,8 @@ public partial class CodingType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Degree of match between the mapped item and the assigned code -
-    /// @codeMatchType holds an entry from an enumerated list of match types.
+    /// Degree of match between the mapped item and the assigned code - @codeMatchType holds an entry from an enumerated
+    /// list of match types.
     /// </summary>
     [XmlElement(Order=3)]
     [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
@@ -187,8 +188,7 @@ public partial class CodingType : ExtensionBaseType
     }
     
     /// <summary>
-    /// NEW: Web resource that provides information about the
-    /// code
+    /// NEW: Web resource that provides information about the code
     /// </summary>
     [XmlElement(Order=5)]
     [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]

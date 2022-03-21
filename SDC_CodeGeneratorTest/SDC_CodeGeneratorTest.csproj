@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="RetiredClasses\" />
-    <Folder Include="PartialClasses\" />
+    <Folder Include="Utility Classes\" />
+    <Folder Include="Retired Classes\" />
   </ItemGroup>
 
   <ItemGroup>

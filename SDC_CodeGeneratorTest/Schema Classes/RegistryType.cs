@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -66,6 +67,7 @@ public partial class RegistryType : ExtensionBaseType
     }
     
     [XmlElement(Order=1)]
+    [RequiredAttribute()]
     [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual RegistrySummaryType CurrentRegistry
     {
@@ -82,6 +84,9 @@ public partial class RegistryType : ExtensionBaseType
             if (((_currentRegistry == null) 
                         || (_currentRegistry.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "CurrentRegistry";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _currentRegistry = value;
                 OnPropertyChanged("CurrentRegistry", value);
             }

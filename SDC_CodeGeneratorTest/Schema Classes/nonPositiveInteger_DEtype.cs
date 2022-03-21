@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -33,26 +34,22 @@ using System.Collections.Generic;
 [JsonObject("nonPositiveInteger_DEtype")]
 public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
 {
-    private bool _shouldSerializeallowAPPROX;
-    private bool _shouldSerializeallowLTE;
-    private bool _shouldSerializeallowLT;
-    private bool _shouldSerializeallowGTE;
-    private bool _shouldSerializeallowGT;
-    private string _minInclusive;
-    private string _maxInclusive;
-    private string _minExclusive;
-    private string _maxExclusive;
-    private System.Nullable<byte> _totalDigits;
+    private decimal _minInclusive;
+    private bool minInclusiveFieldSpecified;
+    private decimal _maxInclusive;
+    private bool maxInclusiveFieldSpecified;
+    private decimal _minExclusive;
+    private bool minExclusiveFieldSpecified;
+    private decimal _maxExclusive;
+    private bool maxExclusiveFieldSpecified;
+    private sbyte _totalDigits;
+    private bool totalDigitsFieldSpecified;
     private string _mask;
     private bool _allowGT;
     private bool _allowGTE;
     private bool _allowLT;
     private bool _allowLTE;
     private bool _allowAPPROX;
-    private bool _minInclusiveSpecified;
-    private bool _maxInclusiveSpecified;
-    private bool _minExclusiveSpecified;
-    private bool _maxExclusiveSpecified;
     private bool _maskSpecified;
     private bool _allowGTSpecified;
     private bool _allowGTESpecified;
@@ -71,9 +68,12 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
         _allowAPPROX = false;
     }
     
-    [XmlAttribute(DataType="nonPositiveInteger")]
+    [XmlAttribute]
+    [FractionDigitsAttribute(0)]
+    [MaxDigitsAttribute(29)]
+    [RangeAttribute(-7.9228162514264338E+28D, 0D)]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual string minInclusive
+    public virtual decimal minInclusive
     {
         get
         {
@@ -81,22 +81,40 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
         }
         set
         {
-            if ((_minInclusive == value))
+            if ((_minInclusive.Equals(value) != true))
             {
-                return;
-            }
-            if (((_minInclusive == null) 
-                        || (_minInclusive.Equals(value) != true)))
-            {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "minInclusive";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _minInclusive = value;
                 OnPropertyChanged("minInclusive", value);
             }
         }
     }
     
-    [XmlAttribute(DataType="nonPositiveInteger")]
+    [XmlIgnore]
+    public virtual bool minInclusiveSpecified
+    {
+        get
+        {
+            return minInclusiveFieldSpecified;
+        }
+        set
+        {
+            if ((minInclusiveFieldSpecified.Equals(value) != true))
+            {
+                minInclusiveFieldSpecified = value;
+                OnPropertyChanged("minInclusiveSpecified", value);
+            }
+        }
+    }
+    
+    [XmlAttribute]
+    [FractionDigitsAttribute(0)]
+    [MaxDigitsAttribute(29)]
+    [RangeAttribute(-7.9228162514264338E+28D, 0D)]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual string maxInclusive
+    public virtual decimal maxInclusive
     {
         get
         {
@@ -104,22 +122,40 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
         }
         set
         {
-            if ((_maxInclusive == value))
+            if ((_maxInclusive.Equals(value) != true))
             {
-                return;
-            }
-            if (((_maxInclusive == null) 
-                        || (_maxInclusive.Equals(value) != true)))
-            {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "maxInclusive";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _maxInclusive = value;
                 OnPropertyChanged("maxInclusive", value);
             }
         }
     }
     
-    [XmlAttribute(DataType="nonPositiveInteger")]
+    [XmlIgnore]
+    public virtual bool maxInclusiveSpecified
+    {
+        get
+        {
+            return maxInclusiveFieldSpecified;
+        }
+        set
+        {
+            if ((maxInclusiveFieldSpecified.Equals(value) != true))
+            {
+                maxInclusiveFieldSpecified = value;
+                OnPropertyChanged("maxInclusiveSpecified", value);
+            }
+        }
+    }
+    
+    [XmlAttribute]
+    [MaxDigitsAttribute(29)]
+    [FractionDigitsAttribute(0)]
+    [RangeAttribute(-7.9228162514264338E+28D, -1D)]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual string minExclusive
+    public virtual decimal minExclusive
     {
         get
         {
@@ -127,22 +163,40 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
         }
         set
         {
-            if ((_minExclusive == value))
+            if ((_minExclusive.Equals(value) != true))
             {
-                return;
-            }
-            if (((_minExclusive == null) 
-                        || (_minExclusive.Equals(value) != true)))
-            {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "minExclusive";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _minExclusive = value;
                 OnPropertyChanged("minExclusive", value);
             }
         }
     }
     
-    [XmlAttribute(DataType="nonPositiveInteger")]
+    [XmlIgnore]
+    public virtual bool minExclusiveSpecified
+    {
+        get
+        {
+            return minExclusiveFieldSpecified;
+        }
+        set
+        {
+            if ((minExclusiveFieldSpecified.Equals(value) != true))
+            {
+                minExclusiveFieldSpecified = value;
+                OnPropertyChanged("minExclusiveSpecified", value);
+            }
+        }
+    }
+    
+    [XmlAttribute]
+    [MaxDigitsAttribute(29)]
+    [FractionDigitsAttribute(0)]
+    [RangeAttribute(-7.9228162514264338E+28D, 1D)]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual string maxExclusive
+    public virtual decimal maxExclusive
     {
         get
         {
@@ -150,33 +204,43 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
         }
         set
         {
-            if ((_maxExclusive == value))
+            if ((_maxExclusive.Equals(value) != true))
             {
-                return;
-            }
-            if (((_maxExclusive == null) 
-                        || (_maxExclusive.Equals(value) != true)))
-            {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "maxExclusive";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _maxExclusive = value;
                 OnPropertyChanged("maxExclusive", value);
             }
         }
     }
     
-    [XmlAttribute]
-    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual byte totalDigits
+    [XmlIgnore]
+    public virtual bool maxExclusiveSpecified
     {
         get
         {
-            if (_totalDigits.HasValue)
+            return maxExclusiveFieldSpecified;
+        }
+        set
+        {
+            if ((maxExclusiveFieldSpecified.Equals(value) != true))
             {
-                return _totalDigits.Value;
+                maxExclusiveFieldSpecified = value;
+                OnPropertyChanged("maxExclusiveSpecified", value);
             }
-            else
-            {
-                return default(byte);
-            }
+        }
+    }
+    
+    [XmlAttribute]
+    [FractionDigitsAttribute(0)]
+    [MaxDigitsAttribute(2)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+    public virtual sbyte totalDigits
+    {
+        get
+        {
+            return _totalDigits;
         }
         set
         {
@@ -193,13 +257,14 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
     {
         get
         {
-            return _totalDigits.HasValue;
+            return totalDigitsFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((totalDigitsFieldSpecified.Equals(value) != true))
             {
-                _totalDigits = null;
+                totalDigitsFieldSpecified = value;
+                OnPropertyChanged("totalDigitsSpecified", value);
             }
         }
     }
@@ -243,7 +308,6 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
                 _allowGT = value;
                 OnPropertyChanged("allowGT", value);
             }
-            _shouldSerializeallowGT = true;
         }
     }
     
@@ -263,7 +327,6 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
                 _allowGTE = value;
                 OnPropertyChanged("allowGTE", value);
             }
-            _shouldSerializeallowGTE = true;
         }
     }
     
@@ -283,7 +346,6 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
                 _allowLT = value;
                 OnPropertyChanged("allowLT", value);
             }
-            _shouldSerializeallowLT = true;
         }
     }
     
@@ -303,7 +365,6 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
                 _allowLTE = value;
                 OnPropertyChanged("allowLTE", value);
             }
-            _shouldSerializeallowLTE = true;
         }
     }
     
@@ -323,63 +384,6 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
                 _allowAPPROX = value;
                 OnPropertyChanged("allowAPPROX", value);
             }
-            _shouldSerializeallowAPPROX = true;
-        }
-    }
-    
-    [JsonIgnore]
-    [XmlIgnore()]
-    public bool minInclusiveSpecified
-    {
-        get
-        {
-            return _minInclusiveSpecified;
-        }
-        set
-        {
-            _minInclusiveSpecified = value;
-        }
-    }
-    
-    [JsonIgnore]
-    [XmlIgnore()]
-    public bool maxInclusiveSpecified
-    {
-        get
-        {
-            return _maxInclusiveSpecified;
-        }
-        set
-        {
-            _maxInclusiveSpecified = value;
-        }
-    }
-    
-    [JsonIgnore]
-    [XmlIgnore()]
-    public bool minExclusiveSpecified
-    {
-        get
-        {
-            return _minExclusiveSpecified;
-        }
-        set
-        {
-            _minExclusiveSpecified = value;
-        }
-    }
-    
-    [JsonIgnore]
-    [XmlIgnore()]
-    public bool maxExclusiveSpecified
-    {
-        get
-        {
-            return _maxExclusiveSpecified;
-        }
-        set
-        {
-            _maxExclusiveSpecified = value;
         }
     }
     
@@ -465,98 +469,6 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
         {
             _allowAPPROXSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether allowGT should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowGT()
-    {
-        if (_shouldSerializeallowGT)
-        {
-            return true;
-        }
-        return (allowGT != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowGTE should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowGTE()
-    {
-        if (_shouldSerializeallowGTE)
-        {
-            return true;
-        }
-        return (allowGTE != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowLT should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowLT()
-    {
-        if (_shouldSerializeallowLT)
-        {
-            return true;
-        }
-        return (allowLT != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowLTE should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowLTE()
-    {
-        if (_shouldSerializeallowLTE)
-        {
-            return true;
-        }
-        return (allowLTE != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowAPPROX should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowAPPROX()
-    {
-        if (_shouldSerializeallowAPPROX)
-        {
-            return true;
-        }
-        return (allowAPPROX != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether minInclusive should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeminInclusive()
-    {
-        return !string.IsNullOrEmpty(minInclusive);
-    }
-    
-    /// <summary>
-    /// Test whether maxInclusive should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemaxInclusive()
-    {
-        return !string.IsNullOrEmpty(maxInclusive);
-    }
-    
-    /// <summary>
-    /// Test whether minExclusive should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeminExclusive()
-    {
-        return !string.IsNullOrEmpty(minExclusive);
-    }
-    
-    /// <summary>
-    /// Test whether maxExclusive should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemaxExclusive()
-    {
-        return !string.IsNullOrEmpty(maxExclusive);
     }
     
     /// <summary>

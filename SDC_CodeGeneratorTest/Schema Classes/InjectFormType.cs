@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -53,9 +54,6 @@ public partial class InjectFormType : IdentifiedExtensionType
     private string _repeat;
     private string _instanceGUID;
     private string _parentGUID;
-    private string _x_fullURI;
-    private string _x_pkgFullURI;
-    private string _x_pkgBaseURI;
     private bool _itemSpecified;
     private bool _injectionSourceURISpecified;
     private bool _rootItemIDSpecified;
@@ -63,9 +61,6 @@ public partial class InjectFormType : IdentifiedExtensionType
     private bool _repeatSpecified;
     private bool _instanceGUIDSpecified;
     private bool _parentGUIDSpecified;
-    private bool _x_fullURISpecified;
-    private bool _x_pkgFullURISpecified;
-    private bool _x_pkgBaseURISpecified;
     /// <summary>
     /// InjectFormType class constructor
     /// </summary>
@@ -100,15 +95,12 @@ public partial class InjectFormType : IdentifiedExtensionType
     
     /// <summary>
     /// NEW (2/24/2022): The source of the SDC FormDesign, Section or Question to inject
-    /// The URI is formed from :
+    /// The suggested form of the URI is:
     /// 
-    /// serverURI + \packageID (as described in the SDC Technical Reference Guide [TRG])
-    /// Retrieves a package containing no FDF responses (contains FDF(s) only)
-    /// -OR-
-    /// serverURI + \fullURI (as described in the TRG)
+    /// serverURI + \fullURI for the FDF (as described in the SDC Technical Reference Guide [TRG])
     /// Retrieves the latest package version with FDF responses (contains the latest FDF-R content)
     /// -OR-
-    /// serverURI +\instanceVersionURI (as described in the TRG)
+    /// serverURI +\instanceVersionURI for the FDF-R (as described in the TRG)
     /// Retrieves a specific package version with FDF responses  (contains the FDF-R content from a specific point in time)
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
@@ -259,103 +251,6 @@ public partial class InjectFormType : IdentifiedExtensionType
         }
     }
     
-    /// <summary>
-    /// NEW: The full URI that uniquely identifies the current package instance.
-    /// This URI does not vary with updated versions of the package instance.
-    /// This URI does not include the server address, from which the package is retrieved (the Form Manager).
-    /// (The Form Manager server address is found in pkgManagerURI).
-    /// Removed 2/24/2022
-    /// </summary>
-    [XmlAttribute(DataType="anyURI")]
-    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual string X_fullURI
-    {
-        get
-        {
-            return _x_fullURI;
-        }
-        set
-        {
-            if ((_x_fullURI == value))
-            {
-                return;
-            }
-            if (((_x_fullURI == null) 
-                        || (_x_fullURI.Equals(value) != true)))
-            {
-                _x_fullURI = value;
-                OnPropertyChanged("X_fullURI", value);
-            }
-        }
-    }
-    
-    /// <summary>
-    /// The injected package is retrieved form pkgManagerURI + "/" + pkgFullURI.
-    /// If pkgFullURI is null, then then current FormDesign is used as the source for injection.
-    /// Removed 2/24/2022
-    /// </summary>
-    [XmlAttribute(DataType="anyURI")]
-    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual string X_pkgFullURI
-    {
-        get
-        {
-            return _x_pkgFullURI;
-        }
-        set
-        {
-            if ((_x_pkgFullURI == value))
-            {
-                return;
-            }
-            if (((_x_pkgFullURI == null) 
-                        || (_x_pkgFullURI.Equals(value) != true)))
-            {
-                _x_pkgFullURI = value;
-                OnPropertyChanged("X_pkgFullURI", value);
-            }
-        }
-    }
-    
-    /// <summary>
-    /// DRAFT: The baseURI of the package, which indicates the
-    /// home source of the package.
-    /// 
-    /// pkgManagerURI + /pkgBaseURI + /pkgID
-    /// are concatenated to retrieve an empty form, wrapped in SDCPackage.
-    /// 
-    /// pkgManagerURI + /pkgBaseURI + /pkgInstanceVersionURI
-    /// are concatenated to retrieve a specific version of
-    /// a populated form, wrapped in SDCPackage.
-    /// 
-    /// pkgManagerURI + /pkgBaseURI + /pkgInstanceURI
-    /// are concatenated to retrieve the latest instance of a
-    /// populated form, wrapped in SDCPackage.
-    /// Removed 2/24/2022
-    /// </summary>
-    [XmlAttribute(DataType="anyURI")]
-    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual string X_pkgBaseURI
-    {
-        get
-        {
-            return _x_pkgBaseURI;
-        }
-        set
-        {
-            if ((_x_pkgBaseURI == value))
-            {
-                return;
-            }
-            if (((_x_pkgBaseURI == null) 
-                        || (_x_pkgBaseURI.Equals(value) != true)))
-            {
-                _x_pkgBaseURI = value;
-                OnPropertyChanged("X_pkgBaseURI", value);
-            }
-        }
-    }
-    
     [JsonIgnore]
     [XmlIgnore()]
     public bool ItemSpecified
@@ -454,48 +349,6 @@ public partial class InjectFormType : IdentifiedExtensionType
         }
     }
     
-    [JsonIgnore]
-    [XmlIgnore()]
-    public bool X_fullURISpecified
-    {
-        get
-        {
-            return _x_fullURISpecified;
-        }
-        set
-        {
-            _x_fullURISpecified = value;
-        }
-    }
-    
-    [JsonIgnore]
-    [XmlIgnore()]
-    public bool X_pkgFullURISpecified
-    {
-        get
-        {
-            return _x_pkgFullURISpecified;
-        }
-        set
-        {
-            _x_pkgFullURISpecified = value;
-        }
-    }
-    
-    [JsonIgnore]
-    [XmlIgnore()]
-    public bool X_pkgBaseURISpecified
-    {
-        get
-        {
-            return _x_pkgBaseURISpecified;
-        }
-        set
-        {
-            _x_pkgBaseURISpecified = value;
-        }
-    }
-    
     /// <summary>
     /// Test whether Item should be serialized
     /// </summary>
@@ -550,30 +403,6 @@ public partial class InjectFormType : IdentifiedExtensionType
     public virtual bool ShouldSerializeparentGUID()
     {
         return !string.IsNullOrEmpty(parentGUID);
-    }
-    
-    /// <summary>
-    /// Test whether X_fullURI should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeX_fullURI()
-    {
-        return !string.IsNullOrEmpty(X_fullURI);
-    }
-    
-    /// <summary>
-    /// Test whether X_pkgFullURI should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeX_pkgFullURI()
-    {
-        return !string.IsNullOrEmpty(X_pkgFullURI);
-    }
-    
-    /// <summary>
-    /// Test whether X_pkgBaseURI should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeX_pkgBaseURI()
-    {
-        return !string.IsNullOrEmpty(X_pkgBaseURI);
     }
 }
 }

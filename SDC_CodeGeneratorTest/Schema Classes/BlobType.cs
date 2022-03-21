@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -27,9 +28,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// Standard structure for including Binary Large Objects (Blobs) in XML templates. Blobs can
-/// handle any type of binary media, such as images, audio, video, and data streams of any specified format
-/// (such as a MIME type).
+/// Standard structure for including Binary Large Objects (Blobs) in XML
+/// templates. Blobs can handle any type of binary media, such as images, audio, video,
+/// and data streams of any specified format (such as a MIME type).
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
 [Serializable]
@@ -147,8 +148,7 @@ public partial class BlobType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Use a common file extension (e.g., docx) if there is no @MIME_Type
-    /// available
+    /// Use a common file extension (e.g., docx) if there is no @MIME_Type available
     /// </summary>
     [XmlAttribute]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]

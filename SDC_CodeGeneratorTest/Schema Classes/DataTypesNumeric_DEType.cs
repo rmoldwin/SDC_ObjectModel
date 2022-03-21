@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -27,10 +28,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// NEW: SDC datatypes for Data Entry (DE), based mostly on W3C specifications. Uses
-/// baseAttributes and Extension capability to enhance the list of Data Types. Includes additonal metadata
-/// to specify data input restrictions for data entry forms, and to aid in validation of IHE RFD SubmitForm
-/// responses in XML instance documents.
+/// NEW:
+/// SDC datatypes for Data Entry (DE), based mostly on W3C specifications. Uses baseAttributes  and Extension capability to enhance the list of Data Types. Includes additonal metadata to specify data input restrictions for data entry forms, and to aid in validation of IHE RFD SubmitForm responses in XML instance documents.
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
 [Serializable]

@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -33,11 +34,6 @@ using System.Collections.Generic;
 [JsonObject("gMonth_DEtype")]
 public partial class gMonth_DEtype : gMonth_Stype
 {
-    private bool _shouldSerializeallowAPPROX;
-    private bool _shouldSerializeallowLTE;
-    private bool _shouldSerializeallowLT;
-    private bool _shouldSerializeallowGTE;
-    private bool _shouldSerializeallowGT;
     private string _minInclusive;
     private string _maxInclusive;
     private string _minExclusive;
@@ -201,7 +197,6 @@ public partial class gMonth_DEtype : gMonth_Stype
                 _allowGT = value;
                 OnPropertyChanged("allowGT", value);
             }
-            _shouldSerializeallowGT = true;
         }
     }
     
@@ -221,7 +216,6 @@ public partial class gMonth_DEtype : gMonth_Stype
                 _allowGTE = value;
                 OnPropertyChanged("allowGTE", value);
             }
-            _shouldSerializeallowGTE = true;
         }
     }
     
@@ -241,7 +235,6 @@ public partial class gMonth_DEtype : gMonth_Stype
                 _allowLT = value;
                 OnPropertyChanged("allowLT", value);
             }
-            _shouldSerializeallowLT = true;
         }
     }
     
@@ -261,7 +254,6 @@ public partial class gMonth_DEtype : gMonth_Stype
                 _allowLTE = value;
                 OnPropertyChanged("allowLTE", value);
             }
-            _shouldSerializeallowLTE = true;
         }
     }
     
@@ -281,7 +273,6 @@ public partial class gMonth_DEtype : gMonth_Stype
                 _allowAPPROX = value;
                 OnPropertyChanged("allowAPPROX", value);
             }
-            _shouldSerializeallowAPPROX = true;
         }
     }
     
@@ -423,66 +414,6 @@ public partial class gMonth_DEtype : gMonth_Stype
         {
             _allowAPPROXSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether allowGT should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowGT()
-    {
-        if (_shouldSerializeallowGT)
-        {
-            return true;
-        }
-        return (allowGT != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowGTE should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowGTE()
-    {
-        if (_shouldSerializeallowGTE)
-        {
-            return true;
-        }
-        return (allowGTE != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowLT should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowLT()
-    {
-        if (_shouldSerializeallowLT)
-        {
-            return true;
-        }
-        return (allowLT != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowLTE should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowLTE()
-    {
-        if (_shouldSerializeallowLTE)
-        {
-            return true;
-        }
-        return (allowLTE != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowAPPROX should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowAPPROX()
-    {
-        if (_shouldSerializeallowAPPROX)
-        {
-            return true;
-        }
-        return (allowAPPROX != default(bool));
     }
     
     /// <summary>

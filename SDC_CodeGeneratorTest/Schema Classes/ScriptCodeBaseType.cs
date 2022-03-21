@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -41,8 +42,6 @@ using System.Collections.Generic;
 [JsonObject("ScriptCodeBaseType")]
 public abstract partial class ScriptCodeBaseType : ExtensionBaseType
 {
-    private bool _shouldSerializeallowNull;
-    private bool _shouldSerializereturnList;
     private bool _returnList;
     private string _listDelimiter;
     private string _objectTypeName;
@@ -85,7 +84,6 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
                 _returnList = value;
                 OnPropertyChanged("returnList", value);
             }
-            _shouldSerializereturnList = true;
         }
     }
     
@@ -175,7 +173,6 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
                 _allowNull = value;
                 OnPropertyChanged("allowNull", value);
             }
-            _shouldSerializeallowNull = true;
         }
     }
     
@@ -364,30 +361,6 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
         {
             _codeSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether returnList should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializereturnList()
-    {
-        if (_shouldSerializereturnList)
-        {
-            return true;
-        }
-        return (returnList != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowNull should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowNull()
-    {
-        if (_shouldSerializeallowNull)
-        {
-            return true;
-        }
-        return (allowNull != default(bool));
     }
     
     /// <summary>

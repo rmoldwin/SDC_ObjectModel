@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -41,12 +42,10 @@ public partial class MappingType : ExtensionBaseType
     private List<ItemMapType> _itemMap;
     private string _templateID;
     private string _targetTemplateID;
-    private string _mediaType;
     private bool _defaultCodeSystemSpecified;
     private bool _itemMapSpecified;
     private bool _templateIDSpecified;
     private bool _targetTemplateIDSpecified;
-    private bool _mediaTypeSpecified;
     /// <summary>
     /// Specifies the default coding system to be implied for all MappedCode elements listed in thte ItemMap entries.  Any CodeSystem explicitly used in a MappedCode entry will override the default value.
     /// </summary>
@@ -145,29 +144,6 @@ public partial class MappingType : ExtensionBaseType
         }
     }
     
-    [XmlAttribute]
-    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual string mediaType
-    {
-        get
-        {
-            return _mediaType;
-        }
-        set
-        {
-            if ((_mediaType == value))
-            {
-                return;
-            }
-            if (((_mediaType == null) 
-                        || (_mediaType.Equals(value) != true)))
-            {
-                _mediaType = value;
-                OnPropertyChanged("mediaType", value);
-            }
-        }
-    }
-    
     [JsonIgnore]
     [XmlIgnore()]
     public bool DefaultCodeSystemSpecified
@@ -224,20 +200,6 @@ public partial class MappingType : ExtensionBaseType
         }
     }
     
-    [JsonIgnore]
-    [XmlIgnore()]
-    public bool mediaTypeSpecified
-    {
-        get
-        {
-            return _mediaTypeSpecified;
-        }
-        set
-        {
-            _mediaTypeSpecified = value;
-        }
-    }
-    
     /// <summary>
     /// Test whether ItemMap should be serialized
     /// </summary>
@@ -268,14 +230,6 @@ public partial class MappingType : ExtensionBaseType
     public virtual bool ShouldSerializetargetTemplateID()
     {
         return !string.IsNullOrEmpty(targetTemplateID);
-    }
-    
-    /// <summary>
-    /// Test whether mediaType should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemediaType()
-    {
-        return !string.IsNullOrEmpty(mediaType);
     }
 }
 }

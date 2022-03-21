@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -38,9 +39,6 @@ using System.Collections.Generic;
 [JsonObject("ListFieldType")]
 public partial class ListFieldType : ExtensionBaseType
 {
-    private bool _shouldSerializeordered;
-    private bool _shouldSerializemaxSelections;
-    private bool _shouldSerializeminSelections;
     private RichTextType _listHeaderText;
     private CodeSystemType _defaultCodeSystem;
     private ExtensionBaseType _item;
@@ -356,7 +354,6 @@ public partial class ListFieldType : ExtensionBaseType
                 _minSelections = value;
                 OnPropertyChanged("minSelections", value);
             }
-            _shouldSerializeminSelections = true;
         }
     }
     
@@ -385,7 +382,6 @@ public partial class ListFieldType : ExtensionBaseType
                 _maxSelections = value;
                 OnPropertyChanged("maxSelections", value);
             }
-            _shouldSerializemaxSelections = true;
         }
     }
     
@@ -409,7 +405,6 @@ public partial class ListFieldType : ExtensionBaseType
                 _ordered = value;
                 OnPropertyChanged("ordered", value);
             }
-            _shouldSerializeordered = true;
         }
     }
     
@@ -672,42 +667,6 @@ public partial class ListFieldType : ExtensionBaseType
     public virtual bool ShouldSerializeOnEvent()
     {
         return OnEvent != null && OnEvent.Count > 0;
-    }
-    
-    /// <summary>
-    /// Test whether minSelections should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeminSelections()
-    {
-        if (_shouldSerializeminSelections)
-        {
-            return true;
-        }
-        return (minSelections != default(ushort));
-    }
-    
-    /// <summary>
-    /// Test whether maxSelections should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemaxSelections()
-    {
-        if (_shouldSerializemaxSelections)
-        {
-            return true;
-        }
-        return (maxSelections != default(ushort));
-    }
-    
-    /// <summary>
-    /// Test whether ordered should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeordered()
-    {
-        if (_shouldSerializeordered)
-        {
-            return true;
-        }
-        return (ordered != default(bool));
     }
     
     /// <summary>

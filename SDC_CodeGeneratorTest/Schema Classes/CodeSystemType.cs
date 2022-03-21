@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -27,8 +28,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// This type represents information about the coding system used in CodingType. It may refer
-/// to any type of coding, terminology, classification, keyword, or local value system.
+/// This type represents information about the coding system used in CodingType. It may refer to any type of coding, terminology, classification, keyword, or local value system.
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
 [Serializable]
@@ -48,11 +48,12 @@ public partial class CodeSystemType : ExtensionBaseType
     private bool _oIDSpecified;
     private bool _codeSystemURISpecified;
     /// <summary>
-    /// The name of the coding system, as recommended by the coding system
-    /// curators, or as recommended by the agency that creates standards for the code map in
-    /// use.
+    /// The name of the coding system, as recommended by the
+    /// coding system curators, or as recommended by the agency that creates
+    /// standards for the code map in use.
     /// </summary>
     [XmlElement(Order=0)]
+    [RequiredAttribute()]
     [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype CodeSystemName
     {
@@ -69,6 +70,9 @@ public partial class CodeSystemType : ExtensionBaseType
             if (((_codeSystemName == null) 
                         || (_codeSystemName.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "CodeSystemName";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _codeSystemName = value;
                 OnPropertyChanged("CodeSystemName", value);
             }
@@ -76,8 +80,7 @@ public partial class CodeSystemType : ExtensionBaseType
     }
     
     /// <summary>
-    /// The day that the selected version of the coding system was released for
-    /// general use by the coding system curators.
+    /// The day that the selected version of the coding system was released for general use by the coding system curators.
     /// </summary>
     [XmlElement(Order=1)]
     [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
@@ -103,8 +106,7 @@ public partial class CodeSystemType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Version of the coding system, using the version format defined by the
-    /// coding system
+    /// Version of the coding system, using the version format defined by the coding system
     /// </summary>
     [XmlElement(Order=2)]
     [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
@@ -130,8 +132,7 @@ public partial class CodeSystemType : ExtensionBaseType
     }
     
     /// <summary>
-    /// The ISO object identifier (OID) for the coding system, as found at the HL7
-    /// OID Registry: https://www.hl7.org/oid/index.cfm
+    /// The ISO object identifier (OID) for the coding system, as found at the HL7 OID Registry: https://www.hl7.org/oid/index.cfm
     /// </summary>
     [XmlElement(Order=3)]
     [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]

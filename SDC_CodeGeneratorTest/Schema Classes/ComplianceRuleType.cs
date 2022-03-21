@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -27,9 +28,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// General information about how information in a particular form package must be handled.
-/// This may include, e.g., security, completeness, transmission, and validation
-/// criteria.
+/// General information about how information in a particular form package must be handled. This may include, e.g., security, completeness, transmission, and validation criteria.
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
 [Serializable]
@@ -47,6 +46,7 @@ public partial class ComplianceRuleType : ExtensionBaseType
     private bool _ruleIDSpecified;
     private bool _formIDSpecified;
     [XmlElement(Order=0)]
+    [RequiredAttribute()]
     [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Description
     {
@@ -63,6 +63,9 @@ public partial class ComplianceRuleType : ExtensionBaseType
             if (((_description == null) 
                         || (_description.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "Description";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _description = value;
                 OnPropertyChanged("Description", value);
             }

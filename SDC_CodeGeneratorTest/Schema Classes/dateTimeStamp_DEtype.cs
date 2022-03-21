@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -33,14 +34,14 @@ using System.Collections.Generic;
 [JsonObject("dateTimeStamp_DEtype")]
 public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
 {
-    private bool _shouldSerializeminInclusive;
-    private bool _shouldSerializemaxInclusive;
-    private bool _shouldSerializeminExclusive;
-    private bool _shouldSerializemaxExclusive;
-    private DateTime? _maxExclusive;
-    private DateTime? _minExclusive;
-    private DateTime? _maxInclusive;
-    private DateTime? _minInclusive;
+    private System.DateTime _maxExclusive;
+    private bool maxExclusiveFieldSpecified;
+    private System.DateTime _minExclusive;
+    private bool minExclusiveFieldSpecified;
+    private System.DateTime _maxInclusive;
+    private bool maxInclusiveFieldSpecified;
+    private System.DateTime _minInclusive;
+    private bool minInclusiveFieldSpecified;
     private string _mask;
     private bool _maskSpecified;
     [XmlAttribute]
@@ -49,14 +50,7 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
     {
         get
         {
-            if (_maxExclusive.HasValue)
-            {
-                return _maxExclusive.Value;
-            }
-            else
-            {
-                return default(System.DateTime);
-            }
+            return _maxExclusive;
         }
         set
         {
@@ -65,7 +59,6 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
                 _maxExclusive = value;
                 OnPropertyChanged("maxExclusive", value);
             }
-            _shouldSerializemaxExclusive = true;
         }
     }
     
@@ -74,13 +67,14 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
     {
         get
         {
-            return _maxExclusive.HasValue;
+            return maxExclusiveFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((maxExclusiveFieldSpecified.Equals(value) != true))
             {
-                _maxExclusive = null;
+                maxExclusiveFieldSpecified = value;
+                OnPropertyChanged("maxExclusiveSpecified", value);
             }
         }
     }
@@ -91,14 +85,7 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
     {
         get
         {
-            if (_minExclusive.HasValue)
-            {
-                return _minExclusive.Value;
-            }
-            else
-            {
-                return default(System.DateTime);
-            }
+            return _minExclusive;
         }
         set
         {
@@ -107,7 +94,6 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
                 _minExclusive = value;
                 OnPropertyChanged("minExclusive", value);
             }
-            _shouldSerializeminExclusive = true;
         }
     }
     
@@ -116,13 +102,14 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
     {
         get
         {
-            return _minExclusive.HasValue;
+            return minExclusiveFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((minExclusiveFieldSpecified.Equals(value) != true))
             {
-                _minExclusive = null;
+                minExclusiveFieldSpecified = value;
+                OnPropertyChanged("minExclusiveSpecified", value);
             }
         }
     }
@@ -133,14 +120,7 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
     {
         get
         {
-            if (_maxInclusive.HasValue)
-            {
-                return _maxInclusive.Value;
-            }
-            else
-            {
-                return default(System.DateTime);
-            }
+            return _maxInclusive;
         }
         set
         {
@@ -149,7 +129,6 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
                 _maxInclusive = value;
                 OnPropertyChanged("maxInclusive", value);
             }
-            _shouldSerializemaxInclusive = true;
         }
     }
     
@@ -158,13 +137,14 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
     {
         get
         {
-            return _maxInclusive.HasValue;
+            return maxInclusiveFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((maxInclusiveFieldSpecified.Equals(value) != true))
             {
-                _maxInclusive = null;
+                maxInclusiveFieldSpecified = value;
+                OnPropertyChanged("maxInclusiveSpecified", value);
             }
         }
     }
@@ -175,14 +155,7 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
     {
         get
         {
-            if (_minInclusive.HasValue)
-            {
-                return _minInclusive.Value;
-            }
-            else
-            {
-                return default(System.DateTime);
-            }
+            return _minInclusive;
         }
         set
         {
@@ -191,7 +164,6 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
                 _minInclusive = value;
                 OnPropertyChanged("minInclusive", value);
             }
-            _shouldSerializeminInclusive = true;
         }
     }
     
@@ -200,13 +172,14 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
     {
         get
         {
-            return _minInclusive.HasValue;
+            return minInclusiveFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((minInclusiveFieldSpecified.Equals(value) != true))
             {
-                _minInclusive = null;
+                minInclusiveFieldSpecified = value;
+                OnPropertyChanged("minInclusiveSpecified", value);
             }
         }
     }
@@ -246,54 +219,6 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
         {
             _maskSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether maxExclusive should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemaxExclusive()
-    {
-        if (_shouldSerializemaxExclusive)
-        {
-            return true;
-        }
-        return (maxExclusive != default(System.DateTime));
-    }
-    
-    /// <summary>
-    /// Test whether minExclusive should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeminExclusive()
-    {
-        if (_shouldSerializeminExclusive)
-        {
-            return true;
-        }
-        return (minExclusive != default(System.DateTime));
-    }
-    
-    /// <summary>
-    /// Test whether maxInclusive should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemaxInclusive()
-    {
-        if (_shouldSerializemaxInclusive)
-        {
-            return true;
-        }
-        return (maxInclusive != default(System.DateTime));
-    }
-    
-    /// <summary>
-    /// Test whether minInclusive should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeminInclusive()
-    {
-        if (_shouldSerializeminInclusive)
-        {
-            return true;
-        }
-        return (minInclusive != default(System.DateTime));
     }
     
     /// <summary>

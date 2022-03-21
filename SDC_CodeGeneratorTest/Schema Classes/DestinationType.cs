@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -45,6 +46,7 @@ public partial class DestinationType : ExtensionBaseType
     private bool _submissionTechnologySpecified;
     private bool _organizationSpecified;
     [XmlElement(Order=0)]
+    [RequiredAttribute()]
     [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual anyURI_Stype Endpoint
     {
@@ -61,6 +63,9 @@ public partial class DestinationType : ExtensionBaseType
             if (((_endpoint == null) 
                         || (_endpoint.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "Endpoint";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _endpoint = value;
                 OnPropertyChanged("Endpoint", value);
             }
@@ -68,6 +73,7 @@ public partial class DestinationType : ExtensionBaseType
     }
     
     [XmlElement(Order=1)]
+    [RequiredAttribute()]
     [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype EndpointDescription
     {
@@ -84,6 +90,9 @@ public partial class DestinationType : ExtensionBaseType
             if (((_endpointDescription == null) 
                         || (_endpointDescription.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "EndpointDescription";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _endpointDescription = value;
                 OnPropertyChanged("EndpointDescription", value);
             }

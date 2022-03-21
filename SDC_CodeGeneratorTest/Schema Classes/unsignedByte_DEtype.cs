@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -33,16 +34,16 @@ using System.Collections.Generic;
 [JsonObject("unsignedByte_DEtype")]
 public partial class unsignedByte_DEtype : unsignedByte_Stype
 {
-    private bool _shouldSerializeallowAPPROX;
-    private bool _shouldSerializeallowLTE;
-    private bool _shouldSerializeallowLT;
-    private bool _shouldSerializeallowGTE;
-    private bool _shouldSerializeallowGT;
-    private System.Nullable<byte> _minInclusive;
-    private System.Nullable<byte> _maxInclusive;
-    private System.Nullable<byte> _minExclusive;
-    private System.Nullable<byte> _maxExclusive;
-    private System.Nullable<byte> _totalDigits;
+    private byte _minInclusive;
+    private bool minInclusiveFieldSpecified;
+    private byte _maxInclusive;
+    private bool maxInclusiveFieldSpecified;
+    private byte _minExclusive;
+    private bool minExclusiveFieldSpecified;
+    private byte _maxExclusive;
+    private bool maxExclusiveFieldSpecified;
+    private byte _totalDigits;
+    private bool totalDigitsFieldSpecified;
     private string _mask;
     private bool _allowGT;
     private bool _allowGTE;
@@ -73,14 +74,7 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
     {
         get
         {
-            if (_minInclusive.HasValue)
-            {
-                return _minInclusive.Value;
-            }
-            else
-            {
-                return default(byte);
-            }
+            return _minInclusive;
         }
         set
         {
@@ -97,13 +91,14 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
     {
         get
         {
-            return _minInclusive.HasValue;
+            return minInclusiveFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((minInclusiveFieldSpecified.Equals(value) != true))
             {
-                _minInclusive = null;
+                minInclusiveFieldSpecified = value;
+                OnPropertyChanged("minInclusiveSpecified", value);
             }
         }
     }
@@ -114,14 +109,7 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
     {
         get
         {
-            if (_maxInclusive.HasValue)
-            {
-                return _maxInclusive.Value;
-            }
-            else
-            {
-                return default(byte);
-            }
+            return _maxInclusive;
         }
         set
         {
@@ -138,13 +126,14 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
     {
         get
         {
-            return _maxInclusive.HasValue;
+            return maxInclusiveFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((maxInclusiveFieldSpecified.Equals(value) != true))
             {
-                _maxInclusive = null;
+                maxInclusiveFieldSpecified = value;
+                OnPropertyChanged("maxInclusiveSpecified", value);
             }
         }
     }
@@ -155,14 +144,7 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
     {
         get
         {
-            if (_minExclusive.HasValue)
-            {
-                return _minExclusive.Value;
-            }
-            else
-            {
-                return default(byte);
-            }
+            return _minExclusive;
         }
         set
         {
@@ -179,13 +161,14 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
     {
         get
         {
-            return _minExclusive.HasValue;
+            return minExclusiveFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((minExclusiveFieldSpecified.Equals(value) != true))
             {
-                _minExclusive = null;
+                minExclusiveFieldSpecified = value;
+                OnPropertyChanged("minExclusiveSpecified", value);
             }
         }
     }
@@ -196,14 +179,7 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
     {
         get
         {
-            if (_maxExclusive.HasValue)
-            {
-                return _maxExclusive.Value;
-            }
-            else
-            {
-                return default(byte);
-            }
+            return _maxExclusive;
         }
         set
         {
@@ -220,31 +196,27 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
     {
         get
         {
-            return _maxExclusive.HasValue;
+            return maxExclusiveFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((maxExclusiveFieldSpecified.Equals(value) != true))
             {
-                _maxExclusive = null;
+                maxExclusiveFieldSpecified = value;
+                OnPropertyChanged("maxExclusiveSpecified", value);
             }
         }
     }
     
     [XmlAttribute]
+    [FractionDigitsAttribute(0)]
+    [MaxDigitsAttribute(1)]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual byte totalDigits
     {
         get
         {
-            if (_totalDigits.HasValue)
-            {
-                return _totalDigits.Value;
-            }
-            else
-            {
-                return default(byte);
-            }
+            return _totalDigits;
         }
         set
         {
@@ -261,13 +233,14 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
     {
         get
         {
-            return _totalDigits.HasValue;
+            return totalDigitsFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((totalDigitsFieldSpecified.Equals(value) != true))
             {
-                _totalDigits = null;
+                totalDigitsFieldSpecified = value;
+                OnPropertyChanged("totalDigitsSpecified", value);
             }
         }
     }
@@ -311,7 +284,6 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
                 _allowGT = value;
                 OnPropertyChanged("allowGT", value);
             }
-            _shouldSerializeallowGT = true;
         }
     }
     
@@ -331,7 +303,6 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
                 _allowGTE = value;
                 OnPropertyChanged("allowGTE", value);
             }
-            _shouldSerializeallowGTE = true;
         }
     }
     
@@ -351,7 +322,6 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
                 _allowLT = value;
                 OnPropertyChanged("allowLT", value);
             }
-            _shouldSerializeallowLT = true;
         }
     }
     
@@ -371,7 +341,6 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
                 _allowLTE = value;
                 OnPropertyChanged("allowLTE", value);
             }
-            _shouldSerializeallowLTE = true;
         }
     }
     
@@ -391,7 +360,6 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
                 _allowAPPROX = value;
                 OnPropertyChanged("allowAPPROX", value);
             }
-            _shouldSerializeallowAPPROX = true;
         }
     }
     
@@ -477,66 +445,6 @@ public partial class unsignedByte_DEtype : unsignedByte_Stype
         {
             _allowAPPROXSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether allowGT should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowGT()
-    {
-        if (_shouldSerializeallowGT)
-        {
-            return true;
-        }
-        return (allowGT != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowGTE should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowGTE()
-    {
-        if (_shouldSerializeallowGTE)
-        {
-            return true;
-        }
-        return (allowGTE != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowLT should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowLT()
-    {
-        if (_shouldSerializeallowLT)
-        {
-            return true;
-        }
-        return (allowLT != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowLTE should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowLTE()
-    {
-        if (_shouldSerializeallowLTE)
-        {
-            return true;
-        }
-        return (allowLTE != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowAPPROX should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowAPPROX()
-    {
-        if (_shouldSerializeallowAPPROX)
-        {
-            return true;
-        }
-        return (allowAPPROX != default(bool));
     }
     
     /// <summary>

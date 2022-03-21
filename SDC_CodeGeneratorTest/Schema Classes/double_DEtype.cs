@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -33,21 +34,18 @@ using System.Collections.Generic;
 [JsonObject("double_DEtype")]
 public partial class double_DEtype : double_Stype
 {
-    private bool _shouldSerializeallowAPPROX;
-    private bool _shouldSerializeallowLTE;
-    private bool _shouldSerializeallowLT;
-    private bool _shouldSerializeallowGTE;
-    private bool _shouldSerializeallowGT;
-    private bool _shouldSerializemaxExclusive;
-    private bool _shouldSerializeminExclusive;
-    private bool _shouldSerializemaxInclusive;
-    private bool _shouldSerializeminInclusive;
-    private System.Nullable<double> _minInclusive;
-    private System.Nullable<double> _maxInclusive;
-    private System.Nullable<double> _minExclusive;
-    private System.Nullable<double> _maxExclusive;
-    private System.Nullable<byte> _fractionDigits;
-    private System.Nullable<byte> _totalDigits;
+    private double _minInclusive;
+    private bool minInclusiveFieldSpecified;
+    private double _maxInclusive;
+    private bool maxInclusiveFieldSpecified;
+    private double _minExclusive;
+    private bool minExclusiveFieldSpecified;
+    private double _maxExclusive;
+    private bool maxExclusiveFieldSpecified;
+    private byte _fractionDigits;
+    private bool fractionDigitsFieldSpecified;
+    private byte _totalDigits;
+    private bool totalDigitsFieldSpecified;
     private bool _allowGT;
     private bool _allowGTE;
     private bool _allowLT;
@@ -76,14 +74,7 @@ public partial class double_DEtype : double_Stype
     {
         get
         {
-            if (_minInclusive.HasValue)
-            {
-                return _minInclusive.Value;
-            }
-            else
-            {
-                return default(double);
-            }
+            return _minInclusive;
         }
         set
         {
@@ -92,7 +83,6 @@ public partial class double_DEtype : double_Stype
                 _minInclusive = value;
                 OnPropertyChanged("minInclusive", value);
             }
-            _shouldSerializeminInclusive = true;
         }
     }
     
@@ -101,13 +91,14 @@ public partial class double_DEtype : double_Stype
     {
         get
         {
-            return _minInclusive.HasValue;
+            return minInclusiveFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((minInclusiveFieldSpecified.Equals(value) != true))
             {
-                _minInclusive = null;
+                minInclusiveFieldSpecified = value;
+                OnPropertyChanged("minInclusiveSpecified", value);
             }
         }
     }
@@ -118,14 +109,7 @@ public partial class double_DEtype : double_Stype
     {
         get
         {
-            if (_maxInclusive.HasValue)
-            {
-                return _maxInclusive.Value;
-            }
-            else
-            {
-                return default(double);
-            }
+            return _maxInclusive;
         }
         set
         {
@@ -134,7 +118,6 @@ public partial class double_DEtype : double_Stype
                 _maxInclusive = value;
                 OnPropertyChanged("maxInclusive", value);
             }
-            _shouldSerializemaxInclusive = true;
         }
     }
     
@@ -143,13 +126,14 @@ public partial class double_DEtype : double_Stype
     {
         get
         {
-            return _maxInclusive.HasValue;
+            return maxInclusiveFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((maxInclusiveFieldSpecified.Equals(value) != true))
             {
-                _maxInclusive = null;
+                maxInclusiveFieldSpecified = value;
+                OnPropertyChanged("maxInclusiveSpecified", value);
             }
         }
     }
@@ -160,14 +144,7 @@ public partial class double_DEtype : double_Stype
     {
         get
         {
-            if (_minExclusive.HasValue)
-            {
-                return _minExclusive.Value;
-            }
-            else
-            {
-                return default(double);
-            }
+            return _minExclusive;
         }
         set
         {
@@ -176,7 +153,6 @@ public partial class double_DEtype : double_Stype
                 _minExclusive = value;
                 OnPropertyChanged("minExclusive", value);
             }
-            _shouldSerializeminExclusive = true;
         }
     }
     
@@ -185,13 +161,14 @@ public partial class double_DEtype : double_Stype
     {
         get
         {
-            return _minExclusive.HasValue;
+            return minExclusiveFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((minExclusiveFieldSpecified.Equals(value) != true))
             {
-                _minExclusive = null;
+                minExclusiveFieldSpecified = value;
+                OnPropertyChanged("minExclusiveSpecified", value);
             }
         }
     }
@@ -202,14 +179,7 @@ public partial class double_DEtype : double_Stype
     {
         get
         {
-            if (_maxExclusive.HasValue)
-            {
-                return _maxExclusive.Value;
-            }
-            else
-            {
-                return default(double);
-            }
+            return _maxExclusive;
         }
         set
         {
@@ -218,7 +188,6 @@ public partial class double_DEtype : double_Stype
                 _maxExclusive = value;
                 OnPropertyChanged("maxExclusive", value);
             }
-            _shouldSerializemaxExclusive = true;
         }
     }
     
@@ -227,31 +196,27 @@ public partial class double_DEtype : double_Stype
     {
         get
         {
-            return _maxExclusive.HasValue;
+            return maxExclusiveFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((maxExclusiveFieldSpecified.Equals(value) != true))
             {
-                _maxExclusive = null;
+                maxExclusiveFieldSpecified = value;
+                OnPropertyChanged("maxExclusiveSpecified", value);
             }
         }
     }
     
     [XmlAttribute]
+    [FractionDigitsAttribute(0)]
+    [MaxDigitsAttribute(2)]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual byte fractionDigits
     {
         get
         {
-            if (_fractionDigits.HasValue)
-            {
-                return _fractionDigits.Value;
-            }
-            else
-            {
-                return default(byte);
-            }
+            return _fractionDigits;
         }
         set
         {
@@ -268,31 +233,26 @@ public partial class double_DEtype : double_Stype
     {
         get
         {
-            return _fractionDigits.HasValue;
+            return fractionDigitsFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((fractionDigitsFieldSpecified.Equals(value) != true))
             {
-                _fractionDigits = null;
+                fractionDigitsFieldSpecified = value;
+                OnPropertyChanged("fractionDigitsSpecified", value);
             }
         }
     }
     
     [XmlAttribute]
+    [MaxDigitsAttribute(2)]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual byte totalDigits
     {
         get
         {
-            if (_totalDigits.HasValue)
-            {
-                return _totalDigits.Value;
-            }
-            else
-            {
-                return default(byte);
-            }
+            return _totalDigits;
         }
         set
         {
@@ -309,13 +269,14 @@ public partial class double_DEtype : double_Stype
     {
         get
         {
-            return _totalDigits.HasValue;
+            return totalDigitsFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((totalDigitsFieldSpecified.Equals(value) != true))
             {
-                _totalDigits = null;
+                totalDigitsFieldSpecified = value;
+                OnPropertyChanged("totalDigitsSpecified", value);
             }
         }
     }
@@ -336,7 +297,6 @@ public partial class double_DEtype : double_Stype
                 _allowGT = value;
                 OnPropertyChanged("allowGT", value);
             }
-            _shouldSerializeallowGT = true;
         }
     }
     
@@ -356,7 +316,6 @@ public partial class double_DEtype : double_Stype
                 _allowGTE = value;
                 OnPropertyChanged("allowGTE", value);
             }
-            _shouldSerializeallowGTE = true;
         }
     }
     
@@ -376,7 +335,6 @@ public partial class double_DEtype : double_Stype
                 _allowLT = value;
                 OnPropertyChanged("allowLT", value);
             }
-            _shouldSerializeallowLT = true;
         }
     }
     
@@ -396,7 +354,6 @@ public partial class double_DEtype : double_Stype
                 _allowLTE = value;
                 OnPropertyChanged("allowLTE", value);
             }
-            _shouldSerializeallowLTE = true;
         }
     }
     
@@ -416,7 +373,6 @@ public partial class double_DEtype : double_Stype
                 _allowAPPROX = value;
                 OnPropertyChanged("allowAPPROX", value);
             }
-            _shouldSerializeallowAPPROX = true;
         }
     }
     
@@ -488,114 +444,6 @@ public partial class double_DEtype : double_Stype
         {
             _allowAPPROXSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether minInclusive should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeminInclusive()
-    {
-        if (_shouldSerializeminInclusive)
-        {
-            return true;
-        }
-        return (minInclusive != default(double));
-    }
-    
-    /// <summary>
-    /// Test whether maxInclusive should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemaxInclusive()
-    {
-        if (_shouldSerializemaxInclusive)
-        {
-            return true;
-        }
-        return (maxInclusive != default(double));
-    }
-    
-    /// <summary>
-    /// Test whether minExclusive should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeminExclusive()
-    {
-        if (_shouldSerializeminExclusive)
-        {
-            return true;
-        }
-        return (minExclusive != default(double));
-    }
-    
-    /// <summary>
-    /// Test whether maxExclusive should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemaxExclusive()
-    {
-        if (_shouldSerializemaxExclusive)
-        {
-            return true;
-        }
-        return (maxExclusive != default(double));
-    }
-    
-    /// <summary>
-    /// Test whether allowGT should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowGT()
-    {
-        if (_shouldSerializeallowGT)
-        {
-            return true;
-        }
-        return (allowGT != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowGTE should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowGTE()
-    {
-        if (_shouldSerializeallowGTE)
-        {
-            return true;
-        }
-        return (allowGTE != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowLT should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowLT()
-    {
-        if (_shouldSerializeallowLT)
-        {
-            return true;
-        }
-        return (allowLT != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowLTE should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowLTE()
-    {
-        if (_shouldSerializeallowLTE)
-        {
-            return true;
-        }
-        return (allowLTE != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowAPPROX should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowAPPROX()
-    {
-        if (_shouldSerializeallowAPPROX)
-        {
-            return true;
-        }
-        return (allowAPPROX != default(bool));
     }
 }
 }

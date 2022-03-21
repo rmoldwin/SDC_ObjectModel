@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -34,22 +35,15 @@ using System.Collections.Generic;
 [JsonObject("boolean_Stype")]
 public partial class boolean_Stype : BaseType
 {
-    private bool _shouldSerializeval;
-    private bool? _val;
+    private bool _val;
+    private bool valFieldSpecified;
     [XmlAttribute]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool val
     {
         get
         {
-            if (_val.HasValue)
-            {
-                return _val.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _val;
         }
         set
         {
@@ -58,7 +52,6 @@ public partial class boolean_Stype : BaseType
                 _val = value;
                 OnPropertyChanged("val", value);
             }
-            _shouldSerializeval = true;
         }
     }
     
@@ -67,27 +60,16 @@ public partial class boolean_Stype : BaseType
     {
         get
         {
-            return _val.HasValue;
+            return valFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((valFieldSpecified.Equals(value) != true))
             {
-                _val = null;
+                valFieldSpecified = value;
+                OnPropertyChanged("valSpecified", value);
             }
         }
-    }
-    
-    /// <summary>
-    /// Test whether val should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeval()
-    {
-        if (_shouldSerializeval)
-        {
-            return true;
-        }
-        return (val != default(bool));
     }
 }
 }

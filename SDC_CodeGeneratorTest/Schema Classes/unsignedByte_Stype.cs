@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -35,7 +36,8 @@ using System.Collections.Generic;
 public partial class unsignedByte_Stype : BaseType
 {
     private bool _shouldSerializequantEnum;
-    private System.Nullable<byte> _val;
+    private byte _val;
+    private bool valFieldSpecified;
     private dtQuantEnum _quantEnum;
     private bool _quantEnumSpecified;
     /// <summary>
@@ -52,14 +54,7 @@ public partial class unsignedByte_Stype : BaseType
     {
         get
         {
-            if (_val.HasValue)
-            {
-                return _val.Value;
-            }
-            else
-            {
-                return default(byte);
-            }
+            return _val;
         }
         set
         {
@@ -76,13 +71,14 @@ public partial class unsignedByte_Stype : BaseType
     {
         get
         {
-            return _val.HasValue;
+            return valFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((valFieldSpecified.Equals(value) != true))
             {
-                _val = null;
+                valFieldSpecified = value;
+                OnPropertyChanged("valSpecified", value);
             }
         }
     }

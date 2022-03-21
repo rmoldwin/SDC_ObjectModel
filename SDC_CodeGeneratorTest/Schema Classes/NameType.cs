@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -27,8 +28,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// Structure to define a person's name, including prefixes, suffixes, and
-/// degrees.
+/// Structure to define a person's name, including prefixes, suffixes, and degrees.
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
 [Serializable]
@@ -167,8 +167,7 @@ public partial class NameType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Acronyms for degrees and certifications, e.g., MD, PhD, FACP (repeat
-    /// element for each acronym)
+    /// Acronyms for degrees and certifications, e.g., MD, PhD, FACP (repeat element for each acronym)
     /// </summary>
     [XmlElement("DegreeCert", Order=5)]
     [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]

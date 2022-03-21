@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -57,6 +58,7 @@ public partial class OrganizationType : ExtensionBaseType
     private bool _identifierSpecified;
     private bool _usageSpecified;
     [XmlElement(IsNullable=true, Order=0)]
+    [RequiredAttribute()]
     [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype OrgName
     {
@@ -73,6 +75,9 @@ public partial class OrganizationType : ExtensionBaseType
             if (((_orgName == null) 
                         || (_orgName.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "OrgName";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _orgName = value;
                 OnPropertyChanged("OrgName", value);
             }
@@ -195,8 +200,8 @@ public partial class OrganizationType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Role of the organization, e.g., creator, copyright holder, accreditor,
-    /// certifier, curator, etc.
+    /// Role of the organization, e.g., creator, copyright
+    /// holder, accreditor, certifier, curator, etc.
     /// </summary>
     [XmlElement("Role", Order=6)]
     [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
@@ -268,7 +273,8 @@ public partial class OrganizationType : ExtensionBaseType
     }
     
     /// <summary>
-    /// When this organization should be contacted.
+    /// When this organization should be
+    /// contacted.
     /// </summary>
     [XmlElement(Order=9)]
     [JsonProperty(Order=9, NullValueHandling=NullValueHandling.Ignore)]

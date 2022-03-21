@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -78,8 +79,8 @@ public partial class AddressType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Address instructions for directing mail within an organizations buildings
-    /// or corporate infrastructure.
+    /// Address instructions for directing mail within an organizations buildings or corporate
+    /// infrastructure.
     /// </summary>
     [XmlElement("InternalAddress", Order=1)]
     [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
@@ -105,8 +106,7 @@ public partial class AddressType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Address instructions for directing mail to a street
-    /// address.
+    /// Address instructions for directing mail to a street address.
     /// </summary>
     [XmlElement("AddressLine", Order=2)]
     [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]

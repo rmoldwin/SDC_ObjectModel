@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -37,9 +38,6 @@ using System.Collections.Generic;
 [JsonObject("ActValidateFormType")]
 public partial class ActValidateFormType : ExtensionBaseType
 {
-    private bool _shouldSerializevalidateCompleteness;
-    private bool _shouldSerializevalidateRules;
-    private bool _shouldSerializevalidateDataTypes;
     private CallFuncActionType _validationWebService;
     private bool _validateDataTypes;
     private bool _validateRules;
@@ -99,7 +97,6 @@ public partial class ActValidateFormType : ExtensionBaseType
                 _validateDataTypes = value;
                 OnPropertyChanged("validateDataTypes", value);
             }
-            _shouldSerializevalidateDataTypes = true;
         }
     }
     
@@ -119,7 +116,6 @@ public partial class ActValidateFormType : ExtensionBaseType
                 _validateRules = value;
                 OnPropertyChanged("validateRules", value);
             }
-            _shouldSerializevalidateRules = true;
         }
     }
     
@@ -139,7 +135,6 @@ public partial class ActValidateFormType : ExtensionBaseType
                 _validateCompleteness = value;
                 OnPropertyChanged("validateCompleteness", value);
             }
-            _shouldSerializevalidateCompleteness = true;
         }
     }
     
@@ -234,42 +229,6 @@ public partial class ActValidateFormType : ExtensionBaseType
         {
             _validationTypeSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether validateDataTypes should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializevalidateDataTypes()
-    {
-        if (_shouldSerializevalidateDataTypes)
-        {
-            return true;
-        }
-        return (validateDataTypes != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether validateRules should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializevalidateRules()
-    {
-        if (_shouldSerializevalidateRules)
-        {
-            return true;
-        }
-        return (validateRules != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether validateCompleteness should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializevalidateCompleteness()
-    {
-        if (_shouldSerializevalidateCompleteness)
-        {
-            return true;
-        }
-        return (validateCompleteness != default(bool));
     }
     
     /// <summary>

@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -247,11 +248,11 @@ using System.Collections.Generic;
 [JsonObject("BaseType")]
 public abstract partial class BaseType : SdcEntityBase<BaseType>
 {
-    private bool _shouldSerializeorder;
     private string _name;
     private string _type;
     private string _styleClass;
-    private System.Nullable<decimal> _order;
+    private decimal _order;
+    private bool orderFieldSpecified;
     private bool _nameSpecified;
     private bool _typeSpecified;
     private bool _styleClassSpecified;
@@ -342,14 +343,7 @@ public abstract partial class BaseType : SdcEntityBase<BaseType>
     {
         get
         {
-            if (_order.HasValue)
-            {
-                return _order.Value;
-            }
-            else
-            {
-                return default(decimal);
-            }
+            return _order;
         }
         set
         {
@@ -358,7 +352,6 @@ public abstract partial class BaseType : SdcEntityBase<BaseType>
                 _order = value;
                 OnPropertyChanged("order", value);
             }
-            _shouldSerializeorder = true;
         }
     }
     
@@ -367,13 +360,14 @@ public abstract partial class BaseType : SdcEntityBase<BaseType>
     {
         get
         {
-            return _order.HasValue;
+            return orderFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((orderFieldSpecified.Equals(value) != true))
             {
-                _order = null;
+                orderFieldSpecified = value;
+                OnPropertyChanged("orderSpecified", value);
             }
         }
     }
@@ -418,18 +412,6 @@ public abstract partial class BaseType : SdcEntityBase<BaseType>
         {
             _styleClassSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether order should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeorder()
-    {
-        if (_shouldSerializeorder)
-        {
-            return true;
-        }
-        return (order != default(decimal));
     }
     
     /// <summary>

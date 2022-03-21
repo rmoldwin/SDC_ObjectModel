@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -122,6 +123,7 @@ public partial class RegisteredItemStateType : ExtensionBaseType
     }
     
     [XmlElement(Order=3)]
+    [RequiredAttribute()]
     [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype RegistrationStatus
     {
@@ -138,6 +140,9 @@ public partial class RegisteredItemStateType : ExtensionBaseType
             if (((_registrationStatus == null) 
                         || (_registrationStatus.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "RegistrationStatus";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _registrationStatus = value;
                 OnPropertyChanged("RegistrationStatus", value);
             }

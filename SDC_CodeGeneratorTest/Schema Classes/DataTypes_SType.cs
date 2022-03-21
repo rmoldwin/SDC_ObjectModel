@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -27,9 +28,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// MOVED from SDCDataTypes: SDC datatypes in Simple (S) format, based mostly on W3C
-/// specifications. Uses baseAttributes and Extension capability to enhance the list of Data Types. **CHECK
-/// for ERRORS and completeness**
+/// MOVED from SDCDataTypes:
+/// SDC datatypes in Simple (S) format, based mostly on W3C specifications.  Uses baseAttributes and Extension capability to enhance the list of Data Types.        **CHECK for ERRORS and completeness**
 /// </summary>
 [XmlInclude(typeof(ParameterValueType))]
 [XmlInclude(typeof(PropertyType1))]

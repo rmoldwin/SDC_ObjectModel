@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -35,8 +36,8 @@ using System.Collections.Generic;
 public partial class dateTime_Stype : BaseType
 {
     private bool _shouldSerializequantEnum;
-    private bool _shouldSerializeval;
-    private DateTime? _val;
+    private System.DateTime _val;
+    private bool valFieldSpecified;
     private dtQuantEnum _quantEnum;
     private bool _quantEnumSpecified;
     /// <summary>
@@ -53,14 +54,7 @@ public partial class dateTime_Stype : BaseType
     {
         get
         {
-            if (_val.HasValue)
-            {
-                return _val.Value;
-            }
-            else
-            {
-                return default(System.DateTime);
-            }
+            return _val;
         }
         set
         {
@@ -69,7 +63,6 @@ public partial class dateTime_Stype : BaseType
                 _val = value;
                 OnPropertyChanged("val", value);
             }
-            _shouldSerializeval = true;
         }
     }
     
@@ -78,13 +71,14 @@ public partial class dateTime_Stype : BaseType
     {
         get
         {
-            return _val.HasValue;
+            return valFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((valFieldSpecified.Equals(value) != true))
             {
-                _val = null;
+                valFieldSpecified = value;
+                OnPropertyChanged("valSpecified", value);
             }
         }
     }
@@ -122,18 +116,6 @@ public partial class dateTime_Stype : BaseType
         {
             _quantEnumSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether val should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeval()
-    {
-        if (_shouldSerializeval)
-        {
-            return true;
-        }
-        return (val != default(System.DateTime));
     }
     
     /// <summary>

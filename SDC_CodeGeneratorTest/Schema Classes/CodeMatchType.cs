@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -74,8 +75,7 @@ public partial class CodeMatchType : BaseType
     }
     
     /// <summary>
-    /// The degree of match between the coded item and the assigned
-    /// code.
+    /// The degree of match between the coded item and the assigned code.
     /// </summary>
     [XmlAttribute]
     [DefaultValue(CodeMatchTypeCodeMatchEnum.ExactCodeMatch)]

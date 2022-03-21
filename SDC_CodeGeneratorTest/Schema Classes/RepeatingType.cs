@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -42,8 +43,6 @@ using System.Collections.Generic;
 [JsonObject("RepeatingType")]
 public abstract partial class RepeatingType : DisplayedType
 {
-    private bool _shouldSerializemaxCard;
-    private bool _shouldSerializeminCard;
     private ushort _minCard;
     private ushort _maxCard;
     private string _repeat;
@@ -87,7 +86,6 @@ public abstract partial class RepeatingType : DisplayedType
                 _minCard = value;
                 OnPropertyChanged("minCard", value);
             }
-            _shouldSerializeminCard = true;
         }
     }
     
@@ -114,7 +112,6 @@ public abstract partial class RepeatingType : DisplayedType
                 _maxCard = value;
                 OnPropertyChanged("maxCard", value);
             }
-            _shouldSerializemaxCard = true;
         }
     }
     
@@ -256,30 +253,6 @@ public abstract partial class RepeatingType : DisplayedType
         {
             _parentGUIDSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether minCard should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeminCard()
-    {
-        if (_shouldSerializeminCard)
-        {
-            return true;
-        }
-        return (minCard != default(ushort));
-    }
-    
-    /// <summary>
-    /// Test whether maxCard should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemaxCard()
-    {
-        if (_shouldSerializemaxCard)
-        {
-            return true;
-        }
-        return (maxCard != default(ushort));
     }
     
     /// <summary>

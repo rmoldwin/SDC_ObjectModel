@@ -6,127 +6,128 @@
 #pragma warning disable
 namespace SDC.Schema
 {
-using System;
-using System.Diagnostics;
-using System.Xml.Serialization;
-using System.Runtime.Serialization;
-using System.Collections;
-using System.Xml.Schema;
-using System.ComponentModel;
-using System.Collections.Specialized;
-using System.Collections.ObjectModel;
-using System.Reflection;
-using System.Xml;
-using Newtonsoft.Json.Bson;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using MsgPack.Serialization;
-using System.IO;
-using System.Text;
-using System.ComponentModel.DataAnnotations;
-using System.Collections.Generic;
+    using System;
+    using System.Diagnostics;
+    using System.Xml.Serialization;
+    using System.Runtime.Serialization;
+    using System.Collections;
+    using System.Xml.Schema;
+    using System.ComponentModel;
+    using System.Collections.Specialized;
+    using System.Collections.ObjectModel;
+    using System.Reflection;
+    using System.Globalization;
+    using System.Xml;
+    using Newtonsoft.Json.Bson;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+    using MsgPack.Serialization;
+    using System.IO;
+    using System.Text;
+    using System.ComponentModel.DataAnnotations;
+    using System.Collections.Generic;
 
-[System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
-[Serializable]
-[DesignerCategoryAttribute("code")]
-[XmlTypeAttribute(AnonymousType=true, Namespace="urn:ihe:qrph:sdc:2016")]
-[XmlRootAttribute(Namespace="urn:ihe:qrph:sdc:2016", IsNullable=false)]
-[JsonObject("PredActionType2")]
-public partial class PredActionType2 : PredGuardType
-{
-    private ActionsType _actions;
-    private List<PredActionType> _else;
-    private bool _actionsSpecified;
-    private bool _elseSpecified;
-    [XmlElement(Order=0)]
-    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
-    public virtual ActionsType Actions
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
+    [Serializable]
+    [DesignerCategoryAttribute("code")]
+    [XmlTypeAttribute(AnonymousType = true, Namespace = "urn:ihe:qrph:sdc:2016")]
+    [XmlRootAttribute(Namespace = "urn:ihe:qrph:sdc:2016", IsNullable = false)]
+    [JsonObject("PredActionType2")]
+    public partial class PredActionType2 : PredGuardType
     {
-        get
+        private ActionsType _actions;
+        private List<PredActionType> _else;
+        private bool _actionsSpecified;
+        private bool _elseSpecified;
+        [XmlElement(Order = 0)]
+        [JsonProperty(Order = 0, NullValueHandling = NullValueHandling.Ignore)]
+        public virtual ActionsType Actions
         {
-            return _actions;
-        }
-        set
-        {
-            if ((_actions == value))
+            get
             {
-                return;
+                return _actions;
             }
-            if (((_actions == null) 
-                        || (_actions.Equals(value) != true)))
+            set
             {
-                _actions = value;
-                OnPropertyChanged("Actions", value);
-            }
-        }
-    }
-    
-    [XmlElement("Else", Order=1)]
-    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
-    public virtual List<PredActionType> Else
-    {
-        get
-        {
-            return _else;
-        }
-        set
-        {
-            if ((_else == value))
-            {
-                return;
-            }
-            if (((_else == null) 
-                        || (_else.Equals(value) != true)))
-            {
-                _else = value;
-                OnPropertyChanged("Else", value);
+                if ((_actions == value))
+                {
+                    return;
+                }
+                if (((_actions == null)
+                            || (_actions.Equals(value) != true)))
+                {
+                    _actions = value;
+                    OnPropertyChanged("Actions", value);
+                }
             }
         }
-    }
-    
-    [JsonIgnore]
-    [XmlIgnore()]
-    public bool ActionsSpecified
-    {
-        get
+
+        [XmlElement("Else", Order = 1)]
+        [JsonProperty(Order = 1, NullValueHandling = NullValueHandling.Ignore)]
+        public virtual List<PredActionType> Else
         {
-            return _actionsSpecified;
+            get
+            {
+                return _else;
+            }
+            set
+            {
+                if ((_else == value))
+                {
+                    return;
+                }
+                if (((_else == null)
+                            || (_else.Equals(value) != true)))
+                {
+                    _else = value;
+                    OnPropertyChanged("Else", value);
+                }
+            }
         }
-        set
+
+        [JsonIgnore]
+        [XmlIgnore()]
+        public bool ActionsSpecified
         {
-            _actionsSpecified = value;
+            get
+            {
+                return _actionsSpecified;
+            }
+            set
+            {
+                _actionsSpecified = value;
+            }
         }
-    }
-    
-    [JsonIgnore]
-    [XmlIgnore()]
-    public bool ElseSpecified
-    {
-        get
+
+        [JsonIgnore]
+        [XmlIgnore()]
+        public bool ElseSpecified
         {
-            return _elseSpecified;
+            get
+            {
+                return _elseSpecified;
+            }
+            set
+            {
+                _elseSpecified = value;
+            }
         }
-        set
+
+        /// <summary>
+        /// Test whether Else should be serialized
+        /// </summary>
+        public virtual bool ShouldSerializeElse()
         {
-            _elseSpecified = value;
+            return Else != null && Else.Count > 0;
+        }
+
+        /// <summary>
+        /// Test whether Actions should be serialized
+        /// </summary>
+        public virtual bool ShouldSerializeActions()
+        {
+            return (Actions != null);
         }
     }
-    
-    /// <summary>
-    /// Test whether Else should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeElse()
-    {
-        return Else != null && Else.Count > 0;
-    }
-    
-    /// <summary>
-    /// Test whether Actions should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeActions()
-    {
-        return (Actions != null);
-    }
-}
 }
 #pragma warning restore

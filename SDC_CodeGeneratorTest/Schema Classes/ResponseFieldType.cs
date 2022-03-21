@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -57,6 +58,7 @@ public partial class ResponseFieldType : ExtensionBaseType
     /// W3C Schema data type details
     /// </summary>
     [XmlElement(Order=0)]
+    [RequiredAttribute()]
     [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual DataTypes_DEType Response
     {
@@ -73,6 +75,9 @@ public partial class ResponseFieldType : ExtensionBaseType
             if (((_response == null) 
                         || (_response.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "Response";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _response = value;
                 OnPropertyChanged("Response", value);
             }

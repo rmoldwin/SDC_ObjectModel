@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -38,12 +39,11 @@ using System.Collections.Generic;
 [JsonObject("SectionBaseType")]
 public abstract partial class SectionBaseType : RepeatingType
 {
-    private bool _shouldSerializenewData;
-    private bool _shouldSerializechangedData;
-    private bool _shouldSerializeordered;
     private bool _ordered;
-    private bool? _changedData;
-    private bool? _newData;
+    private bool _changedData;
+    private bool changedDataFieldSpecified;
+    private bool _newData;
+    private bool newDataFieldSpecified;
     private bool _orderedSpecified;
     /// <summary>
     /// SectionBaseType class constructor
@@ -73,7 +73,6 @@ public abstract partial class SectionBaseType : RepeatingType
                 _ordered = value;
                 OnPropertyChanged("ordered", value);
             }
-            _shouldSerializeordered = true;
         }
     }
     
@@ -83,14 +82,7 @@ public abstract partial class SectionBaseType : RepeatingType
     {
         get
         {
-            if (_changedData.HasValue)
-            {
-                return _changedData.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _changedData;
         }
         set
         {
@@ -99,7 +91,6 @@ public abstract partial class SectionBaseType : RepeatingType
                 _changedData = value;
                 OnPropertyChanged("changedData", value);
             }
-            _shouldSerializechangedData = true;
         }
     }
     
@@ -108,13 +99,14 @@ public abstract partial class SectionBaseType : RepeatingType
     {
         get
         {
-            return _changedData.HasValue;
+            return changedDataFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((changedDataFieldSpecified.Equals(value) != true))
             {
-                _changedData = null;
+                changedDataFieldSpecified = value;
+                OnPropertyChanged("changedDataSpecified", value);
             }
         }
     }
@@ -125,14 +117,7 @@ public abstract partial class SectionBaseType : RepeatingType
     {
         get
         {
-            if (_newData.HasValue)
-            {
-                return _newData.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _newData;
         }
         set
         {
@@ -141,7 +126,6 @@ public abstract partial class SectionBaseType : RepeatingType
                 _newData = value;
                 OnPropertyChanged("newData", value);
             }
-            _shouldSerializenewData = true;
         }
     }
     
@@ -150,13 +134,14 @@ public abstract partial class SectionBaseType : RepeatingType
     {
         get
         {
-            return _newData.HasValue;
+            return newDataFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((newDataFieldSpecified.Equals(value) != true))
             {
-                _newData = null;
+                newDataFieldSpecified = value;
+                OnPropertyChanged("newDataSpecified", value);
             }
         }
     }
@@ -173,42 +158,6 @@ public abstract partial class SectionBaseType : RepeatingType
         {
             _orderedSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether ordered should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeordered()
-    {
-        if (_shouldSerializeordered)
-        {
-            return true;
-        }
-        return (ordered != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether changedData should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializechangedData()
-    {
-        if (_shouldSerializechangedData)
-        {
-            return true;
-        }
-        return (changedData != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether newData should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializenewData()
-    {
-        if (_shouldSerializenewData)
-        {
-            return true;
-        }
-        return (newData != default(bool));
     }
 }
 }

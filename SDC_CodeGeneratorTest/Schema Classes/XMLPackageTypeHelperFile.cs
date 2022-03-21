@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -35,10 +36,8 @@ public partial class XMLPackageTypeHelperFile : ExtensionBaseType
 {
     private string _templateID;
     private string _targetTemplateID;
-    private string _mediaType;
     private bool _templateIDSpecified;
     private bool _targetTemplateIDSpecified;
-    private bool _mediaTypeSpecified;
     [XmlAttribute(DataType="anyURI")]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string templateID
@@ -85,29 +84,6 @@ public partial class XMLPackageTypeHelperFile : ExtensionBaseType
         }
     }
     
-    [XmlAttribute]
-    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual string mediaType
-    {
-        get
-        {
-            return _mediaType;
-        }
-        set
-        {
-            if ((_mediaType == value))
-            {
-                return;
-            }
-            if (((_mediaType == null) 
-                        || (_mediaType.Equals(value) != true)))
-            {
-                _mediaType = value;
-                OnPropertyChanged("mediaType", value);
-            }
-        }
-    }
-    
     [JsonIgnore]
     [XmlIgnore()]
     public bool templateIDSpecified
@@ -136,20 +112,6 @@ public partial class XMLPackageTypeHelperFile : ExtensionBaseType
         }
     }
     
-    [JsonIgnore]
-    [XmlIgnore()]
-    public bool mediaTypeSpecified
-    {
-        get
-        {
-            return _mediaTypeSpecified;
-        }
-        set
-        {
-            _mediaTypeSpecified = value;
-        }
-    }
-    
     /// <summary>
     /// Test whether templateID should be serialized
     /// </summary>
@@ -164,14 +126,6 @@ public partial class XMLPackageTypeHelperFile : ExtensionBaseType
     public virtual bool ShouldSerializetargetTemplateID()
     {
         return !string.IsNullOrEmpty(targetTemplateID);
-    }
-    
-    /// <summary>
-    /// Test whether mediaType should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemediaType()
-    {
-        return !string.IsNullOrEmpty(mediaType);
     }
 }
 }

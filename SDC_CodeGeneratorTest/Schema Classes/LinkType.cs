@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -41,8 +42,7 @@ public partial class LinkType : ExtensionBaseType
     private bool _linkTextSpecified;
     private bool _linkURISpecified;
     /// <summary>
-    /// A description of the URI link, usually for display
-    /// purposes.
+    /// A description of the URI link, usually for display purposes.
     /// </summary>
     [XmlElement(Order=0)]
     [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
@@ -71,6 +71,7 @@ public partial class LinkType : ExtensionBaseType
     /// Link to external information.
     /// </summary>
     [XmlElement(Order=1)]
+    [RequiredAttribute()]
     [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual anyURI_Stype LinkURI
     {
@@ -87,6 +88,9 @@ public partial class LinkType : ExtensionBaseType
             if (((_linkURI == null) 
                         || (_linkURI.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "LinkURI";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _linkURI = value;
                 OnPropertyChanged("LinkURI", value);
             }

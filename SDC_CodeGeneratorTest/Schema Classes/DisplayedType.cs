@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -48,9 +49,6 @@ using System.Collections.Generic;
 public partial class DisplayedType : IdentifiedExtensionType
 {
     private bool _shouldSerializeshowInReport;
-    private bool _shouldSerializemustImplement;
-    private bool _shouldSerializevisible;
-    private bool _shouldSerializeenabled;
     private List<LinkType> _link;
     private List<BlobType> _blobContent;
     private List<ContactType> _contact;
@@ -375,7 +373,6 @@ public partial class DisplayedType : IdentifiedExtensionType
                 _enabled = value;
                 OnPropertyChanged("enabled", value);
             }
-            _shouldSerializeenabled = true;
         }
     }
     
@@ -400,7 +397,6 @@ public partial class DisplayedType : IdentifiedExtensionType
                 _visible = value;
                 OnPropertyChanged("visible", value);
             }
-            _shouldSerializevisible = true;
         }
     }
     
@@ -429,7 +425,6 @@ public partial class DisplayedType : IdentifiedExtensionType
                 _mustImplement = value;
                 OnPropertyChanged("mustImplement", value);
             }
-            _shouldSerializemustImplement = true;
         }
     }
     
@@ -719,42 +714,6 @@ public partial class DisplayedType : IdentifiedExtensionType
     public virtual bool ShouldSerializeOnEvent()
     {
         return OnEvent != null && OnEvent.Count > 0;
-    }
-    
-    /// <summary>
-    /// Test whether enabled should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeenabled()
-    {
-        if (_shouldSerializeenabled)
-        {
-            return true;
-        }
-        return (enabled != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether visible should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializevisible()
-    {
-        if (_shouldSerializevisible)
-        {
-            return true;
-        }
-        return (visible != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether mustImplement should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemustImplement()
-    {
-        if (_shouldSerializemustImplement)
-        {
-            return true;
-        }
-        return (mustImplement != default(bool));
     }
     
     /// <summary>

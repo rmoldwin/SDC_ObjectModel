@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -34,10 +35,6 @@ using System.Collections.Generic;
 [JsonObject("BasePackageType")]
 public partial class BasePackageType : ExtensionBaseType
 {
-    private bool _shouldSerializenewData;
-    private bool _shouldSerializechangedData;
-    private bool _shouldSerializeinstanceVersionPrev;
-    private bool _shouldSerializeinstanceVersion;
     private TemplateAdminType _admin;
     private string _packageID;
     private string _pkgTitle;
@@ -48,11 +45,15 @@ public partial class BasePackageType : ExtensionBaseType
     private string _version;
     private string _fullURI;
     private string _instanceID;
-    private DateTime? _instanceVersion;
+    private System.DateTime _instanceVersion;
+    private bool instanceVersionFieldSpecified;
     private string _instanceVersionURI;
-    private DateTime? _instanceVersionPrev;
-    private bool? _changedData;
-    private bool? _newData;
+    private System.DateTime _instanceVersionPrev;
+    private bool instanceVersionPrevFieldSpecified;
+    private bool _changedData;
+    private bool changedDataFieldSpecified;
+    private bool _newData;
+    private bool newDataFieldSpecified;
     private bool _adminSpecified;
     private bool _packageIDSpecified;
     private bool _pkgTitleSpecified;
@@ -300,7 +301,7 @@ public partial class BasePackageType : ExtensionBaseType
     }
     
     /// <summary>
-    /// NEW: Unique string used to identify a set of packaged versions (the package instance) over time. Used for tracking changed package responses across time and across multiple episodes of editing (versions) by end-users.  This string does not change for each edit session (version) of a package instance.
+    /// NEW: For packages containing FormDesign responses. Unique string used to identify a set of packaged versions (the package instance) over time. Used for tracking changed package responses across time and across multiple episodes of editing (versions) by end-users.  This string does not change for each edit session (version) of a package instance.
     /// </summary>
     [XmlAttribute]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
@@ -326,7 +327,7 @@ public partial class BasePackageType : ExtensionBaseType
     }
     
     /// <summary>
-    /// NEW: Timestamp used to identify a unique instance of a package.  Used for tracking form responses across time and across multiple episodes of editing by end-users.  This field must change for each edit session of a form instance.
+    /// NEW: For packages containing FormDesign responses. Timestamp used to identify a unique instance of a package.  Used for tracking form responses across time and across multiple episodes of editing by end-users.  This field must change for each edit session of a form instance.
     /// </summary>
     [XmlAttribute]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
@@ -334,14 +335,7 @@ public partial class BasePackageType : ExtensionBaseType
     {
         get
         {
-            if (_instanceVersion.HasValue)
-            {
-                return _instanceVersion.Value;
-            }
-            else
-            {
-                return default(System.DateTime);
-            }
+            return _instanceVersion;
         }
         set
         {
@@ -350,7 +344,6 @@ public partial class BasePackageType : ExtensionBaseType
                 _instanceVersion = value;
                 OnPropertyChanged("instanceVersion", value);
             }
-            _shouldSerializeinstanceVersion = true;
         }
     }
     
@@ -359,19 +352,20 @@ public partial class BasePackageType : ExtensionBaseType
     {
         get
         {
-            return _instanceVersion.HasValue;
+            return instanceVersionFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((instanceVersionFieldSpecified.Equals(value) != true))
             {
-                _instanceVersion = null;
+                instanceVersionFieldSpecified = value;
+                OnPropertyChanged("instanceVersionSpecified", value);
             }
         }
     }
     
     /// <summary>
-    /// NEW: Globally-unique URI used to identify a unique instance of a Pkg with saved FDF-R responses.  It is used for tracking Pkg responses across time and across multiple episodes of editing by end-users.  The instanceVersionURI must change for each edit/save session of a Pkg instance (defined by instanceVersion).
+    /// NEW: For packages containing FormDesign responses. Globally-unique URI used to identify a unique instance of a Pkg with saved FDF-R responses.  It is used for tracking Pkg responses across time and across multiple episodes of editing by end-users.  The instanceVersionURI must change for each edit/save session of a Pkg instance (defined by instanceVersion).
     /// 
     /// The instanceVersionURI should be formatted similarly to the fullURI but must include values for instanceID and instanceVersion.  The instanceVersion value is the release date/time for the new version, in W3C datetime format.
     /// 
@@ -419,14 +413,7 @@ public partial class BasePackageType : ExtensionBaseType
     {
         get
         {
-            if (_instanceVersionPrev.HasValue)
-            {
-                return _instanceVersionPrev.Value;
-            }
-            else
-            {
-                return default(System.DateTime);
-            }
+            return _instanceVersionPrev;
         }
         set
         {
@@ -435,7 +422,6 @@ public partial class BasePackageType : ExtensionBaseType
                 _instanceVersionPrev = value;
                 OnPropertyChanged("instanceVersionPrev", value);
             }
-            _shouldSerializeinstanceVersionPrev = true;
         }
     }
     
@@ -444,13 +430,14 @@ public partial class BasePackageType : ExtensionBaseType
     {
         get
         {
-            return _instanceVersionPrev.HasValue;
+            return instanceVersionPrevFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((instanceVersionPrevFieldSpecified.Equals(value) != true))
             {
-                _instanceVersionPrev = null;
+                instanceVersionPrevFieldSpecified = value;
+                OnPropertyChanged("instanceVersionPrevSpecified", value);
             }
         }
     }
@@ -461,14 +448,7 @@ public partial class BasePackageType : ExtensionBaseType
     {
         get
         {
-            if (_changedData.HasValue)
-            {
-                return _changedData.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _changedData;
         }
         set
         {
@@ -477,7 +457,6 @@ public partial class BasePackageType : ExtensionBaseType
                 _changedData = value;
                 OnPropertyChanged("changedData", value);
             }
-            _shouldSerializechangedData = true;
         }
     }
     
@@ -486,13 +465,14 @@ public partial class BasePackageType : ExtensionBaseType
     {
         get
         {
-            return _changedData.HasValue;
+            return changedDataFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((changedDataFieldSpecified.Equals(value) != true))
             {
-                _changedData = null;
+                changedDataFieldSpecified = value;
+                OnPropertyChanged("changedDataSpecified", value);
             }
         }
     }
@@ -503,14 +483,7 @@ public partial class BasePackageType : ExtensionBaseType
     {
         get
         {
-            if (_newData.HasValue)
-            {
-                return _newData.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _newData;
         }
         set
         {
@@ -519,7 +492,6 @@ public partial class BasePackageType : ExtensionBaseType
                 _newData = value;
                 OnPropertyChanged("newData", value);
             }
-            _shouldSerializenewData = true;
         }
     }
     
@@ -528,13 +500,14 @@ public partial class BasePackageType : ExtensionBaseType
     {
         get
         {
-            return _newData.HasValue;
+            return newDataFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((newDataFieldSpecified.Equals(value) != true))
             {
-                _newData = null;
+                newDataFieldSpecified = value;
+                OnPropertyChanged("newDataSpecified", value);
             }
         }
     }
@@ -691,54 +664,6 @@ public partial class BasePackageType : ExtensionBaseType
         {
             _instanceVersionURISpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether instanceVersion should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeinstanceVersion()
-    {
-        if (_shouldSerializeinstanceVersion)
-        {
-            return true;
-        }
-        return (instanceVersion != default(System.DateTime));
-    }
-    
-    /// <summary>
-    /// Test whether instanceVersionPrev should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeinstanceVersionPrev()
-    {
-        if (_shouldSerializeinstanceVersionPrev)
-        {
-            return true;
-        }
-        return (instanceVersionPrev != default(System.DateTime));
-    }
-    
-    /// <summary>
-    /// Test whether changedData should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializechangedData()
-    {
-        if (_shouldSerializechangedData)
-        {
-            return true;
-        }
-        return (changedData != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether newData should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializenewData()
-    {
-        if (_shouldSerializenewData)
-        {
-            return true;
-        }
-        return (newData != default(bool));
     }
     
     /// <summary>

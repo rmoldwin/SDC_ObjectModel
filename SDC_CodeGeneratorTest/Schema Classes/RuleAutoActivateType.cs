@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -51,8 +52,6 @@ public partial class RuleAutoActivateType : ExtensionBaseType
     private bool _shouldSerializesetExpanded;
     private bool _shouldSerializesetEnabled;
     private bool _shouldSerializesetVisibility;
-    private bool _shouldSerializeX_removeResponsesWhenDeactivated;
-    private bool _shouldSerializeonlyIf;
     private string _selectedItemSet;
     private bool _onlyIf;
     private string _targetNameActivationList;
@@ -118,7 +117,6 @@ public partial class RuleAutoActivateType : ExtensionBaseType
                 _onlyIf = value;
                 OnPropertyChanged("onlyIf", value);
             }
-            _shouldSerializeonlyIf = true;
         }
     }
     
@@ -257,7 +255,6 @@ public partial class RuleAutoActivateType : ExtensionBaseType
                 _x_removeResponsesWhenDeactivated = value;
                 OnPropertyChanged("X_removeResponsesWhenDeactivated", value);
             }
-            _shouldSerializeX_removeResponsesWhenDeactivated = true;
         }
     }
     
@@ -357,30 +354,6 @@ public partial class RuleAutoActivateType : ExtensionBaseType
         {
             _x_removeResponsesWhenDeactivatedSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether onlyIf should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeonlyIf()
-    {
-        if (_shouldSerializeonlyIf)
-        {
-            return true;
-        }
-        return (onlyIf != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether X_removeResponsesWhenDeactivated should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeX_removeResponsesWhenDeactivated()
-    {
-        if (_shouldSerializeX_removeResponsesWhenDeactivated)
-        {
-            return true;
-        }
-        return (X_removeResponsesWhenDeactivated != default(bool));
     }
     
     /// <summary>

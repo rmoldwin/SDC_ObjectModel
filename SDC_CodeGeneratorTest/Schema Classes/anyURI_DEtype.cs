@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -33,13 +34,13 @@ using System.Collections.Generic;
 [JsonObject("anyURI_DEtype")]
 public partial class anyURI_DEtype : anyURI_Stype
 {
-    private bool _shouldSerializemaxLength;
-    private bool _shouldSerializeminLength;
-    private bool _shouldSerializeX_length;
-    private System.Nullable<long> _x_length;
+    private long _x_length;
+    private bool x_lengthFieldSpecified;
     private string _description;
-    private System.Nullable<long> _minLength;
-    private System.Nullable<long> _maxLength;
+    private long _minLength;
+    private bool minLengthFieldSpecified;
+    private long _maxLength;
+    private bool maxLengthFieldSpecified;
     private string _pattern;
     private bool _descriptionSpecified;
     private bool _patternSpecified;
@@ -49,14 +50,7 @@ public partial class anyURI_DEtype : anyURI_Stype
     {
         get
         {
-            if (_x_length.HasValue)
-            {
-                return _x_length.Value;
-            }
-            else
-            {
-                return default(long);
-            }
+            return _x_length;
         }
         set
         {
@@ -65,7 +59,6 @@ public partial class anyURI_DEtype : anyURI_Stype
                 _x_length = value;
                 OnPropertyChanged("X_length", value);
             }
-            _shouldSerializeX_length = true;
         }
     }
     
@@ -74,13 +67,14 @@ public partial class anyURI_DEtype : anyURI_Stype
     {
         get
         {
-            return _x_length.HasValue;
+            return x_lengthFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((x_lengthFieldSpecified.Equals(value) != true))
             {
-                _x_length = null;
+                x_lengthFieldSpecified = value;
+                OnPropertyChanged("X_lengthSpecified", value);
             }
         }
     }
@@ -114,14 +108,7 @@ public partial class anyURI_DEtype : anyURI_Stype
     {
         get
         {
-            if (_minLength.HasValue)
-            {
-                return _minLength.Value;
-            }
-            else
-            {
-                return default(long);
-            }
+            return _minLength;
         }
         set
         {
@@ -130,7 +117,6 @@ public partial class anyURI_DEtype : anyURI_Stype
                 _minLength = value;
                 OnPropertyChanged("minLength", value);
             }
-            _shouldSerializeminLength = true;
         }
     }
     
@@ -139,13 +125,14 @@ public partial class anyURI_DEtype : anyURI_Stype
     {
         get
         {
-            return _minLength.HasValue;
+            return minLengthFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((minLengthFieldSpecified.Equals(value) != true))
             {
-                _minLength = null;
+                minLengthFieldSpecified = value;
+                OnPropertyChanged("minLengthSpecified", value);
             }
         }
     }
@@ -156,14 +143,7 @@ public partial class anyURI_DEtype : anyURI_Stype
     {
         get
         {
-            if (_maxLength.HasValue)
-            {
-                return _maxLength.Value;
-            }
-            else
-            {
-                return default(long);
-            }
+            return _maxLength;
         }
         set
         {
@@ -172,7 +152,6 @@ public partial class anyURI_DEtype : anyURI_Stype
                 _maxLength = value;
                 OnPropertyChanged("maxLength", value);
             }
-            _shouldSerializemaxLength = true;
         }
     }
     
@@ -181,13 +160,14 @@ public partial class anyURI_DEtype : anyURI_Stype
     {
         get
         {
-            return _maxLength.HasValue;
+            return maxLengthFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((maxLengthFieldSpecified.Equals(value) != true))
             {
-                _maxLength = null;
+                maxLengthFieldSpecified = value;
+                OnPropertyChanged("maxLengthSpecified", value);
             }
         }
     }
@@ -241,42 +221,6 @@ public partial class anyURI_DEtype : anyURI_Stype
         {
             _patternSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether X_length should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeX_length()
-    {
-        if (_shouldSerializeX_length)
-        {
-            return true;
-        }
-        return (X_length != default(long));
-    }
-    
-    /// <summary>
-    /// Test whether minLength should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeminLength()
-    {
-        if (_shouldSerializeminLength)
-        {
-            return true;
-        }
-        return (minLength != default(long));
-    }
-    
-    /// <summary>
-    /// Test whether maxLength should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemaxLength()
-    {
-        if (_shouldSerializemaxLength)
-        {
-            return true;
-        }
-        return (maxLength != default(long));
     }
     
     /// <summary>

@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -98,6 +99,7 @@ public partial class DataStoreType : ExtensionBaseType
     }
     
     [XmlElement(Order=2)]
+    [RequiredAttribute()]
     [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype DatabaseSoftware
     {
@@ -114,6 +116,9 @@ public partial class DataStoreType : ExtensionBaseType
             if (((_databaseSoftware == null) 
                         || (_databaseSoftware.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "DatabaseSoftware";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _databaseSoftware = value;
                 OnPropertyChanged("DatabaseSoftware", value);
             }

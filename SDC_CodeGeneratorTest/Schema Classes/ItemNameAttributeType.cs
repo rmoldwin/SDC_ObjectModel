@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -27,9 +28,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// Moved from SDCFormDesign The type is a standard way to point to a named item anywhere in a
-/// FormDesign template. A named item is any element that has the @name attribute set to a unique
-/// value.
+/// Moved from SDCFormDesign
+/// The type is a standard way to point to a named item anywhere in a FormDesign template.  A named item is any element that has the @name attribute set to a unique value.
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
 [Serializable]

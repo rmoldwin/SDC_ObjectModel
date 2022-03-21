@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -48,7 +49,6 @@ using System.Collections.Generic;
 [JsonObject("RuleAutoSelectType")]
 public partial class RuleAutoSelectType : ExtensionBaseType
 {
-    private bool _shouldSerializeonlyIf;
     private string _selectedItemSet;
     private bool _onlyIf;
     private string _targetNameSelectList;
@@ -102,7 +102,6 @@ public partial class RuleAutoSelectType : ExtensionBaseType
                 _onlyIf = value;
                 OnPropertyChanged("onlyIf", value);
             }
-            _shouldSerializeonlyIf = true;
         }
     }
     
@@ -180,18 +179,6 @@ public partial class RuleAutoSelectType : ExtensionBaseType
         {
             _targetNameSelectListSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether onlyIf should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeonlyIf()
-    {
-        if (_shouldSerializeonlyIf)
-        {
-            return true;
-        }
-        return (onlyIf != default(bool));
     }
     
     /// <summary>

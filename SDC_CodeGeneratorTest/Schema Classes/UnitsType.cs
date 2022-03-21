@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -27,9 +28,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// UnitsType represents the measurement standard and its abbreviated notation for
-/// quantifiable objects, e.g., miles, km, mm, cm, etc. The default system for standard notations is
-/// UCUM.
+/// UnitsType represents the measurement standard and its abbreviated notation for quantifiable objects, e.g., miles, km, mm, cm, etc. The default system for standard notations is UCUM.
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
 [Serializable]

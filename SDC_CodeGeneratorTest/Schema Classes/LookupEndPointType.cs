@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -40,7 +41,6 @@ using System.Collections.Generic;
 [JsonObject("LookupEndPointType")]
 public partial class LookupEndPointType : CallFuncActionType
 {
-    private bool _shouldSerializeincludesHeaderRow;
     private List<CodingType> _responseValue;
     private bool _includesHeaderRow;
     private bool _responseValueSpecified;
@@ -98,7 +98,6 @@ public partial class LookupEndPointType : CallFuncActionType
                 _includesHeaderRow = value;
                 OnPropertyChanged("includesHeaderRow", value);
             }
-            _shouldSerializeincludesHeaderRow = true;
         }
     }
     
@@ -136,18 +135,6 @@ public partial class LookupEndPointType : CallFuncActionType
     public virtual bool ShouldSerializeResponseValue()
     {
         return ResponseValue != null && ResponseValue.Count > 0;
-    }
-    
-    /// <summary>
-    /// Test whether includesHeaderRow should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeincludesHeaderRow()
-    {
-        if (_shouldSerializeincludesHeaderRow)
-        {
-            return true;
-        }
-        return (includesHeaderRow != default(bool));
     }
 }
 }

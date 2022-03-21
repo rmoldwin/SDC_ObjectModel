@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -38,11 +39,6 @@ using System.Collections.Generic;
 public partial class dt : SdcEntityBase<dt>
 {
     private bool _shouldSerializequantEnum;
-    private bool _shouldSerializeallowAPPROX;
-    private bool _shouldSerializeallowLTE;
-    private bool _shouldSerializeallowLT;
-    private bool _shouldSerializeallowGTE;
-    private bool _shouldSerializeallowGT;
     private dtQuantEnum _quantEnum;
     private bool _allowGT;
     private bool _allowGTE;
@@ -105,7 +101,6 @@ public partial class dt : SdcEntityBase<dt>
                 _allowGT = value;
                 OnPropertyChanged("allowGT", value);
             }
-            _shouldSerializeallowGT = true;
         }
     }
     
@@ -125,7 +120,6 @@ public partial class dt : SdcEntityBase<dt>
                 _allowGTE = value;
                 OnPropertyChanged("allowGTE", value);
             }
-            _shouldSerializeallowGTE = true;
         }
     }
     
@@ -145,7 +139,6 @@ public partial class dt : SdcEntityBase<dt>
                 _allowLT = value;
                 OnPropertyChanged("allowLT", value);
             }
-            _shouldSerializeallowLT = true;
         }
     }
     
@@ -165,7 +158,6 @@ public partial class dt : SdcEntityBase<dt>
                 _allowLTE = value;
                 OnPropertyChanged("allowLTE", value);
             }
-            _shouldSerializeallowLTE = true;
         }
     }
     
@@ -185,7 +177,6 @@ public partial class dt : SdcEntityBase<dt>
                 _allowAPPROX = value;
                 OnPropertyChanged("allowAPPROX", value);
             }
-            _shouldSerializeallowAPPROX = true;
         }
     }
     
@@ -271,66 +262,6 @@ public partial class dt : SdcEntityBase<dt>
         {
             _allowAPPROXSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether allowGT should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowGT()
-    {
-        if (_shouldSerializeallowGT)
-        {
-            return true;
-        }
-        return (allowGT != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowGTE should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowGTE()
-    {
-        if (_shouldSerializeallowGTE)
-        {
-            return true;
-        }
-        return (allowGTE != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowLT should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowLT()
-    {
-        if (_shouldSerializeallowLT)
-        {
-            return true;
-        }
-        return (allowLT != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowLTE should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowLTE()
-    {
-        if (_shouldSerializeallowLTE)
-        {
-            return true;
-        }
-        return (allowLTE != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowAPPROX should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowAPPROX()
-    {
-        if (_shouldSerializeallowAPPROX)
-        {
-            return true;
-        }
-        return (allowAPPROX != default(bool));
     }
     
     /// <summary>

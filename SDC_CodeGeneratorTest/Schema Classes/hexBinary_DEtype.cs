@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -33,11 +34,11 @@ using System.Collections.Generic;
 [JsonObject("hexBinary_DEtype")]
 public partial class hexBinary_DEtype : hexBinary_Stype
 {
-    private bool _shouldSerializemaxLength;
-    private bool _shouldSerializeminLength;
     private string _description;
-    private System.Nullable<long> _minLength;
-    private System.Nullable<long> _maxLength;
+    private long _minLength;
+    private bool minLengthFieldSpecified;
+    private long _maxLength;
+    private bool maxLengthFieldSpecified;
     private string _mask;
     private bool _descriptionSpecified;
     private bool _maskSpecified;
@@ -70,14 +71,7 @@ public partial class hexBinary_DEtype : hexBinary_Stype
     {
         get
         {
-            if (_minLength.HasValue)
-            {
-                return _minLength.Value;
-            }
-            else
-            {
-                return default(long);
-            }
+            return _minLength;
         }
         set
         {
@@ -86,7 +80,6 @@ public partial class hexBinary_DEtype : hexBinary_Stype
                 _minLength = value;
                 OnPropertyChanged("minLength", value);
             }
-            _shouldSerializeminLength = true;
         }
     }
     
@@ -95,13 +88,14 @@ public partial class hexBinary_DEtype : hexBinary_Stype
     {
         get
         {
-            return _minLength.HasValue;
+            return minLengthFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((minLengthFieldSpecified.Equals(value) != true))
             {
-                _minLength = null;
+                minLengthFieldSpecified = value;
+                OnPropertyChanged("minLengthSpecified", value);
             }
         }
     }
@@ -112,14 +106,7 @@ public partial class hexBinary_DEtype : hexBinary_Stype
     {
         get
         {
-            if (_maxLength.HasValue)
-            {
-                return _maxLength.Value;
-            }
-            else
-            {
-                return default(long);
-            }
+            return _maxLength;
         }
         set
         {
@@ -128,7 +115,6 @@ public partial class hexBinary_DEtype : hexBinary_Stype
                 _maxLength = value;
                 OnPropertyChanged("maxLength", value);
             }
-            _shouldSerializemaxLength = true;
         }
     }
     
@@ -137,13 +123,14 @@ public partial class hexBinary_DEtype : hexBinary_Stype
     {
         get
         {
-            return _maxLength.HasValue;
+            return maxLengthFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((maxLengthFieldSpecified.Equals(value) != true))
             {
-                _maxLength = null;
+                maxLengthFieldSpecified = value;
+                OnPropertyChanged("maxLengthSpecified", value);
             }
         }
     }
@@ -197,30 +184,6 @@ public partial class hexBinary_DEtype : hexBinary_Stype
         {
             _maskSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether minLength should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeminLength()
-    {
-        if (_shouldSerializeminLength)
-        {
-            return true;
-        }
-        return (minLength != default(long));
-    }
-    
-    /// <summary>
-    /// Test whether maxLength should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemaxLength()
-    {
-        if (_shouldSerializemaxLength)
-        {
-            return true;
-        }
-        return (maxLength != default(long));
     }
     
     /// <summary>

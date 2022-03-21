@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -38,7 +39,6 @@ using System.Collections.Generic;
 [JsonObject("ListItemResponseFieldType")]
 public partial class ListItemResponseFieldType : ResponseFieldType
 {
-    private bool _shouldSerializeresponseRequired;
     private bool _responseRequired;
     private bool _responseRequiredSpecified;
     /// <summary>
@@ -70,7 +70,6 @@ public partial class ListItemResponseFieldType : ResponseFieldType
                 _responseRequired = value;
                 OnPropertyChanged("responseRequired", value);
             }
-            _shouldSerializeresponseRequired = true;
         }
     }
     
@@ -86,18 +85,6 @@ public partial class ListItemResponseFieldType : ResponseFieldType
         {
             _responseRequiredSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether responseRequired should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeresponseRequired()
-    {
-        if (_shouldSerializeresponseRequired)
-        {
-            return true;
-        }
-        return (responseRequired != default(bool));
     }
 }
 }

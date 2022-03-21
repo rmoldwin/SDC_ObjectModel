@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -33,22 +34,15 @@ using System.Collections.Generic;
 [JsonObject("AreaCodeType")]
 public partial class AreaCodeType : BaseType
 {
-    private bool _shouldSerializeval;
-    private System.Nullable<ushort> _val;
+    private ushort _val;
+    private bool valFieldSpecified;
     [XmlAttribute]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual ushort val
     {
         get
         {
-            if (_val.HasValue)
-            {
-                return _val.Value;
-            }
-            else
-            {
-                return default(ushort);
-            }
+            return _val;
         }
         set
         {
@@ -57,7 +51,6 @@ public partial class AreaCodeType : BaseType
                 _val = value;
                 OnPropertyChanged("val", value);
             }
-            _shouldSerializeval = true;
         }
     }
     
@@ -66,27 +59,16 @@ public partial class AreaCodeType : BaseType
     {
         get
         {
-            return _val.HasValue;
+            return valFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((valFieldSpecified.Equals(value) != true))
             {
-                _val = null;
+                valFieldSpecified = value;
+                OnPropertyChanged("valSpecified", value);
             }
         }
-    }
-    
-    /// <summary>
-    /// Test whether val should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeval()
-    {
-        if (_shouldSerializeval)
-        {
-            return true;
-        }
-        return (val != default(ushort));
     }
 }
 }

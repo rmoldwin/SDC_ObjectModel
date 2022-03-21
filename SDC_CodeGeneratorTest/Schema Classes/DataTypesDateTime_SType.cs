@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -27,9 +28,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// NEW: SDC datatypes in Simple (S) format, based mostly on W3C specifications. Uses
-/// baseAttributes and Extension capability to enhance the list of Data Types. **CHECK for ERRORS and
-/// completeness**
+/// NEW:
+/// SDC datatypes in Simple (S) format, based mostly on W3C specifications.  Uses baseAttributes and Extension capability to enhance the list of Data Types.        **CHECK for ERRORS and completeness**
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
 [Serializable]
@@ -39,7 +39,6 @@ using System.Collections.Generic;
 public partial class DataTypesDateTime_SType : ExtensionBaseType
 {
     private bool _shouldSerializeItemElementName;
-    private bool _shouldSerializeItem;
     private object _item;
     private ItemChoiceType3 _itemElementName;
     private bool _itemSpecified;
@@ -69,7 +68,6 @@ public partial class DataTypesDateTime_SType : ExtensionBaseType
             {
                 return;
             }
-            _shouldSerializeItem = true;
             if (((_item == null) 
                         || (_item.Equals(value) != true)))
             {
@@ -124,18 +122,6 @@ public partial class DataTypesDateTime_SType : ExtensionBaseType
         {
             _itemElementNameSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether Item should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeItem()
-    {
-        if (_shouldSerializeItem)
-        {
-            return true;
-        }
-        return (Item != default(object));
     }
     
     /// <summary>

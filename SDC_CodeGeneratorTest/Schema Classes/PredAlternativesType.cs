@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -47,9 +48,6 @@ using System.Collections.Generic;
 [JsonObject("PredAlternativesType")]
 public partial class PredAlternativesType : FuncBoolBaseType
 {
-    private bool _shouldSerializemaxAnswered;
-    private bool _shouldSerializeminAnswered;
-    private bool _shouldSerializenot;
     private bool _not;
     private int _minAnswered;
     private int _maxAnswered;
@@ -84,7 +82,6 @@ public partial class PredAlternativesType : FuncBoolBaseType
                 _not = value;
                 OnPropertyChanged("not", value);
             }
-            _shouldSerializenot = true;
         }
     }
     
@@ -104,7 +101,6 @@ public partial class PredAlternativesType : FuncBoolBaseType
                 _minAnswered = value;
                 OnPropertyChanged("minAnswered", value);
             }
-            _shouldSerializeminAnswered = true;
         }
     }
     
@@ -128,7 +124,6 @@ public partial class PredAlternativesType : FuncBoolBaseType
                 _maxAnswered = value;
                 OnPropertyChanged("maxAnswered", value);
             }
-            _shouldSerializemaxAnswered = true;
         }
     }
     
@@ -227,42 +222,6 @@ public partial class PredAlternativesType : FuncBoolBaseType
         {
             _itemNamesSpecified = value;
         }
-    }
-    
-    /// <summary>
-    /// Test whether not should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializenot()
-    {
-        if (_shouldSerializenot)
-        {
-            return true;
-        }
-        return (not != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether minAnswered should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeminAnswered()
-    {
-        if (_shouldSerializeminAnswered)
-        {
-            return true;
-        }
-        return (minAnswered != default(int));
-    }
-    
-    /// <summary>
-    /// Test whether maxAnswered should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemaxAnswered()
-    {
-        if (_shouldSerializemaxAnswered)
-        {
-            return true;
-        }
-        return (maxAnswered != default(int));
     }
     
     /// <summary>

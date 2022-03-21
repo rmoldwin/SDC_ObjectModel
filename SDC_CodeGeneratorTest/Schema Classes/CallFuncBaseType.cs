@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -42,8 +43,6 @@ using System.Collections.Generic;
 public abstract partial class CallFuncBaseType : ExtensionBaseType
 {
     private bool _shouldSerializeItemElementName;
-    private bool _shouldSerializeallowNull;
-    private bool _shouldSerializereturnList;
     private anyURI_Stype _item;
     private ItemChoiceType1 _itemElementName;
     private RichTextType _security;
@@ -183,7 +182,6 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
                 _returnList = value;
                 OnPropertyChanged("returnList", value);
             }
-            _shouldSerializereturnList = true;
         }
     }
     
@@ -273,7 +271,6 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
                 _allowNull = value;
                 OnPropertyChanged("allowNull", value);
             }
-            _shouldSerializeallowNull = true;
         }
     }
     
@@ -446,30 +443,6 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
     public virtual bool ShouldSerializeItems()
     {
         return Items != null && Items.Count > 0;
-    }
-    
-    /// <summary>
-    /// Test whether returnList should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializereturnList()
-    {
-        if (_shouldSerializereturnList)
-        {
-            return true;
-        }
-        return (returnList != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether allowNull should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeallowNull()
-    {
-        if (_shouldSerializeallowNull)
-        {
-            return true;
-        }
-        return (allowNull != default(bool));
     }
     
     /// <summary>

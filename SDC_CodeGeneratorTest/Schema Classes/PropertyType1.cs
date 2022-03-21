@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -27,13 +28,18 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// MOVED: From SDCFormDesign CHANGED: Property is any type of data that is associated with
-/// any form item (e.g., section, question, list item) in any context. The Property context is specified by
-/// the @type attribute. Examples of @type values may include: -alternate language representations, e.g.,
-/// 'spanish' -'instruction' -'tooltip' -'help' for a pop-up help box -'outlining' (such as question
-/// numbering) The @type enumerations must be defined and documented for the particular use case, and are
-/// currently out of scope in this schema definition. Multiple type tokens for a single element are
-/// supported. RENAMED: 'OtherText' to 'Property' 9/14/2016
+/// MOVED: From SDCFormDesign
+/// CHANGED:
+/// Property is any type of data that is associated with any form item (e.g., section, question, list item) in any context.  The Property context is specified by the @type attribute.  Examples of @type values may include:
+/// -alternate language representations, e.g., 'spanish'
+/// -'instruction'
+/// -'tooltip'
+/// -'help' for a pop-up help box
+/// -'outlining' (such as question numbering)
+/// 
+/// The @type enumerations must be defined and documented for the particular use case, and are currently out of scope in this schema definition.  Multiple type tokens for a single element are supported.
+/// 
+/// RENAMED:  'OtherText' to 'Property' 9/14/2016
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
 [Serializable]

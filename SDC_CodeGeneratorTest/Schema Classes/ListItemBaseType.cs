@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -38,10 +39,6 @@ using System.Collections.Generic;
 [JsonObject("ListItemBaseType")]
 public abstract partial class ListItemBaseType : DisplayedType
 {
-    private bool _shouldSerializeomitWhenSelected;
-    private bool _shouldSerializeselectionDeselectsSiblings;
-    private bool _shouldSerializeselectionDisablesChildren;
-    private bool _shouldSerializeselected;
     private ListItemResponseFieldType _listItemResponseField;
     private List<EventType> _onSelect;
     private List<EventType> _onDeselect;
@@ -228,7 +225,6 @@ public abstract partial class ListItemBaseType : DisplayedType
                 _selected = value;
                 OnPropertyChanged("selected", value);
             }
-            _shouldSerializeselected = true;
         }
     }
     
@@ -256,7 +252,6 @@ public abstract partial class ListItemBaseType : DisplayedType
                 _selectionDisablesChildren = value;
                 OnPropertyChanged("selectionDisablesChildren", value);
             }
-            _shouldSerializeselectionDisablesChildren = true;
         }
     }
     
@@ -341,7 +336,6 @@ public abstract partial class ListItemBaseType : DisplayedType
                 _selectionDeselectsSiblings = value;
                 OnPropertyChanged("selectionDeselectsSiblings", value);
             }
-            _shouldSerializeselectionDeselectsSiblings = true;
         }
     }
     
@@ -372,7 +366,6 @@ public abstract partial class ListItemBaseType : DisplayedType
                 _omitWhenSelected = value;
                 OnPropertyChanged("omitWhenSelected", value);
             }
-            _shouldSerializeomitWhenSelected = true;
         }
     }
     
@@ -746,54 +739,6 @@ public abstract partial class ListItemBaseType : DisplayedType
     public virtual bool ShouldSerializeOnDeselect()
     {
         return OnDeselect != null && OnDeselect.Count > 0;
-    }
-    
-    /// <summary>
-    /// Test whether selected should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeselected()
-    {
-        if (_shouldSerializeselected)
-        {
-            return true;
-        }
-        return (selected != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether selectionDisablesChildren should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeselectionDisablesChildren()
-    {
-        if (_shouldSerializeselectionDisablesChildren)
-        {
-            return true;
-        }
-        return (selectionDisablesChildren != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether selectionDeselectsSiblings should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeselectionDeselectsSiblings()
-    {
-        if (_shouldSerializeselectionDeselectsSiblings)
-        {
-            return true;
-        }
-        return (selectionDeselectsSiblings != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether omitWhenSelected should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeomitWhenSelected()
-    {
-        if (_shouldSerializeomitWhenSelected)
-        {
-            return true;
-        }
-        return (omitWhenSelected != default(bool));
     }
     
     /// <summary>

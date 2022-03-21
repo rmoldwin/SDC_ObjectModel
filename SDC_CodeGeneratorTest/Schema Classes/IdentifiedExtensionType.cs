@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -27,8 +28,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// This is the base type for all subtypes that require a unique URI
-/// identifier.
+/// This is the base type for all subtypes that require a unique URI identifier.
 /// </summary>
 [XmlInclude(typeof(FormDesignType))]
 [XmlInclude(typeof(InjectFormType))]

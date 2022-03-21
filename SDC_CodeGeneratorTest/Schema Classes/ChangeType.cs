@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -71,8 +72,7 @@ public partial class ChangeType : ExtensionBaseType
     }
     
     /// <summary>
-    /// @name attribute of target item. (xs:NCName is the base type of
-    /// xs:ID)
+    /// @name attribute of target item. (xs:NCName is the base type of xs:ID)
     /// </summary>
     [XmlElement(Order=1)]
     [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
@@ -124,8 +124,7 @@ public partial class ChangeType : ExtensionBaseType
     }
     
     /// <summary>
-    /// The new value that the targeted item's content is set
-    /// to.
+    /// The new value that the targeted item's content is set to.
     /// </summary>
     [XmlElement(Order=3)]
     [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]

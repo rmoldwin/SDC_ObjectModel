@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -27,11 +28,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// Information about a file, usually thought of as a binary byte stream stored on disk. A
-/// FileType can also represent a "virtual" file, such as an XML module in a larger XML document. Such a
-/// virtual file could theoretically be stored as a byte stream, as an independant file on disk or as a
-/// database record or set of records, even if this byte stream is never actually persisted as an
-/// independant disk file.
+/// Information about a file, usually thought of as a binary byte stream
+/// stored on disk. A FileType can also represent a "virtual" file, such as an XML
+/// module in a larger XML document. Such a virtual file could theoretically be stored
+/// as a byte stream, as an independant file on disk or as a database record or set of
+/// records, even if this byte stream is never actually persisted as an independant disk
+/// file.
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
 [Serializable]
@@ -85,8 +87,8 @@ public partial class FileType : ExtensionBaseType
     private bool _defaultSubmissionRuleSpecified;
     private bool _defaultComplianceRuleSpecified;
     /// <summary>
-    /// Internal/local File ID, not necessarily in the format of the FileURI used
-    /// for all SDC FormDesign items.
+    /// Internal/local File ID, not necessarily in the format
+    /// of the FileURI used for all SDC FormDesign items.
     /// </summary>
     [XmlElement(Order=0)]
     [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
@@ -112,6 +114,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     [XmlElement(Order=1)]
+    [RequiredAttribute()]
     [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual anyURI_Stype FileURI
     {
@@ -128,6 +131,9 @@ public partial class FileType : ExtensionBaseType
             if (((_fileURI == null) 
                         || (_fileURI.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "FileURI";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _fileURI = value;
                 OnPropertyChanged("FileURI", value);
             }
@@ -135,8 +141,9 @@ public partial class FileType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Text to be displayed that encapulates the file contents. This may be the
-    /// same as the internal Title of the file.
+    /// Text to be displayed that encapulates the file
+    /// contents. This may be the same as the internal Title of the
+    /// file.
     /// </summary>
     [XmlElement(Order=2)]
     [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
@@ -214,8 +221,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     /// <summary>
-    /// The name of the file as saved on disk or other persistant
-    /// storage.
+    /// The name of the file as saved on disk or other persistant storage.
     /// </summary>
     [XmlElement(Order=5)]
     [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
@@ -241,9 +247,10 @@ public partial class FileType : ExtensionBaseType
     }
     
     /// <summary>
-    /// The file type extension that describes the file's internal format. This is
-    /// usually the 3-4 character text that appears after the last period in the file name,
-    /// e.g., txt, docx, etc.
+    /// The file type extension that describes the file's
+    /// internal format. This is usually the 3-4 character text that appears
+    /// after the last period in the file name, e.g., txt, docx,
+    /// etc.
     /// </summary>
     [XmlElement(Order=6)]
     [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
@@ -269,8 +276,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     /// <summary>
-    /// A short description of the class of file, such as "FormDesign
-    /// XML"
+    /// A short description of the class of file, such as "FormDesign XML"
     /// </summary>
     [XmlElement(Order=7)]
     [JsonProperty(Order=7, NullValueHandling=NullValueHandling.Ignore)]
@@ -319,8 +325,8 @@ public partial class FileType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Any additional information about the template or file. The type of
-    /// information should be specified in the @type attribute.
+    /// Any additional information about the template or file. The type of information should be specified in the @type
+    /// attribute.
     /// </summary>
     [XmlElement("Description", Order=9)]
     [JsonProperty(Order=9, NullValueHandling=NullValueHandling.Ignore)]
@@ -392,8 +398,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Guidance for when this file should be used, and when it should not be
-    /// used.
+    /// Guidance for when this file should be used, and when it should not be used.
     /// </summary>
     [XmlElement(Order=12)]
     [JsonProperty(Order=12, NullValueHandling=NullValueHandling.Ignore)]
@@ -419,8 +424,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Various dates associated with the file release, versioning and
-    /// usage.
+    /// Various dates associated with the file release, versioning and usage.
     /// </summary>
     [XmlElement(Order=13)]
     [JsonProperty(Order=13, NullValueHandling=NullValueHandling.Ignore)]
@@ -446,9 +450,9 @@ public partial class FileType : ExtensionBaseType
     }
     
     /// <summary>
-    /// People and Organizations associated with the file. Specify the type of
-    /// Contact in the @type attribute. Examples of @type include Curator, Author, and
-    /// Authority.
+    /// People and Organizations associated with the file.
+    /// Specify the type of Contact in the @type attribute. Examples of
+    /// @type include Curator, Author, and Authority.
     /// </summary>
     [XmlElement(Order=14)]
     [JsonProperty(Order=14, NullValueHandling=NullValueHandling.Ignore)]
@@ -474,8 +478,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Documentation of review and acceptance of the file for production
-    /// usage.
+    /// Documentation of review and acceptance of the file for production usage.
     /// </summary>
     [XmlElement("Approval", Order=15)]
     [JsonProperty(Order=15, NullValueHandling=NullValueHandling.Ignore)]
@@ -547,8 +550,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Link to any associated files, such as schemas, reference documents,
-    /// manuals, etc.
+    /// Link to any associated files, such as schemas, reference documents, manuals, etc.
     /// </summary>
     [XmlElement(Order=18)]
     [JsonProperty(Order=18, NullValueHandling=NullValueHandling.Ignore)]

@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -41,10 +42,6 @@ public partial class FormDesignType : IdentifiedExtensionType
 {
     private bool _shouldSerializecompletionStatus;
     private bool _shouldSerializeapprovalStatus;
-    private bool _shouldSerializenewData;
-    private bool _shouldSerializechangedData;
-    private bool _shouldSerializeinstanceVersionPrev;
-    private bool _shouldSerializeinstanceVersion;
     private EventType _beforeLoadForm;
     private EventType _beforeLoadData;
     private EventType _beforeShowForm;
@@ -63,13 +60,19 @@ public partial class FormDesignType : IdentifiedExtensionType
     private string _formTitle;
     private string _basedOnURI;
     private string _instanceID;
-    private DateTime? _instanceVersion;
+    private System.DateTime _instanceVersion;
+    private bool instanceVersionFieldSpecified;
     private string _instanceVersionURI;
-    private DateTime? _instanceVersionPrev;
-    private System.Nullable<FormDesignTypeApprovalStatus> _approvalStatus;
-    private System.Nullable<FormDesignTypeCompletionStatus> _completionStatus;
-    private bool? _changedData;
-    private bool? _newData;
+    private System.DateTime _instanceVersionPrev;
+    private bool instanceVersionPrevFieldSpecified;
+    private FormDesignTypeApprovalStatus _approvalStatus;
+    private bool approvalStatusFieldSpecified;
+    private FormDesignTypeCompletionStatus _completionStatus;
+    private bool completionStatusFieldSpecified;
+    private bool _changedData;
+    private bool changedDataFieldSpecified;
+    private bool _newData;
+    private bool newDataFieldSpecified;
     private bool _beforeLoadFormSpecified;
     private bool _beforeLoadDataSpecified;
     private bool _beforeShowFormSpecified;
@@ -602,14 +605,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     {
         get
         {
-            if (_instanceVersion.HasValue)
-            {
-                return _instanceVersion.Value;
-            }
-            else
-            {
-                return default(System.DateTime);
-            }
+            return _instanceVersion;
         }
         set
         {
@@ -618,7 +614,6 @@ public partial class FormDesignType : IdentifiedExtensionType
                 _instanceVersion = value;
                 OnPropertyChanged("instanceVersion", value);
             }
-            _shouldSerializeinstanceVersion = true;
         }
     }
     
@@ -627,13 +622,14 @@ public partial class FormDesignType : IdentifiedExtensionType
     {
         get
         {
-            return _instanceVersion.HasValue;
+            return instanceVersionFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((instanceVersionFieldSpecified.Equals(value) != true))
             {
-                _instanceVersion = null;
+                instanceVersionFieldSpecified = value;
+                OnPropertyChanged("instanceVersionSpecified", value);
             }
         }
     }
@@ -700,14 +696,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     {
         get
         {
-            if (_instanceVersionPrev.HasValue)
-            {
-                return _instanceVersionPrev.Value;
-            }
-            else
-            {
-                return default(System.DateTime);
-            }
+            return _instanceVersionPrev;
         }
         set
         {
@@ -716,7 +705,6 @@ public partial class FormDesignType : IdentifiedExtensionType
                 _instanceVersionPrev = value;
                 OnPropertyChanged("instanceVersionPrev", value);
             }
-            _shouldSerializeinstanceVersionPrev = true;
         }
     }
     
@@ -725,13 +713,14 @@ public partial class FormDesignType : IdentifiedExtensionType
     {
         get
         {
-            return _instanceVersionPrev.HasValue;
+            return instanceVersionPrevFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((instanceVersionPrevFieldSpecified.Equals(value) != true))
             {
-                _instanceVersionPrev = null;
+                instanceVersionPrevFieldSpecified = value;
+                OnPropertyChanged("instanceVersionPrevSpecified", value);
             }
         }
     }
@@ -751,14 +740,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     {
         get
         {
-            if (_approvalStatus.HasValue)
-            {
-                return _approvalStatus.Value;
-            }
-            else
-            {
-                return default(FormDesignTypeApprovalStatus);
-            }
+            return _approvalStatus;
         }
         set
         {
@@ -776,13 +758,14 @@ public partial class FormDesignType : IdentifiedExtensionType
     {
         get
         {
-            return _approvalStatus.HasValue;
+            return approvalStatusFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((approvalStatusFieldSpecified.Equals(value) != true))
             {
-                _approvalStatus = null;
+                approvalStatusFieldSpecified = value;
+                OnPropertyChanged("approvalStatusSpecified", value);
             }
         }
     }
@@ -800,14 +783,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     {
         get
         {
-            if (_completionStatus.HasValue)
-            {
-                return _completionStatus.Value;
-            }
-            else
-            {
-                return default(FormDesignTypeCompletionStatus);
-            }
+            return _completionStatus;
         }
         set
         {
@@ -825,13 +801,14 @@ public partial class FormDesignType : IdentifiedExtensionType
     {
         get
         {
-            return _completionStatus.HasValue;
+            return completionStatusFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((completionStatusFieldSpecified.Equals(value) != true))
             {
-                _completionStatus = null;
+                completionStatusFieldSpecified = value;
+                OnPropertyChanged("completionStatusSpecified", value);
             }
         }
     }
@@ -842,14 +819,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     {
         get
         {
-            if (_changedData.HasValue)
-            {
-                return _changedData.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _changedData;
         }
         set
         {
@@ -858,7 +828,6 @@ public partial class FormDesignType : IdentifiedExtensionType
                 _changedData = value;
                 OnPropertyChanged("changedData", value);
             }
-            _shouldSerializechangedData = true;
         }
     }
     
@@ -867,13 +836,14 @@ public partial class FormDesignType : IdentifiedExtensionType
     {
         get
         {
-            return _changedData.HasValue;
+            return changedDataFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((changedDataFieldSpecified.Equals(value) != true))
             {
-                _changedData = null;
+                changedDataFieldSpecified = value;
+                OnPropertyChanged("changedDataSpecified", value);
             }
         }
     }
@@ -884,14 +854,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     {
         get
         {
-            if (_newData.HasValue)
-            {
-                return _newData.Value;
-            }
-            else
-            {
-                return default(bool);
-            }
+            return _newData;
         }
         set
         {
@@ -900,7 +863,6 @@ public partial class FormDesignType : IdentifiedExtensionType
                 _newData = value;
                 OnPropertyChanged("newData", value);
             }
-            _shouldSerializenewData = true;
         }
     }
     
@@ -909,13 +871,14 @@ public partial class FormDesignType : IdentifiedExtensionType
     {
         get
         {
-            return _newData.HasValue;
+            return newDataFieldSpecified;
         }
         set
         {
-            if (value==false)
+            if ((newDataFieldSpecified.Equals(value) != true))
             {
-                _newData = null;
+                newDataFieldSpecified = value;
+                OnPropertyChanged("newDataSpecified", value);
             }
         }
     }
@@ -1192,54 +1155,6 @@ public partial class FormDesignType : IdentifiedExtensionType
     public virtual bool ShouldSerializeOnEvent()
     {
         return OnEvent != null && OnEvent.Count > 0;
-    }
-    
-    /// <summary>
-    /// Test whether instanceVersion should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeinstanceVersion()
-    {
-        if (_shouldSerializeinstanceVersion)
-        {
-            return true;
-        }
-        return (instanceVersion != default(System.DateTime));
-    }
-    
-    /// <summary>
-    /// Test whether instanceVersionPrev should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeinstanceVersionPrev()
-    {
-        if (_shouldSerializeinstanceVersionPrev)
-        {
-            return true;
-        }
-        return (instanceVersionPrev != default(System.DateTime));
-    }
-    
-    /// <summary>
-    /// Test whether changedData should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializechangedData()
-    {
-        if (_shouldSerializechangedData)
-        {
-            return true;
-        }
-        return (changedData != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether newData should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializenewData()
-    {
-        if (_shouldSerializenewData)
-        {
-            return true;
-        }
-        return (newData != default(bool));
     }
     
     /// <summary>

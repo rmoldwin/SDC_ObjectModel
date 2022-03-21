@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
@@ -57,6 +58,7 @@ public partial class PersonType : ExtensionBaseType
     private bool _identifierSpecified;
     private bool _usageSpecified;
     [XmlElement(Order=0)]
+    [RequiredAttribute()]
     [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual NameType PersonName
     {
@@ -73,6 +75,9 @@ public partial class PersonType : ExtensionBaseType
             if (((_personName == null) 
                         || (_personName.Equals(value) != true)))
             {
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "PersonName";
+                Validator.ValidateProperty(value, validatorPropContext);
                 _personName = value;
                 OnPropertyChanged("PersonName", value);
             }
@@ -218,8 +223,7 @@ public partial class PersonType : ExtensionBaseType
     }
     
     /// <summary>
-    /// Role of the person, e.g., creator, copyright holder, accreditor,
-    /// certifier, curator, etc.
+    /// Role of the person, e.g., creator, copyright holder, accreditor, certifier, curator, etc.
     /// </summary>
     [XmlElement(Order=7)]
     [JsonProperty(Order=7, NullValueHandling=NullValueHandling.Ignore)]
