@@ -150,7 +150,6 @@ namespace SDC.Schema
         public ActAddCodeType AddActAddCode(ActionsType at, int insertPosition = -1);
         //public abstract ActSetValueType AddSetValue(ActionsType at);
         public ActInjectType AddActInject(ActionsType at, int insertPosition = -1);
-        public CallFuncActionType AddActShowURL(ActionsType at, int insertPosition = -1);
         public ActSaveResponsesType AddActSaveResponses(ActionsType at, int insertPosition = -1);
         public ActSendReportType AddActSendReport(ActionsType at, int insertPosition = -1);
         public ActSendMessageType AddActSendMessage(ActionsType at, int insertPosition = -1);
@@ -163,7 +162,6 @@ namespace SDC.Schema
         public ActPreviewReportType AddActPreviewReport(ActionsType at, int insertPosition = -1);
         public ActValidateFormType AddActValidateForm(ActionsType at, int insertPosition = -1);
         public ScriptCodeAnyType AddActRunCode(ActionsType at, int insertPosition = -1);
-        public CallFuncActionType AddActCallFunctionction(ActionsType at, int insertPosition = -1);
         public PredActionType AddActConditionalGroupAction(ActionsType at, int insertPosition = -1);
 
         #endregion

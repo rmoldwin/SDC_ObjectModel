@@ -30,6 +30,7 @@ namespace SDC.Schema
     public enum ItemTypeEnum
     {   //HEX enum values let us test  for membership of multiple enum types
         //and let us easily define group types
+        //https://en.wikipedia.org/wiki/Hexadecimal
         None = 0x0,
 
         DisplayedItem = 0x2,
@@ -80,10 +81,13 @@ namespace SDC.Schema
     public enum ActionsEnum
     {
         Action, //ActActionType
+        CallFunction, //CallFuncActionType
         SelectMatchingListItems,//RuleSelectMatchingListItemsType
         AddCode, //ActAddCodeType
+        ConditionalGroupAction, //PredActionType
         Inject, //ActInjectType
-        ShowURL, //CallFuncActionType
+        PreviewReport, //ActPreviewReportType
+        RunCode, //ScriptCodeAnyType
         Save, //ActSaveResponsesType
         SendReport, //ActSendReportType
         SendMessage, //ActSendMessageType
@@ -92,37 +96,33 @@ namespace SDC.Schema
         SetBoolAttributeValueCode, //ActSetBoolAttributeValueCode
         ShowForm, //ActShowFormType
         ShowMessage, //ActShowMessageType
+        ShowURL, //CallFuncActionType
         ShowReport, //ActShowReportType
-        PreviewReport, //ActPreviewReportType
         ValidateForm, //ActValidateFormType
-        RunCode, //ScriptCodeAnyType
-        CallFunction, //CallFuncActionType
-        ConditionalGroupAction //PredActionType
-
     }
-    public enum EventActionEnum  //EventActions, PredActionTypeMember
-    {       
-        AttributeEvalActionType,
-        ScriptBoolFuncActionType,
-        CallFuncBoolActionType,
-        MultiSelectionsActionType,
-        SelectionSetsActionType,
-        SelectionTestActionType,
-        PredActionType,
-        RuleSelectMatchingListItemsType,
-        Actions,
-        Else              
-    }
+    //public enum EventActionEnum  //EventActions, PredActionTypeMember
+    //{
+    //    Actions,
+    //    AttributeEvalActionType,
+    //    CallFuncBoolActionType,
+    //    Else,
+    //    MultiSelectionsActionType,
+    //    PredActionType,
+    //    RuleSelectMatchingListItemsType,
+    //    ScriptBoolFuncActionType,
+    //    SelectionSetsActionType,
+    //    SelectionTestActionType
+    //}
     public enum PredGuardEnum //EventActions, PredActionTypeMember
     {
         AttributeEvalActionType,
-        ScriptBoolFuncActionType,
-        CallFuncBoolActionType,
+        //CallFuncBoolActionType,
         MultiSelectionsActionType,
-        SelectionSetsActionType,
-        SelectionTestActionType,
         PredActionType,
-        RuleSelectMatchingListItemsType
+        RuleSelectMatchingListItemsType,
+        ScriptBoolFuncActionType,
+        SelectionSetsActionType,
+        SelectionTestActionType
     }
     public enum MediaTypeEnum
     {
@@ -154,16 +154,16 @@ namespace SDC.Schema
 
         OtherText = Tooltip | PopupNote | Note | ReportNote | ReportText | Description,
 
-        CodedValue = 0x10,
-        Note = 0x20,
-        ReportNote = 0x40,
-        ReportText = 0x80,
-        Link = 0x100,
+        CodedValue = 0x8,
+        Note = 0x10,
+        ReportNote = 0x20,
+        ReportText = 0x40,
+        Link = 0x80,
 
-        Image = 0x200,
-        Video = 0x400,
-        Blob = 0x800,
-        Dicom = 0x1000,
+        Image = 0x100,
+        Video = 0x200,
+        Blob = 0x400,
+        Dicom = 0x800,
         BlobGroup = Image | Video | Blob | Dicom,
     }
     [Flags]

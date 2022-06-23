@@ -77,9 +77,10 @@ namespace SDC.Schema
         /// <returns></returns>
         public byte[] GetMsgPack();
 
-        public void SaveXmlToFile(string path, Exception ex = null);
-        public void SaveJsonToFile(string path, Exception ex = null);
-        public void SaveMsgPackToFile(string path, Exception ex = null);
+        public void SaveXmlToFile(string path);
+        public void SaveJsonToFile(string path);
+        public void SaveBsonToFile(string path);
+        public void SaveMsgPackToFile(string path);
         #endregion
 
     }

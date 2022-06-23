@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SDCPackage xmlns="urn:ihe:qrph:sdc:2016" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="urn:ihe:qrph:sdc:2016 file:/C:/Users/rmoldwi/OneDrive/One%20Drive%20Documents/SDC/SDC%20Git%20Repo/sdc-schema-package/SDCRetrieveForm.xsd"
+     packageID="1" lineage="NP" version="fYZ1iRW2" fullURI="http://RXONxAik/" basedOnURI="http://dcnQNiOE/" filename="F"
+     baseURI="http://zClFiYcW/" name="ID001" type="R-H7NX.D ka8zFxdD -F3gv6cM"
+     styleClass="ehUVu:gF rCNJfB1R 7HwcqNkv T1sQpBn5 KW_ZB5Je Fmf31GAo 3FuxrN_4 vJhfrInE NjkSpk6S RU_P0wyJ 2RWW2zDV gwtdIGMG"
+     sGuid="6V-6hvt3v-t-7T-_-__-i6" order="1708853572.799">
+     <XMLPackage sGuid="a123456789-123456789__" name="a">
+          <DemogFormDesign lineage="1" version="1" fullURI="1" ID="1" sGuid="a123456789-123456789__">
+               <Property propName="a1">
+                    <TypedValue sGuid="a123456789-123456789_A">
+                         <yearMonthDuration sGuid="a123456789-123456789_2" val="P1Y1M"/>
+                    </TypedValue>
+               </Property>
+          </DemogFormDesign>
+          <FormDesign lineage="1" version="1" fullURI="1" ID="1" sGuid="a123456789-123456789__">
+               <Property propName="a1">
+                    <TypedValue sGuid="a123456789-123456789_1">
+                         <yearMonthDuration sGuid="a123456789-123456789_2" val="P1Y1M"/>
+                    </TypedValue>
+               </Property>
+               <Property propName="a1">
+                    <TypedValue sGuid="a123456789-123456789_3">
+                         <gYearMonth sGuid="a123456789-123456789_4" val="2004-03" timeZone="+01:01"/>
+                    </TypedValue>
+               </Property>
+               <Property propName="a1">
+                    <TypedValue sGuid="a123456789-123456789_5">
+                         <dateTime sGuid="a123456789-123456789_6" val="2004-03-09T01:01:11.123" timeZone="+01:01"/>
+                    </TypedValue>
+               </Property>
+               <Property propName="a1">
+                    <TypedValue sGuid="a123456789-123456789_7">
+                         <date sGuid="a123456789-123456789_8" val="2004-03-09Z" timeZone="+01:01"/>
+                    </TypedValue>
+               </Property>
+               <Property propName="a1">
+                    <TypedValue sGuid="a123456789-123456789_9">
+                         <time sGuid="b123456789-123456789_1" val="01:01:11.123" timeZone="+01:01"/>
+                    </TypedValue>
+               </Property>
+          </FormDesign>
+     </XMLPackage>
+
+</SDCPackage>

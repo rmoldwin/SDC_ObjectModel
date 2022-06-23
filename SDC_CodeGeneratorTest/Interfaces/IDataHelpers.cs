@@ -19,8 +19,10 @@ namespace SDC.Schema
           ResponseFieldType rfParent,
           ItemChoiceType dataTypeEnum = ItemChoiceType.@string,
           dtQuantEnum quantifierEnum = dtQuantEnum.EQ,
-          object value = null)
+          object? value = null)
         {
+            Exception ex;
+            List<Exception> exList = new();
             rfParent.Response = new DataTypes_DEType(rfParent);
 
             switch (dataTypeEnum)
@@ -94,7 +96,7 @@ namespace SDC.Schema
                             else
                                 try
                                 {
-                                    var sTest = DateTime.Parse(value.ToString());
+                                    var sTest = DateTime.Parse(value.ToString()!);
                                     dt.val = sTest;
                                 }
                                 catch (Exception) //ex)
@@ -114,7 +116,8 @@ namespace SDC.Schema
                 case ItemChoiceType.@decimal:
                     {
                         var dt = new decimal_DEtype(rfParent.Response);
-                        dt.val = (decimal)value;
+                        //dt.val = (decimal)value;
+                        if (value is decimal v) dt.val = v;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
@@ -200,7 +203,8 @@ namespace SDC.Schema
                 case ItemChoiceType.integer:
                     {
                         var dt = new integer_DEtype(rfParent.Response);
-                        dt.val = (string)value; //(string)value; C# string data type in xsdCode++ - uses string because there is no integer (truncated decimal) format in .NET
+                        //dt.val = (decimal)value; //(string)value; C# string data type in xsdCode++ - uses string because there is no integer (truncated decimal) format in .NET
+                        if (value is decimal v) dt.val = v;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
@@ -216,7 +220,7 @@ namespace SDC.Schema
                 case ItemChoiceType.negativeInteger:
                     {
                         var dt = new negativeInteger_DEtype(rfParent.Response);
-                        dt.val = (string)value;  //TODO: C# string data type in xsdCode++
+                        dt.val = (decimal)value;  //TODO: C# string data type in xsdCode++
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
@@ -224,7 +228,7 @@ namespace SDC.Schema
                 case ItemChoiceType.nonNegativeInteger:
                     {
                         var dt = new nonNegativeInteger_DEtype(rfParent.Response);
-                        dt.val = (string)value;  //TODO:  bug in xsdCode++ - wrong data type?
+                        dt.val = (decimal)value;  //TODO:  bug in xsdCode++ - wrong data type?
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
@@ -232,7 +236,7 @@ namespace SDC.Schema
                 case ItemChoiceType.nonPositiveInteger:
                     {
                         var dt = new nonPositiveInteger_DEtype(rfParent.Response);
-                        dt.val = (string)value; //TODO: C# string data type in xsdCode++
+                        dt.val = (decimal)value; //TODO: C# string data type in xsdCode++
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
@@ -240,7 +244,7 @@ namespace SDC.Schema
                 case ItemChoiceType.positiveInteger:
                     {
                         var dt = new positiveInteger_DEtype(rfParent.Response);
-                        dt.val = (string)value;//TODO: C# string data type in xsdCode++
+                        dt.val = (decimal)value;//TODO: C# string data type in xsdCode++
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
@@ -376,7 +380,7 @@ namespace SDC.Schema
         }
 
 
-        static DataTypes_DEType AddHTML_DE(ResponseFieldType rfParent, List<XmlElement> valEl = null, List<XmlAttribute> valAtt = null)
+        static DataTypes_DEType AddHTML_DE(ResponseFieldType rfParent, List<XmlElement> valEl = null!, List<XmlAttribute> valAtt = null!)
         {
             rfParent.Response = new DataTypes_DEType(rfParent);
 
@@ -388,7 +392,7 @@ namespace SDC.Schema
             rfParent.Response.ItemElementName = ItemChoiceType2.HTML;
             return rfParent.Response;
         }
-        static DataTypes_DEType AddXML_DE(ResponseFieldType rfParent, List<XmlElement> valEl = null)
+        static DataTypes_DEType AddXML_DE(ResponseFieldType rfParent, List<XmlElement> valEl = null!)
         {
             rfParent.Response = new DataTypes_DEType(rfParent);
 
@@ -399,7 +403,7 @@ namespace SDC.Schema
             rfParent.Response.ItemElementName = ItemChoiceType2.XML;
             return rfParent.Response;
         }
-        static DataTypes_DEType AddAny_DE(ResponseFieldType rfParent, List<XmlElement> valEl = null, List<XmlAttribute> valAtt = null, string nameSpace = null, string schema = null)
+        static DataTypes_DEType AddAny_DE(ResponseFieldType rfParent, List<XmlElement> valEl = null!, List<XmlAttribute> valAtt = null!, string nameSpace = null!, string schema = null!)
         {
             rfParent.Response = new DataTypes_DEType(rfParent);
 
@@ -413,7 +417,7 @@ namespace SDC.Schema
             rfParent.Response.ItemElementName = ItemChoiceType2.HTML;
             return rfParent.Response;
         }
-        static DataTypes_DEType AddBase64_DE(ResponseFieldType rfParent, byte[] value = null, string mediaType = null)
+        static DataTypes_DEType AddBase64_DE(ResponseFieldType rfParent, byte[] value = null!, string mediaType = null!)
         {
             rfParent.Response = new DataTypes_DEType(rfParent);
 
@@ -440,9 +444,7 @@ namespace SDC.Schema
     {
         HTML_Stype AddHTML(RichTextType rt)
         {
-            HTML_Stype html = null;
-
-            html = new HTML_Stype(rt);
+            var html = new HTML_Stype(rt);
             rt.RichText = html;
             html.Any = new List<XmlElement>();
 

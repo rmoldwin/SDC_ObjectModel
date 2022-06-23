@@ -1,14 +1,37 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Description>Object Model (OM) for IHE Structured Data Capture (SDC)</Description>
+    <Copyright>RIchard Moldwin (2016+)</Copyright>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Utility Classes\" />
-    <Folder Include="Retired Classes\" />
+    <Compile Remove="Modified SDC Classes\ConstuctorCommentedOut\**" />
+    <Compile Remove="Modified SDC Classes\ItemsNodeAnnotated\**" />
+    <Compile Remove="Need Base Class in Schema\**" />
+    <Compile Remove="SDC MsgPack Generator\**" />
+    <Compile Remove="SDC Schema\Schema Classes\**" />
+    <EmbeddedResource Remove="Modified SDC Classes\ConstuctorCommentedOut\**" />
+    <EmbeddedResource Remove="Modified SDC Classes\ItemsNodeAnnotated\**" />
+    <EmbeddedResource Remove="Need Base Class in Schema\**" />
+    <EmbeddedResource Remove="SDC MsgPack Generator\**" />
+    <EmbeddedResource Remove="SDC Schema\Schema Classes\**" />
+    <None Remove="Modified SDC Classes\ConstuctorCommentedOut\**" />
+    <None Remove="Modified SDC Classes\ItemsNodeAnnotated\**" />
+    <None Remove="Need Base Class in Schema\**" />
+    <None Remove="SDC MsgPack Generator\**" />
+    <None Remove="SDC Schema\Schema Classes\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\dayTimeDuration_Stype.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,6 +39,21 @@
     <PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.2" />
     <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.14" />
     <PackageReference Include="Newtonsoft.Msgpack" Version="0.1.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
