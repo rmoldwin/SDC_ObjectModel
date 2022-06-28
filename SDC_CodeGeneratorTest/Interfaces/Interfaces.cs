@@ -40,8 +40,8 @@ namespace SDC.Schema
     public interface IVal
     {
         //Implemented by data types, which have a strongly-typed val attribute.  Not implemented by anyType, XML, or HTML  
-        object Val { get; set; }
-        string ValString { get; }
+        object val { get; set; }
+        string valString { get; }
     }
     public interface IValNumeric : IVal { decimal ValDec { get; set; } } //Implemented by numeric data types, which have a strongly-type val attribute.
     public interface IValDateTime : IVal { } //Implemented by DateTime data types, which have a strongly-type val attribute.

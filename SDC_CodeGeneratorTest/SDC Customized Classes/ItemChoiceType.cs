@@ -30,7 +30,7 @@ using System.Collections.Generic;
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
 [Serializable]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016", IncludeInSchema=false)]
-public enum ItemChoiceType2
+public enum ItemChoiceType
 {
     HTML,
     XML,
@@ -42,6 +42,7 @@ public enum ItemChoiceType2
     date,
     dateTime,
     dateTimeStamp,
+    dayTimeDuration, //rm added 2022/06/27
     @decimal,
     @double,
     duration,
@@ -66,7 +67,7 @@ public enum ItemChoiceType2
     unsignedInt,
     unsignedLong,
     unsignedShort,
-    yearMonthDuration,
-}
+    yearMonthDuration
+    }
 }
 #pragma warning restore

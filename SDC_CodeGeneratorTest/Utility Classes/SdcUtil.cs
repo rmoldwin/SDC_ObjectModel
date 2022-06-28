@@ -3582,7 +3582,7 @@ XmlElementName: {XmlElementName}
         public static DataTypes_DEType AddDataType(this ResponseFieldType rf,
             ItemChoiceType dataType = ItemChoiceType.@string,
             dtQuantEnum dtQuant = dtQuantEnum.EQ,
-            object valDefault = null!)
+            object valDefault = null)
             => IDataHelpers.AddDataTypesDE(rf, dataType, dtQuant, valDefault);  //Convert to generic type for valDefault
 
         public static UnitsType AddResponseUnits(this ResponseFieldType rf, string units)
@@ -4140,22 +4140,33 @@ public static class ObjectExtensions
     /// <summary>
     /// Try to Cast as T, or else pass exception
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="Tout"></typeparam>
     /// <param name="oIn">Incoming object</param>
     /// <param name="oOut">Outgoing object with new type T, or null if the type conversion failed </param>
-    /// <param name="exList">If an exception is thrown due to a failed conversion, the exception object is added to this list</param>
+    /// <param name="exOut">An Exception object from a failed type conversion, or null if no exception was generated</param>
+    /// <param name="id">An optional identifier or text to help identify the context of any generated exception</param>
+    /// exOut
     /// <returns></returns>
-    public static bool TryAs<T>(this object? oIn, out T oOut, List<Exception>? exList = null) where T : class
+    public static bool TryAs<Tout>(this object oIn, out Tout? oOut, out Exception? exOut, string id = "") //where T : struct
     {
         try
         {
-            oOut = (T)oIn;
+            exOut = null;
+            if (oIn is null) throw new ArgumentNullException("oIn", "The input object 'oIn' was null");
+
+            oOut = (Tout)Convert.ChangeType(oIn, typeof(Tout));
+            //oOut = (T?)oIn;
             return true;
         }
         catch (Exception ex)
-        {
-            exList?.Add(ex);
-            oOut = null;
+        {           
+            ex.Data.Add("Exception:", ex.Message);
+            ex.Data.Add("id:", id);
+            ex.Data.Add("Input:", oIn);
+            ex.Data.Add("Input Type", oIn?.GetType().Name);
+            ex.Data.Add("Output Type", typeof(Tout)?.Name);
+            exOut = ex;
+            oOut = default;
             return false;
         }
     }
@@ -4172,13 +4183,16 @@ public static class ObjectExtensions
     /// If the conversion failed, exOut will not be null, 
     /// exList will contain the exception as its last item, 
     /// and the return value will be the default value of Tout</returns>
-    public static Tout TryAs<Tout>(this object oIn, out Exception exOut, IList<Exception> exList = null, string id = "")
+    public static Tout? TryAs2<Tout>(this object oIn, out Exception? exOut, IList<Exception>? exList = null, string id = "")
     {
         try
         {
+            exOut = null;
+            if (oIn is null) return default;
+
             var oOut = (Tout)Convert.ChangeType(oIn, typeof(Tout));
             //var oOut = (Tout)oIn;
-            exOut = null;
+            
             return oOut;
         }
         catch (Exception ex)
@@ -4194,38 +4208,48 @@ public static class ObjectExtensions
         }
     }
     
-    public static void TryAssign<Tout>(this object oIn, 
-        ref Tout objToAssign, 
+    public static bool TryAssign<Tout>(this object oIn, 
+        ref Tout? objToAssign, 
         out Exception exOut, 
-        IList<Exception> exList = null!, 
+        IList<Exception>? exList = null, 
         string id = "")
     {
         try
         {
             exOut = null!;
+
             if (oIn == null && default(Tout) != null)
             {
                 Console.WriteLine("TryAssign: No assignment made. Cannot set the non-nullable objToAssign to null");
-                return;
+                return false;
             }  //Cannot set a non-nullable object to null, so we do nothing and return
 
             if (oIn == null && objToAssign != null)
             {
                 Console.WriteLine("TryAssign: Assigned null to objToAssign");
-                objToAssign = default(Tout)!; return;  //TryAssign can return null
+                objToAssign = default(Tout)!; return true;  //TryAssign can return null
             } //This will assign null to objToAssign, if objToAssign is nullable
 
-            var oOut = (Tout)Convert.ChangeType(oIn, typeof(Tout));
+
+            var oOut = (Tout?)Convert.ChangeType(oIn, typeof(Tout?));
             //display("base type name: " + typeof(Tout).BaseType.Name);
             if ( //Do not assign null to a ValueType
-                    (oOut is null && default(Tout) != null)
+                    (oOut is null && default(Tout?) != null)
                     ||
-                    (typeof(Tout).BaseType.Name == "ValueType" && objToAssign.Equals(oOut))
+                    (typeof(Tout).BaseType?.Name == "ValueType" 
+                    && objToAssign != null 
+                    && oOut != null 
+                    && objToAssign.Equals(oOut))//don't make assignment if the value will not change
                 //Should we handle ref types with equal values? (string, xml, html, byte[] (e.g., base64) etc)
                 )
-            { Console.WriteLine("TryAssign: objToAssign value was not changed"); return; } //Do not change the assigned value
-                                                                                 //display(oOut.ToString());
-            objToAssign = (Tout)oOut;
+            {
+                Console.WriteLine("TryAssign: objToAssign value was not changed");
+                return false;
+            } //Do not change the assigned value
+              //display(oOut.ToString());
+
+            objToAssign = oOut;
+            return true;
         }
         catch (Exception ex)
         {
@@ -4236,7 +4260,7 @@ public static class ObjectExtensions
             ex.Data.Add("Input:", oIn);
             ex.Data.Add("Input Type", oIn?.GetType().Name);
             ex.Data.Add("Output Type", typeof(Tout)?.Name);
-            //return;
+            return false;
         }
     }
 

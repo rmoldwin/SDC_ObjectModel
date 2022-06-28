@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks.Sources;
 using System.Xml;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace SDC.Schema
 {
@@ -21,238 +22,534 @@ namespace SDC.Schema
           dtQuantEnum quantifierEnum = dtQuantEnum.EQ,
           object? value = null)
         {
-            Exception ex;
+            //Exception ex;
             List<Exception> exList = new();
+
+            if (rfParent.Response != null) throw new InvalidOperationException("A DataTypes_DEType object alrready exists on the rfParent parameter (ResponseFieldType)");
             rfParent.Response = new DataTypes_DEType(rfParent);
 
             switch (dataTypeEnum)
             {
                 case ItemChoiceType.HTML:
-                    {
+                    {//TODO:
                         var dt = new HTML_DEtype(rfParent.Response);
+
                         dt.Any = value as List<XmlElement> ?? new List<XmlElement>();
                         dt.AnyAttr = new List<XmlAttribute>();
+                        //check is value is valid HTML and assign value to dt
                         rfParent.Response.DataTypeDE_Item = dt;
+                       
                     }
                     break;
                 case ItemChoiceType.XML: //TODO: Need to be able to add custom attributes to first wrapper element - see anyType; in fact, do we even need XML as a separate type?
-                    {
+                    {//TODO:
                         var dt = new XML_DEtype(rfParent.Response);
                         dt.Any = new List<XmlElement>();
-                        rfParent.Response.DataTypeDE_Item = dt;
+                        //check is value is valid XML and assign value to dt
+                        rfParent.Response.DataTypeDE_Item = dt;                        
                     }
                     break;
                 case ItemChoiceType.anyType:
-                    {
+                    {//TODO:
                         var dt = new anyType_DEtype(rfParent.Response);
                         dt.Any = new List<XmlElement>();
                         dt.AnyAttr = new List<XmlAttribute>();
-                        rfParent.Response.DataTypeDE_Item = dt;
+                        //check is value is valid XML and assign value to dt
+                        rfParent.Response.DataTypeDE_Item = dt;                        
                     }
                     break;
                 case ItemChoiceType.anyURI:
                     {
+                        string? tmp = null;
+                        if (value is string s)
+                            if (Regex.Match(s, @"([#x1-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF])+").Success) tmp = (string)value;
+                            else StoreError("Supplied value parameter was not in anyURI string format");
+                        else StoreError("Supplied value parameter was not in anyURI string format");
+
                         var dt = new anyURI_DEtype(rfParent.Response);
-                        dt.val = (string)value;
+                        if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.base64Binary:
                     {
+                        byte[]? tmp = null; //start with a default value that is not zero                        
+                        if (value is string s)
+                        {
+                            var s64 = new Span<byte>();
+                            if (Convert.TryFromBase64String(s, s64, out int bytesWritten)) tmp = s64.ToArray();
+                            else StoreError("Supplied value parameter could not be parsed as base64Binary (byte[]).  " +
+                                $"Bytes written = {bytesWritten}");
+                        }
+                        else if (value is byte[] bVal) tmp = bVal;
+                        else StoreError("Supplied value parameter could not be parsed as base64Binary (byte[])");
+
                         var dt = new base64Binary_DEtype(rfParent.Response);
-                        dt.val = (byte[])value;
+                        if (tmp != null && tmp != default) dt.val = (byte[])tmp;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.boolean:
                     {
+                        bool? tmp = null;                        
+                        if (value is string s)
+                        {
+                            if (bool.TryParse(s, out bool sVal) && sVal != default) tmp = sVal;
+                            else StoreError("Supplied value parameter could not be parsed as bool");
+                        }
+                        else if (value is bool v && v != default) tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as bool");
+
                         var dt = new boolean_DEtype(rfParent.Response);
-                        dt.val = (bool)value;
+                        if (tmp != null && tmp != default) dt.val = (bool)tmp;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@byte:
                     {
-                        var dt = new byte_DEtype(rfParent.Response);
-                        dt.val = (sbyte)value;
+                        sbyte? tmp = null;                        
+                        if (value is string s)
+                        {
+                            if (sbyte.TryParse(s, out sbyte sVal) && sVal != default) tmp = sVal;
+                            else StoreError("Supplied value parameter could not be parsed as sbyte");
+                        }
+                        else if (value is sbyte v && v != default) tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as sbyte");
+
+                        var dt = new short_DEtype(rfParent.Response);
+                        if (tmp != null && tmp != default) dt.val = (sbyte)tmp;
+                        dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.date:
                     {
+                        DateTime? tmp = null; //start with a default value that is not zero
+                        if (value is string s)   //Can decide here to support timezone or not in the DateTime field.
+                                                 //Consider switch to DateTimeOffset.
+                        {
+                            if (DateTime.TryParse(s, null, System.Globalization.DateTimeStyles.RoundtripKind, out DateTime sVal)
+                                && sVal != default)
+                            {
+                                if (Regex.Match(s, @"?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?") //date
+                                    .Success) tmp = sVal;
+                                else StoreError("Supplied value parameter could not be parsed as date");
+                            }
+                            else StoreError("Supplied value parameter could not be parsed as date");
+                        }
+                        else if (value is DateTime v && v != default) tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as date");
+
                         var dt = new date_DEtype(rfParent.Response);
-                        dt.val = (DateTime)value;
+                        if (tmp != null && tmp != default) dt.val = (DateTime)tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
-                    break;
+                   break;
                 case ItemChoiceType.@dateTime: //TODO: added the "@" symbol to dateTime and dateTimeStamp here, in AddFillDataTypesDE, and in the 2 ItemChoiceType files.  Also fixed bug in the DateTypes_DEtype with the wrong ItemTypeNames from xsd2code - on dateTime and dateTimeStamp.
                     {
-                        var dt = new dateTime_DEtype(rfParent.Response);
-                        if (value != null)  //TODO: value testing may be needed for the other dateTime and duration types in this method, and also in AddFillDataTypesDE
+                        DateTime? tmp = null; //start with a default value that is not zero
+                        if (value is string s)   //Can decide here to support timezone or not in the DateTime field.
+                                                 //Consider switch to DateTimeOffset.
                         {
-                            var test = value as DateTime?;
-                            if (test != null)
-                                dt.val = (DateTime)test;
-                            else
-                                try
-                                {
-                                    var sTest = DateTime.Parse(value.ToString()!);
-                                    dt.val = sTest;
-                                }
-                                catch (Exception) //ex)
-                                { }
+                            if (DateTime.TryParse(s, null, System.Globalization.DateTimeStyles.RoundtripKind, out DateTime sVal)
+                                && sVal != default
+                                && Regex.Match(s,
+                                    @"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?|(24:00:00(\.0+)?))(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?")
+                                    .Success)
+                                tmp = sVal;
+                            else StoreError("Supplied value parameter could not be parsed as dateTime");
                         }
+                        else if (value is DateTime v && v != default) tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as dateTime");
+
+                        var dt = new dateTime_DEtype(rfParent.Response);
+                        if (tmp != null && tmp != default) dt.val = (DateTime)tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
-                case ItemChoiceType.@dateTimeStamp:
+                case ItemChoiceType.@dateTimeStamp:  //Must be UTC.  All values will be converted to UTC.  If no timezone is supplied, local time will be converted to UTC.
                     {
+                        DateTime? tmp = null; //start with a default value that is not zero
+                        if (value is string s)   //Can decide here to support timezone or not in the DateTime field.
+                                                 //Consider switch to DateTimeOffset.
+                        {
+                            if (DateTime.TryParse(s, null, System.Globalization.DateTimeStyles.RoundtripKind, out DateTime sVal)
+                                && sVal != default
+                                && Regex.Match(s,
+                                    @"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?|(24:00:00(\.0+)?))(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))")
+                                    .Success)
+                                tmp = sVal;
+                            else StoreError("Supplied value parameter could not be parsed as dateTimeStamp");
+                        }
+                        else if (value is DateTime v && v != default) tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as dateTimeStamp");
+
                         var dt = new dateTimeStamp_DEtype(rfParent.Response);
-                        dt.val = (DateTime)value;
+                        if (tmp != null && tmp != default) dt.val = (DateTime)tmp;
+                        rfParent.Response.DataTypeDE_Item = dt;
+                    }
+                    break;
+                case ItemChoiceType.dayTimeDuration:
+                    {
+                        string? tmp = null; //start with a default value that is not zero
+                        if (value is string s)
+                        {
+                            if (Regex.Match(s, @"-?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.[0-9]+)?S)?)?").Success) //dayTimeDuration
+                                tmp = s;
+                            else StoreError("Supplied value parameter could not be parsed as dayTimeDuration");
+                        }
+                        else if (value is TimeSpan ts && ts != default)
+                            tmp = XmlConvert.ToString(ts);
+                        else StoreError("Supplied value parameter could not be parsed as dayTimeDuration");
+
+                        var dt = new dayTimeDuration_DEtype(rfParent.Response);
+                        if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
+                        dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@decimal:
                     {
-                        var dt = new decimal_DEtype(rfParent.Response);
-                        //dt.val = (decimal)value;
-                        if (value is decimal v) dt.val = v;
-                        dt.quantEnum = quantifierEnum;
-                        rfParent.Response.DataTypeDE_Item = dt;
+                        {
+                            decimal? tmp = null;
+                            if (value is string s)
+                            {
+                                if (decimal.TryParse(s, out decimal sVal) && sVal != default) tmp = sVal;
+                                else StoreError("Supplied value parameter could not be parsed as decimal");
+                            }
+                            else if (value is decimal v && v != default) tmp = v;
+                            else StoreError("Supplied value parameter could not be parsed as decimal");
+
+                            var dt = new decimal_DEtype(rfParent.Response);
+                            if (tmp != null && tmp != default) dt.val = (decimal)tmp;
+                            dt.quantEnum = quantifierEnum;
+                            rfParent.Response.DataTypeDE_Item = dt;
+                        }
                     }
-                    break;
+                        break;
                 case ItemChoiceType.@double:
                     {
+                        double? tmp = null;
+                        if (value is string s)
+                        {
+                            if (double.TryParse(s, out double sVal) && sVal != default) tmp = sVal;
+                            else StoreError("Supplied value parameter could not be parsed as double");
+                        }
+                        else if (value is double v && v != default) tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as double");
+
                         var dt = new double_DEtype(rfParent.Response);
-                        dt.val = (double)value;
+                        if (tmp != null && tmp != default) dt.val = (double)tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.duration:
                     {
+                        string? tmp = null; //start with a default value that is not zero
+                        if (value is string s)
+                        {
+                            if (Regex.Match(s, @"-?P[0-9]+Y?([0-9]+M)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.[0-9]+)?S)?)?").Success) //duration
+                                tmp = s;
+                            else StoreError("Supplied value parameter could not be parsed as duration");
+                        }
+                        else if (value is TimeSpan ts && ts != default) 
+                            tmp = XmlConvert.ToString(ts);
+                        else StoreError("Supplied value parameter could not be parsed as duration");
+
                         var dt = new duration_DEtype(rfParent.Response);
-                        dt.val = (string)value;   //TODO: C# string data type in xsdCode++
+                        if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@float:
                     {
-                        var dt = new float_DEtype(rfParent.Response);
-                        dt.val = (float)value;
+                        float? tmp = null;
+                        if (value is string s)
+                        {
+                            if (float.TryParse(s, out float sVal) && sVal != default) tmp = sVal;
+                            else StoreError("Supplied value parameter could not be parsed as float");
+                        }
+                        else if (value is float v && v != default) tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as float");
+
+                        var dt = new double_DEtype(rfParent.Response);
+                        if (tmp != null && tmp != default) dt.val = (float)tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.gDay:
                     {
+                        string? tmp = null; //start with a default value that is not zero
+                        if (value is string s)
+                        {
+                            if (Regex.Match(s, @"---(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?").Success) //gDay
+                                tmp = s;
+                            else StoreError("Supplied value parameter could not be parsed as gDay");
+                        }
+                        else StoreError("Supplied value parameter could not be parsed as gDay");
+
                         var dt = new gDay_DEtype(rfParent.Response);
-                        dt.val = (string)value; ;  //TODO: C# string data type in xsdCode++
+                        if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.gMonth:
                     {
+                        string? tmp = null; //start with a default value that is not zero
+                        if (value is string s)
+                        {
+                            if (Regex.Match(s, @"--(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?").Success) //gMonth
+                                tmp = s;
+                            else StoreError("Supplied value parameter could not be parsed as gMonth");
+                        }
+                        else StoreError("Supplied value parameter could not be parsed as gMonth");
+
                         var dt = new gMonth_DEtype(rfParent.Response);
-                        dt.val = (string)value; ;  //TODO: C# string data type in xsdCode++
+                        if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.gMonthDay:
                     {
+                        string? tmp = null; //start with a default value that is not zero
+                        if (value is string s)
+                        {
+                            if (Regex.Match(s, @"--(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?").Success) //gMonthDay
+                                tmp = s;
+                            else StoreError("Supplied value parameter could not be parsed as gMonthDay");
+                        }
+                        else StoreError("Supplied value parameter could not be parsed as gMonthDay");
+
                         var dt = new gMonthDay_DEtype(rfParent.Response);
-                        dt.val = (string)value; ;  //TODO: C# string data type in xsdCode++
+                        if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.gYear:
                     {
+                        string? tmp = null; //start with a default value that is not zero
+                        if (value is string s)
+                        {
+                            if (Regex.Match(s, @"-?([1-9][0-9]{3,}|0[0-9]{3})(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?").Success) //gYear
+                                tmp = s;
+                            else StoreError("Supplied value parameter could not be parsed as gYear");
+                        }
+                        else StoreError("Supplied value parameter could not be parsed as gYear");
+
                         var dt = new gYear_DEtype(rfParent.Response);
-                        dt.val = (string)value; ;  //TODO: C# string data type in xsdCode++
+                        if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.gYearMonth:
                     {
+                        string? tmp = null; //start with a default value that is not zero
+                        if (value is string s)
+                        {
+                            if (Regex.Match(s, @"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?").Success) //gYearMonth
+                                tmp = s;
+                            else StoreError("Supplied value parameter could not be parsed as gYearMonth");
+                        }
+                        else StoreError("Supplied value parameter could not be parsed as gYearMonth");
+
                         var dt = new gYearMonth_DEtype(rfParent.Response);
-                        dt.val = (string)value; //TODO: C# string data type in xsdCode++
+                        if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.hexBinary:
                     {
+                        byte[]? tmp = null; //start with a default value that is not zero
+                        if (value is string s)
+                        {
+                            if (Regex.Match(s, @"([0-9a-fA-F]{2})*").Success)
+                                tmp = HexConversions.HexStringToByteArrayFastest(s);
+                            else StoreError("Supplied value parameter could not be parsed as byte[]");
+                        }
+                        else if (value is byte[] v && v != default) tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as byte[]");
+
                         var dt = new hexBinary_DEtype(rfParent.Response);
-                        dt.val = (byte[])value;
+                        if (tmp != null && tmp != default) dt.val = tmp;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@int:
                     {
+                        int? tmp = null;
+                        if (value is string s)
+                        {
+                            if (int.TryParse(s, out int sVal) && sVal != default) tmp = sVal;
+                            else StoreError("Supplied value parameter could not be parsed as int");
+                        }
+                        else if (value is int v && v != default) tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as int");
+
                         var dt = new int_DEtype(rfParent.Response);
-                        dt.val = (int)value;
+                        if (tmp != null && tmp != default) dt.val = (int)tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
-                case ItemChoiceType.integer:
+                case ItemChoiceType.integer: //XML integer is based on decimal datatype.  Decimal values after the "." will be truncated
                     {
-                        var dt = new integer_DEtype(rfParent.Response);
-                        //dt.val = (decimal)value; //(string)value; C# string data type in xsdCode++ - uses string because there is no integer (truncated decimal) format in .NET
-                        if (value is decimal v) dt.val = v;
+                        decimal? tmp = null;
+                        if (value is string s)
+                        {
+                            if (decimal.TryParse(s, out decimal sVal) && sVal != default) tmp = sVal;
+                            else StoreError("Supplied value parameter could not be parsed as integer");
+                        }
+                        else if (value is decimal v && v != default)
+                            tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as integer");
+
+                        var dt = new decimal_DEtype(rfParent.Response);
+                        if (tmp != null)
+                        {
+                            decimal tmp2 = decimal.Truncate((decimal)tmp);
+                            if (tmp2 != default) dt.val = tmp2;
+                        }
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@long:
                     {
+                        long? tmp = null;
+                        if (value is string s)
+                        {
+                            if (long.TryParse(s, out long sVal) && sVal != default) tmp = sVal;
+                            else StoreError("Supplied value parameter could not be parsed as long");
+                        }
+                        else if (value is long v && v != default) 
+                            tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as long");
+
                         var dt = new long_DEtype(rfParent.Response);
-                        dt.val = (long)value;
+                        if (tmp != null && tmp != default) dt.val = (long)tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.negativeInteger:
                     {
+
+                        decimal? tmp = null; //start with a default value that is not zero
+                        if (value is string s)
+                        {
+                            if (decimal.TryParse(s, out decimal sVal)) tmp = decimal.Truncate(sVal);
+                            else StoreError("Supplied value parameter could not be parsed as negativeInteger");
+                        }
+                        else if (value is decimal v) tmp = decimal.Truncate(v);
+                        else StoreError("Supplied value parameter could not be parsed as negativeInteger");
+
                         var dt = new negativeInteger_DEtype(rfParent.Response);
-                        dt.val = (decimal)value;  //TODO: C# string data type in xsdCode++
+                        if (tmp != null)
+                        {
+                            decimal tmp2 = decimal.Truncate((decimal)tmp);
+                            if (tmp2 != default &&  tmp < 0) dt.val = tmp2;
+                        }
+                        else StoreError("Supplied value parameter could not be parsed as negativeInteger");
+
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
+
                     }
                     break;
                 case ItemChoiceType.nonNegativeInteger:
                     {
+                        decimal? tmp = null; //start with a default value that is not zero
+                        if (value is string s)
+                        {
+                            if (decimal.TryParse(s, out decimal sVal)) tmp = decimal.Truncate(sVal);
+                            else StoreError("Supplied value parameter could not be parsed as nonNegativeInteger");
+                        }
+                        else if (value is decimal v) 
+                            tmp = decimal.Truncate(v);
+                        else StoreError("Supplied value parameter could not be parsed as nonNegativeInteger");
+
                         var dt = new nonNegativeInteger_DEtype(rfParent.Response);
-                        dt.val = (decimal)value;  //TODO:  bug in xsdCode++ - wrong data type?
+                        if (tmp != null)
+                        {
+                            decimal tmp2 = decimal.Truncate((decimal)tmp);
+                            if (tmp2 != default && tmp >= 0) dt.val = tmp2;
+                        }
+                        else StoreError("Supplied value parameter could not be parsed as nonnegativeInteger");
+
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.nonPositiveInteger:
                     {
+                        decimal? tmp = null; //start with a default value that is not zero
+                        if (value is string s)
+                        {
+                            if (decimal.TryParse(s, out decimal sVal)) tmp = decimal.Truncate(sVal);
+                            else StoreError("Supplied value parameter could not be parsed as nonPositiveInteger");
+                        }
+                        else if (value is decimal v) 
+                            tmp = decimal.Truncate(v);
+                        else StoreError("Supplied value parameter could not be parsed as nonPositiveInteger");
+
                         var dt = new nonPositiveInteger_DEtype(rfParent.Response);
-                        dt.val = (decimal)value; //TODO: C# string data type in xsdCode++
+                        if (tmp != null)
+                        {
+                            decimal tmp2 = decimal.Truncate((decimal)tmp);
+                            if (tmp2 != default && tmp <= 0) dt.val = tmp2;
+                        }
+                        else StoreError("Supplied value parameter could not be parsed as nonPositiveInteger");
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.positiveInteger:
                     {
+                        decimal? tmp = null; //start with a default value that is not zero
+                        if (value is string s)
+                        {
+                            if (decimal.TryParse(s, out decimal sVal)) tmp = decimal.Truncate(sVal);
+                            else StoreError("Supplied value parameter could not be parsed as positiveInteger");
+                        }
+                        else if (value is decimal v)
+                            tmp = decimal.Truncate(v);
+                        else StoreError("Supplied value parameter could not be parsed as positiveInteger");
+
                         var dt = new positiveInteger_DEtype(rfParent.Response);
-                        dt.val = (decimal)value;//TODO: C# string data type in xsdCode++
+                        if (tmp != null)
+                        {
+                            decimal tmp2 = decimal.Truncate((decimal)tmp);
+                            if (tmp2 != default && tmp > 0) dt.val = tmp2;
+                        }
+                        else StoreError("Supplied value parameter could not be parsed as PositiveInteger");
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@short:
                     {
+                        short? tmp = null;
+                        if (value is string s)
+                        {
+                            if (short.TryParse(s, out short sVal) && sVal != default) tmp = sVal;
+                            else StoreError("Supplied value parameter could not be parsed as short");
+                        }
+                        else if (value is short v && v != default) 
+                            tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as short");
+
                         var dt = new short_DEtype(rfParent.Response);
-                        dt.val = (short)value;
+                        if (tmp != null && tmp != default) dt.val = (short)tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
@@ -260,62 +557,123 @@ namespace SDC.Schema
                 case ItemChoiceType.@string:
                     {
                         var dt = new @string_DEtype(rfParent.Response);
-                        dt.val = (string)value;
+                        if (value is string)
+                        { 
+                            if (string.IsNullOrWhiteSpace((string)value)) 
+                                dt.val = (string)value; 
+                        }
+                        else StoreError("Supplied value parameter was not a string datatype");
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.time:
                     {
+                        DateTime? tmp = null; //start with a default value that is not zero
+                        if (value is string s)   //Can decide here to support timezone or not in the DateTime field.
+                                                 //Consider switch to DateTimeOffset.
+                        {
+                            if (DateTime.TryParse(s, null, System.Globalization.DateTimeStyles.RoundtripKind, out DateTime sVal)
+                                && sVal != default)
+                            {
+                                if (Regex.Match(s, @"(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?|(24:00:00(\.0+)?))(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?")
+                                    .Success) tmp = sVal;
+                                else StoreError("Supplied value parameter could not be parsed as time");
+                            }
+                            else StoreError("Supplied value parameter could not be parsed as time");
+                        }
+                        else if (value is DateTime v && v != default) tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as time");
+
                         var dt = new time_DEtype(rfParent.Response);
-                        dt.val = (DateTime)value;
+                        if (tmp != null && tmp != default) dt.val = (DateTime)tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.unsignedByte:
                     {
+                        byte? tmp = null;
+                        if (value is string s)
+                        {
+                            if (byte.TryParse(s, out byte sVal) && sVal != default) tmp = sVal;
+                            else StoreError("Supplied value parameter could not be parsed as unsigned byte");
+                        }
+                        else if (value is byte v && v != default) tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as unsigned byte");
+
                         var dt = new unsignedByte_DEtype(rfParent.Response);
-                        dt.val = (byte)value;
+                        if (tmp != null && tmp != default) dt.val = (byte)tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.unsignedInt:
                     {
+                        uint? tmp = null;
+                        if (value is string s)
+                        {
+                            if (uint.TryParse(s, out uint sVal) && sVal != default) tmp = sVal;
+                            else StoreError("Supplied value parameter could not be parsed as uint");
+                        }
+                        else if (value is uint v && v != default) tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as uint");
+
                         var dt = new unsignedInt_DEtype(rfParent.Response);
-                        dt.val = (uint)value;
+                        if (tmp != null && tmp != default) dt.val = (uint)tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.unsignedLong:
                     {
+                        ulong? tmp = null;
+                        if (value is string s)
+                        {
+                            if (ulong.TryParse(s, out ulong sVal) && sVal != default) tmp = sVal;
+                            else StoreError("Supplied value parameter could not be parsed as ulong");
+                        }
+                        else if (value is ulong v && v != default) tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as ulong");
+
                         var dt = new unsignedLong_DEtype(rfParent.Response);
-                        dt.val = (ulong)value;
+                        if (tmp != null && tmp != default) dt.val = (ulong)tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.unsignedShort:
                     {
+                        ushort? tmp = null;
+                        if (value is string s)
+                        {
+                            if (ushort.TryParse(s, out ushort sVal) && sVal != default) tmp = sVal;
+                            else StoreError("Supplied value parameter could not be parsed as ushort");
+                        }
+                        else if (value is ushort v && v != default) tmp = v;
+                        else StoreError("Supplied value parameter could not be parsed as ushort");
+
                         var dt = new unsignedShort_DEtype(rfParent.Response);
-                        dt.val = (ushort)value;
+                        if (tmp != null && tmp != default) dt.val = (ushort)tmp;
                         dt.quantEnum = quantifierEnum;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.yearMonthDuration:
                     {
+                        string? tmp = null; //start with a default value that is not zero
+                        if (value is string s)
+                        {
+                            if (Regex.Match(s, @"-?P[0-9]+Y?([0-9]+M)?").Success) //yearMonthDuration
+                                tmp = s;
+                            else StoreError("Supplied value parameter could not be parsed as yearMonthDuration");
+                        }
+                        else if (value is TimeSpan ts && ts != default)
+                            tmp = XmlConvert.ToString(ts);
+                        else StoreError("Supplied value parameter could not be parsed as yearMonthDuration");
+
                         var dt = new yearMonthDuration_DEtype(rfParent.Response);
-                        dt.val = (string)value; ;  //TODO: C# string data type in xsdCode++
+                        if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
-                        rfParent.Response.DataTypeDE_Item = dt;
-                    }
-                    break;
-                default:
-                    {
-                        var dt = new @string_DEtype(rfParent.Response);
-                        dt.val = (string)value;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
@@ -323,6 +681,14 @@ namespace SDC.Schema
 
             rfParent.Response.ItemElementName = (ItemChoiceType2)dataTypeEnum;
             return rfParent.Response;
+
+            void StoreError(string errorMsg)
+            {
+                var exData = new Exception();
+                exData.Data.Add("QuestionID: ", rfParent.ParentIETypeNode.ID.ToString() ?? "null");
+                exData.Data.Add("Error: ", errorMsg);
+                exList.Add(exData);
+            }
 
         }
 
@@ -342,7 +708,7 @@ namespace SDC.Schema
             {
                 case "EQ":
                 case "=":
-                case"==":
+                case "==":
                     dtQE = dtQuantEnum.EQ;
                     break;
                 case "GT":
@@ -385,8 +751,8 @@ namespace SDC.Schema
             rfParent.Response = new DataTypes_DEType(rfParent);
 
             var dt = new HTML_DEtype(rfParent.Response);
-            dt.Any = valEl?? new List<XmlElement>();
-            dt.AnyAttr = valAtt?? new List<XmlAttribute>();
+            dt.Any = valEl ?? new List<XmlElement>();
+            dt.AnyAttr = valAtt ?? new List<XmlAttribute>();
             rfParent.Response.DataTypeDE_Item = dt;
 
             rfParent.Response.ItemElementName = ItemChoiceType2.HTML;
