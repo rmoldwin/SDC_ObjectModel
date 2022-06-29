@@ -4117,36 +4117,15 @@ public static class ObjectExtensions
         catch
         { return default; }
     }
-    /// <summary>
-    /// Try to Cast as T
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="oIn"></param>
-    /// <param name="oOut"></param>
-    /// <returns></returns>
-    public static bool TryAs<T>(this object oIn, out T oOut) where T : class
-    {
-        try
-        {
-            oOut = (T)oIn;
-            return true;
-        }
-        catch
-        {
-            oOut = null;
-            return false;
-        }
-    }
-    /// <summary>
-    /// Try to Cast as T, or else pass exception
-    /// </summary>
-    /// <typeparam name="Tout"></typeparam>
-    /// <param name="oIn">Incoming object</param>
-    /// <param name="oOut">Outgoing object with new type T, or null if the type conversion failed </param>
+
+    /// <summary> Extension method that tries to convert the value of the source object 'oIn' to the type of 'oOut'.</summary>
+    /// <typeparam name="Tout">The type of the returned object, after conversion.</typeparam>
+    /// <param name="oIn">The inpput object whose type we want to convert to Tout.</param>
+    /// <param name="oOut">If successful (i.e., the method returns true), then oOut is an object of type Tout, containing the value of oIn.  
+    /// If not successful, the method returns false, and oOut contins the default value of Tout.</param>
     /// <param name="exOut">An Exception object from a failed type conversion, or null if no exception was generated</param>
     /// <param name="id">An optional identifier or text to help identify the context of any generated exception</param>
-    /// exOut
-    /// <returns></returns>
+    /// <returns>Boolean true if the type conversion was successful. Otherwise false.</returns>
     public static bool TryAs<Tout>(this object oIn, out Tout? oOut, out Exception? exOut, string id = "") //where T : struct
     {
         try
@@ -4170,6 +4149,9 @@ public static class ObjectExtensions
             return false;
         }
     }
+
+
+
     /// <summary>
     /// 
     /// 

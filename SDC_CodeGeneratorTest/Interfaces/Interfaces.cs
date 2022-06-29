@@ -39,14 +39,34 @@ namespace SDC.Schema
     #region Values    
     public interface IVal
     {
-        //Implemented by data types, which have a strongly-typed val attribute.  Not implemented by anyType, XML, or HTML  
-        object val { get; set; }
-        string valString { get; }
+        //Implemented by data  "_Stypes" types, which have a strongly-typed val attribute.  Not implemented by anyType, XML, or HTML  
+        //object val { get; set; }
+        //string valString { get; }
+        string valXmlString { get; set; }  //allow setting and getting @val using XML-formatted strings
     }
-    public interface IValNumeric : IVal { decimal ValDec { get; set; } } //Implemented by numeric data types, which have a strongly-type val attribute.
-    public interface IValDateTime : IVal { } //Implemented by DateTime data types, which have a strongly-type val attribute.
+    public interface IValNumericDE : IVal 
+    {
+        //decimal ValDec { get; set; }
+        bool IsValid(out string message);
+
+
+    } //Implemented by numeric data types, which have a strongly-type val attribute.
+    public interface IValDateTime : IVal 
+    {
+        bool IsValid(out string message);
+        
+    } //Implemented by DateTime data types, which have a strongly-type val attribute.
+
+    public interface IValDuration : IVal
+    {
+        bool IsValid(out string message);
+    } //Implemented by DateTime data types, which have a strongly-type val attribute.
+
+
     public interface IValInteger : IVal
-    { long ValLong { get; set; } } //Implemented by Integer data types, which have a strongly-type val attribute.  Includes byte, short, long, positive, no-positive, negative and non-negative types
+    { 
+        long ValLong { get; set; } 
+    } //Implemented by Integer data, which have a strongly-typed val attribute.  Includes byte, short, long, positive, no-positive, negative and non-negative types
     #endregion
     #region Empty Interfaces
 

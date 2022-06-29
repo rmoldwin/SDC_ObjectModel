@@ -36,6 +36,7 @@
     <Compile Remove="Utility Classes\Hex Conversions - Copy %283%29.cs" />
     <Compile Remove="Utility Classes\Hex Conversions - Copy %284%29.cs" />
     <Compile Remove="Utility Classes\Hex Conversions - Copy %285%29.cs" />
+    <Compile Remove="Utility Classes\XML Numeric Validation.cs" />
   </ItemGroup>
 
   <ItemGroup>
