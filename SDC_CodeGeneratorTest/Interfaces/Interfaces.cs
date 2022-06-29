@@ -37,12 +37,25 @@ namespace SDC.Schema
         ResponseFieldType ResponseField_Item { get; set; }
     }
     #region Values    
+    /// <summary>
+    /// Implemented by SDC data "_Stype" types, which have a strongly-typed val attribute.  Not implemented by anyType, XML, or HTML  
+    /// </summary>
     public interface IVal
     {
-        //Implemented by data  "_Stypes" types, which have a strongly-typed val attribute.  Not implemented by anyType, XML, or HTML  
-        //object val { get; set; }
-        //string valString { get; }
-        string valXmlString { get; set; }  //allow setting and getting @val using XML-formatted strings
+        /// <summary>
+        /// Set the @val property using an XML-formatted string, formatted according to XML Schema datatype rules.
+        /// For example, these formatted strings can be generated from .NET datatypes using XmlConvert.ToString(), or copied from existing XML documents
+        /// </summary>
+        /// <param name="message">returns an error message</param>
+        /// <param name="ex">retruns an Exception if the set failed</param>
+        /// <returns>Returns true if success.  Returns false if an Exception was returned, or a string formatting error was detected</returns>
+        bool ValXmlStringSet(out Exception ex, string message);
+
+        /// <summary>
+        /// Retrieve @val using an XML-formatted string
+        /// </summary>
+        string ValXmlStringGet { get; }
+
     }
     public interface IValNumericDE : IVal 
     {

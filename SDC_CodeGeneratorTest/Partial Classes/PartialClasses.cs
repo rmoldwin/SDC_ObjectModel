@@ -1873,7 +1873,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class anyURI_Stype
+    public partial class anyURI_Stype: IVal
     {
         protected anyURI_Stype() { Init(); }
         public anyURI_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -1903,7 +1903,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class base64Binary_Stype
+    public partial class base64Binary_Stype: IVal
     {
         protected base64Binary_Stype() { Init(); }
         public base64Binary_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -1935,7 +1935,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class boolean_Stype
+    public partial class boolean_Stype :IVal
     {
         protected boolean_Stype() { Init(); }
         public boolean_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -1968,7 +1968,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class byte_Stype
+    public partial class byte_Stype : IVal
     {
         protected byte_Stype() { Init(); }
         public byte_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2002,7 +2002,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class date_Stype
+    public partial class date_Stype : IVal
     {
         protected date_Stype() { Init(); }
         public date_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2036,7 +2036,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class dateTime_Stype
+    public partial class dateTime_Stype : IVal
     {
         protected dateTime_Stype() { Init(); }
         public dateTime_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2066,7 +2066,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class dateTimeStamp_Stype
+    public partial class dateTimeStamp_Stype : IVal
     {
         protected dateTimeStamp_Stype() { Init(); }
         public dateTimeStamp_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2099,7 +2099,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class dayTimeDuration_Stype
+    public partial class dayTimeDuration_Stype : IVal
     {
         protected dayTimeDuration_Stype() { Init(); }
         public dayTimeDuration_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2133,7 +2133,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class decimal_Stype
+    public partial class decimal_Stype : IVal
     {
         protected decimal_Stype() { Init(); }
         public decimal_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2167,7 +2167,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class double_Stype
+    public partial class double_Stype : IVal
     {
         protected double_Stype() { Init(); }
         public double_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2201,7 +2201,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class duration_Stype
+    public partial class duration_Stype : IVal
     {
         protected duration_Stype() { Init(); }
         public duration_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2235,7 +2235,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class float_Stype
+    public partial class float_Stype : IVal
     {
         protected float_Stype() { Init(); }
         public float_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2269,7 +2269,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class gDay_Stype
+    public partial class gDay_Stype : IVal
     {
         protected gDay_Stype() { Init(); }
         public gDay_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2303,7 +2303,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class gMonth_Stype
+    public partial class gMonth_Stype : IVal
     {
         protected gMonth_Stype() { Init(); }
         public gMonth_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2337,7 +2337,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class gMonthDay_Stype
+    public partial class gMonthDay_Stype : IVal
     {
         protected gMonthDay_Stype() { Init(); }
         public gMonthDay_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2371,7 +2371,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class gYear_Stype
+    public partial class gYear_Stype : IVal
     {
         protected gYear_Stype() { Init(); }
         public gYear_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2404,7 +2404,7 @@ namespace SDC.Schema
             this._allowAPPROX = false;
         }
     }
-    public partial class gYearMonth_Stype
+    public partial class gYearMonth_Stype : IVal
     {
         protected gYearMonth_Stype() { Init(); }
         public gYearMonth_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2434,7 +2434,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class hexBinary_Stype
+    public partial class hexBinary_Stype : IVal
     {
         string _hexBinaryStringVal;
 
@@ -2472,7 +2472,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class HTML_Stype
+    public partial class HTML_Stype : IVal
     {
         protected HTML_Stype()
         {
@@ -2511,7 +2511,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class int_Stype
+    public partial class int_Stype : IVal
     {
         protected int_Stype() { Init(); }
         public int_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2544,7 +2544,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class integer_Stype
+    public partial class integer_Stype : IVal
     {
         protected integer_Stype() { Init(); }
         public integer_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2611,7 +2611,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class long_Stype
+    public partial class long_Stype : IVal
     {
         protected long_Stype() { Init(); }
         public long_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2645,7 +2645,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class negativeInteger_Stype
+    public partial class negativeInteger_Stype : IVal
     {
         protected negativeInteger_Stype() { Init(); }
         public negativeInteger_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2679,7 +2679,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class nonNegativeInteger_Stype
+    public partial class nonNegativeInteger_Stype : IVal
     {
         protected nonNegativeInteger_Stype() { Init(); }
         public nonNegativeInteger_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2713,7 +2713,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class nonPositiveInteger_Stype
+    public partial class nonPositiveInteger_Stype : IVal
     {
         protected nonPositiveInteger_Stype() { Init(); }
         public nonPositiveInteger_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2747,7 +2747,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class positiveInteger_Stype
+    public partial class positiveInteger_Stype : IVal
     {
         protected positiveInteger_Stype() { Init(); }
         public positiveInteger_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2781,7 +2781,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class short_Stype
+    public partial class short_Stype : IVal
     {
         protected short_Stype() { Init(); }
         public short_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2844,7 +2844,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class time_Stype
+    public partial class time_Stype : IVal
     {
         protected time_Stype() { Init(); }
         public time_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2878,7 +2878,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class unsignedByte_Stype
+    public partial class unsignedByte_Stype : IVal
     {
         protected unsignedByte_Stype() { Init(); }
         public unsignedByte_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2913,7 +2913,7 @@ namespace SDC.Schema
 
     }
 
-    public partial class unsignedInt_Stype
+    public partial class unsignedInt_Stype : IVal
     {
         protected unsignedInt_Stype() { Init(); }
         public unsignedInt_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2947,7 +2947,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class unsignedLong_Stype
+    public partial class unsignedLong_Stype : IVal
     {
         protected unsignedLong_Stype() { Init(); }
         public unsignedLong_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -2981,7 +2981,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class unsignedShort_Stype
+    public partial class unsignedShort_Stype : IVal
     {
         protected unsignedShort_Stype() { Init(); }
         public unsignedShort_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
@@ -3012,7 +3012,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class XML_Stype
+    public partial class XML_Stype : IVal
     {
         protected XML_Stype()
         {
@@ -3050,7 +3050,7 @@ namespace SDC.Schema
         }
     }
 
-    public partial class yearMonthDuration_Stype
+    public partial class yearMonthDuration_Stype : IVal
     {
         protected yearMonthDuration_Stype() { Init(); }
         public yearMonthDuration_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
