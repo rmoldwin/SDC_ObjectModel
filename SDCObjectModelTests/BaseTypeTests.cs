@@ -10,7 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 
-namespace SDC.Schema.Tests
+namespace SDCObjectModelTests
 {
     [TestClass()]
     public class BaseTypeTests

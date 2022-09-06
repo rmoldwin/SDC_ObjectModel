@@ -38,8 +38,8 @@ public partial class base64Binary_DEtype : base64Binary_Stype
     private bool _shouldSerializemaxLength;
     private bool _shouldSerializeminLength;
     private string _description;
-    private long _minLength;
-    private long _maxLength;
+    private ulong _minLength;
+    private ulong _maxLength;
     #endregion
     
     [XmlAttribute]
@@ -67,7 +67,7 @@ public partial class base64Binary_DEtype : base64Binary_Stype
     
     [XmlAttribute]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual long minLength
+    public virtual ulong minLength
     {
         get
         {
@@ -86,7 +86,7 @@ public partial class base64Binary_DEtype : base64Binary_Stype
     
     [XmlAttribute]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual long maxLength
+    public virtual ulong maxLength
     {
         get
         {

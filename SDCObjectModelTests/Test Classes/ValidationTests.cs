@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 using Microsoft.VisualBasic;
 //using SDC.Schema;
 
-namespace SDC.Schema.Tests
+namespace SDCObjectModelTests.TestClasses
 {
     [TestClass]
     public class ValidationTests

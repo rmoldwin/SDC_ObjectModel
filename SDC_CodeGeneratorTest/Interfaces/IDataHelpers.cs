@@ -25,7 +25,7 @@ namespace SDC.Schema
             //Exception ex;
             List<Exception> exList = new();
 
-            if (rfParent.Response != null) throw new InvalidOperationException("A DataTypes_DEType object alrready exists on the rfParent parameter (ResponseFieldType)");
+            if (rfParent.Response != null) throw new InvalidOperationException("A DataTypes_DEType object already exists on the rfParent parameter (ResponseFieldType)");
             rfParent.Response = new DataTypes_DEType(rfParent);
 
             switch (dataTypeEnum)
@@ -144,7 +144,7 @@ namespace SDC.Schema
                                 if (DateTime.TryParse(s, null, System.Globalization.DateTimeStyles.RoundtripKind, out DateTime sVal)
                                     && sVal != default)
                                 {
-                                    if (Regex.Match(s, @"?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?") //date
+                                    if (Regex.Match(s, @"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?") //date
                                         .Success) tmp = sVal;
                                     else StoreError("Supplied value parameter could not be parsed as date");
                                 }
@@ -160,7 +160,7 @@ namespace SDC.Schema
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                    break;
-                case ItemChoiceType.@dateTime: //TODO: added the "@" symbol to dateTime and dateTimeStamp here, in AddFillDataTypesDE, and in the 2 ItemChoiceType files.  Also fixed bug in the DateTypes_DEtype with the wrong ItemTypeNames from xsd2code - on dateTime and dateTimeStamp.
+                case ItemChoiceType.@dateTime:
                     {
                         DateTime? tmp = null; //start with a default value that is not zero
                         if (value != null)
@@ -190,12 +190,12 @@ namespace SDC.Schema
                         DateTime? tmp = null; //start with a default value that is not zero
                         if (value != null)
                         {
-                            if (value is string s)   //Can decide here to support timezone or not in the DateTime field.
+                            if (value is string s)   
                                                      //Consider switch to DateTimeOffset.
                             {
-                                if (DateTime.TryParse(s, null, System.Globalization.DateTimeStyles.RoundtripKind, out DateTime sVal)
+                                if (DateTime.TryParse(s, null, System.Globalization.DateTimeStyles.AdjustToUniversal, out DateTime sVal)
                                     && sVal != default
-                                    && Regex.Match(s,
+                                    && Regex.Match(s, //!timezone is required in this regex
                                         @"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?|(24:00:00(\.0+)?))(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))")
                                         .Success)
                                     tmp = sVal;
@@ -457,7 +457,7 @@ namespace SDC.Schema
                             else if (value.TryAs(out decimal v, out _)) tmp = v;
                             else StoreError("Supplied value parameter could not be parsed as integer");
                         }
-                        var dt = new decimal_DEtype(rfParent.Response);
+                        var dt = new integer_DEtype(rfParent.Response);
                         if (tmp != null)
                         {
                             decimal tmp2 = decimal.Truncate((decimal)tmp);
@@ -645,18 +645,18 @@ namespace SDC.Schema
                         var dt = new time_DEtype(rfParent.Response);
                         if (tmp != null && tmp != default(DateTime))
                         {
-                            DateTime tmp2 = ((DateTime)tmp);
-                            if (dt.val.Kind == DateTimeKind.Local)
+                            DateTime tmp2 = (DateTime)tmp;
+                            if (tmp2.Kind == DateTimeKind.Local)
                             {
-                                dt.timeZone = TimeZoneInfo.Local.BaseUtcOffset.ToString();
+                                dt.timeZone = TimeZoneInfo.Local.BaseUtcOffset.ToString();  //ToDo: I may want to convert timeZone to a TimeSpan datatype in the SDC Schema
                                 dt.val = tmp2.ToLocalTime();
                             }
-                            else if (dt.val.Kind == DateTimeKind.Utc)
+                            else if (tmp2.Kind == DateTimeKind.Utc)
                             {
-                                dt.timeZone = TimeZoneInfo.Utc.BaseUtcOffset.ToString(); //00:00:00
+                                dt.timeZone = TimeZoneInfo.Utc.BaseUtcOffset.ToString(); //00:00:00 or Z
                                 dt.val = tmp2.ToUniversalTime();
                             }
-                            else //if (dt.val.Kind == DateTimeKind.Unspecified)
+                            else //if (tmp2.Kind == DateTimeKind.Unspecified)
                             {
                                 dt.timeZone = null;
                                 dt.val = tmp2;
@@ -749,7 +749,7 @@ namespace SDC.Schema
                         {
                             if (value is string s)
                             {
-                                if (Regex.Match(s, @"-?P[0-9]+Y?([0-9]+M)?").Success) //yearMonthDuration
+                                if (Regex.Match(s, @"^-?P[0-9]+Y?([0-9]+M)?$").Success) //yearMonthDuration
                                     tmp = s;
                                 else StoreError("Supplied value parameter could not be parsed as yearMonthDuration");
                             }

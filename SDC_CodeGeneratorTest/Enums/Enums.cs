@@ -81,7 +81,7 @@ namespace SDC.Schema
     public enum ActionsEnum
     {
         Action, //ActActionType
-        CallFunction, //CallFuncActionType
+        CallFunction, //CallFuncType
         SelectMatchingListItems,//RuleSelectMatchingListItemsType
         AddCode, //ActAddCodeType
         ConditionalGroupAction, //PredActionType
@@ -96,7 +96,7 @@ namespace SDC.Schema
         SetBoolAttributeValueCode, //ActSetBoolAttributeValueCode
         ShowForm, //ActShowFormType
         ShowMessage, //ActShowMessageType
-        ShowURL, //CallFuncActionType
+        ShowURL, //CallFuncType
         ShowReport, //ActShowReportType
         ValidateForm, //ActValidateFormType
     }

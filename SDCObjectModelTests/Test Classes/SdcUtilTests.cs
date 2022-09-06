@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SDC.Schema.Tests
+namespace SDCObjectModelTests.TestClasses
 {
     [TestClass()]
     public class SdcUtilTests

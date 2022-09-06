@@ -4,7 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Object Model (OM) for IHE Structured Data Capture (SDC)</Description>
     <Copyright>RIchard Moldwin (2016+)</Copyright>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
@@ -18,16 +18,19 @@
     <Compile Remove="Need Base Class in Schema\**" />
     <Compile Remove="SDC MsgPack Generator\**" />
     <Compile Remove="SDC Schema\Schema Classes\**" />
+    <Compile Remove="Utility Classes\Junk\**" />
     <EmbeddedResource Remove="Modified SDC Classes\ConstuctorCommentedOut\**" />
     <EmbeddedResource Remove="Modified SDC Classes\ItemsNodeAnnotated\**" />
     <EmbeddedResource Remove="Need Base Class in Schema\**" />
     <EmbeddedResource Remove="SDC MsgPack Generator\**" />
     <EmbeddedResource Remove="SDC Schema\Schema Classes\**" />
+    <EmbeddedResource Remove="Utility Classes\Junk\**" />
     <None Remove="Modified SDC Classes\ConstuctorCommentedOut\**" />
     <None Remove="Modified SDC Classes\ItemsNodeAnnotated\**" />
     <None Remove="Need Base Class in Schema\**" />
     <None Remove="SDC MsgPack Generator\**" />
     <None Remove="SDC Schema\Schema Classes\**" />
+    <None Remove="Utility Classes\Junk\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,10 +39,17 @@
     <Compile Remove="Utility Classes\Hex Conversions - Copy %283%29.cs" />
     <Compile Remove="Utility Classes\Hex Conversions - Copy %284%29.cs" />
     <Compile Remove="Utility Classes\Hex Conversions - Copy %285%29.cs" />
+    <Compile Remove="Utility Classes\xHex Conversions.cs" />
     <Compile Remove="Utility Classes\XML Numeric Validation.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Utility Classes\Junk\SDC_CodeGeneratorTest.csproj_old" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.0.0-preview4" />
+    <PackageReference Include="CSharpVitamins.ShortGuid" Version="2.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.2" />
     <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.14" />

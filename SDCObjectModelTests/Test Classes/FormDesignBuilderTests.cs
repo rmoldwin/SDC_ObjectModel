@@ -1,4 +1,3 @@
-using SDC.Schema.Tests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema;
 using System;
@@ -8,7 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 //using SDC.Schema;
 
-namespace SDC.Schema.Tests
+namespace SDCObjectModelTests.TestClasses
 {
     [TestClass]
     public class FormDesignBuilderTests

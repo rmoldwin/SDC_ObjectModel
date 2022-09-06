@@ -4,9 +4,10 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
+using System.Diagnostics;
 //using SDC.Schema;
 
-namespace SDC.Schema.Tests
+namespace SDCObjectModelTests.TestClasses
 {
     [TestClass]
     public class MiscTests
@@ -43,8 +44,17 @@ namespace SDC.Schema.Tests
         }
 
         [TestMethod]
-        public void Test1()
+        public void GetIetNodesTest()
         {
+            Setup.TimerStart($"==>{Setup.CallerName()} Started");
+            var FD = Setup.FD;
+            Debug.Print((FD.Nodes.Equals(FD.TopNode.Nodes)).ToString());
+            foreach (BaseType n in FD.Nodes.Values)
+            {
+                Debug.Print("Node name: " +n?.name + "Node type: " + n?.GetType().Name + ", ParentIET: " + n?.ParentIETypeNode?.ID);
+            }
+
+            Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 
         }
 

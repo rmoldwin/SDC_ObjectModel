@@ -38,8 +38,8 @@ public partial class anyType_DEtype : BaseType
     private bool _shouldSerializemaxLength;
     private bool _shouldSerializeminLength;
     private List<System.Xml.XmlElement> _any;
-    private long _minLength;
-    private long _maxLength;
+    private ulong _minLength;
+    private ulong _maxLength;
     private string _schema;
     private string _namespace;
     private List<System.Xml.XmlAttribute> _anyAttr;
@@ -70,7 +70,7 @@ public partial class anyType_DEtype : BaseType
     
     [XmlAttribute]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual long minLength
+    public virtual ulong minLength
     {
         get
         {
@@ -89,7 +89,7 @@ public partial class anyType_DEtype : BaseType
     
     [XmlAttribute]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual long maxLength
+    public virtual ulong maxLength
     {
         get
         {

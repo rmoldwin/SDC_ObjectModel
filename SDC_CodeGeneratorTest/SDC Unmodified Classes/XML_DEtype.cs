@@ -37,13 +37,13 @@ public partial class XML_DEtype : XML_Stype
     #region Private fields
     private bool _shouldSerializemaxLength;
     private bool _shouldSerializeminLength;
-    private long _minLength;
-    private long _maxLength;
+    private ulong _minLength;
+    private ulong _maxLength;
     #endregion
     
     [XmlAttribute]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual long minLength
+    public virtual ulong minLength
     {
         get
         {
@@ -62,7 +62,7 @@ public partial class XML_DEtype : XML_Stype
     
     [XmlAttribute]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-    public virtual long maxLength
+    public virtual ulong maxLength
     {
         get
         {

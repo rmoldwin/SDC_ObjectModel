@@ -11,7 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 
-namespace SDC.Schema.Tests
+namespace SDCObjectModelTests
 {
     public static class Setup
     {

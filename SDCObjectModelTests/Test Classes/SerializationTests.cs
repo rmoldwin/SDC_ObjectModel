@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 //using SDC.Schema;
 
-namespace SDC.Schema.Tests
+namespace SDCObjectModelTests.TestClasses
 {
     [TestClass]
     public class SerializationTests

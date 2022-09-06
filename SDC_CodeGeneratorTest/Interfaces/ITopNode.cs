@@ -20,10 +20,10 @@ namespace SDC.Schema
     /// It also provdes a set of consistent, type-specific, public utilities for working with SDC objects
     public interface ITopNode: IBaseType
     {
-        /// <summary>
-        /// Dictionary.  Given an Node ID (int), returns the node's object reference.
-        /// </summary>
-        [System.Xml.Serialization.XmlIgnore]
+		/// <summary>
+		/// Dictionary.  Given an Node ObjectGUID, returns the node's object reference.
+		/// </summary>
+		[System.Xml.Serialization.XmlIgnore]
         [JsonIgnore]
         Dictionary<Guid, BaseType> Nodes { get; }
         /// <summary>

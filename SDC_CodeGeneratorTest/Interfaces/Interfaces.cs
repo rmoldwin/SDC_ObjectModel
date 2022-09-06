@@ -42,19 +42,20 @@ namespace SDC.Schema
     /// </summary>
     public interface IVal
     {
-        /// <summary>
-        /// Set the @val property using an XML-formatted string, formatted according to XML Schema datatype rules.
-        /// For example, these formatted strings can be generated from .NET datatypes using XmlConvert.ToString(), or copied from existing XML documents
-        /// </summary>
-        /// <param name="message">returns an error message</param>
-        /// <param name="ex">retruns an Exception if the set failed</param>
-        /// <returns>Returns true if success.  Returns false if an Exception was returned, or a string formatting error was detected</returns>
-        bool ValXmlStringSet(out Exception ex, string message);
+        ///// <summary>
+        ///// Set the @val property using an XML-formatted string, formatted according to XML Schema datatype rules.
+        ///// For example, these formatted strings can be generated from .NET datatypes using XmlConvert.ToString(), or copied from existing XML documents
+        ///// </summary>
+        ///// <param name="sVal">The string value used to set @val</param>
+        ///// <param name="message">returns an error message</param>
+        ///// <param name="ex">retruns an Exception if the set failed</param>
+        ///// <returns>Returns true if success.  Returns false if an Exception was returned, or a string formatting error was detected</returns>
+        //bool ValXmlStringSet(string sVal, out Exception ex, out string message);
 
         /// <summary>
         /// Retrieve @val using an XML-formatted string
         /// </summary>
-        string ValXmlStringGet { get; }
+        string ValXmlString { get; set; }
 
     }
     public interface IValNumericDE : IVal 

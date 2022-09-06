@@ -12,7 +12,7 @@ using System.Xml;
 
 //using SDC.Schema;
 
-namespace SDC.Schema.Tests
+namespace SDCObjectModelTests.TestClasses
 {
     [TestClass]
     public class SdcSerializationTests
@@ -122,8 +122,9 @@ namespace SDC.Schema.Tests
             var qrInteger = response.DataTypeDE_Item as integer_DEtype;
             var qrResponseField = qr2.ResponseField_Item;
             QuestionEnum qType = qr2.GetQuestionSubtype();
-            qrResponseField.TextAfterResponse.val = "";            
-            decimal_DEtype d = qrResponseField.AddDataType(ItemChoiceType.@decimal, dtQuantEnum.EQ, 1.1102).DataTypeDE_Item as decimal_DEtype;
+            qrResponseField.TextAfterResponse.val = "";     
+            
+            //decimal_DEtype d = qrResponseField.AddDataType(ItemChoiceType.@decimal, dtQuantEnum.EQ, 1.1102).DataTypeDE_Item as decimal_DEtype;
 
            
             Q.ResponseField_Item?.AddDataType(ItemChoiceType.@string, dtQuantEnum.EQ, "myVal");

@@ -1,4 +1,3 @@
-using SDC.Schema.Tests;
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.ObjectModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema;
@@ -13,7 +12,7 @@ using System.Xml.Serialization;
 
 //using SDC.Schema;
 
-namespace SDC.Schema.Tests
+namespace SDCObjectModelTests.TestClasses
 {
     [TestClass]
     public class MoveTests
@@ -40,7 +39,7 @@ namespace SDC.Schema.Tests
         {
             Setup.TimerStart($"==>{Setup.CallerName()} Started");
                 //FD.TopNode.ReorderNodes();
-                var li = Setup.FD.Nodes.Where(n => 
+                var li = Setup.FD.Nodes.Where(n =>
                     n.Value is ListItemType liTest &&
                     liTest.ID == "38493.100004300").FirstOrDefault().Value
                     as ListItemType;
@@ -100,16 +99,16 @@ namespace SDC.Schema.Tests
 
 
                 li.Move(list, 6);                
-                Assert.IsTrue(SdcUtil.GetPropertyInfo(li).ItemIndex == 6);
+                Assert.IsTrue(SdcUtil.GetPropertyInfoMeta(li).ItemIndex == 6);
 
                 li.Move(list, 99);
-                Assert.IsTrue(SdcUtil.GetPropertyInfo(li).ItemIndex == list.Items.Count()-1);
+                Assert.IsTrue(SdcUtil.GetPropertyInfoMeta(li).ItemIndex == list.Items.Count()-1);
 
                 li.Move(list, 0);
-                Assert.IsTrue(SdcUtil.GetPropertyInfo(li).ItemIndex == 0);
+                Assert.IsTrue(SdcUtil.GetPropertyInfoMeta(li).ItemIndex == 0);
 
                 li.Move(list);
-                Assert.IsTrue(SdcUtil.GetPropertyInfo(li).ItemIndex == list.Items.Count() - 1);
+                Assert.IsTrue(SdcUtil.GetPropertyInfoMeta(li).ItemIndex == list.Items.Count() - 1);
             Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 
         }
@@ -132,7 +131,7 @@ namespace SDC.Schema.Tests
 
                 //Move to different List (list2)
                 li.Move(list2, 2);
-                Assert.IsTrue(SdcUtil.GetPropertyInfo(li).ItemIndex == 2);
+                Assert.IsTrue(SdcUtil.GetPropertyInfoMeta(li).ItemIndex == 2);
                 Assert.AreEqual(list2, li.ParentNode);
             Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
         }
