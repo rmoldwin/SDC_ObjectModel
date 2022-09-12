@@ -1,10 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SDC.Schema;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SDC.Schema.Tests
 {
@@ -30,11 +26,11 @@ namespace SDC.Schema.Tests
 
         [TestMethod()]
         [DataRow("1", new string[] { "1", "1" }, "val 1")]
-        [DataRow ("1", new string[] { "2", "2" }, "val 2")]
+        [DataRow("1", new string[] { "2", "2" }, "val 2")]
         [DataRow("1", new string[] { "3", "3" }, "val 3")]
-        public void GetNodePreviousSibTest( BaseType v1, string[] v2)
+        public void GetNodePreviousSibTest(BaseType v1, string[] v2)
         {
-            Assert.Fail(); 
+            Assert.Fail();
         }
 
         [TestMethod()]

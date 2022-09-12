@@ -2,12 +2,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-//using SDC.Schema;
 
 namespace SDCObjectModelTests.TestClasses
 {
@@ -17,11 +15,11 @@ namespace SDCObjectModelTests.TestClasses
 		private TestContext testContextInstance;
 
 		public NavigationTests()
-		{            
+		{
 			//previous test runs in MoveTests will change locations of some SDC nodes 
 			//This can cause some Assert methods, whch depend on the order of ObjectIDs, to fail.
 			//So we Reset the source SDC xml before starting this test suite
-			Setup.Reset();  
+			Setup.Reset();
 		}
 		/// <summary>
 		///Gets or sets the test context which provides
@@ -38,39 +36,37 @@ namespace SDCObjectModelTests.TestClasses
 				testContextInstance = value;
 			}
 		}
+
 		[TestMethod]
-		public void MoveNext_ReflectNodeDictionariesOrdered_X3()
+		public void MoveNext_RefreshTree_X1_NoPrint()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			SdcUtil.ReflectNodeDictionariesOrdered(Setup.FD);
-			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-
-			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			SdcUtil.ReflectNodeDictionariesOrdered(Setup.FD);
-			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-
-			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var s = SdcUtil.ReflectNodeDictionariesOrdered(Setup.FD, true);
+			var sdcList = SdcUtil.RefreshReflectedTree(Setup.FD, out string s, true);
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 			Debug.Print(s);
 
 		}
-
 		[TestMethod]
-		public void MoveNext_ReflectNodeDictionariesOrdered_X1_NoPrint()
+		public void MoveNext_RefreshTree_X3()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var s = SdcUtil.ReflectNodeDictionariesOrdered(Setup.FD, false);
+			SdcUtil.RefreshReflectedTree(Setup.FD, out _);
+			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
+
+			Setup.TimerStart($"==>{Setup.CallerName()} Started");
+			SdcUtil.RefreshReflectedTree(Setup.FD, out _);
+			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
+
+			Setup.TimerStart($"==>{Setup.CallerName()} Started");
+			var sdcList = SdcUtil.RefreshReflectedTree(Setup.FD, out string s, true);
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 			Debug.Print(s);
 
 		}
-
 		[TestMethod]
 		public void MoveNext_ReflectNextElement()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-
 			int i = 0;
 			BaseType n = Setup.FD;
 			string content;
@@ -85,12 +81,13 @@ namespace SDCObjectModelTests.TestClasses
 				i++;
 			}
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-
 		}
+
 		[TestMethod]
 		public void MoveNext_ReflectNextElement2()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
+
 			int i = 0;
 			BaseType n = Setup.FD;
 			string content;
@@ -105,11 +102,80 @@ namespace SDCObjectModelTests.TestClasses
 				i++;
 			}
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
+
+		}
+
+		[TestMethod]
+		public void MoveNext_ReflectNextElement_X()
+		{
+			Setup.TimerStart($"==>{Setup.CallerName()} Started");
+
+			Stopwatch.StartNew();
+
+			var a = (float)Stopwatch.GetTimestamp();
+
+			var total = a;
+			int i = -1;
+			string content;
+
+			List<BaseType> sortedNodes = new();
+			BaseType? bt = Setup.FD;
+			sortedNodes.Add(bt);
+
+			while (bt != null)
+			{
+				bt = SdcUtil.ReflectNextElement(bt);
+				if (bt is not null) sortedNodes.Add(bt);
+			}
+
+			Debug.Print("Seconds to Create Node Array: " + ((Stopwatch.GetTimestamp() - a) / Stopwatch.Frequency).ToString());
+			Debug.Print("Seconds per Node: " + (((Stopwatch.GetTimestamp() - a) / Stopwatch.Frequency) / Setup.FD.Nodes.Count).ToString());
+			a = (float)Stopwatch.GetTimestamp();
+
+			i = -1;
+			foreach (var n in sortedNodes)
+			{
+				i++;
+				if (n is DisplayedType)
+					content = ": title: " + (n as DisplayedType)?.title;
+				else if (n is PropertyType)
+					content = ": " + (n as PropertyType)?.propName + ": " + (n as PropertyType)?.val;
+				else content = "";
+
+				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? "").PadRight(20) + ": " + (n.ElementName ?? "").PadRight(25) + content);
+			}
+
+			Debug.Print("Output Time" + ((Stopwatch.GetTimestamp() - a) / Stopwatch.Frequency).ToString());
+			Debug.Print("Seconds per Node" + (((Stopwatch.GetTimestamp() - a) / Stopwatch.Frequency) / Setup.FD.Nodes.Count).ToString());
+			Debug.Print("Total Time: " + ((Stopwatch.GetTimestamp() - total) / Stopwatch.Frequency).ToString());
+
+
+			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
+		}
+		[TestMethod]
+		public void MoveNext_GetNextElement()
+		{
+			Setup.TimerStart($"==>{Setup.CallerName()} Started");
+			int i = 0;
+			BaseType? n = Setup.FD;
+			string content;
+			while (n != null)
+			{
+				if (n is DisplayedType) content = ": title: " + (n as DisplayedType).title;
+				else if (n is PropertyType) content = ": " + (n as PropertyType).propName + ": " + (n as PropertyType).val;
+				else content = "";
+
+				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? "").PadRight(20) + ": " + (n.ElementName ?? "").PadRight(25) + content);
+
+				n = SdcUtil.GetNextElement(n);
+				i++;
+			}
+			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
 
 		[TestMethod]
 		public void MoveNext_Nodes()
-		{            
+		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 			int i = 0;
 			BaseType n = Setup.FD;
@@ -121,8 +187,6 @@ namespace SDCObjectModelTests.TestClasses
 			BaseType nextSib;
 
 			MoveNext(n);
-			List<BaseType> childList;
-			List<BaseType> sibList;
 			void MoveNext(BaseType n)
 			{
 				firstChild = null;
@@ -131,9 +195,9 @@ namespace SDCObjectModelTests.TestClasses
 				n.order = i;  //almost instananeous
 				Assert.IsTrue(n.ObjectID == i);//very fast
 				i++;
-				
 
-				if (cn.TryGetValue(n.ObjectGUID, out childList))
+
+				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
 				{
 					firstChild = childList[0];
 					if (firstChild != null)
@@ -144,7 +208,7 @@ namespace SDCObjectModelTests.TestClasses
 				var par = n.ParentNode;
 				if (par != null)
 				{
-					if (cn.TryGetValue(par.ObjectGUID, out sibList))
+					if (cn.TryGetValue(par.ObjectGUID, out List<BaseType>? sibList))
 					{
 						var index = sibList.IndexOf(n);
 						if (index < sibList.Count - 1)
@@ -161,8 +225,8 @@ namespace SDCObjectModelTests.TestClasses
 
 			void btPrint(BaseType n)
 			{
-				if (n is DisplayedType) content = ": title: " + (n as DisplayedType).title;
-				else if (n is PropertyType) content = ": " + (n as PropertyType).propName + ": " + (n as PropertyType).val;
+				if (n is DisplayedType) content = ": title: " + (n as DisplayedType)?.title;
+				else if (n is PropertyType) content = ": " + (n as PropertyType)?.propName + ": " + (n as PropertyType)?.val;
 				else content = "";
 
 				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? "").PadRight(20) + ": " + (n.ElementName ?? "").PadRight(25) + content);
@@ -184,27 +248,26 @@ namespace SDCObjectModelTests.TestClasses
 
 			IEnumerable<BaseType> NodeIterator(BaseType? n)
 			{
-					while (n is not null)
-					{
-						n = MoveNext(n);
-						if (n is not null)
-							yield return n;
-						else yield break;
-					}
+				while (n is not null)
+				{
+					n = MoveNext(n);
+					if (n is not null)
+						yield return n;
+					else yield break;
+				}
 				yield break;
 			}
 
 			BaseType? MoveNext(BaseType n)
 			{
 				Dictionary<Guid, List<BaseType>> cn = n.TopNode.ChildNodes;
-				List<BaseType>? childList;
 				BaseType? nextNode;
-				
+
 				n.order = i;  //almost instananeous
 				Assert.IsTrue(n.ObjectID == i);//very fast
 				i++;
 				//if n has child nodes, the next node is the first child node of n.
-				if (cn.TryGetValue(n.ObjectGUID, out childList))
+				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
 				{
 					nextNode = childList[0];
 					if (nextNode is not null) return nextNode;
@@ -216,7 +279,7 @@ namespace SDCObjectModelTests.TestClasses
 				//We then check the childList of par, to see if prePar can be found in that childList
 				//If prevPar is in childList, then try to retrieve the next node in childList
 				//IF we cant get the nextNode from childList, then move up to one higher parent level
-				var prevPar = n;  
+				var prevPar = n;
 				var par = prevPar.ParentNode;
 
 				while (par is not null)
@@ -231,7 +294,7 @@ namespace SDCObjectModelTests.TestClasses
 						}
 						//the next node is not located yet, so walk up to a previous ancestor and try again,
 						//looking in that ancestors childList for a nextNode candidate
-						prevPar = par; 
+						prevPar = par;
 						par = prevPar.ParentNode;
 					}
 				}
@@ -267,10 +330,8 @@ namespace SDCObjectModelTests.TestClasses
 			BaseType firstChild;
 			BaseType nextSib;
 
-			List<BaseType> childList;
-			List<BaseType> sibList;
 			var sortedList = new List<BaseType>();
-			BaseType[] sortedArray = new BaseType[Setup.FD.Nodes.Count] ;
+			BaseType[] sortedArray = new BaseType[Setup.FD.Nodes.Count];
 
 			MoveNext(n);
 
@@ -286,7 +347,7 @@ namespace SDCObjectModelTests.TestClasses
 				i++;
 
 
-				if (cn.TryGetValue(n.ObjectGUID, out childList))
+				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
 				{
 					firstChild = childList[0];
 					if (firstChild != null)
@@ -297,7 +358,7 @@ namespace SDCObjectModelTests.TestClasses
 				var par = n.ParentNode;
 				if (par != null)
 				{
-					if (cn.TryGetValue(par.ObjectGUID, out sibList))
+					if (cn.TryGetValue(par.ObjectGUID, out List<BaseType> sibList))
 					{
 						var index = sibList.IndexOf(n);
 						if (index < sibList.Count - 1)
@@ -311,49 +372,6 @@ namespace SDCObjectModelTests.TestClasses
 			}
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
-
-		[TestMethod]
-		public void GetLastDescendant()
-		{
-			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-
-			var n = SdcUtil.GetLastDescendant(Setup.FD.Body);
-			Assert.IsTrue(n.ElementName =="LocalFunctionName" && n.type=="submit");
-
-			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-		}
-
-
-		[TestMethod]
-		public void MoveNext_NodesToSortedListByTreeComparer()
-		{
-			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-
-			var sa = Setup.FD.Nodes.Values.ToList();
-			sa.Sort(new TreeComparer());
-
-			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-		}
-		[TestMethod]
-		public void MoveNext_GetNextElement()
-		{
-			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-				int i = 0;
-				BaseType? n = Setup.FD;
-				string content;
-				while (n != null)
-				{
-					if (n is DisplayedType) content = ": title: " + (n as DisplayedType).title;
-					else if (n is PropertyType) content = ": " + (n as PropertyType).propName + ": " + (n as PropertyType).val;
-					else content = "";
-
-					Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? "").PadRight(20) + ": " + (n.ElementName ?? "").PadRight(25) + content);
-
-					n = SdcUtil.GetNextElement(n);
-					i++;
-				}
-			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-		}
 		[TestMethod]
 		public void MovePrev_GetPrevElement()
 		{
@@ -362,7 +380,7 @@ namespace SDCObjectModelTests.TestClasses
 			SdcUtil.TreeSort_ClearNodeIds();
 
 			BaseType? n = SdcUtil.GetLastDescendant(Setup.FD);
-			int i = Setup.FD.Nodes.Count() - 1;
+			int i = Setup.FD.Nodes.Count - 1;
 			string content;
 
 			while (n != null)
@@ -381,49 +399,24 @@ namespace SDCObjectModelTests.TestClasses
 		}
 
 		[TestMethod]
-		public void MovePrev_ReflectNextElement()
+		public void GetLastDescendant()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			
-			Stopwatch.StartNew();
-			
-			var a = (float)Stopwatch.GetTimestamp();
+
+			var n = SdcUtil.GetLastDescendant(Setup.FD.Body);
+			Assert.IsTrue(n.ElementName == "LocalFunctionName" && n.type == "submit");
+
+			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
+		}
 
 
-			var total = a;
-			BaseType[] sortedNodes = new BaseType[Setup.FD.Nodes.Count()];
-			int i = 0;
-			BaseType n = Setup.FD;
-			string content;
-			n = Setup.FD;
-			while (n != null)
-			{
-				sortedNodes[i] = n;
-				n = SdcUtil.ReflectNextElement(n);
-				//if (n is null) Debugger.Break();
-				i++;
-			}
+		[TestMethod]
+		public void SLOW_MoveNext_NodesToSortedListByTreeComparer()
+		{
+			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 
-			Debug.Print("Seconds to Create Node Array: " + ((Stopwatch.GetTimestamp() - a) / Stopwatch.Frequency).ToString());
-			Debug.Print("Seconds per Node: " + (((Stopwatch.GetTimestamp() - a) / Stopwatch.Frequency) / Setup.FD.Nodes.Count()).ToString());
-			a = (float)Stopwatch.GetTimestamp();
-
-			for (i = Setup.FD.Nodes.Count() - 1; i >= 0; i--)
-			{
-				n = sortedNodes[i];
-				if (n is DisplayedType)
-					content = ": title: " + (n as DisplayedType).title;
-				else if (n is PropertyType)
-					content = ": " + (n as PropertyType).propName + ": " + (n as PropertyType).val;
-				else content = "";
-
-				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? "").PadRight(20) + ": " + (n.ElementName ?? "").PadRight(25) + content);
-			}
-
-			Debug.Print("Output Time" + ((Stopwatch.GetTimestamp() - a) / Stopwatch.Frequency).ToString());
-			Debug.Print("Seconds per Node" + (((Stopwatch.GetTimestamp() - a) / Stopwatch.Frequency) / Setup.FD.Nodes.Count()).ToString());
-			Debug.Print("Total Time: " + ((Stopwatch.GetTimestamp() - total) / Stopwatch.Frequency).ToString());
-			
+			var sa = Setup.FD.Nodes.Values.ToList();
+			sa.Sort(new TreeComparer());
 
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
@@ -475,15 +468,15 @@ namespace SDCObjectModelTests.TestClasses
 		{
 
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-				Stopwatch.StartNew();
-				var a = Stopwatch.GetTimestamp();
+			Stopwatch.StartNew();
+			var a = Stopwatch.GetTimestamp();
 
-				foreach (var n in Setup.FD.Nodes)
-				{
-					SdcUtil.GetPropertyInfoMeta(n.Value);
-					//Debug.Print(ISdcUtil.GetPropertyInfo(n.Value).ToString());
-				}
-				Debug.Print(((((float)Stopwatch.GetTimestamp() - a) / Stopwatch.Frequency) / Setup.FD.Nodes.Count()).ToString());
+			foreach (var n in Setup.FD.Nodes)
+			{
+				SdcUtil.GetPropertyInfoMeta(n.Value);
+				//Debug.Print(ISdcUtil.GetPropertyInfo(n.Value).ToString());
+			}
+			Debug.Print(((((float)Stopwatch.GetTimestamp() - a) / Stopwatch.Frequency) / Setup.FD.Nodes.Count).ToString());
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
 		[TestMethod]
@@ -491,95 +484,95 @@ namespace SDCObjectModelTests.TestClasses
 		{
 
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-				BaseType.ResetSdcImport();
-				string path = Path.Combine("..", "..", "..", "Test files", "Adrenal.Bx.Res.129_3.004.001.REL_sdcFDF_test.xml");
-				var FDbad = FormDesignType.DeserializeFromXmlPath(path); //used to compare nodes in another tree
-				var adr = FDbad.Nodes.Values.ToArray(); //this creates shallow copies with do not retain ParentNode refs, etc.
+			BaseType.ResetSdcImport();
+			string path = Path.Combine("..", "..", "..", "Test files", "Adrenal.Bx.Res.129_3.004.001.REL_sdcFDF_test.xml");
+			var FDbad = FormDesignType.DeserializeFromXmlPath(path); //used to compare nodes in another tree
+			var adr = FDbad.Nodes.Values.ToArray(); //this creates shallow copies with do not retain ParentNode refs, etc.
 
 
-				var tc = new TreeComparer();
-				var n = Setup.FD.Nodes.Values.ToArray();//this creates shallow copies with do not retain ParentNode refs, etc.
+			var tc = new TreeComparer();
+			var n = Setup.FD.Nodes.Values.ToArray();//this creates shallow copies with do not retain ParentNode refs, etc.
 
-				Stopwatch.StartNew();
-				var a = Stopwatch.GetTimestamp();
-
-				Debug.Print(tc.Compare(n[0], n[1]).ToString());
-				Debug.Print(tc.Compare(n[0], n[2]).ToString());
-				Debug.Print(tc.Compare(n[0], n[3]).ToString());
-				Debug.Print(tc.Compare(n[0], n[10]).ToString());
-				Debug.Print(tc.Compare(n[0], n[3]).ToString());
-				Debug.Print(tc.Compare(n[0], n[8]).ToString());
-				Debug.Print(tc.Compare(n[1], n[8]).ToString());
-				Debug.Print("\r\n");
-				Debug.Print(tc.Compare(n[1], n[1]).ToString());
-				Debug.Print(tc.Compare(n[2], n[2]).ToString());
-				Debug.Print(tc.Compare(n[3], n[3]).ToString());
-				Debug.Print(tc.Compare(n[10], n[10]).ToString());
-				Debug.Print(tc.Compare(n[20], n[20]).ToString());
-				Debug.Print(tc.Compare(n[30], n[30]).ToString());
-				Debug.Print(tc.Compare(n[50], n[50]).ToString());
-				Debug.Print("\r\n expected results: -1, 1, -1, 1, -1, 1, -1 ");
-				Debug.Print(tc.Compare(n[1], n[2]).ToString());// -1
-				Debug.Print(tc.Compare(n[2], n[1]).ToString());// 1
-				Debug.Print(tc.Compare(n[33], n[34]).ToString());// -1
-				Debug.Print(tc.Compare(n[20], n[10]).ToString());// 1
-				Debug.Print(tc.Compare(n[199], n[201]).ToString());// -1
-				Debug.Print(tc.Compare(n[201], n[200]).ToString());// 1
-				Debug.Print(tc.Compare(n[29], n[32]).ToString());// -1
-				Debug.Print("\r\n expected results: -1, 1, -1, 1, -1, 1, -1 ");
-				Debug.Print(tc.Compare(n[299], n[301]).ToString());// -1
-				Debug.Print(tc.Compare(n[401], n[300]).ToString());// 1
-				Debug.Print(tc.Compare(n[39], n[42]).ToString());// -1
-				Debug.Print(tc.Compare(n[21], n[11]).ToString());// 1
-				Debug.Print(tc.Compare(n[11], n[12]).ToString());// -1
-				Debug.Print(tc.Compare(n[341], n[133]).ToString());// 1
-				Debug.Print(tc.Compare(n[101], n[120]).ToString());// -1
-
-
-				Debug.Print("\r\n");
-				Debug.Print(tc.Compare(n[2], n[1]).ToString());
-				Debug.Print(tc.Compare(n[4], n[0]).ToString());
-				Debug.Print(tc.Compare(n[6], n[4]).ToString());
-				Debug.Print(tc.Compare(n[20], n[2]).ToString());
-				Debug.Print(tc.Compare(n[40], n[0]).ToString());
-				Debug.Print(tc.Compare(n[60], n[0]).ToString());
-				Debug.Print(tc.Compare(n[100], n[0]).ToString());
-				Debug.Print("\r\n");
-
-				try { Debug.Print(tc.Compare(n[100], adr[0]).ToString()); } catch { Debug.Print("error caught"); }
-				try { Debug.Print(tc.Compare(adr[0], n[100]).ToString()); } catch { Debug.Print("error caught"); }
-				try { Debug.Print(tc.Compare(n[10], adr[12]).ToString()); } catch { Debug.Print("error caught"); }
-				try { Debug.Print(tc.Compare(adr[100], adr[100]).ToString()); } catch { Debug.Print("error caught"); }
+			Stopwatch.StartNew();
+			var a = Stopwatch.GetTimestamp();
+			Debug.Print("Returns -1 \r\n");
+			Assert.AreEqual(tc.Compare(n[0], n[1]), -1);
+			Assert.AreEqual(tc.Compare(n[0], n[2]), -1);
+			Assert.AreEqual(tc.Compare(n[0], n[3]), -1);
+			Assert.AreEqual(tc.Compare(n[0], n[10]), -1);
+			Assert.AreEqual(tc.Compare(n[0], n[3]), -1);
+			Assert.AreEqual(tc.Compare(n[0], n[8]), -1);
+			Assert.AreEqual(tc.Compare(n[1], n[8]), -1);
+			Debug.Print("Returns 0 \r\n");
+			Assert.AreEqual(tc.Compare(n[1], n[1]), 0);
+			Assert.AreEqual(tc.Compare(n[2], n[2]), 0);
+			Assert.AreEqual(tc.Compare(n[3], n[3]), 0);
+			Assert.AreEqual(tc.Compare(n[10], n[10]), 0);
+			Assert.AreEqual(tc.Compare(n[20], n[20]), 0);
+			Assert.AreEqual(tc.Compare(n[30], n[30]), 0);
+			Assert.AreEqual(tc.Compare(n[50], n[50]), 0);
+			Debug.Print("\r\n expected results: -1, 1, -1, 1, -1, 1, -1 ");
+			Assert.AreEqual(tc.Compare(n[1], n[2]), -1);// -1
+			Assert.AreEqual(tc.Compare(n[2], n[1]), 1);// 1
+			Assert.AreEqual(tc.Compare(n[33], n[34]), -1);// -1
+			Assert.AreEqual(tc.Compare(n[20], n[10]), 1);// 1
+			Assert.AreEqual(tc.Compare(n[199], n[201]), -1);// -1
+			Assert.AreEqual(tc.Compare(n[201], n[200]), 1);// 1
+			Assert.AreEqual(tc.Compare(n[29], n[32]), -1);// -1
+			Debug.Print("\r\n expected results: -1, 1, -1, 1, -1, 1, -1 ");
+			Assert.AreEqual(tc.Compare(n[299], n[301]), -1);// -1
+			Assert.AreEqual(tc.Compare(n[401], n[300]), 1);// 1
+			Assert.AreEqual(tc.Compare(n[39], n[42]), -1);// -1
+			Assert.AreEqual(tc.Compare(n[21], n[11]), 1);// 1
+			Assert.AreEqual(tc.Compare(n[11], n[12]), -1);// -1
+			Assert.AreEqual(tc.Compare(n[341], n[133]), 1);// 1
+			Assert.AreEqual(tc.Compare(n[101], n[120]), -1);// -1
 
 
+			Debug.Print("\r\n");
+			Assert.AreEqual(tc.Compare(n[2], n[1]), 1);
+			Assert.AreEqual(tc.Compare(n[4], n[0]), 1);
+			Assert.AreEqual(tc.Compare(n[6], n[4]), 1);
+			Assert.AreEqual(tc.Compare(n[20], n[2]), 1);
+			Assert.AreEqual(tc.Compare(n[40], n[0]), 1);
+			Assert.AreEqual(tc.Compare(n[60], n[0]), 1);
+			Assert.AreEqual(tc.Compare(n[100], n[0]), 1);
+			Debug.Print("\r\n");
+
+			try { Debug.Print(tc.Compare(n[100], adr[0]).ToString()); } catch { Debug.Print("error caught"); }
+			try { Debug.Print(tc.Compare(adr[0], n[100]).ToString()); } catch { Debug.Print("error caught"); }
+			try { Debug.Print(tc.Compare(n[10], adr[12]).ToString()); } catch { Debug.Print("error caught"); }
+			try { Debug.Print(tc.Compare(adr[100], adr[100]).ToString()); } catch { Debug.Print("error caught"); }
 
 
-				Debug.Print(((float)(Stopwatch.GetTimestamp() - a) / ((float)Stopwatch.Frequency)).ToString());
 
 
-				//Seconds per comparison: @ 0.0006 sec/comparison
-				a = Stopwatch.GetTimestamp();
-				for (int i = 0; i < 100; i++)
-				{
-					tc.Compare(n[299], n[301]);
-					tc.Compare(n[2101], n[120]);
-				}
-				Debug.Print(((float)(Stopwatch.GetTimestamp() - a) / ((float)Stopwatch.Frequency) / 200).ToString());
+			Debug.Print(((float)(Stopwatch.GetTimestamp() - a) / ((float)Stopwatch.Frequency)).ToString());
+
+
+			//Seconds per comparison: @ 0.0006 sec/comparison
+			a = Stopwatch.GetTimestamp();
+			for (int i = 0; i < 100; i++)
+			{
+				tc.Compare(n[299], n[301]);
+				tc.Compare(n[2101], n[120]);
+			}
+			Debug.Print(((float)(Stopwatch.GetTimestamp() - a) / ((float)Stopwatch.Frequency) / 200).ToString());
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
 		[TestMethod]
 		public void RefreshParentNodesFromXml()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-				BaseType.ResetSdcImport();
-				string path = Path.Combine("..", "..", "..", "Test files", "Adrenal.Bx.Res.129_3.004.001.REL_sdcFDF_test.xml");
-				var FDbad = FormDesignType.DeserializeFromXmlPath(path); //used to compare nodes in another tree
-				var adr = FDbad.Nodes.Values.ToArray<BaseType>();
+			BaseType.ResetSdcImport();
+			string path = Path.Combine("..", "..", "..", "Test files", "Adrenal.Bx.Res.129_3.004.001.REL_sdcFDF_test.xml");
+			var FDbad = FormDesignType.DeserializeFromXmlPath(path); //used to compare nodes in another tree
+			var adr = FDbad.Nodes.Values.ToArray<BaseType>();
 
-				foreach (var n in adr)
-				{
-					Debug.Print(n.name + ", par: " + n.ParentNode?.name);
-				}
+			foreach (var n in adr)
+			{
+				Debug.Print(n.name + ", par: " + n.ParentNode?.name);
+			}
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
 
@@ -602,47 +595,47 @@ namespace SDCObjectModelTests.TestClasses
 		public void ReflectPropertyInfoList()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-				var lst = SdcUtil.ReflectPropertyInfoList(Setup.FD);
-				foreach (var n in lst)
-					Debug.Print($"{n.XmlOrder}:\t Name: {n.PropertyInfo.Name}, \t Type: {n.PropertyInfo.PropertyType.Name}");
+			var lst = SdcUtil.ReflectPropertyInfoList(Setup.FD);
+			foreach (var n in lst)
+				Debug.Print($"{n.XmlOrder}:\t Name: {n.PropertyInfo.Name}, \t Type: {n.PropertyInfo.PropertyType.Name}");
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
 		[TestMethod]
 		public void ReflectChildList()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-				var lst = SdcUtil.ReflectChildList(Setup.FD);
-				foreach (var n in lst)
-					Debug.Print($"{n.order}: \t Name: {n.name}");
+			var lst = SdcUtil.ReflectChildList(Setup.FD);
+			foreach (var n in lst)
+				Debug.Print($"{n.order}: \t Name: {n.name}");
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
 		[TestMethod]
 		public void ReflectSubtree()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-				var lst = Setup.FD.TopNode.GetItemByName("S_57219")
-					.GetSubtreeList();
-				foreach (var n in lst)
-					Debug.Print($"{n.order}: \t Name: {n.name}");
+			var lst = Setup.FD.TopNode.GetItemByName("S_57219")
+				.GetSubtreeList();
+			foreach (var n in lst)
+				Debug.Print($"{n.order}: \t Name: {n.name}");
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
 		[TestMethod]
 		public void GetXmlAttributeAll()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			SdcUtil.ReflectNodeDictionariesOrdered(Setup.FD, true);
-				var lst = Setup.FD.TopNode.GetItemByName("S_57219")
-					.GetXmlAttributesAll();
-				foreach (var n in lst) Debug.Print($"{n.Name}");
+			SdcUtil.RefreshReflectedTree(Setup.FD, out _);
+			var lst = Setup.FD.TopNode.GetItemByName("S_57219")
+				.GetXmlAttributesAll();
+			foreach (var n in lst) Debug.Print($"{n.Name}");
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
 		[TestMethod]
 		public void GetXmlAttributesFilled()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-				var lst = Setup.FD.TopNode.GetItemByName("S_57219")
-					.GetXmlAttributesFilled();
-				foreach (var n in lst) Debug.Print($"{n.Name}");
+			var lst = Setup.FD.TopNode.GetItemByName("S_57219")
+				.GetXmlAttributesFilled();
+			foreach (var n in lst) Debug.Print($"{n.Name}");
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 
 		}

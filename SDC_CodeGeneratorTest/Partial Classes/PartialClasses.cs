@@ -1159,7 +1159,8 @@ namespace SDC.Schema
 					_elementPrefix = _elementName;
 					if (_elementName.IsEmpty()) return "";
 					//make sure first letter is lower case for non-IET types:
-					if (!(this.GetType().IsSubclassOf(typeof(IdentifiedExtensionType)))) _elementPrefix = _elementPrefix.Substring(0, 1).ToLower() + _elementPrefix.Substring(1);
+					//if (!(this.GetType().IsSubclassOf(typeof(IdentifiedExtensionType)))) _elementPrefix = _elementPrefix.Substring(0, 1).ToLower() + _elementPrefix.Substring(1);
+					if (!this.GetType().IsSubclassOf(typeof(IdentifiedExtensionType))) _elementPrefix = string.Concat(_elementPrefix.Substring(0, 1).ToLower(), _elementPrefix.AsSpan(1));
 				}
 				//if (this is QuestionItemType && _elementPrefix != "Q") Debugger.Break();
 				return _elementPrefix;
@@ -1203,14 +1204,14 @@ namespace SDC.Schema
 		/// </summary>
 		[System.Xml.Serialization.XmlIgnore]
 		[JsonIgnore]
-		public BaseType ParentNode
+		public BaseType? ParentNode
 		{
 			get
 			{
 				//return _ParentNode;  //this works for objects that were created with the parentNode constructor
 
 				TopNode.ParentNodes.TryGetValue(this.ObjectGUID, out BaseType? outParentNode);
-				return outParentNode!;
+				return outParentNode;
 
 			}
 			//protected internal set
@@ -1466,7 +1467,7 @@ namespace SDC.Schema
 		{
 			T obj = SdcSerializer<T>.Deserialize(sdcXml);
 			//return InitParentNodesFromXml<T>(sdcXml, obj);
-			SdcUtil.ReflectNodeDictionariesOrdered(obj);
+			SdcUtil.RefreshReflectedTree(obj, out _);
 			return obj;
 		}
 		//!+JSON
@@ -1479,7 +1480,7 @@ namespace SDC.Schema
 		{
 			T obj = SdcSerializerJson<T>.DeserializeJson<T>(sdcJson);
 			//return InitParentNodesFromXml<T>(sdcXml, obj);
-			SdcUtil.ReflectNodeDictionariesOrdered(obj);
+			SdcUtil.RefreshReflectedTree(obj, out _);
 			return obj;
 		}
 		//!+MsgPack
@@ -1492,7 +1493,7 @@ namespace SDC.Schema
 		{
 			T obj = SdcSerializerMsgPack<T>.DeserializeMsgPack(sdcMsgPack);
 			//return InitParentNodesFromXml<T>(sdcXml, obj);
-			SdcUtil.ReflectNodeDictionariesOrdered(obj);
+			SdcUtil.RefreshReflectedTree(obj, out _);
 			return obj;
 		}
 
@@ -1506,7 +1507,7 @@ namespace SDC.Schema
 		{
 			T obj = SdcSerializerBson<T>.DeserializeBson(sdcBson);
 			//return InitParentNodesFromXml<T>(sdcXml, obj);
-			SdcUtil.ReflectNodeDictionariesOrdered(obj);
+			SdcUtil.RefreshReflectedTree(obj, out _);
 			return obj;
 		}
 		#endregion  
