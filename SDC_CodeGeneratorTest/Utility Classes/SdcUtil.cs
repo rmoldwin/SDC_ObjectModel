@@ -1355,10 +1355,10 @@ namespace SDC.Schema
 						&& p.GetCustomAttributes(typeof(XmlElementAttribute)).Any()  //We must confirm that our IEnumerable has a XmlElementAttribute,
 																					 //since we added some shadow properties in the partial classes
 																					 //like "ChildItems_List" for "Items"
-						//&& p.GetValue(par) is not null
+						//&& p.GetValue(par) is not null			//This will be good for a future refactoring of the lambda expression; it will get the matched property directly and concisely.
 						);
 
-				if (ieParProps is null || !ieParProps.Any())
+				if (ieParProps is null || ! ieParProps.Any())
 				{ errorMsg = "the ParentNode of item does not contain an IEnumerable<BaseType> that contains the the target item node"; return -1; }
 			}
 			foreach (var propInfo in ieParProps!) //loop through IEnumerable PropertyInfo objects in par
@@ -1567,8 +1567,9 @@ namespace SDC.Schema
 		/// These attributes are determined by invoking the "ShouldSerialize[Attribute Name]" methods in the passed paramete
 		/// </summary>
 		/// <param name="bt">A non-null SDC object derrived from BaseType</param>
+		/// <param name="IsXmlDefaultFilled">Set to true to treat default values as "filled."</param>
 		/// <returns>List&lt;PropertyInfo></returns>
-		public static List<PropertyInfo> ReflectXmlAttributesFilled(BaseType bt)
+		public static List<PropertyInfo> ReflectXmlAttributesFilled(BaseType bt, bool IsXmlDefaultFilled = false)
 		{
 			//if (bt is null) return null!;
 			TypeInfo ti = bt.GetType().GetTypeInfo();

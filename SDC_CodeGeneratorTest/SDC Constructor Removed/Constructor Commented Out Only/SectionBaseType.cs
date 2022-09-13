@@ -117,23 +117,25 @@ public abstract partial class SectionBaseType : RepeatingType
             _shouldSerializenewData = true;
         }
     }
-    
-    /// <summary>
-    /// Test whether ordered should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeordered()
-    {
-        if (_shouldSerializeordered)
-        {
-            return true;
-        }
-        return (_ordered != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether changedData should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializechangedData()
+
+		/// <summary>
+		/// Test whether ordered should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializeordered()
+		{
+			return _shouldSerializeordered;
+
+			//if (_shouldSerializeordered)
+			//	{
+			//		return true;
+			//	}
+			//	return (_ordered != default(bool));
+		}
+
+		/// <summary>
+		/// Test whether changedData should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializechangedData()
     {
         if (_shouldSerializechangedData)
         {

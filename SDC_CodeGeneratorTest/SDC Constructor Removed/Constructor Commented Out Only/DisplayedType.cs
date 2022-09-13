@@ -514,78 +514,84 @@ public partial class DisplayedType : IdentifiedExtensionType
     {
         return OnEvent != null && OnEvent.Count > 0;
     }
-    
-    /// <summary>
-    /// Test whether enabled should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeenabled()
-    {
-        if (_shouldSerializeenabled)
-        {
-            return true;
-        }
-        return (_enabled != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether visible should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializevisible()
-    {
-        if (_shouldSerializevisible)
-        {
-            return true;
-        }
-        return (_visible != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether mustImplement should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializemustImplement()
-    {
-        if (_shouldSerializemustImplement)
-        {
-            return true;
-        }
-        return (_mustImplement != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether showInReport should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeshowInReport()
-    {
-        if (_shouldSerializeshowInReport)
-        {
-            return true;
-        }
-        return (_showInReport != default(DisplayedTypeShowInReport));
-    }
-    
-    /// <summary>
-    /// Test whether ActivateIf should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeActivateIf()
-    {
-        return (_activateIf != null);
-    }
-    
-    /// <summary>
-    /// Test whether DeActivateIf should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeDeActivateIf()
-    {
-        return (_deActivateIf != null);
-    }
-    
-    /// <summary>
-    /// Test whether title should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializetitle()
-    {
-        return !string.IsNullOrEmpty(title);
-    }
-}
+
+		/// <summary>
+		/// Test whether enabled should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializeenabled()
+		{
+			return _shouldSerializeenabled;
+
+			//if (_shouldSerializeenabled)
+			//      {
+			//          return true;
+			//      }
+			//      return (_enabled != default(bool));
+		}
+
+		/// <summary>
+		/// Test whether visible should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializevisible()
+		{
+			return _shouldSerializeenabled;
+			//if (_shouldSerializevisible)
+			//{
+			//	return true;
+			//}
+			//return (_visible != default(bool));
+		}
+
+		/// <summary>
+		/// Test whether mustImplement should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializemustImplement()
+		{
+			return _shouldSerializeenabled;
+
+			//if (_shouldSerializemustImplement)
+			//{
+			//	return true;
+			//}
+			//return (_mustImplement != default(bool));
+		}
+
+		/// <summary>
+		/// Test whether showInReport should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializeshowInReport()
+		{
+			return _shouldSerializeenabled;
+			//if (_shouldSerializeshowInReport)
+			//{
+			//	return true;
+			//}
+			//return (_showInReport != default(DisplayedTypeShowInReport));
+		}
+
+		/// <summary>
+		/// Test whether ActivateIf should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializeActivateIf()
+		{
+			return (_activateIf != null);
+		}
+
+		/// <summary>
+		/// Test whether DeActivateIf should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializeDeActivateIf()
+		{
+			return (_deActivateIf != null);
+		}
+
+		/// <summary>
+		/// Test whether title should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializetitle()
+		{
+			return !string.IsNullOrEmpty(title);
+		}
+	}
 }
 #pragma warning restore

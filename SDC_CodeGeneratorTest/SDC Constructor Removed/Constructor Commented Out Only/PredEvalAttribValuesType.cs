@@ -854,23 +854,23 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
         return (_isRequired != default(bool));
     }
-    
-    /// <summary>
-    /// Test whether isReadOnly should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeisReadOnly()
-    {
-        if (_shouldSerializeisReadOnly)
-        {
-            return true;
-        }
-        return (_isReadOnly != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether hasValue should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializehasValue()
+
+		/// <summary>
+		/// Test whether isReadOnly should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializeisReadOnly()
+		{
+			if (_shouldSerializeisReadOnly)
+			{
+				return true;
+			}
+			return (_isReadOnly != default(bool));
+		}
+
+		/// <summary>
+		/// Test whether hasValue should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializehasValue()
     {
         if (_shouldSerializehasValue)
         {

@@ -491,23 +491,25 @@ public partial class ListFieldType : ExtensionBaseType
         }
         return (_maxSelections != default(uint));
     }
-    
-    /// <summary>
-    /// Test whether ordered should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeordered()
-    {
-        if (_shouldSerializeordered)
-        {
-            return true;
-        }
-        return (_ordered != default(bool));
-    }
-    
-    /// <summary>
-    /// Test whether ListHeaderText should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeListHeaderText()
+
+		/// <summary>
+		/// Test whether ordered should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializeordered()
+		{
+			return _shouldSerializeordered;
+
+			//if (_shouldSerializeordered)
+			//{
+			//	return true;
+			//}
+			//return (_ordered != default(bool));
+		}
+
+		/// <summary>
+		/// Test whether ListHeaderText should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializeListHeaderText()
     {
         return (_listHeaderText != null);
     }
