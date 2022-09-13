@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Buffers;
+using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
@@ -550,7 +551,7 @@ namespace SDC.Schema
 			{
 				if (n is null) return;
 				int indent = 0; //used for padding printed output; increments each time will evaluate a set of child nodes
-				BaseType?[]? kids = ReflectChildList(n)?.ToArray<BaseType?>();
+				BaseType?[]? kids = ReflectChildElementList(n)?.ToArray<BaseType?>();
 
 				if (kids is not null)
 				{
@@ -639,7 +640,7 @@ namespace SDC.Schema
 			ReflectSubtree2(bt);
 			void ReflectSubtree2(BaseType bt)
 			{
-				var cList = ReflectChildList(bt);
+				var cList = ReflectChildElementList(bt);
 				if (cList is not null)
 				{
 					foreach (BaseType c in cList)
@@ -873,7 +874,7 @@ namespace SDC.Schema
 			var par = item.ParentNode;
 			if (par is null) return null;
 
-			var lst = ReflectChildList(par);
+			var lst = ReflectChildElementList(par);
 			return lst.FirstOrDefault();
 		}
 		public static BaseType? GetNextSib(BaseType item)
@@ -892,7 +893,7 @@ namespace SDC.Schema
 			var par = item.ParentNode;
 			if (par is null) return null;
 
-			var lst = ReflectChildList(par);
+			var lst = ReflectChildElementList(par);
 			var myIndex = lst?.IndexOf(item) ?? -1;
 			if (myIndex < 0 || myIndex == lst?.Count - 1) return null;
 			return lst[myIndex + 1]??null;
@@ -910,7 +911,7 @@ namespace SDC.Schema
 			var par = item.ParentNode;
 			if (par is null) return null;
 
-			var lst = ReflectChildList(par);
+			var lst = ReflectChildElementList(par);
 			return lst?.Last();
 		}
 		public static BaseType? GetPrevElement(BaseType? item)
@@ -969,7 +970,7 @@ namespace SDC.Schema
 			var par = item.ParentNode;
 			if (par is null) return null;
 
-			var lst = ReflectChildList(par);
+			var lst = ReflectChildElementList(par);
 			if (lst is null) return null;
 			var myIndex = lst?.IndexOf(item) ?? -1;
 			if (myIndex < 1) return null;
@@ -1086,12 +1087,12 @@ namespace SDC.Schema
 		}
 
 		/// <summary>
-		/// Given a parent node, retrieve the list of child nodes, if present.
+		/// Given a parent node, retrieve the list of correctly-ordered child Xml Element nodes, if present.
 		/// Uses reflection only, and does not use any node dictionaries.
 		/// </summary>
 		/// <param name="parentNode"></param>
 		/// <returns>List<BaseType>? containing the child nodes</returns>
-		public static List<BaseType>? ReflectChildList(BaseType parentNode)
+		public static List<BaseType>? ReflectChildElementList(BaseType parentNode)
 		{
 			if (parentNode is null) return null; //You can't have sibs without a parent
 			List<BaseType>? childNodes = new ();
@@ -1132,6 +1133,59 @@ namespace SDC.Schema
 			}
 			return childNodes;
 		}
+
+
+		/// <summary>
+		/// Given a parent node, retrieve the list of correctly-ordered child Xml Attribute nodes, if present.
+		/// Uses reflection only, and does not use any node dictionaries.
+		/// </summary>
+		/// <param name="elementNode"></param>
+		/// <param name="getAllAttributes">If true (the default), returns all attributes.    
+		/// If false, returns only those attributes which have values that will be serialized</param>
+		/// <returns>List&lt;BaseType>? containing the child nodes</returns>
+		public static List<PropertyInfo> ReflectAttributeList(BaseType elementNode, bool getAllAttributes = true)
+		{
+			if (elementNode is null) throw new NullReferenceException("elementNode cannot be null"); //You can't have sibs without a parent
+			List<PropertyInfo> attributes = new();
+			IEnumerable<PropertyInfo>? piIE = null;
+			int nodeIndex = -1;
+
+			//Create a LIFO stack of the targetNode inheritance hierarchy.  The stack's top level type will always be BaseType
+			//For most non-datatype SDC objects, it could be a bit more efficient to use ExtensionBaseType - we can test this another time
+			Type t = elementNode.GetType();
+			var s = new Stack<Type>();
+			s.Push(t);
+
+			do
+			{//build the stack of inherited types from parentNode
+				t = t.BaseType!;
+				if (t.IsAssignableTo(typeof(BaseType))) s.Push(t);
+				else break; //quit when we hit a non-BaseType type
+			} while (true);
+
+			//starting with the least-derived inherited type (BaseType), look for any non-null properties of targetNode
+			while (s.Count > 0)
+			{
+				t = s.Pop();
+				piIE = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+						.Where(p => p.GetCustomAttributes<XmlAttributeAttribute>().Any());
+				foreach (var p in piIE)
+				{
+					nodeIndex++;
+					if (getAllAttributes) attributes.Add(p);
+					else
+					{
+						var att = t.GetMethod("ShouldSerialize" + p.Name)?.Invoke(elementNode, null);
+						if (att is bool shouldSerialize && shouldSerialize)
+							attributes.Add(p);
+					}
+				}
+			}
+			return attributes;
+		}
+
+
+
 		public static bool HasChild(BaseType item)
 		{
 			item.TopNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
@@ -1205,7 +1259,7 @@ namespace SDC.Schema
 			//!+-------Local Method--------------------------
 			void FindLastKid(BaseType bt)
 			{
-				List<BaseType>? kids = ReflectChildList(bt);
+				List<BaseType>? kids = ReflectChildElementList(bt);
 				var testLast = kids?.Last();
 				if (testLast is null) return; //we ran out of kids to check, so lastKid is the last descendant                
 
@@ -1330,10 +1384,6 @@ namespace SDC.Schema
 
 
 
-		}
-		public static List<PropertyInfoOrdered> ReflectPropertyInfoList(BaseType bt)
-		{
-			return ReflectPropertyInfoElements(bt.GetType().GetTypeInfo());
 		}
 		private static int GetItemIndex(BaseType item, out IEnumerable<BaseType>? ieItems, out PropertyInfo? piItemOut, out string errorMsg)
 		=> GetItemIndex(item, null, out ieItems, out piItemOut, out errorMsg);
@@ -1526,70 +1576,6 @@ namespace SDC.Schema
 			if (xci is null) return null;
 			return xci.MemberName;
 		}
-		public static List<PropertyInfoOrdered> ReflectPropertyInfoElements(TypeInfo ti)
-		{
-			var props = new List<PropertyInfoOrdered>();
-			foreach (var p in ti.GetProperties())
-			{
-				var att = p.GetCustomAttributes<XmlElementAttribute>().FirstOrDefault();
-				if (att != null)
-
-					props.Add(new PropertyInfoOrdered(p, att.Order));
-			}
-
-			props.Sort(new PropertyInfoOrderedComparer());
-			return props;
-
-		}
-		/// <summary>
-		/// Uses reflection to determine XML attributes that are eligible to be serialized.
-		/// </summary>
-		/// <param name="ti"></param>
-		/// <returns>List&lt;PropertyInfo></returns>
-		public static List<PropertyInfo> ReflectPropertyInfoAttributes(TypeInfo ti)
-		{
-			if (ti is null) return null;
-			var props = new List<PropertyInfo>();
-			foreach (var p in ti.GetProperties())
-			{
-				var att = p.GetCustomAttributes<XmlAttributeAttribute>().FirstOrDefault();
-				if (att != null)
-
-					props.Add(p);
-			}
-			props.Sort(new AttributeComparer());
-			return props;
-		}
-
-		//!TODO: Needs sorting of child nodes?
-		/// <summary>
-		/// Uses reflection to determine XML attributes that will be serialized, based on the passed parameter object.
-		/// These attributes are determined by invoking the "ShouldSerialize[Attribute Name]" methods in the passed paramete
-		/// </summary>
-		/// <param name="bt">A non-null SDC object derrived from BaseType</param>
-		/// <param name="IsXmlDefaultFilled">Set to true to treat default values as "filled."</param>
-		/// <returns>List&lt;PropertyInfo></returns>
-		public static List<PropertyInfo> ReflectXmlAttributesFilled(BaseType bt, bool IsXmlDefaultFilled = false)
-		{
-			//if (bt is null) return null!;
-			TypeInfo ti = bt.GetType().GetTypeInfo();
-			if (ti is null) return null!;
-			var attProps = new List<PropertyInfo>();
-			foreach (var p in ReflectXmlAttributesAll(bt))
-			{
-				if (ti.GetMethod("ShouldSerialize" + p.Name)?.Invoke(bt, null) is bool shouldSerialize)
-				{
-					if (shouldSerialize) attProps.Add(p);
-				}
-			}
-			return attProps;
-		}
-		//!TODO: Needs sorting of child nodes
-		public static List<PropertyInfo> ReflectXmlAttributesAll(BaseType bt)
-		{
-			return ReflectPropertyInfoAttributes(bt.GetType().GetTypeInfo());
-		}
-
 
 		/// <summary>
 		/// Reflect the object tree to determine if <paramref name="item"/> can be attached to <paramref name="newParent"/>.   
@@ -1770,14 +1756,14 @@ namespace SDC.Schema
 		{
 			if (item is null) return null;
 
-			var lst = ReflectChildList(item);
+			var lst = ReflectChildElementList(item);
 			return lst?.FirstOrDefault();
 		}
 		public static BaseType? X_ReflectLastChild(BaseType item)
 		{
 			if (item is null) return null;
 
-			var lst = ReflectChildList(item);
+			var lst = ReflectChildElementList(item);
 			return lst?.Last();
 		}
 		private static List<T> X_GetStatedEventParent<T>(T item)

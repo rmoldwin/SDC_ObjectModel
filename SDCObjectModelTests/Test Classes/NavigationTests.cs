@@ -591,20 +591,20 @@ namespace SDCObjectModelTests.TestClasses
 
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
-		[TestMethod]
-		public void ReflectPropertyInfoList()
-		{
-			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var lst = SdcUtil.ReflectPropertyInfoList(Setup.FD);
-			foreach (var n in lst)
-				Debug.Print($"{n.XmlOrder}:\t Name: {n.PropertyInfo.Name}, \t Type: {n.PropertyInfo.PropertyType.Name}");
-			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-		}
+		//[TestMethod]
+		//public void ReflectPropertyInfoList()
+		//{
+		//	Setup.TimerStart($"==>{Setup.CallerName()} Started");
+		//	var lst = SdcUtil.ReflectPropertyInfoList(Setup.FD);
+		//	foreach (var n in lst)
+		//		Debug.Print($"{n.XmlOrder}:\t Name: {n.PropertyInfo.Name}, \t Type: {n.PropertyInfo.PropertyType.Name}");
+		//	Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
+		//}
 		[TestMethod]
 		public void ReflectChildList()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var lst = SdcUtil.ReflectChildList(Setup.FD);
+			var lst = SdcUtil.ReflectChildElementList(Setup.FD);
 			foreach (var n in lst)
 				Debug.Print($"{n.order}: \t Name: {n.name}");
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
@@ -623,7 +623,6 @@ namespace SDCObjectModelTests.TestClasses
 		public void GetXmlAttributeAll()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			SdcUtil.RefreshReflectedTree(Setup.FD, out _);
 			var lst = Setup.FD.TopNode.GetItemByName("S_57219")
 				.GetXmlAttributesAll();
 			foreach (var n in lst) Debug.Print($"{n.Name}");
@@ -632,6 +631,7 @@ namespace SDCObjectModelTests.TestClasses
 		[TestMethod]
 		public void GetXmlAttributesFilled()
 		{
+			SdcUtil.RefreshReflectedTree(Setup.FD, out _);
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 			var lst = Setup.FD.TopNode.GetItemByName("S_57219")
 				.GetXmlAttributesFilled();

@@ -49,9 +49,9 @@ namespace SDCObjectModelTests.TestClasses
                 List<BaseType> lst2;
                 List<BaseType> lst3;
 
-                lst1 = SdcUtil.ReflectChildList(Setup.FD.GetListItemByID("51689.100004300"));
-                lst2 = SdcUtil.ReflectChildList(Setup.FD.GetListItemByID("38493.100004300"));
-                lst3 = SdcUtil.ReflectChildList(Setup.FD.GetItemByName("lst_44135_3"));
+                lst1 = SdcUtil.ReflectChildElementList(Setup.FD.GetListItemByID("51689.100004300"));
+                lst2 = SdcUtil.ReflectChildElementList(Setup.FD.GetListItemByID("38493.100004300"));
+                lst3 = SdcUtil.ReflectChildElementList(Setup.FD.GetItemByName("lst_44135_3"));
 
                 lst3 = SdcUtil.ReflectSubtreeList(Setup.FD.GetSectionByID("43969.100004300"));
                 //foreach (var n in lst3) Debug.Print(n.name);

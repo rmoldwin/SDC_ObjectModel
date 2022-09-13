@@ -61,7 +61,7 @@ namespace SDC.Schema
 		/// <returns>List&lt;PropertyInfo></returns>
 		public static List<PropertyInfo> GetXmlAttributesFilled(this BaseType bt)
 		{
-			return SdcUtil.ReflectXmlAttributesFilled(bt);
+			return SdcUtil.ReflectAttributeList(bt, getAllAttributes: false);
 		}
 		/// <summary>
 		/// Provides PropertyInfo (PI) definitions for all XML attributes of an SDC node
@@ -70,12 +70,12 @@ namespace SDC.Schema
 		/// <returns><b>List&lt;PropertyInfo></b> </returns>
 		public static List<PropertyInfo> GetXmlAttributesAll(this BaseType bt)
 		{
-			return SdcUtil.ReflectXmlAttributesAll(bt);
+			return SdcUtil.ReflectAttributeList(bt);
 		}
-		public static List<PropertyInfoOrdered> GetPropertyInfoList(this BaseType bt)
-		{
-			return SdcUtil.ReflectPropertyInfoList(bt);
-		}
+		//public static List<PropertyInfoOrdered> GetPropertyInfoList(this BaseType bt)
+		//{
+		//	return SdcUtil.ReflectPropertyInfoList(bt);
+		//}
 
 		public static PropertyInfoMetadata GetPropertyInfoMetaData(this BaseType bt)
 		{
