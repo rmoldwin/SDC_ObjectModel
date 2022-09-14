@@ -5,6 +5,9 @@
 //using SDC;
 namespace SDC.Schema
 {
+	/// <summary>
+	/// Use in Sort methods to determine the correct ordered sequence of SDC child nodes.  Inherits from Comparer&lt;T>
+	/// </summary>
 	public class TreeSibComparer : Comparer<BaseType>
 	{
 		/// <inheritdoc/>

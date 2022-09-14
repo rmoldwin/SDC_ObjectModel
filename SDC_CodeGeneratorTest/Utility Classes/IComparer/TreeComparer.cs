@@ -101,81 +101,7 @@ namespace SDC.Schema
 			if (!(ancSetA[indexA] == ancSetB[indexB])) throw new DataMisalignedException("Error in finding common node parent");
 			//Subtract one from each index above to arrive at one node distal (lower) to the common node in each subtree
 			return SibComparer(prevPar, ancSetA[indexA-1], ancSetB[indexB-1], out _);
-
-			//_______________________________________________________________________________________________________________
-			//
-
-
-			////Use ReflectNextElement on ancSetA[IndexA] or ancSetB[IndexB] to walk down nodes from the common ANC node.
-			////Whichever node it encountners first wins.  This is very slow
-			//var node = ancSetA[indexA];
-			//while (node is not null)
-			//{
-			//	if (node == nodeA) return -1;
-			//	if (node == nodeB) return 1;
-			//	node = SdcUtil.ReflectNextElement(node);
-			//}
-			//throw new InvalidOperationException("Could not determine node order");
-			////___________________________________________________________________________________________________________
-			////Methods below here will return incorrect results.
-
-
-
-			//BaseType? ancNodeA = null;
-			//BaseType? ancNodeB = null;
-
-			//if (indexA > 0 && indexB > 0)
-			//{
-			//	ancNodeA = ancSetA[indexA - 1]; //first child of common ancester node on nodeA branch; this is still an ancester of NodeA, or NodeA itself
-			//	ancNodeB = ancSetB[indexB - 1]; //first child of common ancester node on nodeB branch; this is still an ancester of NodeB, or NodeB itself
-			//}
-			//else
-			//{
-			//	ancNodeA = ancSetA[indexA]; //common ancester node on nodeA branch; this is still an ancester of NodeA, or NodeA itself
-			//	ancNodeB = ancSetB[indexB]; //common ancester node on nodeB branch; this is still an ancester of NodeB, or NodeB itself
-
-			//}
-
-			////Retrieve customized Property Metadata for the class properties that hold our nodes.
-			//var piAncNodeA = SdcUtil.GetPropertyInfoMeta(ancNodeA, false);
-			//var piAncNodeB = SdcUtil.GetPropertyInfoMeta(ancNodeB, false);
-
-			////Let's see if both items come from the same IEnumerable (ieItems) in ANC, and then see which one has the lower itemIndex
-			//if (piAncNodeA.IeItems is not null && piAncNodeB.IeItems is not null &&
-			//	piAncNodeA.IeItems == piAncNodeB.IeItems &&
-			//	piAncNodeA.ItemIndex > -1 && piAncNodeB.ItemIndex > -1)
-			//{
-			//	if (piAncNodeA.ItemIndex == piAncNodeB.ItemIndex)
-			//	{ Result(0); return 0; }
-			//	//throw new Exception("Unknown error - the compared nodes share a common ParentNode and appear to be identical");
-			//	if (piAncNodeA.ItemIndex < piAncNodeB.ItemIndex)
-			//	{ Result(-1); return -1; }
-			//	if (piAncNodeB.ItemIndex < piAncNodeA.ItemIndex)
-			//	{ Result(1); return 1; }
-			//}
-
-			//if (piAncNodeA.PropertyInfo.DeclaringType is not null && piAncNodeB.PropertyInfo.DeclaringType is not null)
-			//{
-			//	//In XML Schemas, it appears that base class (Schema base type) xml elements always come before subclass elements, regardless of the XmlElementAttribute Order value.
-			//	if (piAncNodeA.PropertyInfo.DeclaringType.IsSubclassOf(piAncNodeB.PropertyInfo.DeclaringType))
-			//	{ Result(1); return 1; } //base class xml orders come before subclasses; ancNodeA is the base type here
-			//	if (piAncNodeB.PropertyInfo.DeclaringType.IsSubclassOf(piAncNodeA.PropertyInfo.DeclaringType))
-			//	{ Result(-1); return -1; } //base class xml orders come before subclasses; ancNodeB is the base type here
-			//}
-
-			////Determine the comparison based on the xmlOrder in the XmlElementAttributes
-			////if (piAncNodeA.XmlOrder < piAncNodeB.XmlOrder)
-			////{ Result(-1); return -1; }
-			////if (piAncNodeB.XmlOrder < piAncNodeA.XmlOrder)
-			////{ Result(1); return 1; }
-
-
-
-
-
-			//Debugger.Break();
-			//Debug.Print($"A:{nodeA.ObjectID}, name: {nodeA.name};   B:{nodeB.ObjectID}, name: {nodeB.name}");
-			//throw new Exception("the compare nodes algorithm could not determine the node order");
+			
 
 			void Result(int i)
 			{	//For debugging only:
@@ -188,7 +114,7 @@ namespace SDC.Schema
 		/// Uses reflection only, and does not use any node dictionaries.
 		/// </summary>
 		/// <param name="parentNode"></param>
-		/// <returns>List<BaseType>? containing the child nodes</returns>
+		/// <returns>List&lt;BaseType>? containing the child nodes</returns>
 		public static int SibComparer(BaseType parentNode, BaseType nodeA, BaseType nodeB, out int nodeIndex)
 		{
 			nodeIndex = -1;

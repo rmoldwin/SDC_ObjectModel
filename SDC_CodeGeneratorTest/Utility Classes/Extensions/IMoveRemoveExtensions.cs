@@ -21,14 +21,14 @@ namespace SDC.Schema
 
 
 		/// <summary>
-		/// Reflect the object tree to determine if <paramref name="item"/> can be attached to <paramref name="newParent"/>.   
-		/// We must find an <em>exact</em> match for <paramref name="item"/>'s element name and the data type in <paramref name="newParent"/> to allow the move.
+		/// Reflect the object tree to determine if <paramref name="btSource"/> can be attached to <paramref name="newParent"/>.   
+		/// We must find an <em>exact</em> match for <paramref name="btSource"/>'s element name and the data type in <paramref name="newParent"/> to allow the move.
 		/// </summary>
-		/// <param name="item">The SDC node to test for its ability to be attached to the <paramref name="newParent"/> node.</param>
-		/// <param name="newParent">The node to which the <paramref name="item"/> node should be moved.</param>
+		/// <param name="btSource">The SDC node to test for its ability to be attached to the <paramref name="newParent"/> node.</param>
+		/// <param name="newParent">The node to which the <paramref name="btSource"/> node should be moved.</param>
 		/// <param name="pObj">The property object on <paramref name="newParent"/> that would attach to <paramref name="item"/> (hold its object reference).
 		/// pObj may be a List&lt;> or a non-List object.</param>
-		/// <returns>True for allowed parent nodes, false for disallowed not allowed<</returns>
+		/// <returns>True for allowed parent nodes, false for disallowed not allowed</returns>
 		public static bool IsParentNodeAllowed(this BaseType btSource, BaseType newParent, out object? pObj)
 			=> SdcUtil.IsParentNodeAllowed(btSource, newParent, out pObj);
 
@@ -38,7 +38,7 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="item">The SDC node to test for its ability to be attached to the <paramref name="newParent"/> node.</param>
 		/// <param name="newParent">The node to which the <paramref name="item"/> node should be moved.</param>
-		/// <returns>True for allowed parent nodes, false for disallowed not allowed<</returns>
+		/// <returns>True for allowed parent nodes, false for disallowed not allowed</returns>
 		public static bool IsParentNodeAllowed(this BaseType btSource, BaseType newParent)
 			=> SdcUtil.IsParentNodeAllowed(btSource, newParent, out _);
 
@@ -56,7 +56,7 @@ namespace SDC.Schema
 			if (cancelIfChildNodes && btSource.HasChildren()) return false;
 
 			foreach (var childNode in par.TopNode.ChildNodes[btSource.ObjectGUID])
-				childNode.Remove();
+				childNode.Remove(); //note - this is recursive
 
 			//reflect the parent property that represents the "this" object, then set the property to null
 			var prop = par.GetType().GetProperties().Where(p => p.GetValue(par) == btSource).FirstOrDefault();
@@ -174,12 +174,13 @@ namespace SDC.Schema
 			try
 			{
 				bool success = false;
+
+				if (btSource.TopNode.ParentNodes.ContainsKey(btSource.ObjectGUID))
+					success = btSource.TopNode.ParentNodes.Remove(btSource.ObjectGUID);
+				// if (!success) throw new Exception($"Could not remove object from ParentNodes dictionary: name: {this.name ?? "(none)"} , ObjectID: {this.ObjectID}");
+
 				if (par != null)
 				{
-					if (btSource.TopNode.ParentNodes.ContainsKey(btSource.ObjectGUID))
-						success = btSource.TopNode.ParentNodes.Remove(btSource.ObjectGUID);
-					// if (!success) throw new Exception($"Could not remove object from ParentNodes dictionary: name: {this.name ?? "(none)"} , ObjectID: {this.ObjectID}");
-
 					if (btSource.TopNode.ChildNodes.ContainsKey(par.ObjectGUID))
 						success = btSource.TopNode.ChildNodes[par.ObjectGUID].Remove(btSource); //Returns a List<BaseType> and removes "item" from that list
 																								//if (!success) throw new Exception($"Could not remove object from ChildNodes dictionary: name: {this.name ?? "(none)"}, ObjectID: {this.ObjectID}");

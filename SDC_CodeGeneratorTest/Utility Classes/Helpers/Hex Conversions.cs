@@ -60,7 +60,7 @@ namespace SDC.Schema
         }
         public static byte[] HexStringToBytes(this string hexString)   //orig name: HexToBytes     
         {
-        https://stackoverflow.com/questions/311165/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-and-vice-versa/24343727#24343727
+        //https://stackoverflow.com/questions/311165/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-and-vice-versa/24343727#24343727
             if (hexString.Length % 2 == 1) throw new Exception("The input string cannot have an odd number of hex characters");
             byte[] b = new byte[hexString.Length / 2];
             char c;

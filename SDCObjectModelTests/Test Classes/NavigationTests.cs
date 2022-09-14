@@ -6,6 +6,7 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Xml;
 
 namespace SDCObjectModelTests.TestClasses
 {
@@ -634,8 +635,8 @@ namespace SDCObjectModelTests.TestClasses
 			SdcUtil.RefreshReflectedTree(Setup.FD, out _);
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 			var lst = Setup.FD.TopNode.GetItemByName("S_57219")
-				.GetXmlAttributesFilled();
-			foreach (var n in lst) Debug.Print($"{n.Name}");
+				.GetXmlAttributesSerialized();
+			foreach (var n in lst) Debug.Print($"{n.Name}: val:{n.AttributeValue?.ToString()}, sGuid: {n.SdcElementNodesGuid}, order: {n.Order}, type: {n.AttributePropInfo.PropertyType}");
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 
 		}

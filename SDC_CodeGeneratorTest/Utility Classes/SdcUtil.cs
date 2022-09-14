@@ -1,6 +1,7 @@
 ﻿using MsgPack.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SDC_CodeGeneratorTest.Utility_Classes.Metadata_Structs;
 using System;
 using System.Buffers;
 using System.CodeDom;
@@ -144,7 +145,7 @@ namespace SDC.Schema
 		/// Checking for a parent node in this SortedSet is used to bypass the resorting of child nodes during a tree sorting operation.  
 		/// The SortedList is cleared after the conclusion of the sorting operation, using TreeSort_ClearNodeIds().
 		/// </summary>
-		static SortedSet<int> TreeSort_NodeIds = new();
+		static readonly SortedSet<int> TreeSort_NodeIds = new();
 
 		/// <summary>
 		/// List-sorting code can test for the presence of a flagged parent node in TreeSort_NodeIds with TreeSort_IsSorted. 
@@ -904,7 +905,7 @@ namespace SDC.Schema
 			if (par is null) return null;
 			item.TopNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
 			if (sibs is not null) SortKids(item, sibs);
-			return sibs?[sibs.Count - 1];
+			return sibs?.Last();
 		}
 		public static BaseType? ReflectLastSib(BaseType item)
 		{
@@ -981,7 +982,7 @@ namespace SDC.Schema
 		{
 			item.TopNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
 			if (kids is not null) SortKids(item, kids);
-			return kids?[kids.Count - 1];
+			return kids?.Last();
 		}
 		/// <summary>
 		/// Given a parent node, find the last child node, if present.
@@ -990,7 +991,7 @@ namespace SDC.Schema
 		/// Finding the last child node helps with rapidly walking down to the deepest descendant of a tree branch, using onluy reflection
 		/// </summary>
 		/// <param name="parentNode"></param>
-		/// <returns>List<BaseType>? containing the child nodes</returns>
+		/// <returns>List&lt;BaseType>? containing the child nodes</returns>
 		public static BaseType? ReflectLastChild(BaseType parentNode)
 		{
 			if (parentNode is null) return null; //You can't have sibs without a parent
@@ -1091,7 +1092,7 @@ namespace SDC.Schema
 		/// Uses reflection only, and does not use any node dictionaries.
 		/// </summary>
 		/// <param name="parentNode"></param>
-		/// <returns>List<BaseType>? containing the child nodes</returns>
+		/// <returns>List&lt;BaseType>? containing the child nodes</returns>
 		public static List<BaseType>? ReflectChildElementList(BaseType parentNode)
 		{
 			if (parentNode is null) return null; //You can't have sibs without a parent
@@ -1143,10 +1144,11 @@ namespace SDC.Schema
 		/// <param name="getAllAttributes">If true (the default), returns all attributes.    
 		/// If false, returns only those attributes which have values that will be serialized</param>
 		/// <returns>List&lt;BaseType>? containing the child nodes</returns>
-		public static List<PropertyInfo> ReflectAttributeList(BaseType elementNode, bool getAllAttributes = true)
+		public static List<AttributeInfo> ReflectXmlAttributes(BaseType elementNode, bool getAllAttributes = true)
 		{
 			if (elementNode is null) throw new NullReferenceException("elementNode cannot be null"); //You can't have sibs without a parent
-			List<PropertyInfo> attributes = new();
+			//List<PropertyInfo> attributesX = new();
+			List<AttributeInfo> attributes = new();
 			IEnumerable<PropertyInfo>? piIE = null;
 			int nodeIndex = -1;
 
@@ -1172,16 +1174,27 @@ namespace SDC.Schema
 				foreach (var p in piIE)
 				{
 					nodeIndex++;
-					if (getAllAttributes) attributes.Add(p);
+					if (getAllAttributes)
+					{
+						nodeIndex++;
+						attributes.Add(FillAttributeInfo(p));
+					}
 					else
 					{
 						var att = t.GetMethod("ShouldSerialize" + p.Name)?.Invoke(elementNode, null);
 						if (att is bool shouldSerialize && shouldSerialize)
-							attributes.Add(p);
+						{
+							nodeIndex++;
+							attributes.Add(FillAttributeInfo(p));
+						}
 					}
 				}
 			}
 			return attributes;
+
+			AttributeInfo FillAttributeInfo(PropertyInfo p) =>
+				new (elementNode.sGuid, p!.GetValue(elementNode), p, nodeIndex);
+
 		}
 
 
@@ -1585,7 +1598,7 @@ namespace SDC.Schema
 		/// <param name="newParent">The node to which the <paramref name="item"/> node should be moved.</param>
 		/// <param name="pObj">The property object on <paramref name="newParent"/> that would attach to <paramref name="item"/> (hold its object reference).
 		/// pObj may be a List&lt;> or a non-List object.</param>
-		/// <returns>True for allowed parent nodes, false for disallowed not allowed<</returns>
+		/// <returns>True for allowed parent nodes, false for disallowed not allowed</returns>
 		internal static bool IsParentNodeAllowed(BaseType item, BaseType newParent, out object? pObj)
 		{
 			pObj = null;  //the property object to which item would be attached; it may be a List<> or a non-List object.
@@ -1596,7 +1609,7 @@ namespace SDC.Schema
 
 			Type itemType = item.GetType();
 			var thisPi = SdcUtil.GetPropertyInfoMeta(item);
-			string itemName = thisPi.XmlElementName;
+			string? itemName = thisPi.XmlElementName;
 
 			foreach (var p in newParent.GetType().GetProperties())
 			{
@@ -2433,7 +2446,7 @@ namespace SDC.Schema
 		}
 		public static UnitsType AddUnits(this IAddCoding ac, CodingType ctParent)
 		{
-			UnitsType u = new UnitsType(ctParent);
+			var u = new UnitsType(ctParent);
 			ctParent.Units = u;
 			return u;
 		}

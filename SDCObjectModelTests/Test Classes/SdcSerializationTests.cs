@@ -212,7 +212,7 @@ namespace SDCObjectModelTests.TestClasses
             FormDesignType FD = (FormDesignType)Pkg.Nodes.Values.Where(n => n.GetType() == typeof(FormDesignType)).FirstOrDefault();
 
 
-            var Q = (QuestionItemType)Pkg.Nodes.Values.Where(
+            var Q = (QuestionItemType?)Pkg.Nodes.Values.Where(
                 t => t.GetType() == typeof(QuestionItemType)).Where(
                 q => ((QuestionItemType)q).ID == "37387.100004300").FirstOrDefault();
             var DI = Q.AddChildDisplayedItem("DDDDD");//should add to end of the <List>

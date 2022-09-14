@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using SDC_CodeGeneratorTest.Utility_Classes.Metadata_Structs;
+using System.Reflection;
 
 
 
@@ -59,24 +60,19 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="bt"></param>
 		/// <returns>List&lt;PropertyInfo></returns>
-		public static List<PropertyInfo> GetXmlAttributesFilled(this BaseType bt)
+		public static List<AttributeInfo> GetXmlAttributesSerialized(this BaseType bt)
 		{
-			return SdcUtil.ReflectAttributeList(bt, getAllAttributes: false);
+			return SdcUtil.ReflectXmlAttributes(bt, getAllAttributes: false);
 		}
 		/// <summary>
 		/// Provides PropertyInfo (PI) definitions for all XML attributes of an SDC node
 		/// </summary>
 		/// <param name="bt"></param>
 		/// <returns><b>List&lt;PropertyInfo></b> </returns>
-		public static List<PropertyInfo> GetXmlAttributesAll(this BaseType bt)
+		public static List<AttributeInfo> GetXmlAttributesAll(this BaseType bt)
 		{
-			return SdcUtil.ReflectAttributeList(bt);
+			return SdcUtil.ReflectXmlAttributes(bt);
 		}
-		//public static List<PropertyInfoOrdered> GetPropertyInfoList(this BaseType bt)
-		//{
-		//	return SdcUtil.ReflectPropertyInfoList(bt);
-		//}
-
 		public static PropertyInfoMetadata GetPropertyInfoMetaData(this BaseType bt)
 		{
 			return SdcUtil.GetPropertyInfoMeta(bt);
@@ -85,11 +81,11 @@ namespace SDC.Schema
 		{
 			return SdcUtil.GetSortedSubtreeList(bt);
 		}
-		public static List<BaseType> GetSibs(this BaseType bt)
+		public static List<BaseType>? GetSibs(this BaseType bt)
 		{
 			var par = bt?.ParentNode;
 			if (par is null) return null;
-			if (bt.TopNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType> sibs))
+			if (bt.TopNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs))
 				return sibs;
 
 			return null;

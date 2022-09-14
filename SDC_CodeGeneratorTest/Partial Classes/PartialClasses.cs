@@ -30,7 +30,7 @@ namespace SDC.Schema
 		: base(parentNode, id)
 		//TODO: add ID, lineage, baseURI, version, etc to this constructor? (only ID is required)
 		{ Init(); }
-		private void Init()
+		private static void  Init()
 		{
 
 		}
@@ -256,7 +256,7 @@ namespace SDC.Schema
 			//TODO:Add dictionaries for nodes etc
 			//TODO:Make sure BaseType constructor functions work
 		}
-		private void Init()
+		private static void Init()
 		{
 
 		}
@@ -348,7 +348,7 @@ namespace SDC.Schema
 		{
 			Init();//TODO:Make sure BaseType constructor functions work
 		}
-		private void Init()
+		private static void Init()
 		{
 
 		}
@@ -432,7 +432,7 @@ namespace SDC.Schema
 		{
 			Init();//TODO:Make sure BaseType constructor functions work
 		}
-		private void Init()
+		private static void Init()
 		{
 
 		}
@@ -639,7 +639,7 @@ namespace SDC.Schema
 		protected SectionItemType() { Init(); } //change back to protected
 		public SectionItemType(BaseType parentNode, string id = "", string elementPrefix = "") : base(parentNode, id)
 		{ Init(); }
-		private void Init()
+		private static void Init()
 		{
 
 		}
@@ -697,7 +697,7 @@ namespace SDC.Schema
 			Init();
 			//this._readOnly = false;  // tag:#IsThisCorrect
 		}
-		private void Init()
+		private static void Init()
 		{
 			// tag:#IsThisCorrect
 		}
@@ -948,8 +948,8 @@ namespace SDC.Schema
 		///// </summary>
 		//protected ITreeBuilder sdcTreeBuilder; //TODO: convert to static field
 
-		object propertyName;
-		int elementIndex;
+		//object propertyName;
+		//int elementIndex;
 		int elementOrder;
 		private string _elementName = "";
 		private string _elementPrefix = "";
@@ -960,9 +960,11 @@ namespace SDC.Schema
 		/// Static counter that resets with each new instance of an IdentifiedExtensionType (IET).
 		/// Maintains the sequence of all elements nested under an IET-derived element.
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
-		[JsonIgnore]
-		private static int IETresetCounter { get; set; }
+		//[System.Xml.Serialization.XmlIgnore]
+		//[JsonIgnore]
+		//private static int IETresetCounter { get; set; }
+
+
 		/// <summary>
 		/// Field to hold the ordinal position of an object (XML element) under an IdentifiedExtensionType (IET)-derived object.
 		/// This number is used for creating the name attribute suffix.
@@ -990,14 +992,14 @@ namespace SDC.Schema
 					{
 						prevNode = node.ParentNode;
 						if (prevNode is IdentifiedExtensionType) return i;
-						if (prevNode is null) throw new Exception("Could not locate an ancestor node of type IdentifiedExtensionType");
+						if (prevNode is null) return -1; // throw new Exception("Could not locate an ancestor node of type IdentifiedExtensionType");
 					}
 					node = prevNode;
 				} while (node != null);					
 				return -1;
 			}
 		}
-		private BaseType _ParentNode;
+		//private BaseType _ParentNode;
 		private RetrieveFormPackageType _PackageNode;
 		private static ITopNode? topNodeTemp;
 
@@ -1070,7 +1072,7 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public bool AutoNameFlag { get; set; } = false;
 
-		private bool cycleGuarded = false;
+		//private bool cycleGuarded = false;
 		/// <summary>
 		/// The root text ("shortName") used to construct the name property.  The code may add a prefix and/or suffix to BaseName
 		/// </summary>
@@ -1521,7 +1523,7 @@ namespace SDC.Schema
 		protected ExtensionBaseType() { Init(); }
 		public ExtensionBaseType(BaseType parentNode) : base(parentNode)
 		{ Init(); }
-		private void Init()
+		private static void Init()
 		{
 
 		}
@@ -1533,7 +1535,7 @@ namespace SDC.Schema
 		private IExtensionBaseTypeMember Iebtm { get => (IExtensionBaseTypeMember)this; }
 		protected ExtensionType() { Init(); }
 		public ExtensionType(BaseType parentNode) : base(parentNode) { Init(); }
-		private void Init()
+		private static void Init()
 		{
 
 		}
@@ -1896,7 +1898,7 @@ namespace SDC.Schema
 			ElementPrefix = "DataTypes";
 			SetNames(elementName, elementPrefix);
 		}
-		private void Init()
+		private static void Init()
 		{
 
 		}
@@ -1967,7 +1969,7 @@ namespace SDC.Schema
 			//ElementPrefix = "b64";
 			//SetNames(elementName, elementPrefix);
 		}
-		private void Init()
+		private static void Init()
 		{
 
 		}
@@ -2184,7 +2186,7 @@ namespace SDC.Schema
 				//ElementPrefix = "dts";
 				//SetNames(elementName, elementPrefix);
 			}
-			private void Init()
+			private static void Init()
 			{
 
 			}
@@ -2663,7 +2665,7 @@ namespace SDC.Schema
 				//ElementPrefix = "hexb";
 				//SetNames(elementName, elementPrefix);
 			}
-			private void Init()
+			private static void Init()
 			{
 
 			}
@@ -2712,7 +2714,7 @@ namespace SDC.Schema
 				//SetNames(elementName, elementPrefix);
 				//this.Any = new List<System.Xml.XmlElement>();
 			}
-			private void Init()
+			private static void Init()
 			{
 			}
 		}
@@ -3150,7 +3152,7 @@ namespace SDC.Schema
 				//ElementPrefix = "str";
 				//SetNames(elementName, elementPrefix);
 			} //{if (elementName.Length > 0) ElementName = elementName; }
-			private void Init()
+			private static void Init()
 			{
 
 			}
@@ -3411,7 +3413,7 @@ namespace SDC.Schema
 				//SetNames(elementName, elementPrefix);
 				//this.Any = new List<XmlElement>();
 			}
-			private void Init()
+			private static void Init()
 			{
 
 			}
@@ -3730,7 +3732,7 @@ namespace SDC.Schema
 			protected PredSelectionTestType() { Init(); }
 			public PredSelectionTestType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
 			{ Init(); }
-			private void Init()
+			private static void Init()
 			{
 
 			}
@@ -3813,7 +3815,7 @@ namespace SDC.Schema
 			protected PredMultiSelectionSetBoolType() { Init(); }
 			public PredMultiSelectionSetBoolType(BaseType parentNode) : base(parentNode)
 			{ Init(); }
-			private void Init()
+			private static void Init()
 			{
 
 			}
@@ -4494,7 +4496,7 @@ namespace SDC.Schema
 				this.ElementPrefix = "ctc";
 				SetNames(elementName, elementPrefix);
 			}
-			private void Init()
+			private static void Init()
 			{
 
 			}
