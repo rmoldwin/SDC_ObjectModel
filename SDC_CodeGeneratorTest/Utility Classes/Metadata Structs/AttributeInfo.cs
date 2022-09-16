@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SDC_CodeGeneratorTest.Utility_Classes.Metadata_Structs
+namespace SDC.Schema
 {
 	/// <summary>
 	/// Sruct to hold information about SDC object properties that will become XML attributes when serialized to XML.
@@ -19,13 +19,22 @@ namespace SDC_CodeGeneratorTest.Utility_Classes.Metadata_Structs
 		/// <summary>
 		/// Constructor for AttributeInfo&lt;T>
 		/// </summary>
+		/// <param name="parentNode"></param>
 		/// <param name="sdcElementNodeSguid">The ShortGuid property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.</param>
 		/// <param name="attributeValue">The value of this attribute instance.</param>
 		/// <param name="attributePropInfo">The PropertyInfo object that describes this attribute on its parent object node (which is represented by SdcElementNodeSguid).</param>
 		/// <param name="order">The serialized ordinal position of the attribute in the current element</param>
-		public AttributeInfo(ShortGuid sdcElementNodeSguid, object? attributeValue, PropertyInfo attributePropInfo, int order)
+		public AttributeInfo(BaseType parentNode, 
+			ShortGuid sdcElementNodeSguid, 
+			object? attributeValue, 
+			PropertyInfo attributePropInfo, 
+			int order)
 		{
-			this.SdcElementNodesGuid = sdcElementNodeSguid;
+			var parentIETNode = parentNode.ParentIETypeNode;
+			this.ParentNodesGuid = parentNode.sGuid;
+			this.ParentIETNodesGuid = parentIETNode?.sGuid;
+			this.ParentNodeObjectID = parentNode.ObjectID;
+			this.ParentIETNodeObjectID = parentIETNode?.ObjectID;
 			this.AttributeValue = attributeValue;
 			this.AttributePropInfo = attributePropInfo;
 			this.Order = order;
@@ -42,12 +51,35 @@ namespace SDC_CodeGeneratorTest.Utility_Classes.Metadata_Structs
 		/// </summary>
 		public object? AttributeValue { get; }
 
+
+
+
 		/// <summary>
 		/// The ShortGuid property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.
 		/// The sGuid can be used to retrieve an SDC object, while not holding onto an object reference inside this struct.
 		/// </summary>
-		public ShortGuid SdcElementNodesGuid { get; }
-		
+		public ShortGuid ParentNodesGuid { get; }
+		/// <summary>
+		/// The ObjectID property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.
+		/// The ObjectID can be used to retrieve an SDC object, while not holding an object reference inside this struct.
+		/// </summary>
+		public int ParentNodeObjectID { get; }
+
+
+		/// <summary>
+		/// The ShortGuid property of the ParentIEType
+		/// The sGuid can be used to retrieve an SDC object, while not holding onto an object reference inside this struct.
+		/// The ParentIETNode may be null, generating a null value for ParentIETNodesGuid.
+		/// </summary>
+		public ShortGuid? ParentIETNodesGuid { get; }
+		/// <summary>
+		/// The ObjectID property of the ParentIEType
+		/// The ObjectID can be used to retrieve an SDC object, while not holding an object reference inside this struct.
+		/// The ParentIETNode may be null, generating a null value for ParentIETNodeObjectID.
+		/// </summary>
+		public int? ParentIETNodeObjectID { get; }
+
+
 		/// <summary>
 		/// Name of the attribute, as it will appear in XML
 		/// </summary>

@@ -9,11 +9,11 @@ namespace SDC.Schema
 {
 	public static class ITopNodeExtensions
 	{
-		public static List<BaseType> ReorderNodes(this ITopNode itn)
+		public static List<BaseType> ReorderNodes(this ITopNodePublic itn)
 		{
 			return SdcUtil.ReflectSubtreeList((BaseType)itn.TopNode, reOrder: true, reRegisterNodes: true);
 		}
-		public static bool AssignElementNamesByReflection(this ITopNode itn)
+		public static bool AssignElementNamesByReflection(this ITopNodePublic itn)
 		{
 			foreach (var kvp in itn.Nodes)
 			{
@@ -24,7 +24,7 @@ namespace SDC.Schema
 			return true;
 		}
 
-		public static void AssignElementNamesFromXmlDoc(this ITopNode itn, string sdcXml)
+		public static void AssignElementNamesFromXmlDoc(this ITopNodePublic itn, string sdcXml)
 		{
 			//read as XMLDocument to walk tree
 			var x = new XmlDocument();
@@ -50,12 +50,12 @@ namespace SDC.Schema
 				iXmlNode++;
 			}
 		}
-		public static List<BaseType> GetSortedNodesList(this ITopNode itn)
+		public static List<BaseType> GetSortedNodesList(this ITopNodePublic itn)
 		{
 			return SdcUtil.GetSortedTreeList(itn);
 		}
 
-		public static ObservableCollection<BaseType> GetSortedNodesObsCol(this ITopNode itn)
+		public static ObservableCollection<BaseType> GetSortedNodesObsCol(this ITopNodePublic itn)
 		=> new ObservableCollection<BaseType>(itn.GetSortedNodesList());
 
 
@@ -65,13 +65,13 @@ namespace SDC.Schema
 		/// Runs method BaseType.ResetSdcImport(), which resets TopNodeTemp, allowing the addition of a new TopNode for newly added BaseType objects.
 		/// </summary>
 		/// <param name="itn">The itn.</param>
-		public static void ResetSdcImport(this ITopNode itn) => BaseType.ResetSdcImport();
+		public static void ResetSdcImport(this ITopNodePublic itn) => BaseType.ResetSdcImport();
 
 		#endregion
 
 		#region GetItems
 
-		public static Dictionary<Guid, BaseType> GetDescendantDictionary(this ITopNode itn, BaseType topNode)
+		public static Dictionary<Guid, BaseType> GetDescendantDictionary(this ITopNodePublic itn, BaseType topNode)
 		{
 			var d = new Dictionary<Guid, BaseType>();
 			getKids(topNode);
@@ -88,7 +88,7 @@ namespace SDC.Schema
 			}
 			return d;
 		}
-		public static List<BaseType> GetDescendantList(this ITopNode itn, BaseType topNode)
+		public static List<BaseType> GetDescendantList(this ITopNodePublic itn, BaseType topNode)
 		{
 			var curNode = itn;
 			var lst = new List<BaseType>();
@@ -107,7 +107,7 @@ namespace SDC.Schema
 
 			return lst;
 		}
-		public static IdentifiedExtensionType GetItemByID(this ITopNode itn, string id)
+		public static IdentifiedExtensionType GetItemByID(this ITopNodePublic itn, string id)
 		{
 			IdentifiedExtensionType iet;
 			iet = (IdentifiedExtensionType)itn.Nodes.Values.Where(
@@ -115,21 +115,21 @@ namespace SDC.Schema
 					t => ((IdentifiedExtensionType)t).ID == id).FirstOrDefault();
 			return iet;
 		}
-		public static BaseType GetItemByName(this ITopNode itn, string name)
+		public static BaseType GetItemByName(this ITopNodePublic itn, string name)
 		{
 			BaseType bt;
 			bt = itn.Nodes.Values.Where(
 				n => n.name == name).FirstOrDefault();
 			return bt;
 		}
-		public static QuestionItemType GetQuestionByID(this ITopNode itn, string id)
+		public static QuestionItemType GetQuestionByID(this ITopNodePublic itn, string id)
 		{
 			QuestionItemType q;
 			q = (QuestionItemType)itn.Nodes.Values.Where(
 					n => (n as QuestionItemType)?.ID == id).FirstOrDefault();
 			return q;
 		}
-		public static QuestionItemType GetQuestionByName(this ITopNode itn, string name)
+		public static QuestionItemType GetQuestionByName(this ITopNodePublic itn, string name)
 		{
 			QuestionItemType q;
 			q = (QuestionItemType)itn.Nodes.Values.Where(
@@ -137,7 +137,7 @@ namespace SDC.Schema
 					t => ((QuestionItemType)t).name == name).FirstOrDefault();
 			return q;
 		}
-		public static DisplayedType GetDisplayedTypeByID(this ITopNode itn, string id)
+		public static DisplayedType GetDisplayedTypeByID(this ITopNodePublic itn, string id)
 		{
 			DisplayedType d;
 			d = (DisplayedType)itn.Nodes.Values.Where(
@@ -145,7 +145,7 @@ namespace SDC.Schema
 					t => ((DisplayedType)t).ID == id).FirstOrDefault();
 			return d;
 		}
-		public static DisplayedType GetDisplayedTypeByName(this ITopNode itn, string name)
+		public static DisplayedType GetDisplayedTypeByName(this ITopNodePublic itn, string name)
 		{
 			DisplayedType d;
 			d = (DisplayedType)itn.Nodes.Values.Where(
@@ -153,7 +153,7 @@ namespace SDC.Schema
 					t => ((DisplayedType)t).name == name).FirstOrDefault();
 			return d;
 		}
-		public static SectionItemType GetSectionByID(this ITopNode itn, string id)
+		public static SectionItemType GetSectionByID(this ITopNodePublic itn, string id)
 		{
 			SectionItemType s;
 			s = (SectionItemType)itn.Nodes.Values.Where(
@@ -161,7 +161,7 @@ namespace SDC.Schema
 					t => ((SectionItemType)t).ID == id).FirstOrDefault();
 			return s;
 		}
-		public static SectionItemType GetSectionByName(this ITopNode itn, string name)
+		public static SectionItemType GetSectionByName(this ITopNodePublic itn, string name)
 		{
 			SectionItemType s;
 			s = (SectionItemType)itn.Nodes.Values.Where(
@@ -169,7 +169,7 @@ namespace SDC.Schema
 					t => ((SectionItemType)t).name == name).FirstOrDefault();
 			return s;
 		}
-		public static ListItemType GetListItemByID(this ITopNode itn, string id)
+		public static ListItemType GetListItemByID(this ITopNodePublic itn, string id)
 		{
 			ListItemType li;
 			li = (ListItemType)itn.Nodes.Values.Where(
@@ -177,7 +177,7 @@ namespace SDC.Schema
 					t => ((ListItemType)t).ID == id).FirstOrDefault();
 			return li;
 		}
-		public static ListItemType GetListItemByName(this ITopNode itn, string name)
+		public static ListItemType GetListItemByName(this ITopNodePublic itn, string name)
 		{
 			ListItemType li;
 			li = (ListItemType)itn.Nodes.Values.Where(
@@ -186,7 +186,7 @@ namespace SDC.Schema
 			return li;
 		}
 
-		public static ButtonItemType GetButtonByID(this ITopNode itn, string id)
+		public static ButtonItemType GetButtonByID(this ITopNodePublic itn, string id)
 		{
 			ButtonItemType b;
 			b = (ButtonItemType)itn.Nodes.Values.Where(
@@ -194,7 +194,7 @@ namespace SDC.Schema
 					t => ((ButtonItemType)t).ID == id).FirstOrDefault();
 			return b;
 		}
-		public static ButtonItemType GetButtonByName(this ITopNode itn, string name)
+		public static ButtonItemType GetButtonByName(this ITopNodePublic itn, string name)
 		{
 			ButtonItemType b;
 			b = (ButtonItemType)itn.Nodes.Values.Where(
@@ -202,7 +202,7 @@ namespace SDC.Schema
 					t => ((ButtonItemType)t).name == name).FirstOrDefault();
 			return b;
 		}
-		public static InjectFormType GetInjectFormByID(this ITopNode itn, string id)
+		public static InjectFormType GetInjectFormByID(this ITopNodePublic itn, string id)
 		{
 			InjectFormType inj;
 			inj = (InjectFormType)itn.Nodes.Values.Where(
@@ -210,7 +210,7 @@ namespace SDC.Schema
 					t => ((InjectFormType)t).ID == id).FirstOrDefault();
 			return inj;
 		}
-		public static InjectFormType GetInjectFormByName(this ITopNode itn, string name)
+		public static InjectFormType GetInjectFormByName(this ITopNodePublic itn, string name)
 		{
 			InjectFormType inj;
 			inj = (InjectFormType)itn.Nodes.Values.Where(
@@ -218,7 +218,7 @@ namespace SDC.Schema
 					t => ((InjectFormType)t).name == name).FirstOrDefault();
 			return inj;
 		}
-		public static ResponseFieldType GetResponseFieldByName(this ITopNode itn, string name)
+		public static ResponseFieldType GetResponseFieldByName(this ITopNodePublic itn, string name)
 		{
 			ResponseFieldType rf;
 			rf = (ResponseFieldType)itn.Nodes.Values.Where(
@@ -234,7 +234,7 @@ namespace SDC.Schema
 		//    return Q.ResponseField_Item.Response.Item;
 
 		//}
-		public static PropertyType GetPropertyByName(this ITopNode itn, string name)
+		public static PropertyType GetPropertyByName(this ITopNodePublic itn, string name)
 		{
 			PropertyType p;
 			p = (PropertyType)itn.Nodes.Values.Where(
@@ -242,7 +242,7 @@ namespace SDC.Schema
 					t => ((PropertyType)t).name == name).FirstOrDefault();
 			return p;
 		}
-		public static ExtensionType GetExtensionByName(this ITopNode itn, string name)
+		public static ExtensionType GetExtensionByName(this ITopNodePublic itn, string name)
 		{
 			ExtensionType e;
 			e = (ExtensionType)itn.Nodes.Values.Where(
@@ -250,7 +250,7 @@ namespace SDC.Schema
 					t => ((ExtensionType)t).name == name).FirstOrDefault();
 			return e;
 		}
-		public static CommentType GetCommentByName(this ITopNode itn, string name)
+		public static CommentType GetCommentByName(this ITopNodePublic itn, string name)
 		{
 			CommentType c;
 			c = (CommentType)itn.Nodes.Values.Where(
@@ -258,7 +258,7 @@ namespace SDC.Schema
 					t => ((CommentType)t).name == name).FirstOrDefault();
 			return c;
 		}
-		public static ContactType GetContactByName(this ITopNode itn, string name)
+		public static ContactType GetContactByName(this ITopNodePublic itn, string name)
 		{
 			ContactType c;
 			c = (ContactType)itn.Nodes.Values.Where(
@@ -266,7 +266,7 @@ namespace SDC.Schema
 					t => ((ContactType)t).name == name).FirstOrDefault();
 			return c;
 		}
-		public static LinkType GetLinkByName(this ITopNode itn, string name)
+		public static LinkType GetLinkByName(this ITopNodePublic itn, string name)
 		{
 			LinkType l;
 			l = (LinkType)itn.Nodes.Values.Where(
@@ -274,7 +274,7 @@ namespace SDC.Schema
 					t => ((LinkType)t).name == name).FirstOrDefault();
 			return l;
 		}
-		public static BlobType GetBlobByName(this ITopNode itn, string name)
+		public static BlobType GetBlobByName(this ITopNodePublic itn, string name)
 		{
 			BlobType b;
 			b = (BlobType)itn.Nodes.Values.Where(
@@ -282,7 +282,7 @@ namespace SDC.Schema
 					t => ((BlobType)t).name == name).FirstOrDefault();
 			return b;
 		}
-		public static CodingType GetCodedValueByName(this ITopNode itn, string name)
+		public static CodingType GetCodedValueByName(this ITopNodePublic itn, string name)
 		{
 			CodingType c;
 			c = (CodingType)itn.Nodes.Values.Where(
@@ -291,14 +291,14 @@ namespace SDC.Schema
 			return c;
 		}
 
-		public static BaseType GetNodeFromName(this ITopNode itn, string name) => itn.Nodes.Values.Where(n => n.name == name).FirstOrDefault();
-		public static BaseType GetNodeFromObjectGUID(this ITopNode itn, Guid objectGUID)
+		public static BaseType GetNodeFromName(this ITopNodePublic itn, string name) => itn.Nodes.Values.Where(n => n.name == name).FirstOrDefault();
+		public static BaseType GetNodeFromObjectGUID(this ITopNodePublic itn, Guid objectGUID)
 		{
 			itn.Nodes.TryGetValue(objectGUID, out BaseType n);
 			return n;
 		}
 
-		public static IdentifiedExtensionType GetNodeFromID(this ITopNode itn, string id) =>
+		public static IdentifiedExtensionType GetNodeFromID(this ITopNodePublic itn, string id) =>
 			(IdentifiedExtensionType)itn.Nodes.Values
 			.Where(v => v.GetType() == typeof(IdentifiedExtensionType))
 			.Where(iet => ((IdentifiedExtensionType)iet).ID == id).FirstOrDefault();

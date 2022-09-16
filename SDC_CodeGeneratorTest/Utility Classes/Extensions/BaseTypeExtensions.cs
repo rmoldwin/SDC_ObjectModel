@@ -1,4 +1,4 @@
-﻿using SDC_CodeGeneratorTest.Utility_Classes.Metadata_Structs;
+﻿using SDC.Schema;
 using System.Reflection;
 
 

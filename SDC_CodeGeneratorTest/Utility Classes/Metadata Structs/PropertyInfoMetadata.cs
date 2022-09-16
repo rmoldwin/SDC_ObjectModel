@@ -5,7 +5,7 @@
 //using SDC;
 namespace SDC.Schema
 {
-	public struct PropertyInfoMetadata
+	public readonly struct PropertyInfoMetadata
 	{
 		public PropertyInfoMetadata(
 			PropertyInfo? propertyInfo,

@@ -36,5 +36,14 @@ namespace SDC.Schema
 			li.DeselectIf = n;
 			return n;
 		}
+		/// <summary>
+		/// Retrieve the node that holds an SDC data type object.  
+		/// After retrieval, the node should be cast to an appropriate SDC data type, e.g. string_DEtype, int_DEtype.
+		/// </summary>
+		/// <returns>A DataTypeDE_Item node or null if the node does not exist.</returns>
+		public static BaseType? ResponseDataTypeNode(this ListItemType li)
+		{
+			return li.ListItemResponseField?.Response?.DataTypeDE_Item;
+		}
 	}
 }

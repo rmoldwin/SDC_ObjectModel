@@ -20,7 +20,7 @@ namespace SDC.Schema
     using System.Collections.Generic;
 
     #region Base entity class
-    public static partial class SdcSerializerMsgPack<T> where T: ITopNode
+    public static partial class SdcSerializerMsgPack<T> where T: ITopNodePublic
 
     {
 

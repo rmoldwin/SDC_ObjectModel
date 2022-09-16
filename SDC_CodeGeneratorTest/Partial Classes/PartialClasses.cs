@@ -13,6 +13,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Text.RegularExpressions;
+using CSharpVitamins;
 
 
 //!Handling Item and Items generic types derived from the xsd2Code++ code generator
@@ -43,7 +44,7 @@ namespace SDC.Schema
 			ParentNodes = null;
 			//IdentExtNodes = null;
 			//sdcTreeBuilder = null;
-			((ITopNode)this).MaxObjectID = 0;
+			((ITopNode)(TopNode)).MaxObjectIDint = 0;
 			Body = null;
 			Header = null;
 			Footer = null;
@@ -71,29 +72,44 @@ namespace SDC.Schema
 
 		#region ITopNode 
 
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
-		public int GetMaxObjectID { get => ((ITopNode)this).MaxObjectID; }  //save the highest object counter value for the current FormDesign tree
-		[System.Xml.Serialization.XmlIgnore]
+		public int MaxObjectID { get => ((ITopNode)this).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		[XmlIgnore]
 		[JsonIgnore]
-		int ITopNode.MaxObjectID { get; set; } //internal
-		[System.Xml.Serialization.XmlIgnore]
+		int ITopNode.MaxObjectIDint { get; set; } //internal
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, BaseType> Nodes { get; private set; } = new Dictionary<Guid, BaseType>();
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, BaseType> ParentNodes { get; private set; } = new Dictionary<Guid, BaseType>();
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, List<BaseType>> ChildNodes { get; private set; } = new Dictionary<Guid, List<BaseType>>();
+		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodesBase { get; } = new();
+		private ReadOnlyObservableCollection<IdentifiedExtensionType> _IETNodes;
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		{
+			get
+			{
+				if (_IETNodes is null) 
+					_IETNodes = _IETNodes = new(((ITopNode)this).IETnodesBase);
+				return _IETNodes;
+			}
+		}
 
-		public List<BaseType> GetSortedNodesList() => ((ITopNode)this).GetSortedNodesList();
-		public ObservableCollection<BaseType> GetSortedNodesObsCol() => ((ITopNode)this).GetSortedNodesObsCol();
+		public List<BaseType> GetSortedNodesList() => ((ITopNodePublic)this).GetSortedNodesList();
+		public ObservableCollection<BaseType> GetSortedNodesObsCol() => ((ITopNodePublic)this).GetSortedNodesObsCol();
 
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public bool GlobalAutoNameFlag { get; set; } = true;
-
 
 
 		#region Serialization
@@ -146,40 +162,40 @@ namespace SDC.Schema
 
 
 		#region Dictionaries
-		//[System.Xml.Serialization.XmlIgnore]
+		//[XmlIgnore]
 		//[NonSerialized]
 		//[JsonIgnore]
 		//public Dictionary<string, IdentifiedExtensionType> IdentifiedTypes;
-		//[System.Xml.Serialization.XmlIgnore]
+		//[XmlIgnore]
 		//[NonSerialized]
 		//[JsonIgnore]
 		//public Dictionary<string, SectionItemType> Sections;
-		//[System.Xml.Serialization.XmlIgnore]
+		//[XmlIgnore]
 		//[NonSerialized]
 		//[JsonIgnore]
 		//public Dictionary<string, QuestionItemType> Questions;
-		//[System.Xml.Serialization.XmlIgnore]
+		//[XmlIgnore]
 		//[NonSerialized]
 		//[JsonIgnore]
 		//public Dictionary<string, ListItemType> ListItemsAll;
-		//[System.Xml.Serialization.XmlIgnore]
+		//[XmlIgnore]
 		//[NonSerialized]
 		//[JsonIgnore]
 		//public Dictionary<string, ListItemResponseFieldType> ListItemResponses;
 		////public static Dictionary<string, ResponseFieldType> Responses;
-		//[System.Xml.Serialization.XmlIgnore]
+		//[XmlIgnore]
 		//[NonSerialized]
 		//[JsonIgnore]
 		//public Dictionary<string, InjectFormType> InjectedItems;
-		//[System.Xml.Serialization.XmlIgnore]
+		//[XmlIgnore]
 		//[NonSerialized]
 		//[JsonIgnore]
 		//public Dictionary<string, DisplayedType> DisplayedItems;
-		//[System.Xml.Serialization.XmlIgnore]
+		//[XmlIgnore]
 		//[NonSerialized]
 		//[JsonIgnore]
 		//public Dictionary<string, ButtonItemType> Buttons;
-		//[System.Xml.Serialization.XmlIgnore]
+		//[XmlIgnore]
 		//[NonSerialized]
 		//[JsonIgnore]
 		//public Dictionary<string, BaseType> NamedNodes;
@@ -262,32 +278,50 @@ namespace SDC.Schema
 		}
 
 		#region ITopNode
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
-		public int GetMaxObjectID { get => ((ITopNode)this).MaxObjectID; }  //save the highest object counter value for the current FormDesign tree
-		[System.Xml.Serialization.XmlIgnore]
+		public int MaxObjectID { get => ((ITopNode)this).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		[XmlIgnore]
 		[JsonIgnore]
-		int ITopNode.MaxObjectID { get; set; } //internal
+		int ITopNode.MaxObjectIDint { get; set; } //internal		
+		
 		/// <summary>
 		/// Dictionary.  Given an Node ID (int), returns the Node's object reference.
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, BaseType> Nodes { get; private set; } = new Dictionary<Guid, BaseType>();
 		/// <summary>
 		/// Dictionary.  Given a NodeID, return the *parent* Node's object reference
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, BaseType> ParentNodes { get; private set; } = new Dictionary<Guid, BaseType>();
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, List<BaseType>> ChildNodes { get; private set; } = new Dictionary<Guid, List<BaseType>>();
 
-		public List<BaseType> GetSortedNodesList() => ((ITopNode)this).GetSortedNodesList();
-		public ObservableCollection<BaseType> GetSortedNodesObsCol() => ((ITopNode)this).GetSortedNodesObsCol();
+		/// <summary>Base object for IetObsCollection.</summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodesBase { get; } = new();
+		private ReadOnlyObservableCollection<IdentifiedExtensionType> _IETNodes;
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		{
+			get
+			{
+				if (_IETNodes is null)
+					_IETNodes = new(((ITopNode)this).IETnodesBase);
+				return _IETNodes;
+			}
+		}
 
-		[System.Xml.Serialization.XmlIgnore]
+		public List<BaseType> GetSortedNodesList() => ((ITopNodePublic)this).GetSortedNodesList();
+		public ObservableCollection<BaseType> GetSortedNodesObsCol() => ((ITopNodePublic)this).GetSortedNodesObsCol();
+
+		[XmlIgnore]
 		[JsonIgnore]
 		public bool GlobalAutoNameFlag { get; set; }
 
@@ -354,26 +388,42 @@ namespace SDC.Schema
 		}
 
 		#region ITopNode
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
-		public int GetMaxObjectID { get => ((ITopNode)this).MaxObjectID; }  //save the highest object counter value for the current FormDesign tree
-		[System.Xml.Serialization.XmlIgnore]
+		public int MaxObjectID { get => ((ITopNode)this).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		[XmlIgnore]
 		[JsonIgnore]
-		int ITopNode.MaxObjectID { get; set; } //internal
-		[System.Xml.Serialization.XmlIgnore]
+		int ITopNode.MaxObjectIDint { get; set; } //internal
+													   
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, BaseType> Nodes { get; private set; } = new Dictionary<Guid, BaseType>();
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, BaseType> ParentNodes { get; private set; } = new Dictionary<Guid, BaseType>();
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, List<BaseType>> ChildNodes { get; private set; } = new Dictionary<Guid, List<BaseType>>();
+		/// <summary>Base object for IetObsCollection.</summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodesBase { get; } = new();
+		private ReadOnlyObservableCollection<IdentifiedExtensionType> _IETNodes;
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		{
+			get
+			{
+				if (_IETNodes is null)
+					_IETNodes = new(((ITopNode)this).IETnodesBase);
+				return _IETNodes;
+			}
+		}
+		public List<BaseType> GetSortedNodesList() => ((ITopNodePublic)this).GetSortedNodesList();
+		public ObservableCollection<BaseType> GetSortedNodesObsCol() => ((ITopNodePublic)this).GetSortedNodesObsCol();
 
-		public List<BaseType> GetSortedNodesList() => ((ITopNode)this).GetSortedNodesList();
-		public ObservableCollection<BaseType> GetSortedNodesObsCol() => ((ITopNode)this).GetSortedNodesObsCol();
-
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public bool GlobalAutoNameFlag { get; set; } = true;
 
@@ -437,26 +487,41 @@ namespace SDC.Schema
 
 		}
 		#region ITopNode
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
-		public int GetMaxObjectID { get => ((ITopNode)this).MaxObjectID; }  //save the highest object counter value for the current FormDesign tree
-		[System.Xml.Serialization.XmlIgnore]
+		public int MaxObjectID { get => ((ITopNode)this).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		[XmlIgnore]
 		[JsonIgnore]
-		int ITopNode.MaxObjectID { get; set; } //internal
-		[System.Xml.Serialization.XmlIgnore]
+		int ITopNode.MaxObjectIDint { get; set; } //internal		
+
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, BaseType> Nodes { get; private set; } = new Dictionary<Guid, BaseType>();
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, BaseType> ParentNodes { get; private set; } = new Dictionary<Guid, BaseType>();
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, List<BaseType>> ChildNodes { get; private set; } = new Dictionary<Guid, List<BaseType>>();
+		/// <summary>Base object for IetObsCollection.</summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodesBase { get; } = new();
+		private ReadOnlyObservableCollection<IdentifiedExtensionType> _IETNodes;
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		{
+			get
+			{
+				if (_IETNodes is null)
+					_IETNodes = new(((ITopNode)this).IETnodesBase);
+				return _IETNodes;
+			}
+		}
 
-		public List<BaseType> GetSortedNodesList() => ((ITopNode)this).GetSortedNodesList();
-		public ObservableCollection<BaseType> GetSortedNodesObsCol() => ((ITopNode)this).GetSortedNodesObsCol();
-
-		[System.Xml.Serialization.XmlIgnore]
+		public ObservableCollection<BaseType> GetSortedNodesObsCol() => ((ITopNodePublic)this).GetSortedNodesObsCol();
+		[XmlIgnore]
 		[JsonIgnore]
 		public bool GlobalAutoNameFlag { get; set; } = true;
 
@@ -510,23 +575,39 @@ namespace SDC.Schema
 	public partial class MappingType : ITopNode
 	{
 		#region ITopNode
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
-		public int GetMaxObjectID { get => ((ITopNode)this).MaxObjectID; }  //save the highest object counter value for the current FormDesign tree
-		[System.Xml.Serialization.XmlIgnore]
+		public int MaxObjectID { get => ((ITopNode)this).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		[XmlIgnore]
 		[JsonIgnore]
-		int ITopNode.MaxObjectID { get; set; } //internal
-		[System.Xml.Serialization.XmlIgnore]
+		int ITopNode.MaxObjectIDint { get; set; } //internal
+
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, BaseType> Nodes { get; private set; } = new Dictionary<Guid, BaseType>();
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, BaseType> ParentNodes { get; private set; } = new Dictionary<Guid, BaseType>();
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public Dictionary<Guid, List<BaseType>> ChildNodes { get; private set; } = new Dictionary<Guid, List<BaseType>>();
-
-		[System.Xml.Serialization.XmlIgnore]
+		/// <summary>Base object for IetObsCollection.</summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodesBase { get; } = new();
+		private ReadOnlyObservableCollection<IdentifiedExtensionType> _IETNodes;
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		{
+			get
+			{
+				if (_IETNodes is null)
+					_IETNodes = new(((ITopNode)this).IETnodesBase);
+				return _IETNodes;
+			}
+		}
+		[XmlIgnore]
 		[JsonIgnore]
 		public bool GlobalAutoNameFlag { get; set; } = true;
 
@@ -646,7 +727,7 @@ namespace SDC.Schema
 
 		#region IChildItemsParent Implementation
 		private IChildItemsParent<SectionItemType> ci => this as IChildItemsParent<SectionItemType>;
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public ChildItemsType ChildItemsNode
 		{
@@ -678,7 +759,7 @@ namespace SDC.Schema
 
 		#region IChildItemsParent
 		IChildItemsParent<QuestionItemType> ci { get => (IChildItemsParent<QuestionItemType>)this; }
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public ChildItemsType ChildItemsNode
 		{
@@ -702,7 +783,7 @@ namespace SDC.Schema
 			// tag:#IsThisCorrect
 		}
 
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public ListFieldType ListField_Item
 		{
@@ -716,7 +797,7 @@ namespace SDC.Schema
 		}
 
 
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public ResponseFieldType ResponseField_Item
 		{
@@ -750,7 +831,7 @@ namespace SDC.Schema
 		/// <summary>
 		/// Replaces Items; ListItem or DisplayedItem
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public List<DisplayedType> QuestionListMembers
 		{
@@ -780,7 +861,7 @@ namespace SDC.Schema
 			this._ordered = true;
 		}
 
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public ListType List
 		{
@@ -795,7 +876,7 @@ namespace SDC.Schema
 		/// <summary>
 		/// Replaces Item
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public LookupEndPointType LookupEndpoint
 		{
@@ -833,7 +914,7 @@ namespace SDC.Schema
 		///"Question", typeof(QuestionItemType),
 		///"Section", typeof(SectionItemType),
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public ChildItemsType ChildItemsNode
 		{
@@ -908,6 +989,7 @@ namespace SDC.Schema
 		}
 		private void Init()
 		{
+			ElementName = "ResponseField";
 			ElementPrefix = "rf";
 			this.Item = null; // #NeedsTest
 		}
@@ -960,7 +1042,7 @@ namespace SDC.Schema
 		/// Static counter that resets with each new instance of an IdentifiedExtensionType (IET).
 		/// Maintains the sequence of all elements nested under an IET-derived element.
 		/// </summary>
-		//[System.Xml.Serialization.XmlIgnore]
+		//[XmlIgnore]
 		//[JsonIgnore]
 		//private static int IETresetCounter { get; set; }
 
@@ -972,7 +1054,7 @@ namespace SDC.Schema
 		/// this will need to be calculated by walking up the parent tree to the closest IET ancestor.  
 		/// It should not have a setter
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		internal int SubIETcounter {
 			get
@@ -1001,9 +1083,9 @@ namespace SDC.Schema
 		}
 		//private BaseType _ParentNode;
 		private RetrieveFormPackageType _PackageNode;
-		private static ITopNode? topNodeTemp;
+		private static ITopNodePublic? topNodeTemp;
 
-		private static ITopNode TopNodeTemp
+		private static ITopNodePublic TopNodeTemp
 		{
 			get { return topNodeTemp; }
 			set
@@ -1028,13 +1110,13 @@ namespace SDC.Schema
 
 		#region Public Members (IBaseType)
 
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
-		public ITopNode TopNode { get; private set; }
+		public ITopNodePublic TopNode { get; private set; }
 		/// <summary>
 		///  Hierarchical level using nested dot notation
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string DotLevel
 		{
@@ -1042,7 +1124,7 @@ namespace SDC.Schema
 			{
 				//Walk up parent node tree and place each parent in a stack.
 				//pop each node off the stack and determine its position (seq) in its parent object
-				BaseType par = ParentNode;
+				BaseType? par = ParentNode;
 				var s = new Stack<BaseType>();
 				s.Push(this);
 				while (par != null)
@@ -1068,7 +1150,7 @@ namespace SDC.Schema
 			}
 		}
 
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public bool AutoNameFlag { get; set; } = false;
 
@@ -1076,7 +1158,7 @@ namespace SDC.Schema
 		/// <summary>
 		/// The root text ("shortName") used to construct the name property.  The code may add a prefix and/or suffix to BaseName
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string BaseName { get; set; } = "";
 
@@ -1090,15 +1172,30 @@ namespace SDC.Schema
 		/// In many cases, ElementName will be assigned through class constructors, but it can also be assigned 
 		/// through this property after the object is instantiated
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
-		public string ElementName //TODO: remove all references trying to set ElementName, and then remove the set{} option
+		public string ElementName 
 		{
 			get
 			{
-				return _elementName;
+				if(!_elementName.IsNullOrWhitespace())
+					return _elementName;
+				try
+				{
+					//if the object has not yet been added to the SDC tree - 
+					//(i.e., added to its parent object) when this is called,
+					//an exception will be thrown in sdcUtil:
+					var meta = SdcUtil.GetPropertyInfoMeta(this);
+					return meta.XmlElementName ?? meta.PropName ?? "";
+				}
+				catch
+				{
+					return "";
+				}
+
+				
 			}
-			set  //TODO: remove this setter from IBaseType interface and/or make it protected internal, or just internal.
+			protected internal set
 			{
 				_elementName = value;
 			}
@@ -1111,7 +1208,7 @@ namespace SDC.Schema
 		/// Assigned by reflection at the time of object creation.
 		/// TODO: Add to IBaseType
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public int ElementOrder
 		{
@@ -1130,7 +1227,7 @@ namespace SDC.Schema
 		/// Return -1 if this object is not found inside a List object.
 		/// TODO: Add to IBaseType
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public int ElementIndex
 		{
@@ -1150,7 +1247,7 @@ namespace SDC.Schema
 		/// The prefix used 
 		/// in the @name attribute that is output from this class instance
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ElementPrefix
 		{
@@ -1172,16 +1269,16 @@ namespace SDC.Schema
 				//if (this is QuestionItemType && _elementPrefix != "Q") Debugger.Break();
 				_elementPrefix = value; }
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public int ObjectID { get; private set; }
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
-		public Guid ObjectGUID { get; set; }
-		[System.Xml.Serialization.XmlIgnore]
+		public Guid ObjectGUID { get; internal set; }
+		[XmlIgnore]
 		[JsonIgnore]
 		public ItemTypeEnum NodeType { get; private set; }
-		//[System.Xml.Serialization.XmlIgnore]
+		//[XmlIgnore]
 		//[JsonIgnore]
 		//public Boolean IsLeafNode { get=> !this.HasChildren();  } //TODO: can use INavigate reflection methods for this, since it changes during tree editing
 
@@ -1189,7 +1286,7 @@ namespace SDC.Schema
 		/// Returns the ObjectID of the parent object (representing the parent XML element)
 		/// The ObjectID, which is a sequentially assigned integer value, assigned at the time a node is added to the tree.
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public int ParentID
 		{
@@ -1204,7 +1301,7 @@ namespace SDC.Schema
 		/// <summary>
 		/// Retrieve the BaseType object that is the immediate parent of the current object in the object tree
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public BaseType? ParentNode
 		{
@@ -1224,7 +1321,7 @@ namespace SDC.Schema
 		/// <summary>
 		/// Retrieve the BaseType object that is the SDC Package containing the current object in the object tree
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public RetrieveFormPackageType PackageNode
 		{
@@ -1232,7 +1329,7 @@ namespace SDC.Schema
 			internal set => _PackageNode = value;
 		}
 
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public IdentifiedExtensionType? ParentIETypeNode
 		{
@@ -1252,27 +1349,27 @@ namespace SDC.Schema
 		/// Returns the ID property of the closest ancestor of type IdentifiedExtensionType.  
 		/// For eCC, this is the Parent node's ID, which is derived from  the parent node's CTI_Ckey, a.k.a. ParentItemCkey.
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ParentIETypeID
 		{ get => ParentIETypeNode?.ID; }
 
-		public void SetNames(string elementName = "", string elementPrefix = "", string baseName = "")
+		internal void SetNames(string elementName = "", string elementPrefix = "", string baseName = "")
 		{
 			if (TopNode.GlobalAutoNameFlag || AutoNameFlag)
 			{
 				if (elementName.Length > 0)
-					ElementName = elementName;
-				else if (ElementName.IsEmpty()) ElementName = GetType().ToString().Replace("Type", "").Replace("type", ""); //assign default ElementName from the type.
+					_elementName = elementName;
+				//else if (elementName.IsEmpty()) elementName = GetType().ToString().Replace("Type", "").Replace("type", ""); //assign default ElementName from the type.
 
 				if (elementPrefix.Length > 0)
-					ElementPrefix = elementPrefix;
+					_elementPrefix = elementPrefix;
 
 				if (baseName.Length > 0)
 					BaseName = baseName;
 				//else if (ElementPrefix.Length == 0) ElementPrefix = ElementName;
 
-				Debug.WriteLine($"Type: {this.GetType()} ElementName: {ElementName} Prefix:{ElementPrefix} name: {name}");
+				Debug.WriteLine($"Type: {this.GetType()} _elementName: {_elementName} Prefix:{_elementPrefix} name: {name}");
 			}
 		}
 		/// <summary>
@@ -1288,16 +1385,16 @@ namespace SDC.Schema
 
 		#region ChangeTracking
 		//Properties to mark changed nodes for serialization to database etc.
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public Boolean Added { get; private set; }
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public Boolean Changed { get; private set; }
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public Boolean Deleted { get; private set; }
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public DateTime UpdatedDateTime { get; private set; }
 		#endregion
@@ -1316,26 +1413,19 @@ namespace SDC.Schema
 		}
 		private void Init()
 		{
-			ObjectGUID = Guid.NewGuid();
+			if (sGuid.IsNullOrWhitespace() || !ShortGuid.TryDecode(sGuid, out Guid newGuid))
+			{
+				newGuid = ShortGuid.NewGuid();
+				sGuid = ShortGuid.Encode(newGuid);
+			}
+			ObjectGUID = newGuid;
 			InitBaseType();
 		}
 
 		#region     Init Methods
 		private void InitBaseType()
 		{
-			//orderSpecified = true;
-			//typeSpecified = true;
-			//styleClassSpecified = true;
-			//nameSpecified = true;
 			order = 0;
-
-			//IsLeafNode = true;
-
-			//if (this.GetType().IsSubclassOf(typeof(IdentifiedExtensionType))) IETresetCounter = 0;
-			//else IETresetCounter++;
-			//SubIETcounter = IETresetCounter;
-
-
 
 			//TODO:
 			//A better model is this:
@@ -1350,11 +1440,10 @@ namespace SDC.Schema
 
 			//TopNodeTemp is static, and represents the top of the current SDC (sub)tree that is being populated,  while TopNode is an instance field in the current SDC (sub)tree
 
-			if (TopNodeTemp is null && this is ITopNode tn)
+			if (TopNodeTemp is null && this is ITopNodePublic tn)
 			{
 				TopNodeTemp = tn;
 				sdcTopType = this.GetType().Name.ToEnum<SdcTopNodeTypesEnum>();
-				//if (sdcTreeBuilder == null) sdcTreeBuilder = new SDCTreeBuilder();  //we create SDCTreeBuilder only in the top node
 			}
 			else if (TopNodeTemp is not null)
 			{
@@ -1362,26 +1451,29 @@ namespace SDC.Schema
 				//It's not clear that we need to handle this any differently
 				//sdcTreeBuilder = ((BaseType)TopNodeTemp).sdcTreeBuilder;
 			}
-			else if (TopNodeTemp is not null && this is ITopNode)
+			else if (TopNodeTemp is not null && this is ITopNodePublic)
 			{
 				//this will never be entered, but it could be used if we want to support nested TopeNodes, such FormDesign and Data Element nodes inside an SDCPackage node
 			}
 			else throw new InvalidOperationException("TopNodeTemp was null and the current node (\"this\") did not implement ITopNode.");
 			TopNode = TopNodeTemp;
-			ObjectID = TopNode.MaxObjectID++;
-			TopNode.Nodes.Add(ObjectGUID, this); //Register This Node
-			//TopObject.Nodes.TryGetValue(ObjectID - 1, out BaseType prevNode);
-			//if (prevNode != null) TopObject.PreviousNodes.Add(ObjectID, prevNode);
+			ObjectID = ((ITopNode)TopNode).MaxObjectIDint++;
 
-			order = ObjectID;
-			//_elementName = SdcUtil.GetPropertyInfo(this).XmlElementName;
+			TopNode.Nodes.Add(ObjectGUID, this); //Register This Node
+
+			if (this is IdentifiedExtensionType iet)
+			{
+				var inb = ((ITopNode)TopNode).IETnodesBase;
+				inb.Add(iet);
+			}
+			order = ObjectID;			
 
 			//Debug.WriteLine($"The node with ObjectID: {this.ObjectID} has entered the BaseType ctor. Item type is {this.GetType()}.  "
 			//    + $"The parent ObjectID is {this.ParentObjID.ToString()}");
 		}
 
 		//!+TODO: InitParentNodesFromXml should be moved out of BaseType, probably into ITopNNode or ISdcUtil
-		private static T InitParentNodesFromXml<T>(string sdcXml, T obj) where T : class, ITopNode
+		private static T InitParentNodesFromXml<T>(string sdcXml, T obj) where T : class, ITopNodePublic
 		{
 			//read as XMLDocument to walk tree
 			var x = new System.Xml.XmlDocument();
@@ -1460,12 +1552,12 @@ namespace SDC.Schema
 		#region Serialization
 
 		//!+XML
-		protected static T GetSdcObjectFromXmlPath<T>(string path) where T : ITopNode
+		protected static T GetSdcObjectFromXmlPath<T>(string path) where T : ITopNodePublic
 		{
 			string sdcXml = System.IO.File.ReadAllText(path);  // System.Text.Encoding.UTF8);
 			return GetSdcObjectFromXml<T>(sdcXml);
 		}
-		protected static T GetSdcObjectFromXml<T>(string sdcXml) where T : ITopNode
+		protected static T GetSdcObjectFromXml<T>(string sdcXml) where T : ITopNodePublic
 		{
 			T obj = SdcSerializer<T>.Deserialize(sdcXml);
 			//return InitParentNodesFromXml<T>(sdcXml, obj);
@@ -1473,12 +1565,12 @@ namespace SDC.Schema
 			return obj;
 		}
 		//!+JSON
-		protected static T GetSdcObjectFromJsonPath<T>(string path) where T : ITopNode
+		protected static T GetSdcObjectFromJsonPath<T>(string path) where T : ITopNodePublic
 		{
 			string sdcJson = System.IO.File.ReadAllText(path);
 			return GetSdcObjectFromJson<T>(sdcJson);
 		}
-		protected static T GetSdcObjectFromJson<T>(string sdcJson) where T : ITopNode
+		protected static T GetSdcObjectFromJson<T>(string sdcJson) where T : ITopNodePublic
 		{
 			T obj = SdcSerializerJson<T>.DeserializeJson<T>(sdcJson);
 			//return InitParentNodesFromXml<T>(sdcXml, obj);
@@ -1486,12 +1578,12 @@ namespace SDC.Schema
 			return obj;
 		}
 		//!+MsgPack
-		protected static T GetSdcObjectFromMsgPackPath<T>(string path) where T : ITopNode
+		protected static T GetSdcObjectFromMsgPackPath<T>(string path) where T : ITopNodePublic
 		{
 			byte[] sdcMsgPack = System.IO.File.ReadAllBytes(path);
 			return GetSdcObjectFromMsgPack<T>(sdcMsgPack);
 		}
-		protected static T GetSdcObjectFromMsgPack<T>(byte[] sdcMsgPack) where T : ITopNode
+		protected static T GetSdcObjectFromMsgPack<T>(byte[] sdcMsgPack) where T : ITopNodePublic
 		{
 			T obj = SdcSerializerMsgPack<T>.DeserializeMsgPack(sdcMsgPack);
 			//return InitParentNodesFromXml<T>(sdcXml, obj);
@@ -1500,12 +1592,12 @@ namespace SDC.Schema
 		}
 
 		//!+BSON
-		protected static T GetSdcObjectFromBsonPath<T>(string path) where T : ITopNode
+		protected static T GetSdcObjectFromBsonPath<T>(string path) where T : ITopNodePublic
 		{
 			string sdcBson = System.IO.File.ReadAllText(path);
 			return GetSdcObjectFromBsonPath<T>(sdcBson);
 		}
-		protected static T GetSdcObjectFromBson<T>(string sdcBson) where T : ITopNode
+		protected static T GetSdcObjectFromBson<T>(string sdcBson) where T : ITopNodePublic
 		{
 			T obj = SdcSerializerBson<T>.DeserializeBson(sdcBson);
 			//return InitParentNodesFromXml<T>(sdcXml, obj);
@@ -1640,10 +1732,11 @@ namespace SDC.Schema
 		}
 		private void Init()
 		{
+			ElementName = "ChildItems";
 			ElementPrefix = "ch";
 		}
 
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public List<IdentifiedExtensionType> ChildItemsList
 		{
@@ -1866,7 +1959,7 @@ namespace SDC.Schema
 		/// <summary>
 		/// any *_DEType data type
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		public BaseType DataTypeDE_Item
 		{
 			get { return this.Item; }
@@ -1906,7 +1999,7 @@ namespace SDC.Schema
 		/// <summary>
 		/// any *_SType data type
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public BaseType DataTypeS_Item
 		{
@@ -1944,7 +2037,7 @@ namespace SDC.Schema
 		{
 			ElementPrefix = "uri";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -1989,7 +2082,7 @@ namespace SDC.Schema
 			ElementPrefix = "b64";
 		}
 
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 
 		public string ValXmlString
@@ -2032,7 +2125,7 @@ namespace SDC.Schema
 			{
 				ElementPrefix = "bool";
 			}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2077,7 +2170,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "byte";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2121,7 +2214,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "date";
 			}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2165,7 +2258,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "dt";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2204,7 +2297,7 @@ namespace SDC.Schema
 			{
 				ElementPrefix = "dts";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2248,7 +2341,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "dtdur";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2292,7 +2385,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "dec";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2336,7 +2429,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "dbl";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2380,7 +2473,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2424,7 +2517,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "flt";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2468,7 +2561,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "day";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2512,7 +2605,7 @@ namespace SDC.Schema
 				this.quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "mon";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2557,7 +2650,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "mday";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2601,7 +2694,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "y";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2644,7 +2737,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "ym";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2685,7 +2778,7 @@ namespace SDC.Schema
 			{
 				ElementPrefix = "hexb";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2730,7 +2823,7 @@ namespace SDC.Schema
 				Init();
 				SetNames(elementName, elementPrefix);
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2781,7 +2874,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "int";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2824,7 +2917,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "intr";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2847,7 +2940,7 @@ namespace SDC.Schema
 		///// May need to import System.Numerics.dll to use BigInteger
 		///// </summary>
 		///// 
-		//[System.Xml.Serialization.XmlIgnore]
+		//[XmlIgnore]
 		//[JsonIgnore]
 		//public virtual decimal? valDec
 		////rlm 2/11/18 probably don't want to use this
@@ -2901,7 +2994,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "lng";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2945,7 +3038,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "nint";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -2989,7 +3082,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "nnint";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -3033,7 +3126,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "npint";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -3077,7 +3170,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "pint";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -3106,7 +3199,7 @@ namespace SDC.Schema
 				this._allowLTE = false;
 				this._allowAPPROX = false;
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -3131,7 +3224,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "sh";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -3170,7 +3263,7 @@ namespace SDC.Schema
 			{
 				ElementPrefix = "str";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -3214,7 +3307,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "tim";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -3258,7 +3351,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "ubyte";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -3303,7 +3396,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "uint";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -3347,7 +3440,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "ulng";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -3391,7 +3484,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "ush";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -3436,7 +3529,7 @@ namespace SDC.Schema
 															   //this.AnyAttr = new List<System.Xml.XmlAttribute>(); // Add AnyAttr to Schema? #NeedsFix ?
 				ElementPrefix = "xml";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
@@ -3480,7 +3573,7 @@ namespace SDC.Schema
 				this._quantEnum = dtQuantEnum.EQ;
 				ElementPrefix = "ymd";
 		}
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{

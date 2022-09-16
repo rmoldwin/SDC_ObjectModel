@@ -443,7 +443,7 @@ namespace SDCObjectModelTests.TestClasses
 
 
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var t = (ITopNode)Setup.FD;
+			var t = Setup.FD;
 
 			var qList = t.Nodes.Where(n => n.Value is QuestionItemType).Select(n => n.Value).ToList();
 			var sList = t.Nodes.Where(n => n.Value is SectionItemType).Select(n => n.Value).ToList();
@@ -592,15 +592,7 @@ namespace SDCObjectModelTests.TestClasses
 
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
-		//[TestMethod]
-		//public void ReflectPropertyInfoList()
-		//{
-		//	Setup.TimerStart($"==>{Setup.CallerName()} Started");
-		//	var lst = SdcUtil.ReflectPropertyInfoList(Setup.FD);
-		//	foreach (var n in lst)
-		//		Debug.Print($"{n.XmlOrder}:\t Name: {n.PropertyInfo.Name}, \t Type: {n.PropertyInfo.PropertyType.Name}");
-		//	Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-		//}
+		
 		[TestMethod]
 		public void ReflectChildList()
 		{
@@ -636,7 +628,7 @@ namespace SDCObjectModelTests.TestClasses
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 			var lst = Setup.FD.TopNode.GetItemByName("S_57219")
 				.GetXmlAttributesSerialized();
-			foreach (var n in lst) Debug.Print($"{n.Name}: val:{n.AttributeValue?.ToString()}, sGuid: {n.SdcElementNodesGuid}, order: {n.Order}, type: {n.AttributePropInfo.PropertyType}");
+			foreach (var n in lst) Debug.Print($"{n.Name}: val:{n.AttributeValue?.ToString()}, sGuid: {n.ParentNodesGuid}, order: {n.Order}, type: {n.AttributePropInfo.PropertyType}");
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 
 		}

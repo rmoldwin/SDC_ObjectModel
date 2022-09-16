@@ -5,9 +5,9 @@
 //using SDC;
 namespace SDC.Schema
 {
-	public struct PropertyInfoOrdered
+	public readonly struct X_PropertyInfoOrdered
 	{
-		public PropertyInfoOrdered(PropertyInfo propertyInfo, int xmlOrder)
+		public X_PropertyInfoOrdered(PropertyInfo propertyInfo, int xmlOrder)
 
 		{
 			PropertyInfo = propertyInfo;

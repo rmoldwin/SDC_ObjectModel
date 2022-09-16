@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using CSharpVitamins;
+using System.Collections;
 using System.Data;
 using System.Diagnostics;
+using System.Reflection.Emit;
 
 
 
@@ -79,8 +81,8 @@ namespace SDC.Schema
 		}
 		/// <summary>
 		/// Move an SDC node from one parent node to another. 
-		/// A check is performed for illegal moves using IsParentNodeAllowed(newParent, out object targetObj, newListIndex).
-		/// Illegal moves are not performed, cauising this method to return false
+		/// A check is performed for illegal moves using IsParentNodeAllowed.
+		/// Illegal moves are not performed, causing this method to return false
 		/// </summary>
 		/// <param name="btSource">THe node to move.</param>
 		/// <param name="newParent">The parent node destination to which btSource should be attached</param>
@@ -204,6 +206,14 @@ namespace SDC.Schema
 			bool success = btSource.TopNode.Nodes.Remove(btSource.ObjectGUID);
 			if (!success) throw new Exception($"Could not remove object from Nodes dictionary: name: {btSource.name ?? "(none)"}, ObjectID: {btSource.ObjectID}");
 			btSource.UnRegisterParent();
+
+			if (btSource is IdentifiedExtensionType iet)
+			{
+				var inb = ((ITopNode)btSource.TopNode).IETnodesBase;
+				success = inb.Remove(iet);
+				if (!success) throw new Exception($"Could not remove object from IETnodesBase collection: name: {btSource.name ?? "(none)"}, sGuid: {btSource.sGuid}");
+			}
+
 		} //!not tested
 		#endregion
 

@@ -37,7 +37,7 @@ namespace SDC.Schema
         /// </summary>
         [System.Xml.Serialization.XmlIgnore]
         [JsonIgnore]
-        public string ElementName { get; set; }
+        public string ElementName { get; }
 
         /// <summary>
         /// The prefix used 
@@ -95,7 +95,6 @@ namespace SDC.Schema
         public IdentifiedExtensionType ParentIETypeNode { get; }
         /// <summary>
         /// Returns the ID property of the closest ancestor of type IdentifiedExtensionType.  
-        /// For eCC, this is the Parent node's ID, which is derived from  the parent node's CTI_Ckey, a.k.a. ParentItemCkey.
         /// </summary>
         [System.Xml.Serialization.XmlIgnore]
         [JsonIgnore]
@@ -103,11 +102,11 @@ namespace SDC.Schema
 
         [System.Xml.Serialization.XmlIgnore]
         [JsonIgnore]
-        public ITopNode TopNode { get; }
+        public ITopNodePublic TopNode { get; }
         [System.Xml.Serialization.XmlIgnore]
         [JsonIgnore]
         public RetrieveFormPackageType PackageNode { get; }
-        public void SetNames(string elementName = "", string elementPrefix = "", string baseName = "");
+        //public abstract void SetNames(string elementName = "", string elementPrefix = "", string baseName = "");
         #endregion
 
     }

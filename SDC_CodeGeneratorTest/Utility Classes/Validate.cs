@@ -10,7 +10,7 @@ namespace SDC.Schema
 	public static class Validate
 	{
 
-		public static string ValidateSdcObjectTree(this ITopNode itn)
+		public static string ValidateSdcObjectTree(this ITopNodePublic itn)
 		{
 			//custom statements to enforce some things that the object model and/or XML Schema can't enforce by themselves.
 			//complex nestings of choice and sequence

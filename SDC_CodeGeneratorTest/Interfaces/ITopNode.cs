@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using CSharpVitamins;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,48 +9,56 @@ using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Xml;
 using System.Xml.Schema;
+using System.Xml.Serialization;
 
 //using SDC;
 namespace SDC.Schema
 {
-    /// <summary>
-    /// </summary>
+	/// <summary>
     /// A public/internal interface inherited by all types that sit at the top of the SDC class hierarchy
-    /// Used by FormDesignType, DemogFormDesignType, DataElementType, RetrieveFormPackageType, and PackageListType
-    /// The interface provides a common way to fill the above object trees using a single set of shared code.
-    /// It also provdes a set of consistent, type-specific, public utilities for working with SDC objects
-    public interface ITopNode: IBaseType
+	/// Used by FormDesignType, DemogFormDesignType, DataElementType, RetrieveFormPackageType, and PackageListType
+	/// The interface provides a common way to fill the above object trees using a single set of shared code.
+	/// It also provdes a set of consistent, type-specific, public utilities for working with SDC objects.
+	/// </summary>
+
+	public interface ITopNodePublic: IBaseType
     {
 		/// <summary>
 		/// Dictionary.  Given an Node ObjectGUID, returns the node's object reference.
 		/// </summary>
-		[System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
         [JsonIgnore]
         Dictionary<Guid, BaseType> Nodes { get; }
         /// <summary>
         /// Dictionary.  Given a Node ObjectGUID, return the *parent* node's object reference
         /// </summary>
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         Dictionary<Guid, BaseType> ParentNodes { get; }
 
         /// <summary>
         /// Dictionary.  Given a NodeID ObjectGUID, return a list of the child nodes object reference
         /// </summary>
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         Dictionary<Guid, List<BaseType>> ChildNodes { get; }
 
+        /// <summary>
+        /// ReadOnlyObservableCollection of IET nodes.
+        /// </summary>
+        ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes { get; }
 
-        [System.Xml.Serialization.XmlIgnore]
+		[XmlIgnore]
         [JsonIgnore]
-        int GetMaxObjectID { get; }
-        [JsonIgnore]
-        internal int MaxObjectID { get; set; }
+        int MaxObjectID { get; }
+
+		//[XmlIgnore]
+		//[JsonIgnore]
+  //      internal int MaxObjectID { get; set; }
         /// <summary>
         /// Automatically create and assign element names to all SDC elements
         /// </summary>
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         bool GlobalAutoNameFlag { get; set; }
 
@@ -85,5 +94,27 @@ namespace SDC.Schema
 
     }
 
+	/// <summary>
+	/// This interface (ITopNode) hides its Internal members, and also imports public members from ITopNodePublic.
+	/// <br/><br/>
+	/// See here for a description of an internal interface inheriting a public interface:
+	/// https://www.csharp411.com/c-internal-interface/ <br/><br/>
+	/// Note that all interface members use the access level of their defining interface (e.g., internal, in this case), 
+	/// regardless of the access modifier on each member.  
+	/// Inheritance of a less restrictive interface (e.g., ITopNodePublic) leaves those inherited members with their less restrictive access, 
+	/// even though the top-level interface is more restictive.
+	/// </summary>
+	internal interface ITopNode:ITopNodePublic
+    {		
+		/// <summary>
+		/// Base object for IetObsCollection.
+		/// </summary>
+		internal ObservableCollection<IdentifiedExtensionType> IETnodesBase { get; }
 
+		/// <summary>
+		/// Internal version of MaxObjectID, which has a setter; MaxObjectID only has a getter
+		/// </summary> 
+		internal int MaxObjectIDint { get; set; }
+
+	}
 }

@@ -71,4 +71,8 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Utility Classes\Interfaces\" />
+  </ItemGroup>
+
 </Project>

@@ -1,6 +1,9 @@
 ﻿
 
 //using SDC;
+using System.Collections.Immutable;
+using System.Drawing;
+
 namespace SDC.Schema
 {
 	public static class QuestionItemTypeExtensions
@@ -124,5 +127,23 @@ namespace SDC.Schema
 			}
 			return q.ListField_Item; //TODO: handle error if not Qraw
 		}
+		/// <summary>
+		/// In a QuestionSingle (QS) or QuestionMultiple (QR), retrieve an ordered List&lt;DisplayedType> of all ListItems and DisplayedItems owned by the QS or QM.
+		/// </summary>
+		/// <param name="q"></param>
+		/// <returns>Ordered List&lt;DisplayedType> or null if the Question has no child ListItem or DisplayedType nodes</returns>
+		static ImmutableList<DisplayedType>? ListItems(this QuestionItemType q)
+		{
+			return q?.ListField_Item?.List?.GetChildList()?.Cast<DisplayedType>().ToImmutableList();
+		}
+		/// <summary>
+		/// In a QuestionResponse (QR) node, retrieve the DataTypeDE_Item (e.g., &lt;string/>, &lt;decimal/>)
+		/// </summary>
+		/// <param name="q"></param>
+		/// <returns>I a QR node, returns DataTypeDE_Item.  Otherwise returns null </returns>
+		static BaseType? ResponseDataTypeNode(this QuestionItemType q) =>
+			q?.ResponseField_Item?.Response?.DataTypeDE_Item;
+
 	}
+
 }

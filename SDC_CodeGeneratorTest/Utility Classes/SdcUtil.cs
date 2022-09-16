@@ -1,7 +1,7 @@
 ﻿using MsgPack.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SDC_CodeGeneratorTest.Utility_Classes.Metadata_Structs;
+using SDC.Schema;
 using System;
 using System.Buffers;
 using System.CodeDom;
@@ -23,8 +23,6 @@ using System.Xml.Schema;
 using System.Xml.Serialization;
 
 
-
-//using SDC;
 namespace SDC.Schema
 {
 	//public static class SdcSerialization
@@ -335,7 +333,7 @@ namespace SDC.Schema
 		/// <param name="refreshTree">Determines whether to refresh the Dictionaries and BaseType properties, as described in the summary.
 		/// The default is true.</param>
 		/// <returns>IList&lt;BaseType> containing all of the SDC tree nodes in sorted top-bottom order</returns>
-		public static IList<BaseType> RefreshReflectedTree(ITopNode topNode, out string? treeText, bool print = false, bool refreshTree = true)
+		public static IList<BaseType> RefreshReflectedTree(ITopNodePublic topNode, out string? treeText, bool print = false, bool refreshTree = true)
 		{
 			try
 			{
@@ -537,7 +535,7 @@ namespace SDC.Schema
 		/// <param name="print"></param>
 		/// <param name="treeText"></param>
 		/// <returns></returns>
-		public static List<BaseType> ReflectTreeList(ITopNode topNode, out string treeText, bool print = false)
+		public static List<BaseType> ReflectTreeList(ITopNodePublic topNode, out string treeText, bool print = false)
 		{
 			TreeSort_ClearNodeIds();
 			List<BaseType> outList = new();
@@ -588,11 +586,11 @@ namespace SDC.Schema
 				return s;
 			}
 		}
-		public static List<BaseType> GetSortedTreeList(ITopNode tn)
+		public static List<BaseType> GetSortedTreeList(ITopNodePublic tn)
 		{
 			return GetSortedSubtreeList((BaseType)tn.TopNode);			
 		}
-		public static List<BaseType> ReflectSortedTreeList(ITopNode tn)
+		public static List<BaseType> ReflectSortedTreeList(ITopNodePublic tn)
 		{
 			return ReflectSubtreeList((BaseType)tn.TopNode);
 		}
@@ -1177,7 +1175,7 @@ namespace SDC.Schema
 					if (getAllAttributes)
 					{
 						nodeIndex++;
-						attributes.Add(FillAttributeInfo(p));
+						attributes.Add(FillAttributeInfo(p, elementNode));
 					}
 					else
 					{
@@ -1185,15 +1183,15 @@ namespace SDC.Schema
 						if (att is bool shouldSerialize && shouldSerialize)
 						{
 							nodeIndex++;
-							attributes.Add(FillAttributeInfo(p));
+							attributes.Add(FillAttributeInfo(p, elementNode));
 						}
 					}
 				}
 			}
 			return attributes;
 
-			AttributeInfo FillAttributeInfo(PropertyInfo p) =>
-				new (elementNode.sGuid, p!.GetValue(elementNode), p, nodeIndex);
+			AttributeInfo FillAttributeInfo(PropertyInfo p, BaseType elementNode) =>
+				new (elementNode, elementNode.sGuid, p!.GetValue(elementNode), p, nodeIndex);
 
 		}
 
@@ -1499,7 +1497,8 @@ namespace SDC.Schema
 			//Let's see if our item object lives in an IEnumerable<BaseClassSubtype> 
 			itemIndex = GetItemIndex(item, out ieItems, out PropertyInfo? piOut, out errorMsg);
 			piItemOut ??= piOut;  //Since piOut will be null if item is not an IEnumerable, we only want to use it if piItemOut is null.
-			if (piItemOut is null) throw new NullReferenceException("Could not obtain PropertyInfo object from the item parameter");
+			if (piItemOut is null) 
+				throw new NullReferenceException("Could not obtain PropertyInfo object from the item parameter");
 			piItem ??= piItemOut;
 
 			//Find XmlElementAttribute-tagged properties in the pi that matches our par object

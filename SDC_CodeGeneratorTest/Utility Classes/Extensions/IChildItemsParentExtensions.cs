@@ -1,6 +1,8 @@
 ﻿
 
 //using SDC;
+using System.Collections.Immutable;
+
 namespace SDC.Schema
 {
 	public static class IChildItemsParentExtensions
@@ -127,6 +129,14 @@ namespace SDC.Schema
 			}
 			return false;
 		}
+		/// <summary>
+		/// Retrieve all DisplayedTypes subsumed under the ChildItems node
+		/// </summary>
+		/// <returns>ImmutableList&lt;DisplayedType> or null if the ChildItems node is null or has no descendants </returns>
+		static ImmutableList<DisplayedType>? GetChildDisplayedTypes<T>(this IChildItemsParent<T> T_Parent) where T : BaseType, IChildItemsParent<T>
+		{
+			return T_Parent.ChildItemsNode?.ChildItemsList?.Cast<DisplayedType>()?.ToImmutableList();
+		}
 		public static ChildItemsType AddChildItemsNode<T>(this IChildItemsParent<T> T_Parent) where T : BaseType, IChildItemsParent<T>
 		{
 			ChildItemsType childItems = null;  //this class contains an "Items" list
@@ -135,7 +145,7 @@ namespace SDC.Schema
 			//return childItems; 
 			else if (T_Parent.ChildItemsNode == null)
 			{
-				childItems = new ChildItemsType(T_Parent as BaseType);
+				childItems = new ChildItemsType((BaseType)T_Parent);
 				T_Parent.ChildItemsNode = childItems;  //This may be null for the Header, Body and Footer  - need to check this
 													   //SdcUtil.AssignXmlElementAndOrder(childItems);
 			}
