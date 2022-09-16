@@ -22,7 +22,7 @@ namespace SDC.Schema
         /// </summary>
         [System.Xml.Serialization.XmlIgnore]
         [JsonIgnore]
-        public string BaseName { get; set; }
+        public string X_BaseName { get; set; }
 
         /// <summary>
         /// The name of XML element that is output from this class instance.

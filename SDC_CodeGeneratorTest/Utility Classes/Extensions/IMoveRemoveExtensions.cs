@@ -11,11 +11,16 @@ namespace SDC.Schema
 {
 	public static class IMoveRemoveExtensions
 	{
+		private static TreeSibComparer treeSibComparer = new();
+		/// <summary>
+		/// Set to true to keep the ChildNodes List&lt;BaseType> sorted in the same order as the the SDC object tree
+		/// </summary>
+		private static bool ChildNodesSort = false;
 		#region IMoveRemove //not tested
 		private static void MoveInDictionaries(this BaseType btSource, BaseType targetParent = null!)
 		{
 			//Remove from ParentNodes and ChildNodes as needed
-			(btSource as BaseType).UnRegisterParent();
+			btSource.UnRegisterParent();
 
 			//Re-register item node under new parent
 			btSource.RegisterParent(targetParent);
@@ -90,7 +95,7 @@ namespace SDC.Schema
 		/// All negative values will place btSource at the first IList position (index 0).
 		/// All values greater than the current last IList index will be added to the end of the list.
 		/// The defaut value is -1, which will place btSource at the start of the list</param>
-		/// <returns>true if the move was successfull false if the move was not allowed</returns>
+		/// <returns>true if the move was successfull; false if the move was not allowed</returns>
 		/// <exception cref="NullReferenceException">NullReferenceException("btSource must not be null.");</exception>
 		/// <exception cref="NullReferenceException">NullReferenceException("newParent must not be null.");</exception>
 		/// <exception cref="NullReferenceException">NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved")</exception>
@@ -101,42 +106,51 @@ namespace SDC.Schema
 			if (btSource is null) throw new NullReferenceException("btSource must not be null.");
 			if (newParent is null) throw new NullReferenceException("newParent must not be null.");
 			if (btSource.ParentNode is null) throw new NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved");
-
-
-			if (btSource.IsParentNodeAllowed(newParent, out object targetObj))
+			try
 			{
-				
-				if (targetObj is BaseType)
+
+				ChildNodesSort = true;
+				if (btSource.IsParentNodeAllowed(newParent, out object targetObj))
 				{
-					btSource.MoveInDictionaries(targetParent: newParent);
-					targetObj = btSource;
-					return true;
-				}
-				else if (targetObj is IList propList)
-				{
-					//Remove this from current parent object
-					btSource.IsParentNodeAllowed(btSource.ParentNode, out object? currentParentObj);
-					if (currentParentObj is BaseType) currentParentObj = null;
-					else if (currentParentObj is not null && currentParentObj is IList)
+
+					if (targetObj is BaseType) //btSource can be attached directly to the target
 					{
-						var objList = (IList)currentParentObj;
-						if (objList?.IndexOf(btSource) > -1) objList.Remove(btSource);
-						else throw new Exception("Could not find node in parent object list");
+						targetObj = btSource;
+						btSource.MoveInDictionaries(targetParent: newParent);						
+						return true;
 					}
-					else throw new Exception("Could not reflect parent property object to remove node");
+					else if (targetObj is IList propList) //btSource can be attached to a member of a List
+					{
+						//Remove this from current parent object
+						btSource.IsParentNodeAllowed(btSource.ParentNode, out object? currentParentObj);
+						if (currentParentObj is BaseType) 
+							currentParentObj = null;  //remove the btSource reference form this parent object
+						else if (currentParentObj is not null && currentParentObj is IList)
+						{
+							//remove the btSource reference form this parent IList
+							var objList = (IList)currentParentObj;
+							if (objList?.IndexOf(btSource) > -1) //this extra test may not be necessary
+								objList.Remove(btSource);
+							else throw new Exception("Could not find node in parent object list");
+						}
+						else throw new Exception("Could not reflect parent property object to remove node");
 
-					//IList propList = (IList)targetObj;
-					btSource.MoveInDictionaries(targetParent: newParent);
+						if (newListIndex < 0 || newListIndex >= propList.Count) propList.Add(btSource);
+						else propList.Insert(newListIndex, btSource);
 
-					if (newListIndex < 0 || newListIndex >= propList.Count) propList.Add(btSource);
-					else propList.Insert(newListIndex, btSource);
+						btSource.MoveInDictionaries(targetParent: newParent);
 
-					return true;
+						return true;
+					}
+					throw new Exception("Invalid targetProperty");
+
 				}
-				throw new Exception("Invalid targetProperty");
-
+				else return false; //invalid Move
 			}
-			else return false; //invalid Move
+			catch
+				{throw;}
+			finally
+				{ ChildNodesSort = false; }
 		}
 
 
@@ -147,10 +161,9 @@ namespace SDC.Schema
 		//Ther is always a risk of getting out of sync with the nodes in the SDC object model classes.
 		internal static void RegisterParent<T>(this BaseType btSource, T inParentNode) where T : BaseType
 		{
-			//btSource.ParentNode = inParentNode;
-
 			try
 			{
+				ChildNodesSort = false;
 				if (inParentNode != null)
 				{   //Register parent node
 					btSource.TopNode.ParentNodes.Add(btSource.ObjectGUID, inParentNode);
@@ -161,13 +174,21 @@ namespace SDC.Schema
 					{
 						kids = new List<BaseType>();
 						btSource.TopNode.ChildNodes.Add(inParentNode.ObjectGUID, kids);
+						kids.Add(btSource); //no need to sort with only one item in the list
 					}
-					kids.Add(btSource);
-					//inParentNode.IsLeafNode = false; //the parent node has a child node, so it can't be a leaf node
+					else
+					{
+						kids.Add(btSource);
+						if(ChildNodesSort) 
+							kids.Sort(treeSibComparer); //sort by reflecting the object tree
+					}
 				}
 			}
 			catch (Exception ex)
-			{ Debug.WriteLine(ex.Message + "/n  ObjectID:" + btSource.ObjectID.ToString()); }
+			{ 
+				Debug.WriteLine(ex.Message + "/n  ObjectID:" + btSource.ObjectID.ToString());
+				throw;
+			}
 		}
 
 		internal static void UnRegisterParent(this BaseType btSource)
@@ -196,7 +217,10 @@ namespace SDC.Schema
 				}
 			}
 			catch (Exception ex)
-			{ Debug.WriteLine(ex.Message + "/n  ObjectID:" + btSource.ObjectID.ToString()); }
+			{ 
+				Debug.WriteLine(ex.Message + "/n  ObjectID:" + btSource.ObjectID.ToString());
+				throw;
+			}
 
 			//btSource.ParentNode = null;
 
@@ -209,7 +233,7 @@ namespace SDC.Schema
 
 			if (btSource is IdentifiedExtensionType iet)
 			{
-				var inb = ((ITopNode)btSource.TopNode).IETnodesBase;
+				var inb = ((ITopNode)btSource.TopNode).IETnodes;
 				success = inb.Remove(iet);
 				if (!success) throw new Exception($"Could not remove object from IETnodesBase collection: name: {btSource.name ?? "(none)"}, sGuid: {btSource.sGuid}");
 			}

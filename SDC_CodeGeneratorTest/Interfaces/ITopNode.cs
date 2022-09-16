@@ -46,7 +46,7 @@ namespace SDC.Schema
         /// <summary>
         /// ReadOnlyObservableCollection of IET nodes.
         /// </summary>
-        ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes { get; }
+        ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodesRO { get; }
 
 		[XmlIgnore]
         [JsonIgnore]
@@ -105,16 +105,72 @@ namespace SDC.Schema
 	/// even though the top-level interface is more restictive.
 	/// </summary>
 	internal interface ITopNode:ITopNodePublic
-    {		
+    {
 		/// <summary>
-		/// Base object for IetObsCollection.
+		/// Internal base object for initializing IETnodesRO.
 		/// </summary>
-		internal ObservableCollection<IdentifiedExtensionType> IETnodesBase { get; }
+		internal ObservableCollection<IdentifiedExtensionType> IETnodes { get; }
 
 		/// <summary>
 		/// Internal version of MaxObjectID, which has a setter; MaxObjectID only has a getter
 		/// </summary> 
 		internal int MaxObjectIDint { get; set; }
 
+	}
+
+    public interface ITopNodeCollectionsPublic
+	{
+		/// <summary>
+		/// ReadOnlyObservableCollection of IET nodes.
+		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodesRO { get; }
+
+		/// <summary>
+		/// ReadOnlyDictionary.  Given an ObjectGUID, returns the node's object reference.
+		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		ReadOnlyDictionary<Guid, BaseType> NodesRO { get; }
+		/// <summary>
+		/// ReadOnlyDictionary.  Given an ObjectGUID, return the *parent* node's object reference
+		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		ReadOnlyDictionary<Guid, BaseType> ParentNodesRO { get; }
+
+		/// <summary>
+		/// ReadOnlyDictionary.  Given an ObjectGUID, return a list of the child nodes object reference
+		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		ReadOnlyDictionary<Guid, IReadOnlyList<BaseType>> ChildNodesRO { get; }
+	}
+	internal interface ITopNodeCollections: ITopNodeCollectionsPublic
+	{
+		/// <summary>
+		/// Internal base object for initializing IETnodesRO.
+		/// </summary>
+		internal ObservableCollection<IdentifiedExtensionType> IETnodes { get; }
+		/// <summary>
+		/// Dictionary.  Given an ObjectGUID, returns the node's object reference.
+		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		internal Dictionary<Guid, BaseType> Nodes { get; }
+		/// <summary>
+		/// Dictionary.  Given a ObjectGUID, return the *parent* node's object reference
+		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		internal Dictionary<Guid, BaseType> ParentNodes { get; }
+
+		/// <summary>
+		/// Dictionary.  Given a NodeID ObjectGUID, return a list of the child nodes object reference
+		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		internal Dictionary<Guid, List<BaseType>> ChildNodes { get; }
 	}
 }

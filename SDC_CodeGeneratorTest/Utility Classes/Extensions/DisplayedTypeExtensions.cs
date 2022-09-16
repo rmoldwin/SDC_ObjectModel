@@ -50,31 +50,41 @@ namespace SDC.Schema
 
 		public static PredGuardType AddActivateIf(this DisplayedType dt)
 		{
-			var pg = new PredGuardType(dt, "ActivateIf", "acif");
+			var pg = new PredGuardType(dt);
+			pg.ElementPrefix = "ActivateIf";
+			pg.ElementPrefix = "acif";
 			dt.ActivateIf = pg;
 			return pg;
 		}
 		public static PredGuardType AddDeActivateIf(this DisplayedType dt)
 		{
-			var pg = new PredGuardType(dt, "DeActivateIf", "deif");
+			var pg = new PredGuardType(dt);
+			pg.ElementPrefix = "DeActivateIf";
+			pg.ElementPrefix = "deif";
 			dt.DeActivateIf = pg;
 			return pg;
 		}
 		public static EventType AddOnEnter(this DisplayedType dt)
 		{
-			var ev = new EventType(dt, "OnEnter", "onen");
+			var ev = new EventType(dt);
+			ev.ElementName = "OnEnter";
+			ev.ElementPrefix = "onen";
 			dt.OnEnter.Add(ev);
 			return ev;
 		}
 		public static OnEventType AddOnEvent(this DisplayedType dt)
 		{
-			var oe = new OnEventType(dt, "OnEvent", "onev");
+			var oe = new OnEventType(dt);
+			oe.ElementName = "OnEvent";
+			oe.ElementPrefix = "onev";
 			dt.OnEvent.Add(oe);
 			return oe;
 		}
 		public static EventType AddOnExit(this DisplayedType dt)
 		{
-			var oe = new EventType(dt, "OnExit", "onex");
+			var oe = new EventType(dt);
+			oe.ElementName = "OnExit";
+			oe.ElementPrefix = "onex";
 			dt.OnEnter.Add(oe);
 			return oe;
 		}

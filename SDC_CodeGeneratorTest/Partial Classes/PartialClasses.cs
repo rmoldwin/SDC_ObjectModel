@@ -90,16 +90,16 @@ namespace SDC.Schema
 		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodesBase { get; } = new();
+		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodes { get; } = new();
 		private ReadOnlyObservableCollection<IdentifiedExtensionType> _IETNodes;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodesRO
 		{
 			get
 			{
 				if (_IETNodes is null) 
-					_IETNodes = _IETNodes = new(((ITopNode)this).IETnodesBase);
+					_IETNodes = _IETNodes = new(((ITopNode)this).IETnodes);
 				return _IETNodes;
 			}
 		}
@@ -304,16 +304,16 @@ namespace SDC.Schema
 		/// <summary>Base object for IetObsCollection.</summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodesBase { get; } = new();
+		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodes { get; } = new();
 		private ReadOnlyObservableCollection<IdentifiedExtensionType> _IETNodes;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodesRO
 		{
 			get
 			{
 				if (_IETNodes is null)
-					_IETNodes = new(((ITopNode)this).IETnodesBase);
+					_IETNodes = new(((ITopNode)this).IETnodes);
 				return _IETNodes;
 			}
 		}
@@ -407,16 +407,16 @@ namespace SDC.Schema
 		/// <summary>Base object for IetObsCollection.</summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodesBase { get; } = new();
+		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodes { get; } = new();
 		private ReadOnlyObservableCollection<IdentifiedExtensionType> _IETNodes;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodesRO
 		{
 			get
 			{
 				if (_IETNodes is null)
-					_IETNodes = new(((ITopNode)this).IETnodesBase);
+					_IETNodes = new(((ITopNode)this).IETnodes);
 				return _IETNodes;
 			}
 		}
@@ -506,16 +506,16 @@ namespace SDC.Schema
 		/// <summary>Base object for IetObsCollection.</summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodesBase { get; } = new();
+		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodes { get; } = new();
 		private ReadOnlyObservableCollection<IdentifiedExtensionType> _IETNodes;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodesRO
 		{
 			get
 			{
 				if (_IETNodes is null)
-					_IETNodes = new(((ITopNode)this).IETnodesBase);
+					_IETNodes = new(((ITopNode)this).IETnodes);
 				return _IETNodes;
 			}
 		}
@@ -594,16 +594,16 @@ namespace SDC.Schema
 		/// <summary>Base object for IetObsCollection.</summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodesBase { get; } = new();
+		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodes { get; } = new();
 		private ReadOnlyObservableCollection<IdentifiedExtensionType> _IETNodes;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodesRO
 		{
 			get
 			{
 				if (_IETNodes is null)
-					_IETNodes = new(((ITopNode)this).IETnodesBase);
+					_IETNodes = new(((ITopNode)this).IETnodes);
 				return _IETNodes;
 			}
 		}
@@ -666,7 +666,7 @@ namespace SDC.Schema
 		: IChildItemsMember<ButtonItemType>
 	{
 		protected ButtonItemType() { Init(); }
-		public ButtonItemType(BaseType parentNode, string id = "", string elementPrefix = "") : base(parentNode)
+		public ButtonItemType(BaseType parentNode, string id = "") : base(parentNode)
 		{
 			Init();
 			//SetNames(elementName, elementPrefix);
@@ -682,7 +682,7 @@ namespace SDC.Schema
 	public partial class InjectFormType : IChildItemsMember<InjectFormType>
 	{
 		protected InjectFormType() { Init(); }
-		public InjectFormType(BaseType parentNode, string id = "", string elementPrefix = "") : base(parentNode, id)
+		public InjectFormType(BaseType parentNode, string id = "") : base(parentNode, id)
 		{
 			Init();
 			//SetNames(elementName, elementPrefix);
@@ -698,7 +698,7 @@ namespace SDC.Schema
 	public partial class SectionBaseType
 	{
 		public SectionBaseType() { Init(); }
-		internal SectionBaseType(BaseType parentNode, string id = "", string elementPrefix = "") : base(parentNode, id)
+		internal SectionBaseType(BaseType parentNode, string id = "") : base(parentNode, id)
 		{
 			Init();
 
@@ -718,7 +718,7 @@ namespace SDC.Schema
 	public partial class SectionItemType : IChildItemsParent<SectionItemType>, IChildItemsMember<SectionItemType>
 	{
 		protected SectionItemType() { Init(); } //change back to protected
-		public SectionItemType(BaseType parentNode, string id = "", string elementPrefix = "") : base(parentNode, id)
+		public SectionItemType(BaseType parentNode, string id = "") : base(parentNode, id)
 		{ Init(); }
 		private static void Init()
 		{
@@ -746,8 +746,6 @@ namespace SDC.Schema
 		public QuestionItemType(BaseType parentNode, string id = "", string elementName = "", string elementPrefix = "") : base(parentNode, id)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
-			//this.Conv
 		}
 		private void Init()
 		{
@@ -818,10 +816,9 @@ namespace SDC.Schema
 	public partial class ListType : IQuestionList
 	{
 		protected ListType() { Init(); }
-		public ListType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public ListType(BaseType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
 		}
 		private void Init()
 		{
@@ -844,10 +841,9 @@ namespace SDC.Schema
 
 	{// #NeedsTest
 		protected ListFieldType() { Init(); }
-		public ListFieldType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public ListFieldType(BaseType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
 		}
 
 		private void Init()
@@ -897,7 +893,6 @@ namespace SDC.Schema
 		public ListItemType(ListType parentNode, string id = "", string elementName = "", string elementPrefix = "") : base(parentNode, id)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
 		}
 		private void Init()
 		{
@@ -947,10 +942,10 @@ namespace SDC.Schema
 	public partial class LookupEndPointType  //TODO: fix base class in Schema update
 	{
 		protected LookupEndPointType() { Init(); }
-		public LookupEndPointType(ListFieldType parentNode, string elementName = "", string elementPrefix = "") : base()
+		public LookupEndPointType(ListFieldType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
+			
 		}
 		private void Init()
 		{
@@ -966,11 +961,10 @@ namespace SDC.Schema
 	public partial class ListItemResponseFieldType
 	{
 		protected ListItemResponseFieldType() { Init(); }
-		public ListItemResponseFieldType(ListItemBaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public ListItemResponseFieldType(ListItemBaseType parentNode) : base(parentNode)
 		{
 			Init();
-			//if (fillData) AddFillDataTypesDE(parentNode);
-			SetNames(elementName, elementPrefix); //this was already called by the superType ResponseField.
+			
 		}
 		private void Init()
 		{
@@ -982,10 +976,10 @@ namespace SDC.Schema
 	public partial class ResponseFieldType
 	{
 		protected ResponseFieldType() { Init(); }
-		public ResponseFieldType(IdentifiedExtensionType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public ResponseFieldType(IdentifiedExtensionType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
+			
 		}
 		private void Init()
 		{
@@ -998,11 +992,11 @@ namespace SDC.Schema
 	public partial class UnitsType
 	{
 		protected UnitsType() { Init(); }
-		public UnitsType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public UnitsType(BaseType parentNode) : base(parentNode)
 		{
 			Init();
 
-			SetNames(elementName, elementPrefix);
+			
 		}
 		private void Init()
 		{
@@ -1160,7 +1154,7 @@ namespace SDC.Schema
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		public string BaseName { get; set; } = "";
+		public string X_BaseName { get; set; } = "";
 
 		/// <summary>
 		/// The name of XML element that is output from this class instance.
@@ -1354,24 +1348,24 @@ namespace SDC.Schema
 		public string ParentIETypeID
 		{ get => ParentIETypeNode?.ID; }
 
-		internal void SetNames(string elementName = "", string elementPrefix = "", string baseName = "")
-		{
-			if (TopNode.GlobalAutoNameFlag || AutoNameFlag)
-			{
-				if (elementName.Length > 0)
-					_elementName = elementName;
-				//else if (elementName.IsEmpty()) elementName = GetType().ToString().Replace("Type", "").Replace("type", ""); //assign default ElementName from the type.
+		//internal void SetNames(string elementName = "", string elementPrefix = "", string baseName = "")
+		//{
+		//	if (TopNode.GlobalAutoNameFlag || AutoNameFlag)
+		//	{
+		//		if (elementName.Length > 0)
+		//			_elementName = elementName;
+		//		//else if (elementName.IsEmpty()) elementName = GetType().ToString().Replace("Type", "").Replace("type", ""); //assign default ElementName from the type.
 
-				if (elementPrefix.Length > 0)
-					_elementPrefix = elementPrefix;
+		//		if (elementPrefix.Length > 0)
+		//			_elementPrefix = elementPrefix;
 
-				if (baseName.Length > 0)
-					BaseName = baseName;
-				//else if (ElementPrefix.Length == 0) ElementPrefix = ElementName;
+		//		if (baseName.Length > 0)
+		//			X_BaseName = baseName;
+		//		//else if (ElementPrefix.Length == 0) ElementPrefix = ElementName;
 
-				Debug.WriteLine($"Type: {this.GetType()} _elementName: {_elementName} Prefix:{_elementPrefix} name: {name}");
-			}
-		}
+		//		Debug.WriteLine($"Type: {this.GetType()} _elementName: {_elementName} Prefix:{_elementPrefix} name: {name}");
+		//	}
+		//}
 		/// <summary>
 		/// Resets TopNode and IETresetCounter.  This allows the creation of a new SDC tree for unit testing
 		/// </summary>
@@ -1463,7 +1457,7 @@ namespace SDC.Schema
 
 			if (this is IdentifiedExtensionType iet)
 			{
-				var inb = ((ITopNode)TopNode).IETnodesBase;
+				var inb = ((ITopNode)TopNode).IETnodes;
 				inb.Add(iet);
 			}
 			order = ObjectID;			
@@ -1642,10 +1636,10 @@ namespace SDC.Schema
 	{
 		private IExtensionBaseTypeMember Iebtm { get => (IExtensionBaseTypeMember)this; }
 		protected PropertyType() { Init(); }
-		public PropertyType(ExtensionBaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public PropertyType(ExtensionBaseType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
+			
 		}
 		private void Init()
 		{
@@ -1671,10 +1665,10 @@ namespace SDC.Schema
 	{
 		private IExtensionBaseTypeMember Iebtm { get => (IExtensionBaseTypeMember)this; }
 		protected CommentType() { Init(); }
-		public CommentType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public CommentType(BaseType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
+			
 		}
 		private void Init()
 		{
@@ -1725,10 +1719,10 @@ namespace SDC.Schema
 	public partial class ChildItemsType
 	{
 		protected ChildItemsType() { Init(); }
-		public ChildItemsType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public ChildItemsType(BaseType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
+			
 		}
 		private void Init()
 		{
@@ -1763,7 +1757,7 @@ namespace SDC.Schema
 		public DisplayedType(BaseType parentNode, string id = "", string elementName = "", string elementPrefix = "") : base(parentNode, id)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
+			
 		}
 		private void Init()
 		{
@@ -1858,10 +1852,10 @@ namespace SDC.Schema
 	public partial class BlobType : IDisplayedTypeMember
 	{
 		protected BlobType() { Init(); }
-		public BlobType(DisplayedType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public BlobType(DisplayedType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
+			
 		}
 		private void Init()
 		{
@@ -1873,10 +1867,10 @@ namespace SDC.Schema
 	public partial class LinkType : IDisplayedTypeMember
 	{
 		protected LinkType() { Init(); }
-		public LinkType(DisplayedType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public LinkType(DisplayedType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
+			
 		}
 		private void Init()
 		{
@@ -1889,10 +1883,10 @@ namespace SDC.Schema
 	public partial class CodingType : IDisplayedTypeMember
 	{
 		protected CodingType() { Init(); }
-		public CodingType(ExtensionBaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public CodingType(ExtensionBaseType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
+			
 
 		}
 		private void Init()
@@ -1905,10 +1899,10 @@ namespace SDC.Schema
 	public partial class CodeMatchType
 	{
 		protected CodeMatchType() { Init(); }
-		public CodeMatchType(CodingType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public CodeMatchType(CodingType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
+			
 		}
 		private void Init()
 		{
@@ -1921,10 +1915,10 @@ namespace SDC.Schema
 	public partial class CodeSystemType
 	{
 		protected CodeSystemType() { Init(); }
-		public CodeSystemType(ExtensionBaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public CodeSystemType(ExtensionBaseType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
+			
 		}
 		private void Init()
 		{
@@ -1944,11 +1938,9 @@ namespace SDC.Schema
 	public partial class DataTypes_DEType
 	{
 		protected DataTypes_DEType() { Init(); }
-		public DataTypes_DEType(ResponseFieldType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public DataTypes_DEType(ResponseFieldType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
-			//if (fillData) sdcTreeBuilder.AddFillDataTypesDE(parentNode);
 		}
 		private void Init()
 		{
@@ -1970,10 +1962,9 @@ namespace SDC.Schema
 	public partial class anyType_DEtype
 	{
 		protected anyType_DEtype() { Init(); }
-		public anyType_DEtype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public anyType_DEtype(BaseType parentNode) : base(parentNode)
 		{
-			Init();
-			SetNames(elementName, elementPrefix);
+			Init();			
 		}
 		private void Init()
 		{
@@ -1985,21 +1976,19 @@ namespace SDC.Schema
 	public partial class DataTypes_SType
 	{
 		protected DataTypes_SType() { Init(); }
-		public DataTypes_SType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public DataTypes_SType(BaseType parentNode) : base(parentNode)
 		{
 			Init();
-			ElementPrefix = "DataTypes";
-			SetNames(elementName, elementPrefix);
 		}
-		private static void Init()
+		private void Init()
 		{
-
+			ElementPrefix = "DataTypes";
 		}
 
-		/// <summary>
-		/// any *_SType data type
-		/// </summary>
-		[XmlIgnore]
+			/// <summary>
+			/// any *_SType data type
+			/// </summary>
+			[XmlIgnore]
 		[JsonIgnore]
 		public BaseType DataTypeS_Item
 		{
@@ -2011,10 +2000,10 @@ namespace SDC.Schema
 	public partial class anyURI_DEtype
 	{
 		protected anyURI_DEtype() { Init(); }
-		public anyURI_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public anyURI_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
+			
 		}
 		private void Init()
 		{
@@ -2027,10 +2016,10 @@ namespace SDC.Schema
 
 
 		protected anyURI_Stype() { Init(); }
-		public anyURI_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public anyURI_Stype(BaseType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
+			
 
 		}
 		private void Init()
@@ -2056,7 +2045,7 @@ namespace SDC.Schema
 	public partial class base64Binary_DEtype
 	{
 		protected base64Binary_DEtype() { Init(); }
-		public base64Binary_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public base64Binary_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
 			Init();
 			//ElementPrefix = "b64";
@@ -2072,10 +2061,10 @@ namespace SDC.Schema
 	public partial class base64Binary_Stype : IVal
 	{
 		protected base64Binary_Stype() { Init(); }
-		public base64Binary_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+		public base64Binary_Stype(BaseType parentNode) : base(parentNode)
 		{
 			Init();
-			SetNames(elementName, elementPrefix);
+			
 		}
 		private void Init()
 		{
@@ -2100,7 +2089,7 @@ namespace SDC.Schema
 		public partial class boolean_DEtype
 		{
 			protected boolean_DEtype() { Init(); }
-			public boolean_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public boolean_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "bool";
@@ -2116,10 +2105,10 @@ namespace SDC.Schema
 		public partial class boolean_Stype : IVal
 		{
 			protected boolean_Stype() { Init(); }
-			public boolean_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public boolean_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2141,7 +2130,7 @@ namespace SDC.Schema
 	public partial class byte_DEtype
 		{
 			protected byte_DEtype() { Init(); }
-			public byte_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public byte_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "byte";
@@ -2160,10 +2149,10 @@ namespace SDC.Schema
 		public partial class byte_Stype : IVal
 		{
 			protected byte_Stype() { Init(); }
-			public byte_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public byte_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2185,7 +2174,7 @@ namespace SDC.Schema
 		public partial class date_DEtype
 		{
 			protected date_DEtype() { Init(); }
-			public date_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public date_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "date";
@@ -2204,10 +2193,10 @@ namespace SDC.Schema
 		public partial class date_Stype : IVal
 		{
 			protected date_Stype() { Init(); }
-			public date_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public date_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2229,7 +2218,7 @@ namespace SDC.Schema
 		public partial class dateTime_DEtype
 		{
 			protected dateTime_DEtype() { Init(); }
-			public dateTime_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public dateTime_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "dt";
@@ -2248,10 +2237,10 @@ namespace SDC.Schema
 		public partial class dateTime_Stype : IVal
 		{
 			protected dateTime_Stype() { Init(); }
-			public dateTime_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public dateTime_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2273,7 +2262,7 @@ namespace SDC.Schema
 		public partial class dateTimeStamp_DEtype
 		{
 			protected dateTimeStamp_DEtype() { Init(); }
-			public dateTimeStamp_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public dateTimeStamp_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "dts";
@@ -2288,10 +2277,10 @@ namespace SDC.Schema
 		public partial class dateTimeStamp_Stype : IVal
 		{
 			protected dateTimeStamp_Stype() { Init(); }
-			public dateTimeStamp_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public dateTimeStamp_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2312,7 +2301,7 @@ namespace SDC.Schema
 		public partial class dayTimeDuration_DEtype
 		{
 			protected dayTimeDuration_DEtype() { Init(); }
-			public dayTimeDuration_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public dayTimeDuration_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "dtdur";
@@ -2331,10 +2320,10 @@ namespace SDC.Schema
 		public partial class dayTimeDuration_Stype : IVal
 		{
 			protected dayTimeDuration_Stype() { Init(); }
-			public dayTimeDuration_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public dayTimeDuration_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2356,7 +2345,7 @@ namespace SDC.Schema
 		public partial class decimal_DEtype
 		{
 			protected decimal_DEtype() { Init(); }
-			public decimal_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public decimal_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "dec";
@@ -2375,10 +2364,10 @@ namespace SDC.Schema
 		public partial class decimal_Stype : IVal
 		{
 			protected decimal_Stype() { Init(); }
-			public decimal_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public decimal_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2400,7 +2389,7 @@ namespace SDC.Schema
 		public partial class double_DEtype
 		{
 			protected double_DEtype() { Init(); }
-			public double_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public double_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "dbl";
@@ -2419,10 +2408,10 @@ namespace SDC.Schema
 		public partial class double_Stype : IVal
 		{
 			protected double_Stype() { Init(); }
-			public double_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public double_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2444,7 +2433,7 @@ namespace SDC.Schema
 		public partial class duration_DEtype
 		{
 			protected duration_DEtype() { Init(); }
-			public duration_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public duration_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "dur";
@@ -2463,10 +2452,10 @@ namespace SDC.Schema
 		public partial class duration_Stype : IVal
 		{
 			protected duration_Stype() { Init(); }
-			public duration_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public duration_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2488,7 +2477,7 @@ namespace SDC.Schema
 		public partial class float_DEtype
 		{
 			protected float_DEtype() { Init(); }
-			public float_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public float_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "flt";
@@ -2507,10 +2496,10 @@ namespace SDC.Schema
 		public partial class float_Stype : IVal
 		{
 			protected float_Stype() { Init(); }
-			public float_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public float_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2532,7 +2521,7 @@ namespace SDC.Schema
 		public partial class gDay_DEtype
 		{
 			protected gDay_DEtype() { Init(); }
-			public gDay_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public gDay_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "day";
@@ -2551,10 +2540,10 @@ namespace SDC.Schema
 		public partial class gDay_Stype : IVal
 		{
 			protected gDay_Stype() { Init(); }
-			public gDay_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public gDay_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2576,7 +2565,7 @@ namespace SDC.Schema
 		public partial class gMonth_DEtype
 		{
 			protected gMonth_DEtype() { Init(); }
-			public gMonth_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public gMonth_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "mon";
@@ -2595,10 +2584,10 @@ namespace SDC.Schema
 		public partial class gMonth_Stype : IVal
 		{
 			protected gMonth_Stype() { Init(); }
-			public gMonth_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public gMonth_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2620,7 +2609,7 @@ namespace SDC.Schema
 		public partial class gMonthDay_DEtype
 		{
 			protected gMonthDay_DEtype() { Init(); }
-			public gMonthDay_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public gMonthDay_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "mday";
@@ -2640,10 +2629,10 @@ namespace SDC.Schema
 		public partial class gMonthDay_Stype : IVal
 		{
 			protected gMonthDay_Stype() { Init(); }
-			public gMonthDay_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public gMonthDay_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2665,7 +2654,7 @@ namespace SDC.Schema
 		public partial class gYear_DEtype
 		{
 			protected gYear_DEtype() { Init(); }
-			public gYear_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public gYear_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "y";
@@ -2684,10 +2673,10 @@ namespace SDC.Schema
 		public partial class gYear_Stype : IVal
 		{
 			protected gYear_Stype() { Init(); }
-			public gYear_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public gYear_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2709,7 +2698,7 @@ namespace SDC.Schema
 		public partial class gYearMonth_DEtype
 		{
 			protected gYearMonth_DEtype() { Init(); }
-			public gYearMonth_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public gYearMonth_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "ym";
@@ -2727,10 +2716,10 @@ namespace SDC.Schema
 		public partial class gYearMonth_Stype : IVal
 		{
 			protected gYearMonth_Stype() { Init(); }
-			public gYearMonth_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public gYearMonth_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2752,7 +2741,7 @@ namespace SDC.Schema
 		public partial class hexBinary_DEtype
 		{
 			protected hexBinary_DEtype() { Init(); }
-			public hexBinary_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public hexBinary_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "hexb";
@@ -2769,10 +2758,10 @@ namespace SDC.Schema
 			string _hexBinaryStringVal;
 
 			protected hexBinary_Stype() { Init(); }
-			public hexBinary_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public hexBinary_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2800,7 +2789,7 @@ namespace SDC.Schema
 		public partial class HTML_DEtype
 		{
 			protected HTML_DEtype() { Init(); }
-			public HTML_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public HTML_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "html";
@@ -2818,10 +2807,10 @@ namespace SDC.Schema
 			{
 				Init();
 			}
-			public HTML_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public HTML_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2845,7 +2834,7 @@ namespace SDC.Schema
 		public partial class int_DEtype
 		{
 			protected int_DEtype() { Init(); }
-			public int_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public int_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "int";
@@ -2864,10 +2853,10 @@ namespace SDC.Schema
 		public partial class int_Stype : IVal
 		{
 			protected int_Stype() { Init(); }
-			public int_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public int_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2889,7 +2878,7 @@ namespace SDC.Schema
 		public partial class integer_DEtype
 		{
 			protected integer_DEtype() { Init(); }
-			public integer_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public integer_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//SetNames(elementName, elementPrefix);
@@ -2907,10 +2896,10 @@ namespace SDC.Schema
 		public partial class integer_Stype : IVal
 		{
 			protected integer_Stype() { Init(); }
-			public integer_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public integer_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -2965,7 +2954,7 @@ namespace SDC.Schema
 		public partial class long_DEtype
 		{
 			protected long_DEtype() { Init(); }
-			public long_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public long_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "lng";
@@ -2984,10 +2973,10 @@ namespace SDC.Schema
 		public partial class long_Stype : IVal
 		{
 			protected long_Stype() { Init(); }
-			public long_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public long_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3009,7 +2998,7 @@ namespace SDC.Schema
 		public partial class negativeInteger_DEtype
 		{
 			protected negativeInteger_DEtype() { Init(); }
-			public negativeInteger_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public negativeInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "nint";
@@ -3028,10 +3017,10 @@ namespace SDC.Schema
 		public partial class negativeInteger_Stype : IVal
 		{
 			protected negativeInteger_Stype() { Init(); }
-			public negativeInteger_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public negativeInteger_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3053,7 +3042,7 @@ namespace SDC.Schema
 		public partial class nonNegativeInteger_DEtype
 		{
 			protected nonNegativeInteger_DEtype() { Init(); }
-			public nonNegativeInteger_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public nonNegativeInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "nnint";
@@ -3072,10 +3061,10 @@ namespace SDC.Schema
 		public partial class nonNegativeInteger_Stype : IVal
 		{
 			protected nonNegativeInteger_Stype() { Init(); }
-			public nonNegativeInteger_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public nonNegativeInteger_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3097,7 +3086,7 @@ namespace SDC.Schema
 		public partial class nonPositiveInteger_DEtype
 		{
 			protected nonPositiveInteger_DEtype() { Init(); }
-			public nonPositiveInteger_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public nonPositiveInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "npint";
@@ -3116,10 +3105,10 @@ namespace SDC.Schema
 		public partial class nonPositiveInteger_Stype : IVal
 		{
 			protected nonPositiveInteger_Stype() { Init(); }
-			public nonPositiveInteger_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public nonPositiveInteger_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3141,7 +3130,7 @@ namespace SDC.Schema
 		public partial class positiveInteger_DEtype
 		{
 			protected positiveInteger_DEtype() { Init(); }
-			public positiveInteger_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public positiveInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "pint";
@@ -3160,10 +3149,10 @@ namespace SDC.Schema
 		public partial class positiveInteger_Stype : IVal
 		{
 			protected positiveInteger_Stype() { Init(); }
-			public positiveInteger_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public positiveInteger_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3185,7 +3174,7 @@ namespace SDC.Schema
 		public partial class short_DEtype
 		{
 			protected short_DEtype() { Init(); }
-			public short_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public short_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "sh";
@@ -3214,10 +3203,10 @@ namespace SDC.Schema
 		public partial class short_Stype : IVal
 		{
 			protected short_Stype() { Init(); }
-			public short_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public short_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3239,7 +3228,7 @@ namespace SDC.Schema
 		public partial class string_DEtype
 		{
 			protected string_DEtype() { Init(); }
-			public string_DEtype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public string_DEtype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "str";
@@ -3254,10 +3243,10 @@ namespace SDC.Schema
 		public partial class string_Stype
 		{
 			protected string_Stype() { Init(); }
-			public string_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public string_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3278,7 +3267,7 @@ namespace SDC.Schema
 		public partial class time_DEtype
 		{
 			protected time_DEtype() { Init(); }
-			public time_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public time_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "tim";
@@ -3297,10 +3286,10 @@ namespace SDC.Schema
 		public partial class time_Stype : IVal
 		{
 			protected time_Stype() { Init(); }
-			public time_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public time_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3322,7 +3311,7 @@ namespace SDC.Schema
 		public partial class unsignedByte_DEtype
 		{
 			protected unsignedByte_DEtype() { Init(); }
-			public unsignedByte_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public unsignedByte_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "ubyte";
@@ -3341,10 +3330,10 @@ namespace SDC.Schema
 		public partial class unsignedByte_Stype : IVal
 		{
 			protected unsignedByte_Stype() { Init(); }
-			public unsignedByte_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public unsignedByte_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3366,7 +3355,7 @@ namespace SDC.Schema
 		public partial class unsignedInt_DEtype
 		{
 			protected unsignedInt_DEtype() { Init(); }
-			public unsignedInt_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public unsignedInt_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "unint";
@@ -3386,10 +3375,10 @@ namespace SDC.Schema
 		public partial class unsignedInt_Stype : IVal
 		{
 			protected unsignedInt_Stype() { Init(); }
-			public unsignedInt_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public unsignedInt_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3411,7 +3400,7 @@ namespace SDC.Schema
 		public partial class unsignedLong_DEtype
 		{
 			protected unsignedLong_DEtype() { Init(); }
-			public unsignedLong_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public unsignedLong_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "ulng";
@@ -3430,10 +3419,10 @@ namespace SDC.Schema
 		public partial class unsignedLong_Stype : IVal
 		{
 			protected unsignedLong_Stype() { Init(); }
-			public unsignedLong_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public unsignedLong_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3455,7 +3444,7 @@ namespace SDC.Schema
 		public partial class unsignedShort_DEtype
 		{
 			protected unsignedShort_DEtype() { Init(); }
-			public unsignedShort_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public unsignedShort_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "ush";
@@ -3474,10 +3463,10 @@ namespace SDC.Schema
 		public partial class unsignedShort_Stype : IVal
 		{
 			protected unsignedShort_Stype() { Init(); }
-			public unsignedShort_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public unsignedShort_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3499,7 +3488,7 @@ namespace SDC.Schema
 		public partial class XML_DEtype
 		{
 			protected XML_DEtype() { Init(); }//this.Any = new List<XmlElement>(); }
-			public XML_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public XML_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "xml";
@@ -3518,10 +3507,10 @@ namespace SDC.Schema
 			{
 				Init();
 			}
-			public XML_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public XML_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3544,7 +3533,7 @@ namespace SDC.Schema
 		public partial class yearMonthDuration_DEtype
 		{
 			protected yearMonthDuration_DEtype() { Init(); }
-			public yearMonthDuration_DEtype(DataTypes_DEType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public yearMonthDuration_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 			{
 				Init();
 				//ElementPrefix = "ymd";
@@ -3563,10 +3552,10 @@ namespace SDC.Schema
 		public partial class yearMonthDuration_Stype : IVal
 		{
 			protected yearMonthDuration_Stype() { Init(); }
-			public yearMonthDuration_Stype(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public yearMonthDuration_Stype(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3591,10 +3580,10 @@ namespace SDC.Schema
 		public partial class ItemNameType
 		{
 			protected ItemNameType() { Init(); }
-			public ItemNameType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public ItemNameType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3605,7 +3594,7 @@ namespace SDC.Schema
 		{
 			protected ItemNameAttributeType() { Init(); }
 
-			public ItemNameAttributeType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public ItemNameAttributeType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -3617,10 +3606,10 @@ namespace SDC.Schema
 		public partial class NameType
 		{
 			protected NameType() { Init(); }
-			public NameType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public NameType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3630,10 +3619,10 @@ namespace SDC.Schema
 		public partial class TargetItemIDType
 		{
 			protected TargetItemIDType() { Init(); }
-			public TargetItemIDType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public TargetItemIDType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3643,10 +3632,10 @@ namespace SDC.Schema
 		public partial class TargetItemNameType
 		{
 			protected TargetItemNameType() { Init(); }
-			public TargetItemNameType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public TargetItemNameType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3656,10 +3645,10 @@ namespace SDC.Schema
 		public partial class TargetItemXPathType
 		{
 			protected TargetItemXPathType() { Init(); }
-			public TargetItemXPathType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public TargetItemXPathType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -3670,7 +3659,7 @@ namespace SDC.Schema
 		public partial class ListItemParameterType
 		{
 			protected ListItemParameterType() { Init(); }
-			public ListItemParameterType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public ListItemParameterType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 				this._listItemAttribute = "associatedValue";
@@ -3683,7 +3672,7 @@ namespace SDC.Schema
 		public partial class ParameterItemType
 		{
 			protected ParameterItemType() { Init(); }
-			public ParameterItemType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public ParameterItemType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -3696,7 +3685,7 @@ namespace SDC.Schema
 		public partial class PredAlternativesType
 		{
 			public PredAlternativesType() { Init(); }
-			public PredAlternativesType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public PredAlternativesType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -3710,7 +3699,7 @@ namespace SDC.Schema
 		public partial class PredEvalAttribValuesType
 		{
 			protected PredEvalAttribValuesType() { Init(); }
-			public PredEvalAttribValuesType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public PredEvalAttribValuesType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -3723,7 +3712,7 @@ namespace SDC.Schema
 		public partial class PredGuardTypeSelectionSets
 		{
 			protected PredGuardTypeSelectionSets() { Init(); }
-			public PredGuardTypeSelectionSets(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public PredGuardTypeSelectionSets(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -3735,7 +3724,7 @@ namespace SDC.Schema
 		public partial class PredSingleSelectionSetsType
 		{
 			protected PredSingleSelectionSetsType() { Init(); }
-			public PredSingleSelectionSetsType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public PredSingleSelectionSetsType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -3747,7 +3736,7 @@ namespace SDC.Schema
 		public partial class RuleAutoActivateType
 		{
 			protected RuleAutoActivateType() { Init(); }
-			public RuleAutoActivateType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public RuleAutoActivateType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -3763,7 +3752,7 @@ namespace SDC.Schema
 		public partial class RuleAutoSelectType
 		{
 			protected RuleAutoSelectType() { Init(); }
-			public RuleAutoSelectType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public RuleAutoSelectType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -3775,7 +3764,7 @@ namespace SDC.Schema
 		public partial class RuleListItemMatchTargetsType
 		{
 			protected RuleListItemMatchTargetsType() { Init(); }
-			public RuleListItemMatchTargetsType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public RuleListItemMatchTargetsType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -3799,7 +3788,7 @@ namespace SDC.Schema
 		public partial class ValidationTypeSelectionSets
 		{
 			protected ValidationTypeSelectionSets() { Init(); }
-			public ValidationTypeSelectionSets(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public ValidationTypeSelectionSets(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -3811,7 +3800,7 @@ namespace SDC.Schema
 		public partial class ValidationTypeSelectionTest
 		{
 			protected ValidationTypeSelectionTest() { Init(); }
-			public ValidationTypeSelectionTest(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public ValidationTypeSelectionTest(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -3823,7 +3812,7 @@ namespace SDC.Schema
 		public partial class PredSelectionTestType
 		{
 			protected PredSelectionTestType() { Init(); }
-			public PredSelectionTestType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public PredSelectionTestType(BaseType parentNode) : base(parentNode)
 			{ Init(); }
 			private static void Init()
 			{
@@ -3833,7 +3822,7 @@ namespace SDC.Schema
 		public partial class CallFuncType
 		{
 			protected CallFuncType() { Init(); }
-			public CallFuncType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public CallFuncType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -3845,7 +3834,7 @@ namespace SDC.Schema
 		partial class CallFuncBaseType
 		{
 			protected CallFuncBaseType() { Init(); }
-			public CallFuncBaseType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public CallFuncBaseType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -3859,7 +3848,7 @@ namespace SDC.Schema
 		partial class CallFuncBoolType
 		{
 			protected CallFuncBoolType() { Init(); }
-			public CallFuncBoolType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public CallFuncBoolType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -4232,10 +4221,10 @@ namespace SDC.Schema
 		public partial class OnEventType : IDisplayedTypeMember
 		{
 			protected OnEventType() { Init(); }
-			public OnEventType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public OnEventType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4246,10 +4235,10 @@ namespace SDC.Schema
 		public partial class RulesType
 		{
 			protected RulesType() { Init(); }
-			public RulesType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public RulesType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4260,10 +4249,10 @@ namespace SDC.Schema
 		public partial class EventType : IDisplayedTypeMember
 		{
 			protected EventType() { Init(); }
-			public EventType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public EventType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4275,7 +4264,7 @@ namespace SDC.Schema
 		{
 
 			protected PredGuardType() { Init(); }
-			public PredGuardType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public PredGuardType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 			}
@@ -4289,10 +4278,10 @@ namespace SDC.Schema
 		public partial class PredActionType
 		{
 			protected PredActionType() { Init(); }
-			public PredActionType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public PredActionType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4305,10 +4294,10 @@ namespace SDC.Schema
 		public partial class FuncBoolBaseType
 		{
 			protected FuncBoolBaseType() { Init(); }
-			public FuncBoolBaseType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public FuncBoolBaseType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4325,10 +4314,10 @@ namespace SDC.Schema
 		public partial class ContactType : IDisplayedTypeMember, IAddPerson, IAddOrganization
 		{
 			protected ContactType() { Init(); }
-			public ContactType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public ContactType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4349,10 +4338,10 @@ namespace SDC.Schema
 		public partial class OrganizationType
 		{
 			protected OrganizationType() { Init(); }
-			public OrganizationType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public OrganizationType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4363,10 +4352,10 @@ namespace SDC.Schema
 		public partial class PersonType
 		{
 			protected PersonType() { Init(); }
-			public PersonType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public PersonType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4377,10 +4366,10 @@ namespace SDC.Schema
 		public partial class AddressType
 		{
 			protected AddressType() { Init(); }
-			public AddressType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public AddressType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4391,10 +4380,10 @@ namespace SDC.Schema
 		public partial class AreaCodeType
 		{
 			protected AreaCodeType() { Init(); }
-			public AreaCodeType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public AreaCodeType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4407,10 +4396,10 @@ namespace SDC.Schema
 		public partial class RichTextType : IHtmlHelpers
 		{
 			protected RichTextType() { Init(); }
-			public RichTextType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public RichTextType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4433,10 +4422,10 @@ namespace SDC.Schema
 		public partial class ComplianceRuleType
 		{
 			protected ComplianceRuleType() { Init(); }
-			public ComplianceRuleType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public ComplianceRuleType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4447,10 +4436,10 @@ namespace SDC.Schema
 		public partial class SubmissionRuleType
 		{
 			protected SubmissionRuleType() { Init(); }
-			public SubmissionRuleType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public SubmissionRuleType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4463,10 +4452,10 @@ namespace SDC.Schema
 		public partial class HashType
 		{
 			protected HashType() { Init(); }
-			public HashType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public HashType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4478,10 +4467,10 @@ namespace SDC.Schema
 		public partial class IdentifierType
 		{
 			protected IdentifierType() { Init(); }
-			public IdentifierType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public IdentifierType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 
 			}
 			private void Init()
@@ -4493,10 +4482,10 @@ namespace SDC.Schema
 		public partial class LanguageCodeISO6393_Type
 		{
 			protected LanguageCodeISO6393_Type() { Init(); }
-			public LanguageCodeISO6393_Type(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public LanguageCodeISO6393_Type(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4507,10 +4496,10 @@ namespace SDC.Schema
 		public partial class LanguageType
 		{
 			protected LanguageType() { Init(); }
-			public LanguageType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public LanguageType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 
 			}
 			private void Init()
@@ -4522,10 +4511,10 @@ namespace SDC.Schema
 		public partial class ProvenanceType
 		{
 			protected ProvenanceType() { Init(); }
-			public ProvenanceType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public ProvenanceType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4536,10 +4525,10 @@ namespace SDC.Schema
 		public partial class ReplacedIDsType
 		{
 			protected ReplacedIDsType() { Init(); }
-			public ReplacedIDsType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public ReplacedIDsType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4550,10 +4539,10 @@ namespace SDC.Schema
 		public partial class VersionType
 		{
 			protected VersionType() { Init(); }
-			public VersionType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public VersionType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4564,10 +4553,10 @@ namespace SDC.Schema
 		public partial class VersionTypeChanges
 		{
 			protected VersionTypeChanges() { Init(); }
-			public VersionTypeChanges(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public VersionTypeChanges(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4583,11 +4572,11 @@ namespace SDC.Schema
 		public partial class ContactsType
 		{
 			protected ContactsType() { Init(); }
-			public ContactsType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public ContactsType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
 				this.ElementPrefix = "ctc";
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private static void Init()
 			{
@@ -4598,10 +4587,10 @@ namespace SDC.Schema
 		public partial class CountryCodeType
 		{
 			protected CountryCodeType() { Init(); }
-			public CountryCodeType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public CountryCodeType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4612,10 +4601,10 @@ namespace SDC.Schema
 		public partial class DestinationType
 		{
 			protected DestinationType() { Init(); }
-			public DestinationType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public DestinationType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 
 			}
 			private void Init()
@@ -4628,10 +4617,10 @@ namespace SDC.Schema
 		public partial class PhoneNumberType
 		{
 			protected PhoneNumberType() { Init(); }
-			public PhoneNumberType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public PhoneNumberType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4642,10 +4631,10 @@ namespace SDC.Schema
 		public partial class PhoneType
 		{
 			protected PhoneType() { Init(); }
-			public PhoneType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public PhoneType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4657,10 +4646,10 @@ namespace SDC.Schema
 		public partial class JobType
 		{
 			protected JobType() { Init(); }
-			public JobType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public JobType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4673,10 +4662,10 @@ namespace SDC.Schema
 		public partial class EmailAddressType
 		{
 			protected EmailAddressType() { Init(); }
-			public EmailAddressType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public EmailAddressType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4687,10 +4676,10 @@ namespace SDC.Schema
 		public partial class EmailType
 		{
 			protected EmailType() { Init(); }
-			public EmailType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public EmailType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 				//this.Usage = new string_Stype();
 				//this.EmailClass = new string_Stype();
 				//this.EmailAddress = new EmailAddressType();
@@ -4709,10 +4698,10 @@ namespace SDC.Schema
 		public partial class ApprovalType
 		{
 			protected ApprovalType() { Init(); }
-			public ApprovalType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public ApprovalType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4723,10 +4712,10 @@ namespace SDC.Schema
 		public partial class AssociatedFilesType
 		{
 			protected AssociatedFilesType() { Init(); }
-			public AssociatedFilesType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public AssociatedFilesType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4737,10 +4726,10 @@ namespace SDC.Schema
 		public partial class AcceptabilityType
 		{
 			protected AcceptabilityType() { Init(); }
-			public AcceptabilityType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public AcceptabilityType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4752,10 +4741,10 @@ namespace SDC.Schema
 		public partial class FileDatesType
 		{
 			protected FileDatesType() { Init(); }
-			public FileDatesType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public FileDatesType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4765,10 +4754,10 @@ namespace SDC.Schema
 		public partial class FileHashType
 		{
 			protected FileHashType() { Init(); }
-			public FileHashType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public FileHashType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4779,10 +4768,10 @@ namespace SDC.Schema
 		public partial class FileType
 		{
 			protected FileType() { Init(); }
-			public FileType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public FileType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{
@@ -4793,10 +4782,10 @@ namespace SDC.Schema
 		public partial class FileUsageType
 		{
 			protected FileUsageType() { Init(); }
-			public FileUsageType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+			public FileUsageType(BaseType parentNode) : base(parentNode)
 			{
 				Init();
-				SetNames(elementName, elementPrefix);
+				
 			}
 			private void Init()
 			{

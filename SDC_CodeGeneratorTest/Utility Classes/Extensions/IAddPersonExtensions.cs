@@ -68,12 +68,14 @@ namespace SDC.Schema
 			pt.Phone = new List<PhoneType>();//TODO: Need separate method(s) for this
 			pt.Job = new List<JobType>();//TODO: Need separate method(s) for this
 
-			pt.Role = new string_Stype(pt, "Role");
+			pt.Role = new string_Stype(pt);
+			pt.Role.ElementName = "Role";
 
 			pt.StreetAddress = new List<AddressType>();//TODO: Need separate method(s) for this
 			pt.Identifier = new List<IdentifierType>();
 
-			pt.Usage = new string_Stype(pt, "Usage");
+			pt.Usage = new string_Stype(pt);
+			pt.Usage.ElementName = "Usage";
 
 			pt.WebURL = new List<anyURI_Stype>();//TODO: Need separate method(s) for this
 

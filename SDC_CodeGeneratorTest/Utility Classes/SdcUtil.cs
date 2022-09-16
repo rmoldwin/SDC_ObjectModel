@@ -343,7 +343,7 @@ namespace SDC.Schema
 				int order = 0;
 				IdentifiedExtensionType lastIet;
 				List<BaseType> SortedNodes = new();
-
+				
 				var sbTreeText = new StringBuilder();
 				var newPropsText = new StringBuilder();
 				BaseType btNode = (BaseType)topNode;
@@ -1473,7 +1473,8 @@ namespace SDC.Schema
 			{
 				//we are at the top node
 				xmlElementName = itemType.GetCustomAttribute<XmlRootAttribute>()?.ElementName;
-				if (xmlElementName is null) throw new InvalidOperationException("Could not find a name for the item parameter.  This may occur if the item has no parent object");
+				if (xmlElementName is null) 
+					throw new InvalidOperationException("Could not find a name for the item parameter.  This may occur if the item has no parent object");
 				return xmlElementName;
 			}
 
