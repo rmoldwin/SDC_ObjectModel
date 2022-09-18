@@ -380,7 +380,7 @@ namespace SDCObjectModelTests.TestClasses
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 			SdcUtil.TreeSort_ClearNodeIds();
 
-			BaseType? n = SdcUtil.GetLastDescendant(Setup.FD);
+			BaseType? n = SdcUtil.GetLastDescendantElement(Setup.FD);
 			int i = Setup.FD.Nodes.Count - 1;
 			string content;
 
@@ -404,7 +404,7 @@ namespace SDCObjectModelTests.TestClasses
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 
-			var n = SdcUtil.GetLastDescendant(Setup.FD.Body);
+			var n = SdcUtil.GetLastDescendantElement(Setup.FD.Body);
 			Assert.IsTrue(n.ElementName == "LocalFunctionName" && n.type == "submit");
 
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
@@ -452,16 +452,16 @@ namespace SDCObjectModelTests.TestClasses
 			var pList = t.Nodes.Where(n => n.Value is PropertyType).Select(n => n.Value).ToList();
 
 
-			Debug.Print(SdcUtil.GetPropertyInfoMeta(qList[1]).ToString());
-			Debug.Print(SdcUtil.GetPropertyInfoMeta(sList[1]).ToString());
-			Debug.Print(SdcUtil.GetPropertyInfoMeta(aList[1]).ToString());
-			Debug.Print(SdcUtil.GetPropertyInfoMeta(cList[1]).ToString());
-			Debug.Print(SdcUtil.GetPropertyInfoMeta(pList[1]).ToString());
-			Debug.Print(SdcUtil.GetPropertyInfoMeta(qList[10]).ToString());
-			Debug.Print(SdcUtil.GetPropertyInfoMeta(sList[10]).ToString());
-			Debug.Print(SdcUtil.GetPropertyInfoMeta(aList[10]).ToString());
-			Debug.Print(SdcUtil.GetPropertyInfoMeta(cList[10]).ToString());
-			Debug.Print(SdcUtil.GetPropertyInfoMeta(pList[10]).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(qList[1]).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(sList[1]).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(aList[1]).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(cList[1]).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(pList[1]).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(qList[10]).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(sList[10]).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(aList[10]).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(cList[10]).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(pList[10]).ToString());
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
 		[TestMethod]
@@ -474,7 +474,7 @@ namespace SDCObjectModelTests.TestClasses
 
 			foreach (var n in Setup.FD.Nodes)
 			{
-				SdcUtil.GetPropertyInfoMeta(n.Value);
+				SdcUtil.GetElementPropertyInfoMeta(n.Value);
 				//Debug.Print(ISdcUtil.GetPropertyInfo(n.Value).ToString());
 			}
 			Debug.Print(((((float)Stopwatch.GetTimestamp() - a) / Stopwatch.Frequency) / Setup.FD.Nodes.Count).ToString());
@@ -597,7 +597,7 @@ namespace SDCObjectModelTests.TestClasses
 		public void ReflectChildList()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var lst = SdcUtil.ReflectChildElementList(Setup.FD);
+			var lst = SdcUtil.ReflectChildElements(Setup.FD);
 			foreach (var n in lst)
 				Debug.Print($"{n.order}: \t Name: {n.name}");
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");

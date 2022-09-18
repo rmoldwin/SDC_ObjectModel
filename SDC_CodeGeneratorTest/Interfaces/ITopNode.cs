@@ -29,12 +29,7 @@ namespace SDC.Schema
 		[XmlIgnore]
         [JsonIgnore]
         Dictionary<Guid, BaseType> Nodes { get; }
-        /// <summary>
-        /// Dictionary.  Given a Node ObjectGUID, return the *parent* node's object reference
-        /// </summary>
-        [XmlIgnore]
-        [JsonIgnore]
-        Dictionary<Guid, BaseType> ParentNodes { get; }
+
 
         /// <summary>
         /// Dictionary.  Given a NodeID ObjectGUID, return a list of the child nodes object reference
@@ -115,10 +110,34 @@ namespace SDC.Schema
 		/// Internal version of MaxObjectID, which has a setter; MaxObjectID only has a getter
 		/// </summary> 
 		internal int MaxObjectIDint { get; set; }
+		/// <summary>
+		/// Dictionary.  Given a Node ObjectGUID, return the *parent* node's object reference
+		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		Dictionary<Guid, BaseType> ParentNodes { get; }
+
+
+
+
+
 
 	}
 
-    public interface ITopNodeCollectionsPublic
+
+
+
+
+
+
+
+
+
+	/// <summary>
+	/// ITopNodeCollectionsPublic defines public read-only SDC node collections for ITopNode SDC objects.
+	/// For use in ITopNode classes, this public interface must be inherited by ITopNodeCollections.
+	/// </summary>
+	public interface ITopNodeCollectionsPublic
 	{
 		/// <summary>
 		/// ReadOnlyObservableCollection of IET nodes.
@@ -133,20 +152,32 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		ReadOnlyDictionary<Guid, BaseType> NodesRO { get; }
-		/// <summary>
-		/// ReadOnlyDictionary.  Given an ObjectGUID, return the *parent* node's object reference
-		/// </summary>
-		[XmlIgnore]
-		[JsonIgnore]
-		ReadOnlyDictionary<Guid, BaseType> ParentNodesRO { get; }
+		///// <summary>
+		///// ReadOnlyDictionary.  Given an ObjectGUID, return the *parent* node's object reference.
+		///// </summary>
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//ReadOnlyDictionary<Guid, BaseType> ParentNodesRO { get; }
 
-		/// <summary>
-		/// ReadOnlyDictionary.  Given an ObjectGUID, return a list of the child nodes object reference
-		/// </summary>
-		[XmlIgnore]
-		[JsonIgnore]
-		ReadOnlyDictionary<Guid, IReadOnlyList<BaseType>> ChildNodesRO { get; }
+		///// <summary>
+		///// ReadOnlyDictionary.  Given an ObjectGUID, return a list of the child nodes object reference.
+		///// </summary>
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//ReadOnlyDictionary<Guid, IReadOnlyList<BaseType>> ChildNodesRO { get; }
 	}
+
+
+	/// <summary>
+	/// Defines internal SDC node collections for ITopNode SDC objects.
+	/// When implemented in class instances, these collections will be 
+	/// wrapped by the read-only collections in ITopNodeCollectionsPublic.
+	/// The internal members of this interface must be declared explicitly
+	/// , (e.g., ITopNodeCollections.IETnodes),
+	/// and will not be visible outside this assembly.
+	/// The public interface is available for public access to the read-only collections.
+	/// 
+	/// </summary>
 	internal interface ITopNodeCollections: ITopNodeCollectionsPublic
 	{
 		/// <summary>

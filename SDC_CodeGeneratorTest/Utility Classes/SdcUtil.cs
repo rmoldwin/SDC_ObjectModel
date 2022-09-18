@@ -373,9 +373,10 @@ namespace SDC.Schema
 				}  //Set TopNode
 				if (refreshTree)
 				{
-					topNode.Nodes.Clear();
-					topNode.ParentNodes.Clear();
-					topNode.ChildNodes.Clear();
+					var topNodeInternal = (ITopNode)topNode;
+					topNodeInternal.Nodes.Clear();
+					topNodeInternal.ParentNodes.Clear();
+					topNodeInternal.ChildNodes.Clear();
 				}
 				topNode.Nodes.Add(btNode.ObjectGUID, btNode);
 				SortedNodes.Add(btNode);
@@ -495,7 +496,7 @@ namespace SDC.Schema
 							suffix = "_" + btProp.SubIETcounter.ToString();
 							if (suffix is null) Debugger.Break();
 						}
-						btProp.name = btProp.CreateNameCAP(".100004300", suffix);
+						btProp.name = btProp.CreateElementNameCAP(".100004300", suffix);
 
 						if (print)
 						{
@@ -525,7 +526,7 @@ namespace SDC.Schema
 			catch { throw; }
 			finally
 			{
-				TreeSort_ClearNodeIds();
+				//TreeSort_ClearNodeIds();
 			}
 		}
 		/// <summary>
@@ -542,15 +543,13 @@ namespace SDC.Schema
 			StringBuilder sbTreeText = new();
 			int counter; //used to count each node sequentially
 			
-			BaseType n = (BaseType)topNode;
-			
-			
+			BaseType n = (BaseType)topNode;			
 
 			void MoveNext(BaseType? n)
 			{
 				if (n is null) return;
 				int indent = 0; //used for padding printed output; increments each time will evaluate a set of child nodes
-				BaseType?[]? kids = ReflectChildElementList(n)?.ToArray<BaseType?>();
+				BaseType?[]? kids = ReflectChildElements(n)?.ToArray<BaseType?>();
 
 				if (kids is not null)
 				{
@@ -567,11 +566,11 @@ namespace SDC.Schema
 					outList.Add(n);
 					if (print) sbTreeText.Append($"({n.DotLevel})#{counter}; OID: {n.ObjectID}; name: {n.name}{content(n)}");					
 					counter++; //simple integer counter, incremented with each node; should match the ObjectID assigned during XML deserialization
-					ReflectNextSib(n);
+					ReflectNextSibElement(n);
 					MoveNext(n);				}
 
 			}
-			TreeSort_ClearNodeIds();
+			//TreeSort_ClearNodeIds();
 			treeText = sbTreeText.ToString();
 			return outList;
 
@@ -617,7 +616,7 @@ namespace SDC.Schema
 				{
 					if (childList != null)
 					{
-						SortKids(n, childList);
+						SortElementKids(n, childList);
 						foreach (var child in childList)
 							MoveNext(child);
 					}
@@ -630,7 +629,7 @@ namespace SDC.Schema
 		//Consider this parameter list: ReflectSubtreeList(BaseType bt, int startReorder = -1, int orderMultiplier = 1)
 		public static List<BaseType> ReflectSubtreeList(BaseType bt, bool reOrder = false, bool reRegisterNodes = false)
 		{
-			if (bt is null) return null;
+			//if (bt is null) return null;
 			var i = 0;
 			var kids = new List<BaseType>();
 			kids.Add(bt); //root node
@@ -639,7 +638,7 @@ namespace SDC.Schema
 			ReflectSubtree2(bt);
 			void ReflectSubtree2(BaseType bt)
 			{
-				var cList = ReflectChildElementList(bt);
+				var cList = ReflectChildElements(bt);
 				if (cList is not null)
 				{
 					foreach (BaseType c in cList)
@@ -682,7 +681,7 @@ namespace SDC.Schema
 				{
 					if (childList != null)
 					{
-						SortKids(n, childList);
+						SortElementKids(n, childList);
 						foreach (var child in childList)
 							MoveNext(child); 
 					}
@@ -700,13 +699,13 @@ namespace SDC.Schema
 		{
 			if (item is null) return null;
 
-			var firstKid = GetFirstChild(item);
+			var firstKid = GetFirstChildElement(item);
 			if (firstKid != null) return firstKid;
 
 			var n = item;
 			do
 			{
-				var nextSib = GetNextSib(n);
+				var nextSib = GetNextSibElement(n);
 				if (nextSib != null) return nextSib;
 
 				n = n.ParentNode;
@@ -725,10 +724,10 @@ namespace SDC.Schema
 
 			//No child items contained the next node, so let's look at other properties inside the parent object
 			//Is next item part of a parent property that follows our item?				
-			nextNode = ReflectNextSib(item);
+			nextNode = ReflectNextSibElement(item);
 			if (nextNode is not null) return nextNode;
 			if (item.ParentNode is null) return null;
-			nextNode = ReflectNextSib(item.ParentNode);
+			nextNode = ReflectNextSibElement(item.ParentNode);
 			return null;
 		}
 
@@ -751,7 +750,7 @@ namespace SDC.Schema
 					if (nextNode != null)
 						return nextNode;
 				}
-				nextNode = ReflectNextSib(item);
+				nextNode = ReflectNextSibElement(item);
 				if (nextNode != null)
 					return nextNode;
 
@@ -772,7 +771,7 @@ namespace SDC.Schema
 		/// <param name="startAfterNode">The node for which we want to find the next sibling node</param>
 		/// <param name="parentNode">Only required if the ParentNodes dictionary has not been populated or is corrupted or stale</param>
 		/// <returns>The ruturned node will be of type BaseType, or null if no next sibling node is found</returns>
-		public static BaseType? ReflectNextSib(BaseType startAfterNode, BaseType? parentNode = null)
+		public static BaseType? ReflectNextSibElement(BaseType startAfterNode, BaseType? parentNode = null)
 		{
 			parentNode ??= startAfterNode.ParentNode;
 			if (parentNode is null) return null; //You can't have sibs without a parent
@@ -860,57 +859,57 @@ namespace SDC.Schema
 			}
 			return null;
 		}
-		public static BaseType? GetFirstSib(BaseType item)
+		public static BaseType? GetFirstSibElement(BaseType item)
 		{
 			var par = item.ParentNode;
 			if (par is null) return null;
 			item.TopNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
-			if (sibs is not null) SortKids(item, sibs);
+			if (sibs is not null) SortElementKids(item, sibs);
 			return sibs?[0];
 		}
-		public static BaseType? ReflectFirstSib(BaseType item)
+		public static BaseType? ReflectFirstSibElement(BaseType item)
 		{
 			var par = item.ParentNode;
 			if (par is null) return null;
 
-			var lst = ReflectChildElementList(par);
+			var lst = ReflectChildElements(par);
 			return lst.FirstOrDefault();
 		}
-		public static BaseType? GetNextSib(BaseType item)
+		public static BaseType? GetNextSibElement(BaseType item)
 		{
 			var par = item.ParentNode;
 			if (par is null) return null;
 			var sibs = item.TopNode.ChildNodes[par.ObjectGUID];
 			if (sibs is null) return null;
-			SortKids(item, sibs);
+			SortElementKids(item, sibs);
 			var index = sibs.IndexOf(item);
 			if (index == sibs.Count - 1) return null; //item is the last item
 			return sibs[index + 1];
 		}
-		public static BaseType? ReflectNextSib(BaseType item)
+		public static BaseType? ReflectNextSibElement(BaseType item)
 		{
 			var par = item.ParentNode;
 			if (par is null) return null;
 
-			var lst = ReflectChildElementList(par);
+			var lst = ReflectChildElements(par);
 			var myIndex = lst?.IndexOf(item) ?? -1;
 			if (myIndex < 0 || myIndex == lst?.Count - 1) return null;
 			return lst[myIndex + 1]??null;
 		}
-		public static BaseType? GetLastSib(BaseType item)
+		public static BaseType? GetLastSibElement(BaseType item)
 		{
 			var par = item.ParentNode;
 			if (par is null) return null;
 			item.TopNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
-			if (sibs is not null) SortKids(item, sibs);
+			if (sibs is not null) SortElementKids(item, sibs);
 			return sibs?.Last();
 		}
-		public static BaseType? ReflectLastSib(BaseType item)
+		public static BaseType? ReflectLastSibElement(BaseType item)
 		{
 			var par = item.ParentNode;
 			if (par is null) return null;
 
-			var lst = ReflectChildElementList(par);
+			var lst = ReflectChildElements(par);
 			return lst?.Last();
 		}
 		public static BaseType? GetPrevElement(BaseType? item)
@@ -919,10 +918,10 @@ namespace SDC.Schema
 			BaseType? par = item.ParentNode;
 			BaseType? lastDesc;
 
-			var prevSib = GetPrevSib(item);
+			var prevSib = GetPrevSibElement(item);
 			if (prevSib is not null)
 			{
-				lastDesc = GetLastDescendant(prevSib);
+				lastDesc = GetLastDescendantElement(prevSib);
 				if (lastDesc is not null) return lastDesc;
 				return prevSib;
 			}
@@ -937,49 +936,49 @@ namespace SDC.Schema
 			BaseType? par = item.ParentNode;
 			BaseType? lastDesc;
 
-			var prevSib = ReflectPrevSib(item);
+			var prevSib = ReflectPrevSibElement(item);
 			if (prevSib is not null)
 			{
-				lastDesc = ReflectLastDescendant(prevSib);
+				lastDesc = ReflectLastDescendantElement(prevSib);
 				if (lastDesc is not null) return lastDesc;
 				return prevSib;
 			}
 
 			if (par is null) return null; //item is the top node
 
-			lastDesc = ReflectLastDescendant(par);
+			lastDesc = ReflectLastDescendantElement(par);
 			if (lastDesc is not null) return lastDesc;
 
 			return par;    
 		}
-		public static BaseType? GetPrevSib(BaseType item)
+		public static BaseType? GetPrevSibElement(BaseType item)
 		{
 			var par = item?.ParentNode;
 			if (par is null) return null;
 			item!.TopNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
 			if (sibs is null) return null;
-			SortKids(item, sibs);
+			SortElementKids(item, sibs);
 
 			var index = sibs?.IndexOf(item)??-1;
 			if (index == 0) return null; //item is the first item
 			return sibs?[index - 1];
 		}
-		public static BaseType? ReflectPrevSib(BaseType item)
+		public static BaseType? ReflectPrevSibElement(BaseType item)
 		{
 			var par = item.ParentNode;
 			if (par is null) return null;
 
-			var lst = ReflectChildElementList(par);
+			var lst = ReflectChildElements(par);
 			if (lst is null) return null;
 			var myIndex = lst?.IndexOf(item) ?? -1;
 			if (myIndex < 1) return null;
 			return lst?[myIndex - 1];
 		}
 
-		public static BaseType? GetLastChild(BaseType item)
+		public static BaseType? GetLastChildElement(BaseType item)
 		{
 			item.TopNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
-			if (kids is not null) SortKids(item, kids);
+			if (kids is not null) SortElementKids(item, kids);
 			return kids?.Last();
 		}
 		/// <summary>
@@ -990,7 +989,7 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="parentNode"></param>
 		/// <returns>List&lt;BaseType>? containing the child nodes</returns>
-		public static BaseType? ReflectLastChild(BaseType parentNode)
+		public static BaseType? ReflectLastChildElement(BaseType parentNode)
 		{
 			if (parentNode is null) return null; //You can't have sibs without a parent
 			IEnumerable<PropertyInfo>? piIE = null;
@@ -1027,11 +1026,11 @@ namespace SDC.Schema
 			}
 			return null;
 		}
-		public static BaseType? GetFirstChild(BaseType item)
+		public static BaseType? GetFirstChildElement(BaseType item)
 		{
 			item.TopNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
 
-			if (kids is not null) SortKids(item, kids);
+			if (kids is not null) SortElementKids(item, kids);
 			return kids?[0];
 		}
 		/// <summary>
@@ -1039,7 +1038,7 @@ namespace SDC.Schema
 		/// Uses reflection only, and does not use any node dictionaries.
 		/// </summary>
 		/// <param name="parentNode"></param>
-		/// <returns>List&lt;BaseType>? containing the child nodes</returns>
+		/// <returns>BaseType? containing the first child node</returns>
 		public static BaseType? ReflectFirstChild(BaseType parentNode)
 		{
 			if (parentNode is null) return null; //You can't have sibs without a parent
@@ -1078,29 +1077,29 @@ namespace SDC.Schema
 			}
 			return null;
 		}
-		public static List<BaseType>? GetChildList(BaseType item)
+		public static ReadOnlyCollection<BaseType>? GetChildElements(BaseType item)
 		{
 			item.TopNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
-			if(kids is not null) SortKids(item, kids);
-			return kids;
+			if(kids is not null) SortElementKids(item, kids);
+			return kids?.AsReadOnly();
 		}
 
 		/// <summary>
 		/// Given a parent node, retrieve the list of correctly-ordered child Xml Element nodes, if present.
 		/// Uses reflection only, and does not use any node dictionaries.
 		/// </summary>
-		/// <param name="parentNode"></param>
+		/// <param name="elementNode"></param>
 		/// <returns>List&lt;BaseType>? containing the child nodes</returns>
-		public static List<BaseType>? ReflectChildElementList(BaseType parentNode)
+		public static List<BaseType>? ReflectChildElements(BaseType elementNode)
 		{
-			if (parentNode is null) return null; //You can't have sibs without a parent
+			if (elementNode is null) return null; //You can't have sibs without a parent
 			List<BaseType>? childNodes = new ();
 			IEnumerable<PropertyInfo>? piIE = null;
 			int nodeIndex = -1;
 
 			//Create a LIFO stack of the targetNode inheritance hierarchy.  The stack's top level type will always be BaseType
 			//For most non-datatype SDC objects, it could be a bit more efficient to use ExtensionBaseType - we can test this another time
-			Type t = parentNode.GetType();
+			Type t = elementNode.GetType();
 			var s = new Stack<Type>();
 			s.Push(t);
 
@@ -1120,7 +1119,7 @@ namespace SDC.Schema
 				foreach (var p in piIE)
 				{
 					nodeIndex++;
-					object? o = p.GetValue(parentNode);
+					object? o = p.GetValue(elementNode);
 					if (o is not null)
 					{
 						if (o is BaseType bt)
@@ -1142,7 +1141,7 @@ namespace SDC.Schema
 		/// <param name="getAllAttributes">If true (the default), returns all attributes.    
 		/// If false, returns only those attributes which have values that will be serialized</param>
 		/// <returns>List&lt;BaseType>? containing the child nodes</returns>
-		public static List<AttributeInfo> ReflectXmlAttributes(BaseType elementNode, bool getAllAttributes = true)
+		public static List<AttributeInfo> ReflectChildAttributes(BaseType elementNode, bool getAllAttributes = true)
 		{
 			if (elementNode is null) throw new NullReferenceException("elementNode cannot be null"); //You can't have sibs without a parent
 			//List<PropertyInfo> attributesX = new();
@@ -1197,7 +1196,7 @@ namespace SDC.Schema
 
 
 
-		public static bool HasChild(BaseType item)
+		public static bool HasChildElement(BaseType item)
 		{
 			item.TopNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
 			if (kids is null || kids.Any()) return false;
@@ -1205,7 +1204,7 @@ namespace SDC.Schema
 		}
 
 
-		public static BaseType? GetLastDescendant(BaseType item, BaseType? stopNode = null)
+		public static BaseType? GetLastDescendantElement(BaseType item, BaseType? stopNode = null)
 		{
 			BaseType? last = null;
 			BaseType? n = item;
@@ -1215,7 +1214,7 @@ namespace SDC.Schema
 				if (kids is not null && kids.Count > 0)
 				{
 
-					SortKids(n, kids);
+					SortElementKids(n, kids);
 
 					//option to abort search just before stopNode: check for stopNode in sibling list.
 					if (stopNode is not null)
@@ -1235,7 +1234,7 @@ namespace SDC.Schema
 			return last;
 		}
 
-		public static BaseType? GetLastDescendantSimple(BaseType n)
+		public static BaseType? GetLastDescendantElementSimple(BaseType n)
 		{
 			//var nodes = n.TopNode.Nodes;
 			var cn = n.TopNode.ChildNodes;
@@ -1251,7 +1250,7 @@ namespace SDC.Schema
 				{
 					if (childList != null)
 					{
-						SortKids(n, childList);
+						SortElementKids(n, childList);
 						lastNode = childList.Last();
 						MoveNext(lastNode);
 					}
@@ -1261,7 +1260,7 @@ namespace SDC.Schema
 		}
 
 
-		public static BaseType? ReflectLastDescendant(BaseType bt, BaseType? stopNode)
+		public static BaseType? ReflectLastDescendantElement(BaseType bt, BaseType? stopNode)
 		{
 			if (bt is null) return null;
 			BaseType? lastKid = null;
@@ -1270,7 +1269,7 @@ namespace SDC.Schema
 			//!+-------Local Method--------------------------
 			void FindLastKid(BaseType bt)
 			{
-				List<BaseType>? kids = ReflectChildElementList(bt);
+				List<BaseType>? kids = ReflectChildElements(bt);
 				var testLast = kids?.Last();
 				if (testLast is null) return; //we ran out of kids to check, so lastKid is the last descendant                
 
@@ -1289,7 +1288,7 @@ namespace SDC.Schema
 			}
 			return lastKid;
 		}
-		public static BaseType? ReflectLastDescendant(BaseType bt)
+		public static BaseType? ReflectLastDescendantElement(BaseType bt)
 		{
 			if (bt is null) return null;
 			BaseType? lastKid = null;
@@ -1298,7 +1297,7 @@ namespace SDC.Schema
 
 			void FindLastKid(BaseType bt)
 			{
-				var testLast = ReflectLastChild(bt);
+				var testLast = ReflectLastChildElement(bt);
 				if (testLast is null) return; //we ran out of kids to check, so lastKid is the last descendant                
 
 				lastKid = testLast;
@@ -1307,7 +1306,7 @@ namespace SDC.Schema
 			return lastKid;
 		}
 
-		internal static int GetMaxOrderFromXmlElementAttributes(BaseType item)
+		private static int GetMaxOrderFromXmlElementAttributes(BaseType item)
 		{
 			var props = item.GetType().GetProperties();
 
@@ -1326,9 +1325,9 @@ namespace SDC.Schema
 
 		}
 
-		public static PropertyInfoMetadata GetPropertyInfoMeta(BaseType item, bool getNames = true)
+		public static PropertyInfoMetadata GetElementPropertyInfoMeta(BaseType item, bool getNames = true)
 		{
-			PropertyInfo? pi = GetPropertyInfo(
+			PropertyInfo? pi = GetElementPropertyInfo(
 				item,
 				out string? propName,
 				out int itemIndex,
@@ -1360,7 +1359,7 @@ namespace SDC.Schema
 		/// ieItems: if the property is IEnumerable&lt;BaseType>, the IEnumerable property object is returned as an out parameter, otherwise it is null
 		/// itemIndex: the index of "item" in "ieItems" is returned as an out parameter, otherwise it is -1
 		/// </returns>
-		private static PropertyInfo? GetPropertyInfo(
+		private static PropertyInfo? GetElementPropertyInfo(
 			BaseType item,
 			out string? propName,
 			out int itemIndex,
@@ -1396,10 +1395,10 @@ namespace SDC.Schema
 
 
 		}
-		private static int GetItemIndex(BaseType item, out IEnumerable<BaseType>? ieItems, out PropertyInfo? piItemOut, out string errorMsg)
-		=> GetItemIndex(item, null, out ieItems, out piItemOut, out errorMsg);
+		private static int GetElementItemIndex(BaseType item, out IEnumerable<BaseType>? ieItems, out PropertyInfo? piItemOut, out string errorMsg)
+		=> GetElementItemIndex(item, null, out ieItems, out piItemOut, out errorMsg);
 
-		private static int GetItemIndex(BaseType item, IEnumerable<PropertyInfo>? ieParProps, out IEnumerable<BaseType>? ieItems, out PropertyInfo? piItemOut, out string errorMsg)
+		private static int GetElementItemIndex(BaseType item, IEnumerable<PropertyInfo>? ieParProps, out IEnumerable<BaseType>? ieItems, out PropertyInfo? piItemOut, out string errorMsg)
 		{
 			errorMsg = "";
 			ieItems = null;
@@ -1434,7 +1433,7 @@ namespace SDC.Schema
 			return -1;
 		}
 
-		public static string ReflectSdcElement(BaseType item, out IEnumerable<BaseType>? ieItems, out int xmlOrder, out int maxXmlOrder, out int itemIndex, out PropertyInfo piItem, out string? errorMsg)
+		private static string ReflectSdcElement(BaseType item, out IEnumerable<BaseType>? ieItems, out int xmlOrder, out int maxXmlOrder, out int itemIndex, out PropertyInfo piItem, out string? errorMsg)
 		{
 			string? elementName = ReflectSdcElement(null, item, out ieItems, out xmlOrder, out maxXmlOrder, out itemIndex, out piItem, out errorMsg);
 			return elementName;
@@ -1456,7 +1455,7 @@ namespace SDC.Schema
 		/// <returns></returns>
 		/// <exception cref="InvalidOperationException"></exception>
 		/// <exception cref="NullReferenceException"></exception>
-		public static string ReflectSdcElement(PropertyInfo? piItem, BaseType item, out IEnumerable<BaseType>? ieItems, out int xmlOrder, out int maxXmlOrder, out int itemIndex, out PropertyInfo? piItemOut, out string? errorMsg)
+		private static string ReflectSdcElement(PropertyInfo? piItem, BaseType item, out IEnumerable<BaseType>? ieItems, out int xmlOrder, out int maxXmlOrder, out int itemIndex, out PropertyInfo? piItemOut, out string? errorMsg)
 		{
 			string? xmlElementName;
 			ieItems = null;
@@ -1496,7 +1495,7 @@ namespace SDC.Schema
 
 			//Now we look in IEnumerable properties, to see if "item" is contained inside it.
 			//Let's see if our item object lives in an IEnumerable<BaseClassSubtype> 
-			itemIndex = GetItemIndex(item, out ieItems, out PropertyInfo? piOut, out errorMsg);
+			itemIndex = GetElementItemIndex(item, out ieItems, out PropertyInfo? piOut, out errorMsg);
 			piItemOut ??= piOut;  //Since piOut will be null if item is not an IEnumerable, we only want to use it if piItemOut is null.
 			if (piItemOut is null) 
 				throw new NullReferenceException("Could not obtain PropertyInfo object from the item parameter");
@@ -1608,7 +1607,7 @@ namespace SDC.Schema
 			if (item.TopNode.Nodes[newParent.ObjectGUID] is null) return false;
 
 			Type itemType = item.GetType();
-			var thisPi = SdcUtil.GetPropertyInfoMeta(item);
+			var thisPi = SdcUtil.GetElementPropertyInfoMeta(item);
 			string? itemName = thisPi.XmlElementName;
 
 			foreach (var p in newParent.GetType().GetProperties())
@@ -1759,7 +1758,7 @@ namespace SDC.Schema
 					}
 				}
 			}
-			SortKids(bt, kids);
+			SortElementKids(bt, kids);
 			return kids;
 		}
 
@@ -1769,14 +1768,14 @@ namespace SDC.Schema
 		{
 			if (item is null) return null;
 
-			var lst = ReflectChildElementList(item);
+			var lst = ReflectChildElements(item);
 			return lst?.FirstOrDefault();
 		}
 		public static BaseType? X_ReflectLastChild(BaseType item)
 		{
 			if (item is null) return null;
 
-			var lst = ReflectChildElementList(item);
+			var lst = ReflectChildElements(item);
 			return lst?.Last();
 		}
 		private static List<T> X_GetStatedEventParent<T>(T item)
@@ -2027,7 +2026,7 @@ namespace SDC.Schema
 
 		private static void X_AssignXmlElementAndOrder<T>(T bt) where T : notnull, BaseType
 		{
-			var pi = SdcUtil.GetPropertyInfoMeta(bt);
+			var pi = SdcUtil.GetElementPropertyInfoMeta(bt);
 			bt.ElementName = pi.XmlElementName;
 			bt.ElementOrder = pi.XmlOrder;
 		}
@@ -2050,7 +2049,7 @@ namespace SDC.Schema
 		/// <param name="nameSpace">The namespace part of BaseType.ID. Must be ".100004300" for CAP </param>
 		/// <param name="nameSuffix">the last part of the new name</param>
 		/// <returns></returns>
-		public static string CreateNameCAP(this BaseType bt, string nameSpace, string nameSuffix)
+		public static string CreateElementNameCAP(this BaseType bt, string nameSpace, string nameSuffix)
 		{
 			string prefix = bt.ElementPrefix;
 			string shortID = "";
@@ -2079,14 +2078,18 @@ namespace SDC.Schema
 		}
 		/// <summary>
 		/// Given a parent SDC node, this method will sort the child nodes (kids)
+		/// This method is used to keep lists of sibling nodes in the same order as the SDC object tree
 		/// </summary>
 		/// <param name="parentItem">The parent SDC node</param>
 		/// <param name="kids">"kids" is a List&lt;BaseType> containing all the child nodes under parentItem.
 		/// This is generally obtained from TopNode.ChildNodes Dictionary object</param>
-		private static void SortKids(BaseType parentItem, List<BaseType> kids)
+		private static void SortElementKids(BaseType parentItem, List<BaseType> kids)
 		{
+			//Sorting uses reflection, and is this an expensive operation, so we only sort once per parent node
+			//TreeSort_NodeIds holds the ObjectIDs of nodes whose children have already been sorted.
+			//If a parent node's children have already been sorted, it appears in TreeSort_NodeIds, and we can skip it. 
 			if (!TreeSort_NodeIds.Contains(parentItem.ObjectID))
-			{//Sorting is a very expensive operation, so we only sort once per parent node
+			{
 				TreeSort_NodeIds.Add(parentItem.ObjectID);
 				kids.Sort(new TreeSibComparer());
 			}

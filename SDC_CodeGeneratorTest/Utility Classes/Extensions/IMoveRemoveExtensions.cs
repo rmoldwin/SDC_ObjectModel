@@ -36,14 +36,14 @@ namespace SDC.Schema
 		/// <param name="pObj">The property object on <paramref name="newParent"/> that would attach to <paramref name="item"/> (hold its object reference).
 		/// pObj may be a List&lt;> or a non-List object.</param>
 		/// <returns>True for allowed parent nodes, false for disallowed not allowed</returns>
-		public static bool IsParentNodeAllowed(this BaseType btSource, BaseType newParent, out object? pObj)
+		internal static bool IsParentNodeAllowed(this BaseType btSource, BaseType newParent, out object? pObj)
 			=> SdcUtil.IsParentNodeAllowed(btSource, newParent, out pObj);
 
 		/// <summary>
 		/// Reflect the object tree to determine if <paramref name="item"/> can be attached to <paramref name="newParent"/>.   
 		/// We must find an <em>exact</em> match for <paramref name="item"/>'s element name and the data type in <paramref name="newParent"/> to allow the move.
 		/// </summary>
-		/// <param name="item">The SDC node to test for its ability to be attached to the <paramref name="newParent"/> node.</param>
+		/// <param name="btSource">The SDC node to test for its ability to be attached to the <paramref name="newParent"/> node.</param>
 		/// <param name="newParent">The node to which the <paramref name="item"/> node should be moved.</param>
 		/// <returns>True for allowed parent nodes, false for disallowed not allowed</returns>
 		public static bool IsParentNodeAllowed(this BaseType btSource, BaseType newParent)
@@ -163,10 +163,12 @@ namespace SDC.Schema
 		{
 			try
 			{
-				ChildNodesSort = false;
+				//ChildNodesSort = false;
 				if (inParentNode != null)
 				{   //Register parent node
-					btSource.TopNode.ParentNodes.Add(btSource.ObjectGUID, inParentNode);
+					var topNode = ((ITopNode)btSource.TopNode);
+
+					topNode.ParentNodes.Add(btSource.ObjectGUID, inParentNode);
 
 					List<BaseType>? kids;
 					btSource.TopNode.ChildNodes.TryGetValue(inParentNode.ObjectGUID, out kids);
@@ -197,9 +199,10 @@ namespace SDC.Schema
 			try
 			{
 				bool success = false;
+				var topNode = ((ITopNode)btSource.TopNode);
 
-				if (btSource.TopNode.ParentNodes.ContainsKey(btSource.ObjectGUID))
-					success = btSource.TopNode.ParentNodes.Remove(btSource.ObjectGUID);
+				if (topNode.ParentNodes.ContainsKey(btSource.ObjectGUID))
+					success = topNode.ParentNodes.Remove(btSource.ObjectGUID);
 				// if (!success) throw new Exception($"Could not remove object from ParentNodes dictionary: name: {this.name ?? "(none)"} , ObjectID: {this.ObjectID}");
 
 				if (par != null)

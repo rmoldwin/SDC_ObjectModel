@@ -49,9 +49,9 @@ namespace SDCObjectModelTests.TestClasses
                 List<BaseType> lst2;
                 List<BaseType> lst3;
 
-                lst1 = SdcUtil.ReflectChildElementList(Setup.FD.GetListItemByID("51689.100004300"));
-                lst2 = SdcUtil.ReflectChildElementList(Setup.FD.GetListItemByID("38493.100004300"));
-                lst3 = SdcUtil.ReflectChildElementList(Setup.FD.GetItemByName("lst_44135_3"));
+                lst1 = SdcUtil.ReflectChildElements(Setup.FD.GetListItemByID("51689.100004300"));
+                lst2 = SdcUtil.ReflectChildElements(Setup.FD.GetListItemByID("38493.100004300"));
+                lst3 = SdcUtil.ReflectChildElements(Setup.FD.GetItemByName("lst_44135_3"));
 
                 lst3 = SdcUtil.ReflectSubtreeList(Setup.FD.GetSectionByID("43969.100004300"));
                 //foreach (var n in lst3) Debug.Print(n.name);
@@ -99,16 +99,16 @@ namespace SDCObjectModelTests.TestClasses
 
 
                 li.Move(list, 6);                
-                Assert.IsTrue(SdcUtil.GetPropertyInfoMeta(li).ItemIndex == 6);
+                Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == 6);
 
                 li.Move(list, 99);
-                Assert.IsTrue(SdcUtil.GetPropertyInfoMeta(li).ItemIndex == list.Items.Count()-1);
+                Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == list.Items.Count()-1);
 
                 li.Move(list, 0);
-                Assert.IsTrue(SdcUtil.GetPropertyInfoMeta(li).ItemIndex == 0);
+                Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == 0);
 
                 li.Move(list);
-                Assert.IsTrue(SdcUtil.GetPropertyInfoMeta(li).ItemIndex == list.Items.Count() - 1);
+                Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == list.Items.Count() - 1);
             Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 
         }
@@ -131,7 +131,7 @@ namespace SDCObjectModelTests.TestClasses
 
                 //Move to different List (list2)
                 li.Move(list2, 2);
-                Assert.IsTrue(SdcUtil.GetPropertyInfoMeta(li).ItemIndex == 2);
+                Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == 2);
                 Assert.AreEqual(list2, li.ParentNode);
             Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
         }

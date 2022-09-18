@@ -24,7 +24,7 @@ namespace SDC.Schema
 			BaseType? node = nodeA;
 			while (node is not null && node.ParentNode == par)
 			{
-				try { node = SdcUtil.ReflectNextSib(node); }
+				try { node = SdcUtil.ReflectNextSibElement(node); }
 				catch { Debugger.Break(); throw; }
 				//if (node is null) { return 1; Debugger.Break(); }
 				if (node == nodeB)

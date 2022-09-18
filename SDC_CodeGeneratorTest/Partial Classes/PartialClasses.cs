@@ -14,6 +14,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.Text.RegularExpressions;
 using CSharpVitamins;
+using System.Reflection.Emit;
 
 
 //!Handling Item and Items generic types derived from the xsd2Code++ code generator
@@ -27,21 +28,25 @@ namespace SDC.Schema
 
 		protected FormDesignType() : base()
 		{ Init(); }
-		public FormDesignType(BaseType parentNode = null!, string id = "")
-		: base(parentNode, id)
-		//TODO: add ID, lineage, baseURI, version, etc to this constructor? (only ID is required)
+		public FormDesignType(BaseType parentNode, string id): base(parentNode, id)
 		{ Init(); }
-		private static void  Init()
+		//public FormDesignType(string id) : base(null, id)
+		//{ Init(); }
+		private void  Init()
 		{
-
+			ElementName = "FormDesign";
+			ElementPrefix = "fd";
 		}
 
+		/// <summary>
+		/// Reset and clean up some items (e.g., collections, SDC objects and extensions) that might interfere with garbage collection.
+		/// May move to IDisposible
+		/// </summary>
 		public void Clear()
 		{
-			//reset and clean up some items that might hold references to this object, keeping it alive
 			ResetSdcImport();
-			Nodes = null;
-			ParentNodes = null;
+			Nodes.Clear();
+			ParentNodes.Clear();
 			//IdentExtNodes = null;
 			//sdcTreeBuilder = null;
 			((ITopNode)(TopNode)).MaxObjectIDint = 0;
@@ -91,7 +96,7 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		ObservableCollection<IdentifiedExtensionType> ITopNode.IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType> _IETNodes;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETNodes;
 		[XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodesRO
@@ -99,7 +104,7 @@ namespace SDC.Schema
 			get
 			{
 				if (_IETNodes is null) 
-					_IETNodes = _IETNodes = new(((ITopNode)this).IETnodes);
+					_IETNodes = new(((ITopNode)this).IETnodes);
 				return _IETNodes;
 			}
 		}
@@ -111,6 +116,55 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public bool GlobalAutoNameFlag { get; set; } = true;
 
+		#region ITopNodeCollections
+		//private ReadOnlyDictionary<Guid, BaseType>? _NodesRO;
+		////private ReadOnlyDictionary<Guid, BaseType>? _ParentNodesRO;
+		//private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public ReadOnlyDictionary<Guid, BaseType> NodesRO
+		//{
+		//	get
+		//	{
+		//		if (_NodesRO is null)
+		//			_NodesRO = new(((ITopNodeCollections)this).Nodes);
+		//		return _NodesRO;
+		//	}
+		//}
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public ReadOnlyDictionary<Guid, BaseType> ParentNodesRO
+		//{
+		//	get
+		//	{
+		//		if (_ParentNodesRO is null)
+		//			_ParentNodesRO = new(((ITopNodeCollections)this).ParentNodes);
+		//		return _ParentNodesRO;
+		//	}
+		//}
+
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public ReadOnlyDictionary<Guid, IReadOnlyList<BaseType>> ChildNodesRO
+		//{
+		//	get
+		//	{
+		//		var d = ((ITopNodeCollections)this).ChildNodes;
+		//		var dro = d.ToDictionary(k => k.Key, v => (IReadOnlyList<BaseType>)v.Value);
+		//		if (_ChildNodesRO is null)					
+		//			_ChildNodesRO = new (dro);
+		//		return _ChildNodesRO;
+		//	}
+		//}
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodesRO => throw new NotImplementedException();
+		//ObservableCollection<IdentifiedExtensionType> ITopNodeCollections.IETnodes => throw new NotImplementedException(); //implemented in ITopNode for now
+		//Dictionary<Guid, BaseType> ITopNodeCollections.Nodes { get; } = new();
+		//Dictionary<Guid, BaseType> ITopNodeCollections.ParentNodes { get; } = new();
+		//Dictionary<Guid, List<BaseType>> ITopNodeCollections.ChildNodes { get; } = new();
+
+		#endregion
 
 		#region Serialization
 		public static FormDesignType DeserializeFromXmlPath(string sdcPath)
@@ -1107,6 +1161,8 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		public ITopNodePublic TopNode { get; private set; }
+
+
 		/// <summary>
 		///  Hierarchical level using nested dot notation
 		/// </summary>
@@ -1179,7 +1235,7 @@ namespace SDC.Schema
 					//if the object has not yet been added to the SDC tree - 
 					//(i.e., added to its parent object) when this is called,
 					//an exception will be thrown in sdcUtil:
-					var meta = SdcUtil.GetPropertyInfoMeta(this);
+					var meta = SdcUtil.GetElementPropertyInfoMeta(this);
 					return meta.XmlElementName ?? meta.PropName ?? "";
 				}
 				catch
@@ -1301,16 +1357,11 @@ namespace SDC.Schema
 		{
 			get
 			{
-				//return _ParentNode;  //this works for objects that were created with the parentNode constructor
-
-				TopNode.ParentNodes.TryGetValue(this.ObjectGUID, out BaseType? outParentNode);
+				var topNodeInternal = (ITopNode)TopNode;
+				topNodeInternal.ParentNodes.TryGetValue(this.ObjectGUID, out BaseType? outParentNode);
 				return outParentNode;
 
 			}
-			//protected internal set
-			//{
-			//    _ParentNode = value;
-			//}
 		}
 		/// <summary>
 		/// Retrieve the BaseType object that is the SDC Package containing the current object in the object tree
@@ -1348,27 +1399,6 @@ namespace SDC.Schema
 		public string ParentIETypeID
 		{ get => ParentIETypeNode?.ID; }
 
-		//internal void SetNames(string elementName = "", string elementPrefix = "", string baseName = "")
-		//{
-		//	if (TopNode.GlobalAutoNameFlag || AutoNameFlag)
-		//	{
-		//		if (elementName.Length > 0)
-		//			_elementName = elementName;
-		//		//else if (elementName.IsEmpty()) elementName = GetType().ToString().Replace("Type", "").Replace("type", ""); //assign default ElementName from the type.
-
-		//		if (elementPrefix.Length > 0)
-		//			_elementPrefix = elementPrefix;
-
-		//		if (baseName.Length > 0)
-		//			X_BaseName = baseName;
-		//		//else if (ElementPrefix.Length == 0) ElementPrefix = ElementName;
-
-		//		Debug.WriteLine($"Type: {this.GetType()} _elementName: {_elementName} Prefix:{_elementPrefix} name: {name}");
-		//	}
-		//}
-		/// <summary>
-		/// Resets TopNode and IETresetCounter.  This allows the creation of a new SDC tree for unit testing
-		/// </summary>
 		public static void ResetSdcImport() //This really should be only on the TopNode object (e.g., FormDesign)
 		{
 			topNodeTemp = null;
