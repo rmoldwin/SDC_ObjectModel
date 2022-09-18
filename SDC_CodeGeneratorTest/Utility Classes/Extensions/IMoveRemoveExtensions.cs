@@ -60,9 +60,10 @@ namespace SDC.Schema
 		{
 			var par = btSource.ParentNode;
 			if (par is null) throw new InvalidOperationException("btSource.ParentNode cannot be null.");
-			if (cancelIfChildNodes && btSource.HasChildren()) return false;
+			if (cancelIfChildNodes && btSource.TryGetChildElements(out _)) return false;
+			var topNode = (ITopNode)(par.TopNode);
 
-			foreach (var childNode in par.TopNode.ChildNodes[btSource.ObjectGUID])
+			foreach (var childNode in topNode.ChildNodes[btSource.ObjectGUID])
 				childNode.Remove(); //note - this is recursive
 
 			//reflect the parent property that represents the "this" object, then set the property to null
@@ -166,16 +167,16 @@ namespace SDC.Schema
 				//ChildNodesSort = false;
 				if (inParentNode != null)
 				{   //Register parent node
-					var topNode = ((ITopNode)btSource.TopNode);
+					var topNode = (ITopNode)btSource.TopNode;
 
 					topNode.ParentNodes.Add(btSource.ObjectGUID, inParentNode);
 
 					List<BaseType>? kids;
-					btSource.TopNode.ChildNodes.TryGetValue(inParentNode.ObjectGUID, out kids);
+					topNode.ChildNodes.TryGetValue(inParentNode.ObjectGUID, out kids);
 					if (kids is null)
 					{
 						kids = new List<BaseType>();
-						btSource.TopNode.ChildNodes.Add(inParentNode.ObjectGUID, kids);
+						topNode.ChildNodes.Add(inParentNode.ObjectGUID, kids);
 						kids.Add(btSource); //no need to sort with only one item in the list
 					}
 					else
@@ -199,7 +200,7 @@ namespace SDC.Schema
 			try
 			{
 				bool success = false;
-				var topNode = ((ITopNode)btSource.TopNode);
+				var topNode = (ITopNode)btSource.TopNode;
 
 				if (topNode.ParentNodes.ContainsKey(btSource.ObjectGUID))
 					success = topNode.ParentNodes.Remove(btSource.ObjectGUID);
@@ -207,8 +208,8 @@ namespace SDC.Schema
 
 				if (par != null)
 				{
-					if (btSource.TopNode.ChildNodes.ContainsKey(par.ObjectGUID))
-						success = btSource.TopNode.ChildNodes[par.ObjectGUID].Remove(btSource); //Returns a List<BaseType> and removes "item" from that list
+					if (topNode.ChildNodes.ContainsKey(par.ObjectGUID))
+						success = topNode.ChildNodes[par.ObjectGUID].Remove(btSource); //Returns a List<BaseType> and removes "item" from that list
 																								//if (!success) throw new Exception($"Could not remove object from ChildNodes dictionary: name: {this.name ?? "(none)"}, ObjectID: {this.ObjectID}");
 
 					//if (TopNode.ChildNodes.ContainsKey(this.ObjectGUID))
@@ -236,7 +237,8 @@ namespace SDC.Schema
 
 			if (btSource is IdentifiedExtensionType iet)
 			{
-				var inb = ((ITopNode)btSource.TopNode).IETnodes;
+				var topNode = (ITopNode)btSource.TopNode;
+				var inb = topNode.IETnodes;
 				success = inb.Remove(iet);
 				if (!success) throw new Exception($"Could not remove object from IETnodesBase collection: name: {btSource.name ?? "(none)"}, sGuid: {btSource.sGuid}");
 			}

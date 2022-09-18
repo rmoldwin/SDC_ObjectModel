@@ -30,14 +30,6 @@ namespace SDC.Schema
         [JsonIgnore]
         Dictionary<Guid, BaseType> Nodes { get; }
 
-
-        /// <summary>
-        /// Dictionary.  Given a NodeID ObjectGUID, return a list of the child nodes object reference
-        /// </summary>
-        [XmlIgnore]
-        [JsonIgnore]
-        Dictionary<Guid, List<BaseType>> ChildNodes { get; }
-
         /// <summary>
         /// ReadOnlyObservableCollection of IET nodes.
         /// </summary>
@@ -116,7 +108,12 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		Dictionary<Guid, BaseType> ParentNodes { get; }
-
+		/// <summary>
+		/// Dictionary.  Given a NodeID ObjectGUID, return a list of the child nodes object reference
+		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		Dictionary<Guid, List<BaseType>> ChildNodes { get; }
 
 
 

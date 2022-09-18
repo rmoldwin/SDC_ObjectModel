@@ -2,6 +2,7 @@
 
 //using SDC;
 using System.Collections.ObjectModel;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SDC.Schema
 {
@@ -25,8 +26,12 @@ namespace SDC.Schema
 		{ if (n is not null && n is BaseType) return SdcUtil.GetLastChildElement((BaseType)n); else return null; }
 		public static BaseType? GetNodeLastDescendant(this INavigate n)
 		{ if (n is not null && n is BaseType) return SdcUtil.GetLastDescendantElementSimple((BaseType)n); else return null; }
-		public static bool HasChildren(this INavigate n)
-		{ if (n is not null && n is BaseType) return SdcUtil.HasChildElement((BaseType)n); else return false; }
+		public static bool TryGetChildElements(this INavigate n, out ReadOnlyCollection<BaseType>? kids)
+		{
+			kids = null;
+			if (n is not null && n is BaseType) return SdcUtil.TryGetChildElements((BaseType)n, out kids); 
+			else return false; 
+		}
 
 		public static ReadOnlyCollection<BaseType>? GetChildList(this INavigate n)
 		{ if (n is not null && n is BaseType) return SdcUtil.GetChildElements((BaseType)n); else return null; }

@@ -597,7 +597,8 @@ namespace SDC.Schema
 		public static List<BaseType> GetSortedSubtreeList(BaseType n, int startReorder = -1, int orderMultiplier = 1)
 		{
 			//var nodes = n.TopNode.Nodes;
-			var cn = n.TopNode.ChildNodes;
+			var topNode = (ITopNode)n.TopNode;
+			var cn = topNode.ChildNodes;
 			int i = 0;
 			var sortedList = new List<BaseType>();
 
@@ -663,7 +664,8 @@ namespace SDC.Schema
 		public static Dictionary<Guid, BaseType> GetSubtreeDictionary(BaseType n, int startReorder = -1, int orderMultiplier = 1)
 		{
 			//var nodes = n.TopNode.Nodes;
-			var cn = n.TopNode.ChildNodes;
+			var topNode = (ITopNode)n.TopNode;
+			var cn = topNode.ChildNodes;
 			int i = 0;
 			var dict = new Dictionary<Guid, BaseType>();
 			MoveNext(n);
@@ -862,8 +864,9 @@ namespace SDC.Schema
 		public static BaseType? GetFirstSibElement(BaseType item)
 		{
 			var par = item.ParentNode;
+			var topNode = (ITopNode)item.TopNode;
 			if (par is null) return null;
-			item.TopNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
+			topNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
 			if (sibs is not null) SortElementKids(item, sibs);
 			return sibs?[0];
 		}
@@ -877,9 +880,10 @@ namespace SDC.Schema
 		}
 		public static BaseType? GetNextSibElement(BaseType item)
 		{
+			var topNode = (ITopNode)item.TopNode;
 			var par = item.ParentNode;
 			if (par is null) return null;
-			var sibs = item.TopNode.ChildNodes[par.ObjectGUID];
+			var sibs = topNode.ChildNodes[par.ObjectGUID];
 			if (sibs is null) return null;
 			SortElementKids(item, sibs);
 			var index = sibs.IndexOf(item);
@@ -899,8 +903,9 @@ namespace SDC.Schema
 		public static BaseType? GetLastSibElement(BaseType item)
 		{
 			var par = item.ParentNode;
+			var topNode = (ITopNode)item.TopNode;
 			if (par is null) return null;
-			item.TopNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
+			topNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
 			if (sibs is not null) SortElementKids(item, sibs);
 			return sibs?.Last();
 		}
@@ -912,7 +917,7 @@ namespace SDC.Schema
 			var lst = ReflectChildElements(par);
 			return lst?.Last();
 		}
-		public static BaseType? GetPrevElement(BaseType? item)
+		public static BaseType? GetPrevElement(BaseType item)
 		{
 			if (item is null) return null;
 			BaseType? par = item.ParentNode;
@@ -930,7 +935,7 @@ namespace SDC.Schema
 
 			return par;       
 		}
-		public static BaseType? ReflectPrevElement(BaseType? item)
+		public static BaseType? ReflectPrevElement(BaseType item)
 		{
 			if (item is null) return null;
 			BaseType? par = item.ParentNode;
@@ -953,9 +958,10 @@ namespace SDC.Schema
 		}
 		public static BaseType? GetPrevSibElement(BaseType item)
 		{
-			var par = item?.ParentNode;
+			var par = item.ParentNode;
+			var topNode = (ITopNode)item.TopNode;
 			if (par is null) return null;
-			item!.TopNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
+			topNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
 			if (sibs is null) return null;
 			SortElementKids(item, sibs);
 
@@ -977,7 +983,8 @@ namespace SDC.Schema
 
 		public static BaseType? GetLastChildElement(BaseType item)
 		{
-			item.TopNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
+			var topNode = (ITopNode)item.TopNode;
+			topNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
 			if (kids is not null) SortElementKids(item, kids);
 			return kids?.Last();
 		}
@@ -1028,7 +1035,8 @@ namespace SDC.Schema
 		}
 		public static BaseType? GetFirstChildElement(BaseType item)
 		{
-			item.TopNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
+			var topNode = (ITopNode)item.TopNode;
+			topNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
 
 			if (kids is not null) SortElementKids(item, kids);
 			return kids?[0];
@@ -1079,7 +1087,8 @@ namespace SDC.Schema
 		}
 		public static ReadOnlyCollection<BaseType>? GetChildElements(BaseType item)
 		{
-			item.TopNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
+			var topNode = (ITopNode)item.TopNode;
+			topNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
 			if(kids is not null) SortElementKids(item, kids);
 			return kids?.AsReadOnly();
 		}
@@ -1196,10 +1205,12 @@ namespace SDC.Schema
 
 
 
-		public static bool HasChildElement(BaseType item)
+		public static bool TryGetChildElements(BaseType item, out ReadOnlyCollection<BaseType>? kids)
 		{
-			item.TopNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
-			if (kids is null || kids.Any()) return false;
+			var topNode = (ITopNode)item.TopNode;
+			topNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kidsOut);
+			kids = kidsOut?.AsReadOnly();
+			if (kidsOut is null || kidsOut.Any()) return false;
 			return true;
 		}
 
@@ -1210,7 +1221,8 @@ namespace SDC.Schema
 			BaseType? n = item;
 			while (n is not null)
 			{
-				item.TopNode.ChildNodes.TryGetValue(n.ObjectGUID, out List<BaseType>? kids);
+				var topNode = (ITopNode)item.TopNode;
+				topNode.ChildNodes.TryGetValue(n.ObjectGUID, out List<BaseType>? kids);
 				if (kids is not null && kids.Count > 0)
 				{
 
@@ -1236,8 +1248,8 @@ namespace SDC.Schema
 
 		public static BaseType? GetLastDescendantElementSimple(BaseType n)
 		{
-			//var nodes = n.TopNode.Nodes;
-			var cn = n.TopNode.ChildNodes;
+			var topNode = (ITopNode)n.TopNode.TopNode;
+			var cn = topNode.ChildNodes;
 
 			BaseType lastNode = null;
 			//bool doSibs = false;

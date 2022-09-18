@@ -79,7 +79,7 @@ namespace SDC.Schema
 
 		[XmlIgnore]
 		[JsonIgnore]
-		public int MaxObjectID { get => ((ITopNode)this).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		public int MaxObjectID { get => ((ITopNode)TopNode).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		[JsonIgnore]
 		int ITopNode.MaxObjectIDint { get; set; } //internal
@@ -104,7 +104,7 @@ namespace SDC.Schema
 			get
 			{
 				if (_IETNodes is null) 
-					_IETNodes = new(((ITopNode)this).IETnodes);
+					_IETNodes = new(((ITopNode)TopNode).IETnodes);
 				return _IETNodes;
 			}
 		}
@@ -334,7 +334,7 @@ namespace SDC.Schema
 		#region ITopNode
 		[XmlIgnore]
 		[JsonIgnore]
-		public int MaxObjectID { get => ((ITopNode)this).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		public int MaxObjectID { get => ((ITopNode)TopNode).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		[JsonIgnore]
 		int ITopNode.MaxObjectIDint { get; set; } //internal		
@@ -367,7 +367,7 @@ namespace SDC.Schema
 			get
 			{
 				if (_IETNodes is null)
-					_IETNodes = new(((ITopNode)this).IETnodes);
+					_IETNodes = new(((ITopNode)TopNode).IETnodes);
 				return _IETNodes;
 			}
 		}
@@ -444,7 +444,7 @@ namespace SDC.Schema
 		#region ITopNode
 		[XmlIgnore]
 		[JsonIgnore]
-		public int MaxObjectID { get => ((ITopNode)this).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		public int MaxObjectID { get => ((ITopNode)TopNode).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		[JsonIgnore]
 		int ITopNode.MaxObjectIDint { get; set; } //internal
@@ -470,7 +470,7 @@ namespace SDC.Schema
 			get
 			{
 				if (_IETNodes is null)
-					_IETNodes = new(((ITopNode)this).IETnodes);
+					_IETNodes = new(((ITopNode)TopNode).IETnodes);
 				return _IETNodes;
 			}
 		}
@@ -543,7 +543,7 @@ namespace SDC.Schema
 		#region ITopNode
 		[XmlIgnore]
 		[JsonIgnore]
-		public int MaxObjectID { get => ((ITopNode)this).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		public int MaxObjectID { get => ((ITopNode)TopNode).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		[JsonIgnore]
 		int ITopNode.MaxObjectIDint { get; set; } //internal		
@@ -569,7 +569,7 @@ namespace SDC.Schema
 			get
 			{
 				if (_IETNodes is null)
-					_IETNodes = new(((ITopNode)this).IETnodes);
+					_IETNodes = new(((ITopNode)TopNode).IETnodes);
 				return _IETNodes;
 			}
 		}
@@ -631,7 +631,7 @@ namespace SDC.Schema
 		#region ITopNode
 		[XmlIgnore]
 		[JsonIgnore]
-		public int MaxObjectID { get => ((ITopNode)this).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		public int MaxObjectID { get => ((ITopNode)TopNode).MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		[JsonIgnore]
 		int ITopNode.MaxObjectIDint { get; set; } //internal
@@ -657,7 +657,7 @@ namespace SDC.Schema
 			get
 			{
 				if (_IETNodes is null)
-					_IETNodes = new(((ITopNode)this).IETnodes);
+					_IETNodes = new(((ITopNode)TopNode).IETnodes);
 				return _IETNodes;
 			}
 		}
@@ -1184,13 +1184,14 @@ namespace SDC.Schema
 				}
 				int level = 0;
 				var sb = new StringBuilder("0");
+				var topNode = (ITopNode)TopNode;
 				int seq;
 				s.Pop();  //pop off the top node, which has no parent.
 				while (s.Count > 0)
 				{
 					var n = s.Pop();
 
-					if (n.TopNode.ChildNodes.TryGetValue(n.ParentNode.ObjectGUID, out List<BaseType> lst))
+					if (topNode.ChildNodes.TryGetValue(n.ParentNode.ObjectGUID, out List<BaseType>? lst))
 					{ seq = lst.IndexOf(n) + 1; }
 					else { seq = 0; }
 					sb.Append('.').Append(seq); ;
@@ -1285,7 +1286,8 @@ namespace SDC.Schema
 			{
 				var par = this.ParentNode;
 				if (par is null) return -1;
-				TopNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType> kids);
+				var topNode = (ITopNode)TopNode;
+				topNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? kids);
 				if (kids is null || kids.Count == 0) return -1;
 
 				return kids.IndexOf(this);

@@ -2,10 +2,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Xml;
 
 namespace SDCObjectModelTests.TestClasses
@@ -181,10 +183,11 @@ namespace SDCObjectModelTests.TestClasses
 			int i = 0;
 			BaseType n = Setup.FD;
 			string content;
-			var cn = n.TopNode.ChildNodes;
+			//var topNode; //= (ITopNode)bt;
+			//var cn = topNode.ChildNodes;
 
 			//loop through ChildNodes
-			BaseType firstChild;
+			BaseType? firstChild;
 			BaseType nextSib;
 
 			MoveNext(n);
@@ -198,9 +201,9 @@ namespace SDCObjectModelTests.TestClasses
 				i++;
 
 
-				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
+				if (n.TryGetChildElements(out ReadOnlyCollection<BaseType> kids) )
 				{
-					firstChild = childList[0];
+					firstChild = n.GetChildList()?[0];
 					if (firstChild != null)
 						MoveNext(firstChild);
 				}
@@ -209,7 +212,7 @@ namespace SDCObjectModelTests.TestClasses
 				var par = n.ParentNode;
 				if (par != null)
 				{
-					if (cn.TryGetValue(par.ObjectGUID, out List<BaseType>? sibList))
+					if (par.TryGetChildElements(out ReadOnlyCollection<BaseType> sibList))
 					{
 						var index = sibList.IndexOf(n);
 						if (index < sibList.Count - 1)
@@ -261,16 +264,17 @@ namespace SDCObjectModelTests.TestClasses
 
 			BaseType? MoveNext(BaseType n)
 			{
-				Dictionary<Guid, List<BaseType>> cn = n.TopNode.ChildNodes;
+				//var topNode = (ITopNode)n;
+				//Dictionary<Guid, List<BaseType>> cn = n.GetChildList();
 				BaseType? nextNode;
 
 				n.order = i;  //almost instananeous
 				Assert.IsTrue(n.ObjectID == i);//very fast
 				i++;
 				//if n has child nodes, the next node is the first child node of n.
-				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
+				if (n.TryGetChildElements(out var childList))
 				{
-					nextNode = childList[0];
+					nextNode = childList?[0];
 					if (nextNode is not null) return nextNode;
 				}
 
@@ -285,12 +289,12 @@ namespace SDCObjectModelTests.TestClasses
 
 				while (par is not null)
 				{
-					if (cn.TryGetValue(par.ObjectGUID, out childList))
+					if (par.TryGetChildElements(out childList))
 					{
-						var index = childList.IndexOf(prevPar);
-						if (index < childList.Count - 1)
+						var index = childList?.IndexOf(prevPar)??-1;
+						if (index < childList?.Count - 1)
 						{
-							nextNode = childList[index + 1];
+							nextNode = childList?[index + 1];
 							if (nextNode is not null) return nextNode;
 						}
 						//the next node is not located yet, so walk up to a previous ancestor and try again,
@@ -325,11 +329,11 @@ namespace SDCObjectModelTests.TestClasses
 			int i = 0;
 			BaseType n = Setup.FD;
 			string content;
-			var cn = n.TopNode.ChildNodes;
+			//var cn = n.TopNode.ChildNodes;
 
 			//loop through ChildNodes
-			BaseType firstChild;
-			BaseType nextSib;
+			BaseType? firstChild;
+			BaseType? nextSib;
 
 			var sortedList = new List<BaseType>();
 			BaseType[] sortedArray = new BaseType[Setup.FD.Nodes.Count];
@@ -348,9 +352,9 @@ namespace SDCObjectModelTests.TestClasses
 				i++;
 
 
-				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
+				if (n.TryGetChildElements( out var childList))
 				{
-					firstChild = childList[0];
+					firstChild = childList?[0];
 					if (firstChild != null)
 						MoveNext(firstChild);
 				}
@@ -359,7 +363,7 @@ namespace SDCObjectModelTests.TestClasses
 				var par = n.ParentNode;
 				if (par != null)
 				{
-					if (cn.TryGetValue(par.ObjectGUID, out List<BaseType> sibList))
+					if (par.TryGetChildElements( out var sibList))
 					{
 						var index = sibList.IndexOf(n);
 						if (index < sibList.Count - 1)

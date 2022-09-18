@@ -9,15 +9,16 @@ namespace SDC.Schema
 	public static class BaseTypeExtensions
 	{
 
-		public static List<BaseType> GetChildList(this BaseType bt)
+		public static List<BaseType>? GetChildList(this BaseType bt)
 		{
-			var cn = bt?.TopNode?.ChildNodes;
+			var topNode = (ITopNode)bt.TopNode;
+			var cn = topNode?.ChildNodes;
 			if (cn is null) return null;
 			if (bt.ParentNode != null)
-				if (cn.TryGetValue(bt.ParentNode.ObjectGUID, out List<BaseType> childList))
+				if (cn.TryGetValue(bt.ParentNode.ObjectGUID, out List<BaseType>? childList))
 					return childList;
 			//if (bt is FormDesignType fd) return fd.ChildItemsNode.ChildItemsList;
-			if (cn.TryGetValue(bt.ObjectGUID, out List<BaseType> childList2))
+			if (cn.TryGetValue(bt.ObjectGUID, out List<BaseType>? childList2))
 				return childList2;
 			return null;
 		}
@@ -83,9 +84,10 @@ namespace SDC.Schema
 		}
 		public static List<BaseType>? GetSibs(this BaseType bt)
 		{
+			var topNode = (ITopNode)bt.TopNode;
 			var par = bt?.ParentNode;
 			if (par is null) return null;
-			if (bt.TopNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs))
+			if (topNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs))
 				return sibs;
 
 			return null;
