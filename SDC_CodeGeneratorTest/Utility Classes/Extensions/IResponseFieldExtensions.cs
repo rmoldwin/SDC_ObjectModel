@@ -8,7 +8,7 @@ namespace SDC.Schema
 		public static DataTypes_DEType AddDataType(this ResponseFieldType rf,
 			ItemChoiceType dataType = ItemChoiceType.@string,
 			dtQuantEnum dtQuant = dtQuantEnum.EQ,
-			object valDefault = null)
+			object? valDefault = null)
 			=> IDataHelpers.AddDataTypesDE(rf, dataType, dtQuant, valDefault);  //Convert to generic type for valDefault
 
 		public static UnitsType? AddResponseUnits(this ResponseFieldType rf, string units)

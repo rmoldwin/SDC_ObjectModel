@@ -88,17 +88,17 @@ namespace SDC.Schema
         /// </summary>
         [System.Xml.Serialization.XmlIgnore]
         [JsonIgnore]
-        public BaseType ParentNode { get; }
+        public BaseType? ParentNode { get; }
 
         [System.Xml.Serialization.XmlIgnore]
         [JsonIgnore]
-        public IdentifiedExtensionType ParentIETypeNode { get; }
+        public IdentifiedExtensionType? ParentIETypeNode { get; }
         /// <summary>
         /// Returns the ID property of the closest ancestor of type IdentifiedExtensionType.  
         /// </summary>
         [System.Xml.Serialization.XmlIgnore]
         [JsonIgnore]
-        public string ParentIETypeID { get; }
+        public string? ParentIETypeID { get; }
 
         [System.Xml.Serialization.XmlIgnore]
         [JsonIgnore]

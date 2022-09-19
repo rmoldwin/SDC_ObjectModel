@@ -35,6 +35,7 @@
 
   <ItemGroup>
     <Compile Remove="SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\dayTimeDuration_Stype.cs" />
+    <Compile Remove="Utility Classes\Extensions\Unimplemented Extensions.cs" />
     <Compile Remove="Utility Classes\Hex Conversions - Copy %282%29.cs" />
     <Compile Remove="Utility Classes\Hex Conversions - Copy %283%29.cs" />
     <Compile Remove="Utility Classes\Hex Conversions - Copy %284%29.cs" />
@@ -44,6 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Utility Classes\Extensions\Unimplemented Extensions.cs" />
     <None Include="Utility Classes\Junk\SDC_CodeGeneratorTest.csproj_old" />
   </ItemGroup>
 

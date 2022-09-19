@@ -144,7 +144,6 @@ namespace SDC.Schema
 						return true;
 					}
 					throw new Exception("Invalid targetProperty");
-
 				}
 				else return false; //invalid Move
 			}
@@ -211,13 +210,6 @@ namespace SDC.Schema
 					if (topNode.ChildNodes.ContainsKey(par.ObjectGUID))
 						success = topNode.ChildNodes[par.ObjectGUID].Remove(btSource); //Returns a List<BaseType> and removes "item" from that list
 																								//if (!success) throw new Exception($"Could not remove object from ChildNodes dictionary: name: {this.name ?? "(none)"}, ObjectID: {this.ObjectID}");
-
-					//if (TopNode.ChildNodes.ContainsKey(this.ObjectGUID))
-					//    success = TopNode.ChildNodes[this.ObjectGUID].Remove(this);
-					//if (!success) throw new Exception($"Could not remove object from ChildNodes dictionary: name: {this.name ?? "(none)"}, ObjectID: {this.ObjectID}");
-
-					//if(TopNode.ChildNodes[par.ObjectGUID] is null || par.TopNode.ChildNodes[par.ObjectGUID].Count() == 0)
-					//par.IsLeafNode = true; //the parent node has no child nodes, so it is a leaf node
 				}
 			}
 			catch (Exception ex)

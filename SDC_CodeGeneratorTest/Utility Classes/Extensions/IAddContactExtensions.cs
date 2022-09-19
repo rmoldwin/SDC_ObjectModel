@@ -17,8 +17,8 @@ namespace SDC.Schema
 			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
 			c.Contact.Insert(insertPosition, ct);
 			//TODO: Need to be able to add multiple people/orgs by reading the data source or ORM
-			var p = (ac as IAddPerson).AddPerson(ct);
-			var org = (ac as IAddOrganization).AddOrganization(ct);
+			var p = (ac as IAddPerson)?.AddPerson(ct);
+			var org = (ac as IAddOrganization)?.AddOrganization(ct);
 
 			return ct;
 		}
