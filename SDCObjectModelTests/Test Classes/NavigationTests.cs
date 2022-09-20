@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MsgPack.Serialization.CollectionSerializers;
 using SDC.Schema;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace SDCObjectModelTests.TestClasses
 {
@@ -201,7 +203,7 @@ namespace SDCObjectModelTests.TestClasses
 				i++;
 
 
-				if (n.TryGetChildElements(out ReadOnlyCollection<BaseType> kids) )
+				if (n.TryGetChildNodes(out ReadOnlyCollection<BaseType> kids) )
 				{
 					firstChild = n.GetChildList()?[0];
 					if (firstChild != null)
@@ -212,7 +214,7 @@ namespace SDCObjectModelTests.TestClasses
 				var par = n.ParentNode;
 				if (par != null)
 				{
-					if (par.TryGetChildElements(out ReadOnlyCollection<BaseType> sibList))
+					if (par.TryGetChildNodes(out ReadOnlyCollection<BaseType> sibList))
 					{
 						var index = sibList.IndexOf(n);
 						if (index < sibList.Count - 1)
@@ -272,7 +274,7 @@ namespace SDCObjectModelTests.TestClasses
 				Assert.IsTrue(n.ObjectID == i);//very fast
 				i++;
 				//if n has child nodes, the next node is the first child node of n.
-				if (n.TryGetChildElements(out var childList))
+				if (n.TryGetChildNodes(out var childList))
 				{
 					nextNode = childList?[0];
 					if (nextNode is not null) return nextNode;
@@ -289,7 +291,7 @@ namespace SDCObjectModelTests.TestClasses
 
 				while (par is not null)
 				{
-					if (par.TryGetChildElements(out childList))
+					if (par.TryGetChildNodes(out childList))
 					{
 						var index = childList?.IndexOf(prevPar)??-1;
 						if (index < childList?.Count - 1)
@@ -352,7 +354,7 @@ namespace SDCObjectModelTests.TestClasses
 				i++;
 
 
-				if (n.TryGetChildElements( out var childList))
+				if (n.TryGetChildNodes( out var childList))
 				{
 					firstChild = childList?[0];
 					if (firstChild != null)
@@ -363,7 +365,7 @@ namespace SDCObjectModelTests.TestClasses
 				var par = n.ParentNode;
 				if (par != null)
 				{
-					if (par.TryGetChildElements( out var sibList))
+					if (par.TryGetChildNodes( out var sibList))
 					{
 						var index = sibList.IndexOf(n);
 						if (index < sibList.Count - 1)
@@ -612,6 +614,7 @@ namespace SDCObjectModelTests.TestClasses
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 			var lst = Setup.FD.TopNode.GetItemByName("S_57219")
 				.GetSubtreeList();
+			//Setup.FD._
 			foreach (var n in lst)
 				Debug.Print($"{n.order}: \t Name: {n.name}");
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
@@ -620,9 +623,12 @@ namespace SDCObjectModelTests.TestClasses
 		public void GetXmlAttributeAll()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var lst = Setup.FD.TopNode.GetItemByName("S_57219")
-				.GetXmlAttributesAll();
+
+			var FD = Setup.FD;
+			var lst = FD.TopNode.GetItemByName("S_57219")
+				.GetXmlAttributesAll();			
 			foreach (var n in lst) Debug.Print($"{n.Name}");
+
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
 		[TestMethod]
@@ -630,9 +636,53 @@ namespace SDCObjectModelTests.TestClasses
 		{
 			SdcUtil.RefreshReflectedTree(Setup.FD, out _);
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var lst = Setup.FD.TopNode.GetItemByName("S_57219")
-				.GetXmlAttributesSerialized();
-			foreach (var n in lst) Debug.Print($"{n.Name}: val:{n.AttributeValue?.ToString()}, sGuid: {n.ParentNodesGuid}, order: {n.Order}, type: {n.AttributePropInfo.PropertyType}");
+			var FD = Setup.FD;
+
+			//var lst = FD.TopNode.GetItemByName("S_57219")
+			//	.GetXmlAttributesSerialized();			
+
+			//foreach (var n in lst) Debug.Print($"{n.Name}");
+			//foreach (var n in lst) Debug.Print($"{n.Name}: \tval:{n.AttributeValue?.ToString()}, " +
+			//	$"\tsGuid: {n.ParentNodesGuid}, " +
+			//	$"\torder: {n.Order}, " +
+			//	$"\ttype: {n.AttributePropInfo.PropertyType}");
+
+
+			SortedList<string, Dictionary<string, List<AttributeInfo>>> dictAttr = new();
+			char gt = ">"[0];
+			//  ------------------------------------------------------------------------------------
+			foreach (IdentifiedExtensionType n in Setup.FD.IETnodes)
+			{
+				var en = n.ElementName;
+				int enLen = 27 - en.Length;
+				int pad = (enLen > 0) ? enLen : 0;
+				Debug.Print($"<<<<<<<<<<<<<<<<<   IET Node: {en}   {"".PadRight(pad, gt)}");
+				var sublist = n.GetSortedSubtreeIETList();
+
+				Dictionary<string, List<AttributeInfo>> dlai = new();
+				
+				foreach (var subNode in sublist)
+				{
+					var lai = subNode.GetXmlAttributesSerialized();
+					Log(subNode, lai);
+					dlai.Add(subNode.sGuid, lai);					
+					
+				}
+				dictAttr.Add(n.sGuid, dlai);
+			}
+			//  ------------------------------------------------------------------------------------
+			void Log(BaseType subNode, List<AttributeInfo> lai)
+			{
+				var en = subNode.ElementName;
+				int enLen = 28 - en.Length;
+				int pad = (enLen > 0) ? enLen : 0;
+				Debug.Print($"<=<<<<<<<<<<<<<<<   SubNode: {en}   {"".PadRight(pad, gt)}");
+				Debug.Print("<==<==<== Attr ==>==>==>|<==<==<==<==<== Val ==>==>==>==>==>");
+				foreach (AttributeInfo ai in lai)					
+					Debug.Print($"{ai.Name.PadRight(24)}| {ai.AttributeValue?.ToString()}");
+			}
+			//  ------------------------------------------------------------------------------------
+
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 
 		}

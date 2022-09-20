@@ -90,16 +90,16 @@ namespace SDC.Schema
         //FormDesignType CreateFormFromTemplateXML(string xml, string formID, string lineage, string version, string fullURI);
         //bool RemoveFormFromPackage(RetrieveFormPackageType pkg, FormDesignType form);
     }
-    public interface IPackage : ITopNodePublic //TODO:
+    public interface IPackage : ITopNode //TODO:
     {   //FormDesignType CreateForm(bool addHeader, bool addFooter, string formID, string lineage, string version, string fullURI);
         //FormDesignType CreateFormFromTemplatePath(string path, string formID, string lineage, string version, string fullURI);
         //FormDesignType CreateFormFromTemplateXML(string xml, string formID, string lineage, string version, string fullURI);
         //bool RemoveFormFromPackage(RetrieveFormPackageType pkg, FormDesignType form); 
     }
-    public interface IDataElement : ITopNodePublic { }
-    public interface IDemogForm : ITopNodePublic { }
-    public interface IMap : ITopNodePublic { }
-    public interface IFormDesign : ITopNodePublic { }
+    public interface IDataElement : ITopNode { }
+    public interface IDemogForm : ITopNode { }
+    public interface IMap : ITopNode { }
+    public interface IFormDesign : ITopNode { }
     public interface IRetrieveFormPackage { }
     /// <summary>
     /// This interface is applied to the partial classes that can have a ChildItems element.

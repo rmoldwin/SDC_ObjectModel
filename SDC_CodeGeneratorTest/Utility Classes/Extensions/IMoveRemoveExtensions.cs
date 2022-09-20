@@ -15,7 +15,7 @@ namespace SDC.Schema
 		/// <summary>
 		/// Set to true to keep the ChildNodes List&lt;BaseType> sorted in the same order as the the SDC object tree
 		/// </summary>
-		private static bool ChildNodesSort = false;
+		private static bool X_ChildNodesSort = false;
 		#region IMoveRemove //not tested
 		private static void MoveInDictionaries(this BaseType btSource, BaseType targetParent = null!)
 		{
@@ -23,7 +23,7 @@ namespace SDC.Schema
 			btSource.UnRegisterParent();
 
 			//Re-register item node under new parent
-			btSource.RegisterParent(targetParent);
+			btSource.RegisterParent(targetParent, true);
 		}
 
 
@@ -60,10 +60,10 @@ namespace SDC.Schema
 		{
 			var par = btSource.ParentNode;
 			if (par is null) throw new InvalidOperationException("btSource.ParentNode cannot be null.");
-			if (cancelIfChildNodes && btSource.TryGetChildElements(out _)) return false;
-			var topNode = (ITopNode)(par.TopNode);
+			if (cancelIfChildNodes && btSource.TryGetChildNodes(out _)) return false;
+			var topNode = (_ITopNode)(par.TopNode);
 
-			foreach (var childNode in topNode.ChildNodes[btSource.ObjectGUID])
+			foreach (var childNode in topNode._ChildNodes[btSource.ObjectGUID])
 				childNode.Remove(); //note - this is recursive
 
 			//reflect the parent property that represents the "this" object, then set the property to null
@@ -95,8 +95,8 @@ namespace SDC.Schema
 		/// <param name="newListIndex">If newParent supports IList, newListIndex holds the intended destination index in the list.
 		/// All negative values will place btSource at the first IList position (index 0).
 		/// All values greater than the current last IList index will be added to the end of the list.
-		/// The defaut value is -1, which will place btSource at the start of the list</param>
-		/// <returns>true if the move was successfull; false if the move was not allowed</returns>
+		/// The default value is -1, which will place btSource at the start of the list</param>
+		/// <returns>true if the move was successful; false if the move was not allowed</returns>
 		/// <exception cref="NullReferenceException">NullReferenceException("btSource must not be null.");</exception>
 		/// <exception cref="NullReferenceException">NullReferenceException("newParent must not be null.");</exception>
 		/// <exception cref="NullReferenceException">NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved")</exception>
@@ -107,81 +107,73 @@ namespace SDC.Schema
 			if (btSource is null) throw new NullReferenceException("btSource must not be null.");
 			if (newParent is null) throw new NullReferenceException("newParent must not be null.");
 			if (btSource.ParentNode is null) throw new NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved");
-			try
+
+			if (btSource.IsParentNodeAllowed(newParent, out object targetObj))
 			{
 
-				ChildNodesSort = true;
-				if (btSource.IsParentNodeAllowed(newParent, out object targetObj))
+				if (targetObj is BaseType) //btSource can be attached directly to the target
 				{
-
-					if (targetObj is BaseType) //btSource can be attached directly to the target
-					{
-						targetObj = btSource;
-						btSource.MoveInDictionaries(targetParent: newParent);						
-						return true;
-					}
-					else if (targetObj is IList propList) //btSource can be attached to a member of a List
-					{
-						//Remove this from current parent object
-						btSource.IsParentNodeAllowed(btSource.ParentNode, out object? currentParentObj);
-						if (currentParentObj is BaseType) 
-							currentParentObj = null;  //remove the btSource reference form this parent object
-						else if (currentParentObj is not null && currentParentObj is IList)
-						{
-							//remove the btSource reference form this parent IList
-							var objList = (IList)currentParentObj;
-							if (objList?.IndexOf(btSource) > -1) //this extra test may not be necessary
-								objList.Remove(btSource);
-							else throw new Exception("Could not find node in parent object list");
-						}
-						else throw new Exception("Could not reflect parent property object to remove node");
-
-						if (newListIndex < 0 || newListIndex >= propList.Count) propList.Add(btSource);
-						else propList.Insert(newListIndex, btSource);
-
-						btSource.MoveInDictionaries(targetParent: newParent);
-
-						return true;
-					}
-					throw new Exception("Invalid targetProperty");
+					targetObj = btSource;
+					btSource.MoveInDictionaries(targetParent: newParent);
+					return true;
 				}
-				else return false; //invalid Move
+				else if (targetObj is IList propList) //btSource can be attached to a member of a List
+				{
+					//Remove this from current parent object
+					btSource.IsParentNodeAllowed(btSource.ParentNode, out object? currentParentObj);
+					if (currentParentObj is BaseType)
+						currentParentObj = null;  //remove the btSource reference form this parent object
+					else if (currentParentObj is not null && currentParentObj is IList)
+					{
+						//remove the btSource reference form this parent IList
+						var objList = (IList)currentParentObj;
+						if (objList?.IndexOf(btSource) > -1) //this extra test may not be necessary
+							objList.Remove(btSource);
+						else throw new Exception("Could not find node in parent object list");
+					}
+					else throw new Exception("Could not reflect parent property object to remove node");
+
+					if (newListIndex < 0 || newListIndex >= propList.Count) propList.Add(btSource);
+					else propList.Insert(newListIndex, btSource);
+
+					btSource.MoveInDictionaries(targetParent: newParent);
+
+					return true;
+				}
+				throw new Exception("Invalid targetProperty");
 			}
-			catch
-				{throw;}
-			finally
-				{ ChildNodesSort = false; }
+			else return false; //invalid Move
 		}
 
 
 		#endregion
 		#region Register-UnRegister
 		//TODO: ChildNodes are not maintained in sorted order here; consider adding a sort flag to sort nodes after adding.
-		//Alternatively, add a required index to specify where the incoming child node node should be inserted among the sib nodes.
+		//Alternatively, add a required index to specify where the incoming child node should be inserted among the sib nodes.
 		//Ther is always a risk of getting out of sync with the nodes in the SDC object model classes.
-		internal static void RegisterParent<T>(this BaseType btSource, T inParentNode) where T : BaseType
+		internal static void RegisterParent<T>(this BaseType btSource, T inParentNode, bool childNodesSort = false) where T : BaseType
 		{
 			try
 			{
 				//ChildNodesSort = false;
 				if (inParentNode != null)
 				{   //Register parent node
-					var topNode = (ITopNode)btSource.TopNode;
+					var topNode = (_ITopNode)btSource.TopNode;
 
-					topNode.ParentNodes.Add(btSource.ObjectGUID, inParentNode);
+					topNode._ParentNodes.Add(btSource.ObjectGUID, inParentNode);
 
 					List<BaseType>? kids;
-					topNode.ChildNodes.TryGetValue(inParentNode.ObjectGUID, out kids);
+					topNode._ChildNodes.TryGetValue(inParentNode.ObjectGUID, out kids);
 					if (kids is null)
 					{
 						kids = new List<BaseType>();
-						topNode.ChildNodes.Add(inParentNode.ObjectGUID, kids);
+						topNode._ChildNodes.Add(inParentNode.ObjectGUID, kids);
 						kids.Add(btSource); //no need to sort with only one item in the list
 					}
 					else
 					{
-						kids.Add(btSource);
-						if(ChildNodesSort) 
+						kids.Add(btSource );
+						if(kids.Count > 1 & childNodesSort)
 							kids.Sort(treeSibComparer); //sort by reflecting the object tree
 					}
 				}
@@ -199,16 +191,16 @@ namespace SDC.Schema
 			try
 			{
 				bool success = false;
-				var topNode = (ITopNode)btSource.TopNode;
+				var topNode = (_ITopNode)btSource.TopNode;
 
-				if (topNode.ParentNodes.ContainsKey(btSource.ObjectGUID))
-					success = topNode.ParentNodes.Remove(btSource.ObjectGUID);
+				if (topNode._ParentNodes.ContainsKey(btSource.ObjectGUID))
+					success = topNode._ParentNodes.Remove(btSource.ObjectGUID);
 				// if (!success) throw new Exception($"Could not remove object from ParentNodes dictionary: name: {this.name ?? "(none)"} , ObjectID: {this.ObjectID}");
 
 				if (par != null)
 				{
-					if (topNode.ChildNodes.ContainsKey(par.ObjectGUID))
-						success = topNode.ChildNodes[par.ObjectGUID].Remove(btSource); //Returns a List<BaseType> and removes "item" from that list
+					if (topNode._ChildNodes.ContainsKey(par.ObjectGUID))
+						success = topNode._ChildNodes[par.ObjectGUID].Remove(btSource); //Returns a List<BaseType> and removes "item" from that list
 																								//if (!success) throw new Exception($"Could not remove object from ChildNodes dictionary: name: {this.name ?? "(none)"}, ObjectID: {this.ObjectID}");
 				}
 			}
@@ -223,14 +215,14 @@ namespace SDC.Schema
 		} //!not tested
 		private static void UnRegisterThis(this BaseType btSource)
 		{
-			bool success = btSource.TopNode.Nodes.Remove(btSource.ObjectGUID);
+			var topNode = (_ITopNode)btSource.TopNode;
+			bool success = topNode._Nodes.Remove(btSource.ObjectGUID);
 			if (!success) throw new Exception($"Could not remove object from Nodes dictionary: name: {btSource.name ?? "(none)"}, ObjectID: {btSource.ObjectID}");
 			btSource.UnRegisterParent();
 
 			if (btSource is IdentifiedExtensionType iet)
 			{
-				var topNode = (ITopNode)btSource.TopNode;
-				var inb = topNode.IETnodes;
+				var inb = topNode._IETnodes;
 				success = inb.Remove(iet);
 				if (!success) throw new Exception($"Could not remove object from IETnodesBase collection: name: {btSource.name ?? "(none)"}, sGuid: {btSource.sGuid}");
 			}

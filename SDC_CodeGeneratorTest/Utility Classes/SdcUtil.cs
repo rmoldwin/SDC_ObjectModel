@@ -9,6 +9,7 @@ using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
@@ -25,12 +26,19 @@ using System.Xml.Serialization;
 
 namespace SDC.Schema
 {
-	public static class SdcUtil  //!+Convert many ArrayHelpers and SDC Helpers to extension methods
+	/// <summary>
+	/// Convert many ArrayHelpers and SDC Helpers to extension methods
+	/// </summary>
+	public static class SdcUtil 
 	{
+		private static _ITopNode topNode(BaseType item)
+		{ return (_ITopNode)item.TopNode; }
+		private static Dictionary<Guid, BaseType> Nodes(BaseType item)
+		{ return ((_ITopNode)item.TopNode)._Nodes; }
 
 		/// <summary>
 		/// This SortedSet contains the ObjectID of each node that has been sorted by ITreeSibComparer.  
-		/// Each entry in this SortedSet ndicates that that nodes child nodes have already been sorted.  
+		/// Each entry in this SortedSet indicates that nodes child nodes have already been sorted.  
 		/// Checking for a parent node in this SortedSet is used to bypass the resorting of child nodes during a tree sorting operation.  
 		/// The SortedList is cleared after the conclusion of the sorting operation, using TreeSort_ClearNodeIds().
 		/// </summary>
@@ -224,7 +232,7 @@ namespace SDC.Schema
 		/// <param name="refreshTree">Determines whether to refresh the Dictionaries and BaseType properties, as described in the summary.
 		/// The default is true.</param>
 		/// <returns>IList&lt;BaseType> containing all of the SDC tree nodes in sorted top-bottom order</returns>
-		public static IList<BaseType> RefreshReflectedTree(ITopNodePublic topNode, out string? treeText, bool print = false, bool refreshTree = true)
+		public static IList<BaseType> RefreshReflectedTree(ITopNode topNode, out string? treeText, bool print = false, bool refreshTree = true)
 		{
 			try
 			{
@@ -239,17 +247,18 @@ namespace SDC.Schema
 				var newPropsText = new StringBuilder();
 				BaseType btNode = (BaseType)topNode;
 				btNode.order = 0;
-				{
-					if (topNode is FormDesignType fd)
-					{
-						fd.ElementName = "FormDesign";
-						fd.name = Regex.Replace(fd.ID, @"\W+", "");  //replaces any characters that are not numbers, letters or "_"
-					}
-					else if (topNode is DemogFormDesignType dfd)
+				{					
+					if (topNode is DemogFormDesignType dfd)  //DemogForm is also a FormDesignType, so it must come first 
 					{
 						dfd.ElementName = "DemogFormDesign";
-						dfd.name = Regex.Replace(dfd.ID, @"\W+", "");
+						dfd.name = Regex.Replace(dfd.ID, @"\W+", ""); //replaces any characters that are not numbers, letters or "_"
 					}
+					else if (topNode is FormDesignType fd)
+					{
+						fd.ElementName = "FormDesign";
+						fd.name = Regex.Replace(fd.ID, @"\W+", ""); 
+					}
+
 					else if (topNode is DataElementType de)
 					{
 						de.ElementName = "DataElement";
@@ -261,15 +270,22 @@ namespace SDC.Schema
 						if (!rfp.instanceID.IsNullOrWhitespace()) rfp.name = Regex.Replace(rfp.instanceID, @"\W+", "");
 						else rfp.name = Regex.Replace(rfp.packageID, @"\W+", "");
 					}
+					else if (topNode is MappingType mp)
+					{
+						mp.ElementName = "MappingType";
+						if (!mp.templateID.IsNullOrWhitespace()) mp.name = Regex.Replace(mp.templateID, @"\W+", "");
+						else mp.name = Regex.Replace(mp.templateID, @"\W+", "");
+					}
 				}  //Set TopNode
+				var _topNode = (_ITopNode)topNode;
 				if (refreshTree)
 				{
-					var topNodeInternal = (ITopNode)topNode;
-					topNodeInternal.Nodes.Clear();
-					topNodeInternal.ParentNodes.Clear();
-					topNodeInternal.ChildNodes.Clear();
+					
+					_topNode._Nodes.Clear();
+					_topNode._ParentNodes.Clear();
+					_topNode._ChildNodes.Clear();
 				}
-				topNode.Nodes.Add(btNode.ObjectGUID, btNode);
+				_topNode._Nodes.Add(btNode.ObjectGUID, btNode);
 				SortedNodes.Add(btNode);
 
 				if (print) sbTreeText.Append($"({btNode.DotLevel})#{counter}; OID: {btNode.ObjectID}; name: {btNode.name}{content(btNode)}");
@@ -348,7 +364,8 @@ namespace SDC.Schema
 						//This should be handled in ReflectSdcElement
 
 						//Refill the node dictionaries with the current node
-						topNode.Nodes.Add(btProp.ObjectGUID, btProp);
+						_topNode._Nodes.Add(btProp.ObjectGUID, btProp);
+						TreeSort_NodeIds.Add(parentNode.ObjectID);
 						btProp.RegisterParent(parentNode);
 
 						AssignSdcProperties(parentNode, piChildProperty);
@@ -364,7 +381,7 @@ namespace SDC.Schema
 						//Fill some useful properties, while it's efficient to do so, 
 						//because we have the PropertyInfo object (pi) and the actual property object (btProp) already available.
 						elementName = SdcUtil.ReflectSdcElement(pi, btProp, out _, out elementOrder, out _, out _, out _, out string? errorMsg);
-						if (elementName.IsEmpty()) Debugger.Break();
+						if (elementName.IsNullOrWhitespace()) Debugger.Break();
 						btProp.ElementName = elementName;
 						btProp.ElementOrder = elementOrder;
 						btProp.order = order++;
@@ -427,7 +444,7 @@ namespace SDC.Schema
 		/// <param name="print"></param>
 		/// <param name="treeText"></param>
 		/// <returns></returns>
-		public static List<BaseType> ReflectTreeList(ITopNodePublic topNode, out string treeText, bool print = false)
+		public static List<BaseType> ReflectTreeList(ITopNode topNode, out string treeText, bool print = false)
 		{
 			TreeSort_ClearNodeIds();
 			List<BaseType> outList = new();
@@ -476,11 +493,11 @@ namespace SDC.Schema
 				return s;
 			}
 		}
-		public static List<BaseType> GetSortedTreeList(ITopNodePublic tn)
+		public static List<BaseType> GetSortedTreeList(ITopNode tn)
 		{
 			return GetSortedSubtreeList((BaseType)tn.TopNode);
 		}
-		public static List<BaseType> ReflectSortedTreeList(ITopNodePublic tn)
+		public static List<BaseType> ReflectSortedTreeList(ITopNode tn)
 		{
 			return ReflectSubtreeList((BaseType)tn.TopNode);
 		}
@@ -488,8 +505,8 @@ namespace SDC.Schema
 		public static List<BaseType> GetSortedSubtreeList(BaseType n, int startReorder = -1, int orderMultiplier = 1)
 		{
 			//var nodes = n.TopNode.Nodes;
-			var topNode = (ITopNode)n.TopNode;
-			var cn = topNode.ChildNodes;
+			var topNode = (_ITopNode)n.TopNode;
+			var cn = topNode._ChildNodes;
 			int i = 0;
 			var sortedList = new List<BaseType>();
 
@@ -516,6 +533,43 @@ namespace SDC.Schema
 			}
 			return sortedList;
 		}
+
+
+		/// <summary>
+		/// Get a sorted list of node n, plus of all of node n's sub-elements, up to but not including the next IdentifiedExtensionType node
+		/// </summary>
+		/// <param name="n">The node whose subtree we ae retrieving</param>
+		/// <param name="resortChildNodes">Set to true if the child nodes may be incoreectly sorted.  This should not be needed.</param>
+		/// <returns></returns>
+		public static List<BaseType> GetSortedSubtreeIET(BaseType n, bool resortChildNodes = false)
+		{
+			var topNode = (_ITopNode)n.TopNode;
+			var cn = topNode._ChildNodes;
+			var sortedList = new List<BaseType>();
+			int i = -1;
+
+			MoveNext(n);
+
+			void MoveNext(BaseType n)
+			{
+				i++;
+				if (n is IdentifiedExtensionType && i > 0 ) return;
+				sortedList.Add(n);
+				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
+				{
+					if (childList != null)
+					{
+						if(resortChildNodes) SortElementKids(n, childList);
+						foreach (var child in childList)
+							MoveNext(child);
+					}
+				}
+			}
+			return sortedList;
+		}
+
+
+
 
 		//!Should not need sorting of child nodes
 		//Consider this parameter list: ReflectSubtreeList(BaseType bt, int startReorder = -1, int orderMultiplier = 1)
@@ -555,8 +609,8 @@ namespace SDC.Schema
 		public static Dictionary<Guid, BaseType> GetSubtreeDictionary(BaseType n, int startReorder = -1, int orderMultiplier = 1)
 		{
 			//var nodes = n.TopNode.Nodes;
-			var topNode = (ITopNode)n.TopNode;
-			var cn = topNode.ChildNodes;
+			var topNode = (_ITopNode)n.TopNode;
+			var cn = topNode._ChildNodes;
 			int i = 0;
 			var dict = new Dictionary<Guid, BaseType>();
 			MoveNext(n);
@@ -755,9 +809,9 @@ namespace SDC.Schema
 		public static BaseType? GetFirstSibElement(BaseType item)
 		{
 			var par = item.ParentNode;
-			var topNode = (ITopNode)item.TopNode;
+			var topNode = (_ITopNode)item.TopNode;
 			if (par is null) return null;
-			topNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
+			topNode._ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
 			if (sibs is not null) SortElementKids(item, sibs);
 			return sibs?[0];
 		}
@@ -771,10 +825,10 @@ namespace SDC.Schema
 		}
 		public static BaseType? GetNextSibElement(BaseType item)
 		{
-			var topNode = (ITopNode)item.TopNode;
+			var topNode = (_ITopNode)item.TopNode;
 			var par = item.ParentNode;
 			if (par is null) return null;
-			var sibs = topNode.ChildNodes[par.ObjectGUID];
+			var sibs = topNode._ChildNodes[par.ObjectGUID];
 			if (sibs is null) return null;
 			SortElementKids(item, sibs);
 			var index = sibs.IndexOf(item);
@@ -794,9 +848,9 @@ namespace SDC.Schema
 		public static BaseType? GetLastSibElement(BaseType item)
 		{
 			var par = item.ParentNode;
-			var topNode = (ITopNode)item.TopNode;
+			var topNode = (_ITopNode)item.TopNode;
 			if (par is null) return null;
-			topNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
+			topNode._ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
 			if (sibs is not null) SortElementKids(item, sibs);
 			return sibs?.Last();
 		}
@@ -850,9 +904,9 @@ namespace SDC.Schema
 		public static BaseType? GetPrevSibElement(BaseType item)
 		{
 			var par = item.ParentNode;
-			var topNode = (ITopNode)item.TopNode;
+			var topNode = (_ITopNode)item.TopNode;
 			if (par is null) return null;
-			topNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
+			topNode._ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
 			if (sibs is null) return null;
 			SortElementKids(item, sibs);
 
@@ -874,8 +928,8 @@ namespace SDC.Schema
 
 		public static BaseType? GetLastChildElement(BaseType item)
 		{
-			var topNode = (ITopNode)item.TopNode;
-			topNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
+			var topNode = (_ITopNode)item.TopNode;
+			topNode._ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
 			if (kids is not null) SortElementKids(item, kids);
 			return kids?.Last();
 		}
@@ -926,8 +980,8 @@ namespace SDC.Schema
 		}
 		public static BaseType? GetFirstChildElement(BaseType item)
 		{
-			var topNode = (ITopNode)item.TopNode;
-			topNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
+			var topNode = (_ITopNode)item.TopNode;
+			topNode._ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
 
 			if (kids is not null) SortElementKids(item, kids);
 			return kids?[0];
@@ -978,8 +1032,8 @@ namespace SDC.Schema
 		}
 		public static ReadOnlyCollection<BaseType>? GetChildElements(BaseType item)
 		{
-			var topNode = (ITopNode)item.TopNode;
-			topNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
+			var topNode = (_ITopNode)item.TopNode;
+			topNode._ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
 			if (kids is not null) SortElementKids(item, kids);
 			return kids?.AsReadOnly();
 		}
@@ -1032,7 +1086,6 @@ namespace SDC.Schema
 			return childNodes;
 		}
 
-
 		/// <summary>
 		/// Given a parent node, retrieve the list of correctly-ordered child Xml Attribute nodes, if present.
 		/// Uses reflection only, and does not use any node dictionaries.
@@ -1079,11 +1132,30 @@ namespace SDC.Schema
 					else
 					{
 						var att = t.GetMethod("ShouldSerialize" + p.Name)?.Invoke(elementNode, null);
-						if (att is bool shouldSerialize && shouldSerialize)
-						{
-							nodeIndex++;
-							attributes.Add(FillAttributeInfo(p, elementNode));
-						}
+						if (att is bool shouldSerialize && shouldSerialize) //if (shouldSerialize is true)
+							if (//p.PropertyType.IsAssignableTo(typeof(string)) &&
+								(GetAttributeDefaultValue(p) ?? "").ToString() != //Test if the default value matches the current property value
+								(p.GetValue(elementNode) ?? "").ToString())
+							{
+								nodeIndex++;
+								attributes.Add(FillAttributeInfo(p, elementNode));
+								//if (p.Name.ToLower() == "minselections" || p.Name.ToLower().Contains("maxselections")) Debugger.Break();
+							}
+							else //see if we have a non-default value in elementNode - we would serialize a non-default value.
+							{
+								var defVal = p.GetCustomAttributes<DefaultValueAttribute>().FirstOrDefault();
+
+								if (defVal is not null)
+								{
+									var pVal = p.GetValue(elementNode)?.ToString();
+									if (pVal is not null && defVal.Value?.ToString() != pVal)
+									{
+										nodeIndex++;
+										attributes.Add(FillAttributeInfo(p, elementNode));
+										if (p.Name.ToLower() == "minselections" || p.Name.ToLower().Contains("maxselections")) Debugger.Break();
+									}
+								}
+							}
 					}
 				}
 			}
@@ -1096,10 +1168,23 @@ namespace SDC.Schema
 
 
 
+		/// <summary>
+		/// Retrieve the default value (if one exists) for the SDC XML attribute identified by <paramref name="pi"/>.  
+		/// The default value is obtained from the <see cref="DefaultValueAttribute"/> that may be present on <paramref name="pi"/>.
+		/// </summary>
+		/// <param name="pi">The <see cref="PropertyInfo"/> object that represents the SDC XML attribute of interest</param>
+		/// <returns>Nullable <see cref="object"/> containing the attribute's default value, or null if no default value exists</returns>
+		public static object? GetAttributeDefaultValue(PropertyInfo pi)
+		{
+			if (pi is null) throw new InvalidDataException("The attributeName parameter was not found on a property if this object");
+			var defVal = pi.GetCustomAttributes<DefaultValueAttribute>()?.FirstOrDefault()?.Value;
+			return defVal;
+		}
+
 		public static bool TryGetChildElements(BaseType item, out ReadOnlyCollection<BaseType>? kids)
 		{
-			var topNode = (ITopNode)item.TopNode;
-			topNode.ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kidsOut);
+			var topNode = (_ITopNode)item.TopNode;
+			topNode._ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kidsOut);
 			kids = kidsOut?.AsReadOnly();
 			if (kidsOut is null || kidsOut.Any()) return false;
 			return true;
@@ -1112,8 +1197,8 @@ namespace SDC.Schema
 			BaseType? n = item;
 			while (n is not null)
 			{
-				var topNode = (ITopNode)item.TopNode;
-				topNode.ChildNodes.TryGetValue(n.ObjectGUID, out List<BaseType>? kids);
+				var topNode = (_ITopNode)item.TopNode;
+				topNode._ChildNodes.TryGetValue(n.ObjectGUID, out List<BaseType>? kids);
 				if (kids is not null && kids.Count > 0)
 				{
 
@@ -1139,8 +1224,8 @@ namespace SDC.Schema
 
 		public static BaseType? GetLastDescendantElementSimple(BaseType n)
 		{
-			var topNode = (ITopNode)n.TopNode.TopNode;
-			var cn = topNode.ChildNodes;
+			var topNode = (_ITopNode)n.TopNode.TopNode;
+			var cn = topNode._ChildNodes;
 
 			BaseType lastNode = null;
 			//bool doSibs = false;
@@ -1507,7 +1592,7 @@ namespace SDC.Schema
 
 			if (newParent is null) return false;
 			//make sure that item and target are not null and are part of the same tree
-			if (item.TopNode.Nodes[newParent.ObjectGUID] is null) return false;
+			if (Nodes(item)[newParent.ObjectGUID] is null) return false;
 
 			Type itemType = item.GetType();
 			var thisPi = SdcUtil.GetElementPropertyInfoMeta(item);
@@ -1587,7 +1672,7 @@ namespace SDC.Schema
 			if (piNewParentProperty is null) throw new ArgumentNullException(nameof(piNewParentProperty), "Argument cannot be null.");
 
 			Type itemType = item.GetType();
-			if (itemName is null || itemName.IsEmpty()) itemName = item.GetPropertyInfoMetaData().XmlElementName;
+			if (itemName is null || itemName.IsNullOrWhitespace()) itemName = item.GetPropertyInfoMetaData().XmlElementName;
 
 			var pAtts = piNewParentProperty.GetCustomAttributes<XmlElementAttribute>();
 

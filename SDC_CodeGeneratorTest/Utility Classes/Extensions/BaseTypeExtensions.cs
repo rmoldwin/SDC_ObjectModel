@@ -1,9 +1,7 @@
-﻿using SDC.Schema;
+﻿//using SDC;
+using System.ComponentModel;
 using System.Reflection;
 
-
-
-//using SDC;
 namespace SDC.Schema
 {
 	public static class BaseTypeExtensions
@@ -11,8 +9,8 @@ namespace SDC.Schema
 
 		public static List<BaseType>? GetChildList(this BaseType bt)
 		{
-			var topNode = (ITopNode)bt.TopNode;
-			var cn = topNode?.ChildNodes;
+			var topNode = (_ITopNode)bt.TopNode;
+			var cn = topNode?._ChildNodes;
 			if (cn is null) return null;
 			if (bt.ParentNode != null)
 				if (cn.TryGetValue(bt.ParentNode.ObjectGUID, out List<BaseType>? childList))
@@ -82,12 +80,37 @@ namespace SDC.Schema
 		{
 			return SdcUtil.GetSortedSubtreeList(bt);
 		}
+		/// <summary>
+		/// Get a sorted list of node bt, plus of all of node bt's sub-elements, up to but not including the next ChildItemsType node
+		/// </summary>
+		/// <param name="bt">The node whose subtree we are retrieving </param>
+		/// <returns></returns>
+		public static List<BaseType> GetSortedSubtreeIETList(this BaseType bt)
+		{
+			return SdcUtil.GetSortedSubtreeIET(bt);
+		}
+
+		/// <summary>
+		/// Retrieve the default value (if one exists) for the SDC XML attribute identified by <paramref name="attributeName"/>.  
+		/// The default value is obtained from the <see cref="DefaultValueAttribute"/> on the property that represents <paramref name="attributeName"/>.
+		/// </summary>
+		/// <param name="bt">The SDC node on which we are searching for an attribute's default value (if present)</param>
+		/// <param name="attributeName">The name of the attribute as it appears in SDX XML</param>
+		/// <returns>Nullable <see cref="object"/> containing the attribute's default value, or null if no default value exists</returns>
+		/// <exception cref="InvalidDataException">Thrown if <paramref name="attributeName"/> is not the name of an existing attribute property, </exception>
+		public static object? GetAttributeDefaultValue(this BaseType bt, string attributeName)
+		{
+			var p = bt.GetType().GetProperty(attributeName);
+			if (p is null) throw new InvalidDataException("The attributeName parameter was not found on a property if this object");
+			var defVal = p.GetCustomAttributes<DefaultValueAttribute>().FirstOrDefault();
+			return defVal;
+		}
 		public static List<BaseType>? GetSibs(this BaseType bt)
 		{
-			var topNode = (ITopNode)bt.TopNode;
+			var topNode = (_ITopNode)bt.TopNode;
 			var par = bt?.ParentNode;
 			if (par is null) return null;
-			if (topNode.ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs))
+			if (topNode._ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs))
 				return sibs;
 
 			return null;
@@ -100,7 +123,7 @@ namespace SDC.Schema
 
 		/// <summary>
 		/// This method determines if a BaseType object (bt) has a private _shouldSerializePropertyName field for a public struct property ("PropertyName"), 
-		/// and if so, sets it (using the serializeDefaultValue parameter) to the desired true or false value.
+		/// and if so, sets it (using the serializeDefaultValue parameter) to the desired true or false default) value.
 		/// The _shouldSerializePropertyName field exists only on simple non-nullable types (structs), including all numeric, DateTime, and TimeSpan (duration) types.
 		/// If the private _shouldSerializePropertyName field exists, setting it to true will force the PropertyName to be serialized, 
 		/// even if it contains its default value.  
@@ -114,13 +137,14 @@ namespace SDC.Schema
 		/// <typeparam name="Tin">Tin represents any property of a struct type</typeparam>
 		/// <param name="bt">The BaseType object that contains property</param>
 		/// <param name="property">The property struct object for which we want to set its private _shouldSerialize field</param>
+		/// <param name="shouldSerialize">Set to true to serialize the default value of <paramref name="property"/>; set to false to omit the default value of <paramref name="property"/> (i.e., do not serialize <paramref name="property"/> if it holds its default value).</param>
 		/// <returns>true for success, false if _shouldSerializePropertyName does not exist on bt, or if an exception occurs</returns>
-		public static bool ResetShouldSerialize<Tin>(this BaseType bt, Tin property)
+		public static bool ShouldSerialize<Tin>(this BaseType bt, Tin property, bool shouldSerialize = false)
 			where Tin : struct
 		{
 			var pi = bt.GetType().GetField("_shouldSerialize" + property.GetType().Name);
 			if (pi is null) return false;
-			pi.SetValue(bt, false);
+			pi.SetValue(bt, shouldSerialize);
 			return true;
 		}
 	}

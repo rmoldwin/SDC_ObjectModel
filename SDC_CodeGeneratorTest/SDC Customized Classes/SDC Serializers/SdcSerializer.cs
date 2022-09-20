@@ -21,7 +21,7 @@ using System.Xml;
 //using System.Collections.Generic;
 
     #region Base entity class
-    public static class SdcSerializer<T> where T: ITopNodePublic
+    public static class SdcSerializer<T> where T: ITopNode
 	{
         private static XmlSerializer serializer;
     

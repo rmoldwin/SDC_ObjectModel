@@ -159,7 +159,7 @@ namespace SDCObjectModelTests.TestClasses
             myDecimal.maxInclusive = 100;
             myDecimal.fractionDigits = 2;
 
-            myDecimal.ResetShouldSerialize(myDecimal.quantEnum);
+            myDecimal.ShouldSerialize(myDecimal.quantEnum);
 
 
 

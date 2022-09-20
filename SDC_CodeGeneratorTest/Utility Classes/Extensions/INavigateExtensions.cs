@@ -26,7 +26,7 @@ namespace SDC.Schema
 		{ if (n is not null && n is BaseType) return SdcUtil.GetLastChildElement((BaseType)n); else return null; }
 		public static BaseType? GetNodeLastDescendant(this INavigate n)
 		{ if (n is not null && n is BaseType) return SdcUtil.GetLastDescendantElementSimple((BaseType)n); else return null; }
-		public static bool TryGetChildElements(this INavigate n, out ReadOnlyCollection<BaseType>? kids)
+		public static bool TryGetChildNodes(this INavigate n, out ReadOnlyCollection<BaseType>? kids)
 		{
 			kids = null;
 			if (n is not null && n is BaseType) return SdcUtil.TryGetChildElements((BaseType)n, out kids); 

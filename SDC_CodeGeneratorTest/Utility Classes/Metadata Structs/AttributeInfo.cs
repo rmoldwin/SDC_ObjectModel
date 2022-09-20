@@ -11,9 +11,8 @@ using System.Threading.Tasks;
 namespace SDC.Schema
 {
 	/// <summary>
-	/// Sruct to hold information about SDC object properties that will become XML attributes when serialized to XML.
+	/// Struct to hold information about SDC object properties that will become XML attributes when serialized to XML.
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
 	public readonly struct AttributeInfo
 	{
 		/// <summary>

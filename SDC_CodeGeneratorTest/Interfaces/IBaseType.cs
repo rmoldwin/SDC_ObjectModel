@@ -102,7 +102,7 @@ namespace SDC.Schema
 
         [System.Xml.Serialization.XmlIgnore]
         [JsonIgnore]
-        public ITopNodePublic TopNode { get; }
+        public ITopNode TopNode { get; }
         [System.Xml.Serialization.XmlIgnore]
         [JsonIgnore]
         public RetrieveFormPackageType PackageNode { get; }

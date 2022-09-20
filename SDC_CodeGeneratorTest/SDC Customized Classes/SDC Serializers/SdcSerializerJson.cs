@@ -21,7 +21,7 @@ using System.Xml;
 using System.Collections.Generic;
     using System.Runtime.CompilerServices;
 
-    public static partial class SdcSerializerJson<T> where T : ITopNodePublic
+    public static partial class SdcSerializerJson<T> where T : ITopNode
 
 {
     

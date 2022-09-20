@@ -9,27 +9,20 @@ namespace SDC.Schema
 	/// A public/internal interface inherited by all types that sit at the top of the SDC class hierarchy
 	/// Used by FormDesignType, DemogFormDesignType, DataElementType, RetrieveFormPackageType, and PackageListType
 	/// The interface provides a common way to fill the above object trees using a single set of shared code.
-	/// It also provdes a set of consistent, type-specific, public utilities for working with SDC objects.
+	/// It also provides a set of consistent, type-specific, public utilities for working with SDC objects.
 	/// </summary>
 
-	public interface ITopNodePublic : IBaseType
+	public interface ITopNode : IBaseType
 	{
-		/// <summary>
-		/// Dictionary.  Given an Node ObjectGUID, returns the node's object reference.
-		/// </summary>
-		[XmlIgnore]
-		[JsonIgnore]
-		Dictionary<Guid, BaseType> Nodes { get; }
-
 		/// <summary>
 		/// ReadOnlyObservableCollection of all SDC nodes.
 		/// </summary>
-		ReadOnlyDictionary<Guid, BaseType> NodesRO { get; }
+		ReadOnlyDictionary<Guid, BaseType> Nodes { get; }
 
 		/// <summary>
 		/// ReadOnlyObservableCollection of IET nodes.
 		/// </summary>
-		ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodesRO { get; }
+		ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes { get; }
 
 		[XmlIgnore]
 		[JsonIgnore]
@@ -85,31 +78,40 @@ namespace SDC.Schema
 	/// Note that all interface members use the access level of their defining interface (e.g., internal, in this case), 
 	/// regardless of the access modifier on each member.  
 	/// Inheritance of a less restrictive interface (e.g., ITopNodePublic) leaves those inherited members with their less restrictive access, 
-	/// even though the top-level interface is more restictive.
+	/// even though the top-level interface is more restrictive.<br/><br/>
+	/// Note that all internal interface member names are prefixed with "_" and start with a capital letter. 
 	/// </summary>
-	internal interface ITopNode : ITopNodePublic
+	internal interface _ITopNode : ITopNode
 	{
 		/// <summary>
 		/// Internal base object for initializing IETnodesRO.
 		/// </summary>
-		internal ObservableCollection<IdentifiedExtensionType> IETnodes { get; }
+		internal ObservableCollection<IdentifiedExtensionType> _IETnodes { get; }
 
 		/// <summary>
 		/// Internal version of MaxObjectID, which has a setter; MaxObjectID only has a getter
 		/// </summary> 
-		internal int MaxObjectIDint { get; set; }
+		internal int _MaxObjectIDint { get; set; }
+
+		/// <summary>
+		/// Dictionary.  Given an Node ObjectGUID, returns the node's object reference.
+		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		internal Dictionary<Guid, BaseType> _Nodes { get; }
+
 		/// <summary>
 		/// Dictionary.  Given a Node ObjectGUID, return the *parent* node's object reference
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		Dictionary<Guid, BaseType> ParentNodes { get; }
+		internal Dictionary<Guid, BaseType> _ParentNodes { get; }
 		/// <summary>
 		/// Dictionary.  Given a NodeID ObjectGUID, return a list of the child nodes object reference
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		Dictionary<Guid, List<BaseType>> ChildNodes { get; }
+		internal Dictionary<Guid, List<BaseType>> _ChildNodes { get; }
 	}
 }
 

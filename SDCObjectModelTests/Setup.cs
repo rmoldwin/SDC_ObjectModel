@@ -40,7 +40,7 @@ namespace SDCObjectModelTests
         {
             Stopwatch.StartNew();
             TimerStartTime  = (float)Stopwatch.GetTimestamp();
-            if (!message.IsEmpty()) Debug.Print(message);
+            if (!message.IsNullOrWhitespace()) Debug.Print(message);
         }
         public static string TimerGetSeconds()
         {

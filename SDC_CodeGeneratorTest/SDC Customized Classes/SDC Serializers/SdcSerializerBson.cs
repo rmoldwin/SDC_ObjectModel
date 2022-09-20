@@ -22,7 +22,7 @@ namespace SDC.Schema
     using System.Collections.Generic;
     using System.Runtime.CompilerServices;
 
-    public static partial class SdcSerializerBson<T> where T : ITopNodePublic
+    public static partial class SdcSerializerBson<T> where T : ITopNode
 
     {
         private static JsonSerializer _serializerBson;
