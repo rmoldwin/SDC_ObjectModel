@@ -41,7 +41,7 @@ namespace SDC.Schema
 		#region Serialization
 		/// <summary>
 		/// Returns SDC XML from the SDC object tree.  The XML top node is determined by the top-level object tree node:
-		/// FormDesignType, DemogFormDesignType, DataElementType, RetrieveFormPackageType, or PackageListType
+		/// FormDesignType, DemogFormDesignType, DataElementType, RetrieveFormPackageType, PackageListType or MappingType
 		/// </summary>
 		/// <returns></returns>
 		public string GetXml();

@@ -74,6 +74,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="SDC Schema\Schema Classes\" />
     <Folder Include="Utility Classes\Interfaces\" />
   </ItemGroup>
 

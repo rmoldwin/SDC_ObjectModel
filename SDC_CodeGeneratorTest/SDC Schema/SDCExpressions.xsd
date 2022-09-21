@@ -170,7 +170,7 @@ The function must understand the parameters and return an appropriate response o
                   </xs:element>
                   <xs:element name="LocalFunctionName" type="anyURI_Stype">
                      <xs:annotation>
-                        <xs:documentation>The @name of the called function shoudl be placed in @val</xs:documentation>
+                        <xs:documentation>The @name of the called function should be placed in @val</xs:documentation>
                      </xs:annotation>
                   </xs:element>
                </xs:choice>

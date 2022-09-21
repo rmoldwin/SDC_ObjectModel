@@ -76,8 +76,8 @@ https://support.microsoft.com/en-us/office/control-data-entry-formats-with-input
 				<xs:sequence>
 					<xs:any maxOccurs="unbounded" minOccurs="0" processContents="lax"/>
 				</xs:sequence>
-				<xs:attribute name="minLength" type="xs:long"/>
-				<xs:attribute name="maxLength" type="xs:long"/>
+				<xs:attribute name="minLength" type="xs:unsignedLong"/>
+				<xs:attribute name="maxLength" type="xs:unsignedLong"/>
 				<xs:attribute name="schema" type="xs:string"/>
 				<xs:attribute name="namespace" type="xs:string">
 					<xs:annotation>
@@ -94,8 +94,8 @@ See: http://www.w3.org/TR/xmlschema-0/#any </xs:documentation>
 		<xs:complexContent>
 			<xs:extension base="anyURI_Stype">
 				<xs:attribute name="description" type="xs:string"/>
-				<xs:attribute name="minLength" type="xs:long"/>
-				<xs:attribute name="maxLength" type="xs:long"/>
+				<xs:attribute name="minLength" type="xs:unsignedLong"/>
+				<xs:attribute name="maxLength" type="xs:unsignedLong"/>
 				<xs:attribute name="pattern" type="xs:string"/>
 			</xs:extension>
 		</xs:complexContent>
@@ -104,8 +104,8 @@ See: http://www.w3.org/TR/xmlschema-0/#any </xs:documentation>
 		<xs:complexContent>
 			<xs:extension base="base64Binary_Stype">
 				<xs:attribute name="description" type="xs:string"/>
-				<xs:attribute name="minLength" type="xs:long"/>
-				<xs:attribute name="maxLength" type="xs:long"/>
+				<xs:attribute name="minLength" type="xs:unsignedLong"/>
+				<xs:attribute name="maxLength" type="xs:unsignedLong"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -404,8 +404,8 @@ See: http://www.w3.org/TR/xmlschema-0/#any </xs:documentation>
 	<xs:complexType name="HTML_DEtype">
 		<xs:complexContent>
 			<xs:extension base="HTML_Stype">
-				<xs:attribute name="minLength" type="xs:long"/>
-				<xs:attribute name="maxLength" type="xs:long"/>
+				<xs:attribute name="minLength" type="xs:unsignedLong"/>
+				<xs:attribute name="maxLength" type="xs:unsignedLong"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -864,7 +864,13 @@ See: http://www.w3.org/TR/xmlschema-0/#any </xs:documentation>
 	<xs:complexType name="unsignedInt_DEtype">
 		<xs:complexContent>
 			<xs:extension base="unsignedInt_Stype">
-				<xs:attribute name="minInclusive" type="xs:unsignedInt"/>
+				<xs:attribute name="minInclusive">
+					<xs:simpleType>
+						<xs:restriction base="xs:unsignedInt">
+							<xs:maxInclusive value="4294967295"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
 				<xs:attribute name="maxInclusive" type="xs:unsignedInt"/>
 				<xs:attribute name="minExclusive">
 					<xs:simpleType>
@@ -964,8 +970,8 @@ See: http://www.w3.org/TR/xmlschema-0/#any </xs:documentation>
 	<xs:complexType name="XML_DEtype">
 		<xs:complexContent>
 			<xs:extension base="XML_Stype">
-				<xs:attribute name="minLength" type="xs:long"/>
-				<xs:attribute name="maxLength" type="xs:long"/>
+				<xs:attribute name="minLength" type="xs:unsignedLong"/>
+				<xs:attribute name="maxLength" type="xs:unsignedLong"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -1739,11 +1745,15 @@ For typed items included by reference to an external (reference or variable) val
 	<xs:simpleType name="DataTypeDateTime_StypeEnum">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="dateTime"/>
-			<xs:enumeration value="duration"/>
+			<xs:enumeration value="date"/>
+			<xs:enumeration value="time"/>
+			<xs:enumeration value="gDay"/>
+			<xs:enumeration value="gMonth"/>
 			<xs:enumeration value="gMonthDay"/>
 			<xs:enumeration value="gYear"/>
 			<xs:enumeration value="gYearMonth"/>
-			<xs:enumeration value="time"/>
+			<xs:enumeration value="dayTimeDuration"/>
+			<xs:enumeration value="duration"/>
 			<xs:enumeration value="yearMonthDuration"/>
 		</xs:restriction>
 	</xs:simpleType>

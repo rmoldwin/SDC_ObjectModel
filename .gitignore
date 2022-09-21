@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/SDC_CodeGeneratorTest/SDC Schema/Schema Classes/ExtensionType.cs
+/SDC_CodeGeneratorTest/SDC Schema/Schema Classes/ExtensionBaseType.cs
+/SDC_CodeGeneratorTest/SDC Schema/Schema Classes/BaseType.cs

@@ -682,8 +682,9 @@ namespace SDCObjectModelTests.TestClasses
 					Debug.Print($"{ai.Name.PadRight(24)}| {ai.AttributeValue?.ToString()}");
 			}
 			//  ------------------------------------------------------------------------------------
-
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
+			Debug.Print(FD.GetXml());
+
 
 		}
 		[TestMethod]

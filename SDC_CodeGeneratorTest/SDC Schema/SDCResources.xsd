@@ -1197,32 +1197,6 @@ Must be one of the following:
 						</xs:annotation>
 					</xs:element>
 					<xs:element name="boolean" nillable="true" type="boolean_DEtype"> </xs:element>
-					<xs:element name="duration" nillable="true" type="duration_DEtype">
-						<xs:annotation>
-							<xs:documentation source="http://www.w3schools.com/schema/schema_dtypes_date.asp">Duration Data Type 
-The duration data type is used to specify a time interval.
-The time interval is specified in the following form
-"PnYnMnDTnHnMnS" where: 
- P indicates the period (required) 
- nY indicates the number of years nM indicates the number of months 
- nD indicates the number of days T indicates the start of a time section
- (required if you are going to specify hours, minutes, or seconds) 
- nH indicates the number of hours nM indicates the number of minutes 
- nS indicates the number of seconds 
-
-An element in your document might look like this: P5Y 
- The example above indicates a period of five years. 
- 
-Or it might look like this: P5Y2M10D. 
- The example above indicates a period of five years, two months, and 10 days. 
- 
-Or it might look like this: P5Y2M10DT15H. 
- The example above indicates a period of five years, two months, 10 days, and 15 hours. 
- 
-Or it might look like this: PT15H.
-                            </xs:documentation>
-						</xs:annotation>
-					</xs:element>
 					<xs:element name="byte" nillable="true" type="byte_DEtype"> </xs:element>
 					<xs:element name="date" nillable="true" type="date_DEtype">
 						<xs:annotation>
@@ -1251,6 +1225,33 @@ Time Zones
 						</xs:annotation>
 					</xs:element>
 					<xs:element name="dateTimeStamp" nillable="true" type="dateTimeStamp_DEtype"> </xs:element>
+					<xs:element name="dayTimeDuration" type="dayTimeDuration_Stype"/>
+					<xs:element name="duration" nillable="true" type="duration_DEtype">
+						<xs:annotation>
+							<xs:documentation source="http://www.w3schools.com/schema/schema_dtypes_date.asp">Duration Data Type 
+The duration data type is used to specify a time interval.
+The time interval is specified in the following form
+"PnYnMnDTnHnMnS" where: 
+ P indicates the period (required) 
+ nY indicates the number of years nM indicates the number of months 
+ nD indicates the number of days T indicates the start of a time section
+ (required if you are going to specify hours, minutes, or seconds) 
+ nH indicates the number of hours nM indicates the number of minutes 
+ nS indicates the number of seconds 
+
+An element in your document might look like this: P5Y 
+ The example above indicates a period of five years. 
+ 
+Or it might look like this: P5Y2M10D. 
+ The example above indicates a period of five years, two months, and 10 days. 
+ 
+Or it might look like this: P5Y2M10DT15H. 
+ The example above indicates a period of five years, two months, 10 days, and 15 hours. 
+ 
+Or it might look like this: PT15H.
+                            </xs:documentation>
+						</xs:annotation>
+					</xs:element>
 					<xs:element name="decimal" nillable="true" type="decimal_DEtype"> </xs:element>
 					<xs:element name="double" nillable="true" type="double_DEtype"/>
 					<xs:element name="float" nillable="true" type="float_DEtype"/>
@@ -1336,7 +1337,6 @@ Must be one of the following:
 					<xs:element name="decimal" nillable="true" type="decimal_DEtype"> </xs:element>
 					<xs:element name="double" nillable="true" type="double_DEtype"/>
 					<xs:element name="float" nillable="true" type="float_DEtype"/>
-					<xs:element name="hexBinary" nillable="true" type="hexBinary_DEtype"/>
 					<xs:element name="int" nillable="true" type="int_DEtype"> </xs:element>
 					<xs:element name="integer" nillable="true" type="integer_DEtype"> </xs:element>
 					<xs:element name="long" nillable="true" type="long_DEtype"> </xs:element>
@@ -1345,11 +1345,6 @@ Must be one of the following:
 					<xs:element name="nonPositiveInteger" nillable="true" type="nonPositiveInteger_DEtype"/>
 					<xs:element name="positiveInteger" nillable="true" type="positiveInteger_DEtype"/>
 					<xs:element name="short" nillable="true" type="short_DEtype"/>
-					<xs:element name="time" nillable="true" type="time_DEtype">
-						<xs:annotation>
-							<xs:documentation>**possibly "HH:MM:SS:ms am/pm 12/24"</xs:documentation>
-						</xs:annotation>
-					</xs:element>
 					<xs:element name="unsignedByte" nillable="true" type="unsignedByte_DEtype"/>
 					<xs:element name="unsignedInt" nillable="true" type="unsignedInt_DEtype"/>
 					<xs:element name="unsignedLong" nillable="true" type="unsignedLong_DEtype"/>
@@ -1468,6 +1463,7 @@ Time Zones
 							<xs:documentation> </xs:documentation>
 						</xs:annotation>
 					</xs:element>
+					<xs:element name="dayTimeDuration" type="dayTimeDuration_DEtype"/>
 					<xs:element name="duration" nillable="true" type="duration_DEtype">
 						<xs:annotation>
 							<xs:documentation source="http://www.w3schools.com/schema/schema_dtypes_date.asp">Duration Data Type 
@@ -1570,6 +1566,7 @@ Must be one of the following:
 							<xs:documentation>As a consequence of requiring an explicit time zone offset, the lexical space of dateTimeStamp is reduced from that of dateTime by requiring a timezoneFrag fragment in the ·lexical representations.  In other words, the lexical space of dateTimeStamp consists of strings which are in the ·lexical space· of dateTime and which also match the regular expression '.*(Z|(\+|-)[0-9][0-9]:[0-9][0-9])'.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
+					<xs:element name="dayTimeDuration" type="dayTimeDuration_Stype"/>
 					<xs:element name="duration" nillable="true" type="duration_Stype">
 						<xs:annotation>
 							<xs:documentation source="http://www.w3schools.com/schema/schema_dtypes_date.asp">Duration Data Type The duration data type is used to specify a time
@@ -1666,7 +1663,7 @@ Must be one of the following:
 					</xs:element>
 					<xs:element name="dateTime" nillable="true" type="dateTime_Stype">
 						<xs:annotation>
-							<xs:documentation source="http://www.w3schools.com/schema/schema_dtypes_date.asp">DateTime Data Type The dateTime data type is used to specify a date
+							<xs:documentation source="http://www.w3schools.com/schema/schema_dtypes_date.asp">The dateTime data type is used to specify a date
  and a time. 
  The dateTime is specified in the following form
  "YYYY-MM-DDThh:mm:ss" where: 
@@ -1686,6 +1683,7 @@ Must be one of the following:
                             </xs:documentation>
 						</xs:annotation>
 					</xs:element>
+					<xs:element name="dayTimeDuration" type="dayTimeDuration_Stype"/>
 					<xs:element name="dateTimeStamp" nillable="true" type="dateTimeStamp_Stype">
 						<xs:annotation>
 							<xs:documentation> </xs:documentation>

@@ -35,6 +35,7 @@ namespace SDC.Schema
 			this.ParentNodeObjectID = parentNode.ObjectID;
 			this.ParentIETNodeObjectID = parentIETNode?.ObjectID;
 			this.AttributeValue = attributeValue;
+			this.DefaultValue = SdcUtil.GetAttributeDefaultValue(attributePropInfo);
 			this.AttributePropInfo = attributePropInfo;
 			this.Order = order;
 		}
@@ -50,8 +51,11 @@ namespace SDC.Schema
 		/// </summary>
 		public object? AttributeValue { get; }
 
-
-
+		/// <summary>
+		/// The value of the DefaultValueAttribute which is present on some XML attribute properties.
+		/// The Value property of DefaultValueAttribute contains the property default value. 
+		/// </summary>
+		public object? DefaultValue { get; }
 
 		/// <summary>
 		/// The ShortGuid property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.

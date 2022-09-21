@@ -18,7 +18,7 @@ namespace SDCObjectModelTests
         public static FormDesignType FD;
         private static float TimerStartTime;
         private static string _XmlPath =>
-            Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
+            Path.Combine("..", "..", "..", "Test files", "DefaultValsTest.xml");
         private static string _Xml;
 
         public static string DataElementXml { get; set; }

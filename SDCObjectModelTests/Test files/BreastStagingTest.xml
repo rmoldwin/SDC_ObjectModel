@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FormDesign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="urn:ihe:qrph:sdc:2016 SDCFormDesign.xsd" xmlns="urn:ihe:qrph:sdc:2016"
-xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="Breast.Invasive.Bx.Res.359_.CTP9_sdcFDF" baseURI="cap.org"
-fullURI="_baseURI=cap.org&amp;_lineage=Breast.Ca.Stg.Calc.359&amp;_version=.CTP9&amp;_docType=sdcFDF"
-formTitle="Breast Cancer Staging Calculator" lineage="Breast.Ca.Stg.Calc.359"
-filename="Breast.Ca.Stg.Calc.359_CTP9_sdcFDF.xml" version="CTP9">
+ xsi:schemaLocation="urn:ihe:qrph:sdc:2016 ../../../sdc-schema-package/SDCFormDesign.xsd" xmlns="urn:ihe:qrph:sdc:2016"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="Breast.Invasive.Bx.Res.359_.CTP9_sdcFDF" baseURI="cap.org"
+ fullURI="_baseURI=cap.org&amp;_lineage=Breast.Ca.Stg.Calc.359&amp;_version=.CTP9&amp;_docType=sdcFDF"
+ formTitle="Breast Cancer Staging Calculator" lineage="Breast.Ca.Stg.Calc.359"
+ filename="Breast.Ca.Stg.Calc.359_CTP9_sdcFDF.xml" version="CTP9">
 
 	<Property name="SaveState" propName="SaveState" val="New"/>
 	<Property name="Copyright" type="CAPeCC_static_text" styleClass="copyright" propName="Copyright"
@@ -30,72 +30,68 @@ filename="Breast.Ca.Stg.Calc.359_CTP9_sdcFDF.xml" version="CTP9">
 				<ChildItems name="ch_43969_1">
 					<Question name="Q_cT_52167" type="cT" ID="52167.100004300"
 					title="Primary Tumor (Invasive Carcinoma) (cT)">
-						<ListField name="lf_52167_1">
+						<ListField name="lf_52167_1" maxSelections="1" minSelections="1" numCols="1" storedCol="1" colTextDelimiter="|"
+							type="---TEST--- Defaults set for: maxSelections minSelections numCols storedCol colTextDelimiter" >
 							<List name="lst_52167_2">
 								<ListItem name="LI_cTX_44567" ID="44567.100004300" associatedValue="cTx"
 								title="cTX: Primary tumor cannot be assessed">
 									<Property name="p_rptTxt_44567_1" propName="reportText" val="cTX"/>
+									<ChildItems>
+										<Question ID="Q1" title = "---TEST---Q1">
+											<ListField type="---TEST---">
+												<List>
+													<ListItem ID="testLI1" type="test" >
+														<ListItemResponseField type="---TEST---" responseRequired="false">
+															<Response>
+																<byte type="---TEST---" allowAPPROX="false" quantEnum="EQ" maxExclusive="0" minExclusive="1" totalDigits="2"/>
+															</Response>
+														</ListItemResponseField>
+													</ListItem>
+												</List>
+											</ListField>
+										</Question>
+										<Question ID="Q2" readOnly="false" title = "---TEST---Q2" enabled="true" showInReport="True" type="test Defaults set for: readOnly enabled showInReport">
+											<ListField type="---TEST--- no-attributes-specified">
+												<List>
+													<ListItem ID="testLI2" omitWhenSelected="false" type="---TEST---" mustImplement="true" >
+														<ListItemResponseField type="---TEST---" responseRequired="false">
+															<Response>
+																<string type="---TEST---" xsi:nil="false"/> 
+															</Response>
+															<CallSetValue type="---TEST---" allowNull="true" listDelimiter="|" dataType="string" returnVal="1" >
+																<LocalFunctionName type="---TEST---" val="#AJCC_CalcPathStage"/>
+																<ParameterValue type="---TEST---" paramName="myParam" >
+																	<string/>
+																</ParameterValue>
+															</CallSetValue>
+															<TextAfterResponse val="ml"/>
+															<ResponseUnits unitSystem="UCUM" val="ml"/>
+														</ListItemResponseField>
+														<OnDeselect allowNull="true">
+															<CallBoolFunc listDelimiter="|" returnList="false">
+																<LocalFunctionName val="#Body"/>
+															</CallBoolFunc>
+														</OnDeselect>
+														<SelectIf boolOp="AND">
+															<AttributeEval itemNames="LI_cT0_41284" hasAssociatedValueEQ="EQ" hasResponse="true"/>
+														</SelectIf>
+													</ListItem>
+													
+												</List>
+											</ListField>
+										</Question>
+									</ChildItems>
 								</ListItem>
 								<ListItem name="LI_cT0_41284" ID="41284.100004300" associatedValue="cT0"
 								title="cT0: No evidence of primary tumor">
 									<Property name="p_rptTxt_41284_1" propName="reportText" val="cT0"/>
+									<ListItemResponseField type="---TEST---" responseRequired="false">
+										<Response>
+											<int type="---TEST---" allowAPPROX="true" quantEnum="GTE" maxExclusive="3" minExclusive="0" totalDigits="2"/>
+										</Response>
+									</ListItemResponseField>
 								</ListItem>
-								<ListItem name="LI_cTis_DCIS_58510" ID="58510.100004300" associatedValue="cTis (DCIS)"
-								title="cTis (DCIS): Ductal carcinoma in situ">
-									<Property name="p_rptTxt_58510_1" propName="reportText" val="cTis (DCIS)"/>
-								</ListItem>
-								<ListItem name="LI_cTis_Paget_37620" ID="37620.100004300" associatedValue="cTis (Paget)"
-								title="cTis (Paget): Paget disease of the nipple NOT associated with invasive carcinoma and / or carcinoma in situ (DCIS) in the underlying breast parenchyma. Carcinomas in the breast parenchyma associated with Paget disease are categorized based on the size and characteristics of the parenchymal disease, although the presence of Paget disease should still be noted.">
-									<Property name="p_rptTxt_37620_1" propName="reportText" val="cTis (Paget)"/>
-								</ListItem>
-								<ListItem name="LI_cT1_41258" ID="41258.100004300" associatedValue="cT1"
-								title="cT1: Tumor less than or equal to 20 mm in greatest dimension">
-									<Property name="p_rptTxt_41258_1" propName="reportText" val="cT1"/>
-								</ListItem>
-								<ListItem name="LI_cT1mi_46966" ID="46966.100004300" associatedValue="cT1mi"
-								title="cT1mi: Tumor less than or equal to 1 mm in greatest dimension">
-									<Property name="p_rptTxt_46966_1" propName="reportText" val="cT1mi"/>
-								</ListItem>
-								<ListItem name="LI_cT1a_49130" ID="49130.100004300" associatedValue="cT1a"
-								title="cT1a: Tumor greater than 1 mm but less than or equal to 5 mm in greatest dimension (round any measurement greater than 1.0-1.9 mm to 2 mm).">
-									<Property name="p_rptTxt_49130_1" propName="reportText" val="cT1a"/>
-								</ListItem>
-								<ListItem name="LI_cT1b_59950" ID="59950.100004300" associatedValue="cT1b"
-								title="cT1b: Tumor greater than 5 mm but less than or equal to 10 mm in greatest dimension">
-									<Property name="p_rptTxt_59950_1" propName="reportText" val="cT1b"/>
-								</ListItem>
-								<ListItem name="LI_cT1c_57786" ID="57786.100004300" associatedValue="cT1c"
-								title="cT1c: Tumor greater than 10 mm but less than or equal to 20 mm in greatest dimension">
-									<Property name="p_rptTxt_57786_1" propName="reportText" val="cT1c"/>
-								</ListItem>
-								<ListItem name="LI_cT2_47607" ID="47607.100004300" associatedValue="cT2"
-								title="cT2: Tumor greater than 20 mm but less than or equal to 50 mm in greatest dimension">
-									<Property name="p_rptTxt_47607_1" propName="reportText" val="cT2"/>
-								</ListItem>
-								<ListItem name="LI_cT3_49771" ID="49771.100004300" associatedValue="cT3"
-								title="cT3: Tumor greater than 50 mm in greatest dimension">
-									<Property name="p_rptTxt_49771_1" propName="reportText" val="cT3"/>
-								</ListItem>
-								<ListItem name="LI_cT4_53979" ID="53979.100004300" associatedValue="cT4"
-								title="cT4: Tumor of any size with direct extension to the chest wall and / or to the skin (ulceration or macroscopic nodules); invasion of the dermis alone does not qualify as T4">
-									<Property name="p_rptTxt_53979_1" propName="reportText" val="cT4"/>
-								</ListItem>
-								<ListItem name="LI_cT4a_59137" ID="59137.100004300" associatedValue="cT4a"
-								title="cT4a: Extension to the chest wall; invasion or adherence to pectoralis muscle in the absence of invasion of chest wall structures does not qualify as T4">
-									<Property name="p_rptTxt_59137_1" propName="reportText" val="cT4a"/>
-								</ListItem>
-								<ListItem name="LI_cT4b_52599" ID="52599.100004300" associatedValue="cT4b"
-								title="cT4b: Ulceration and / or ipsilateral macroscopic satellite nodules and / or edema (including peau d'orange) carcinoma">
-									<Property name="p_rptTxt_52599_1" propName="reportText" val="cT4b"/>
-								</ListItem>
-								<ListItem name="LI_cT4c_52708" ID="52708.100004300" associatedValue="cT4c"
-								title="cT4c: Both T4a and T4b are present">
-									<Property name="p_rptTxt_52708_1" propName="reportText" val="cT4c"/>
-								</ListItem>
-								<ListItem name="LI_cT4d_40116" ID="40116.100004300" associatedValue="cT4d"
-								title="cT4d: Inflammatory carcinoma">
-									<Property name="p_rptTxt_40116_1" propName="reportText" val="cT4d"/>
-								</ListItem>
+								
 							</List>
 						</ListField>
 					</Question>
@@ -5405,11 +5401,11 @@ If the Oncotype Dx score is less than 11, then Stage = IA
 					</Section>
 
 					<ButtonAction name = "ButtonAction-SubmitForm" ID="SubmitForm" title="Submit Form">
-						<OnClick name = "OnClick under ButtonAction-SubmitForm" >
-							<Actions name = "Actions under OnClick">
+						<OnClick name = "OnClick-under-ButtonAction-SubmitForm" >
+							<Actions name = "Actions-under-OnClick">
 
 								<SetAttributeValue name ="targetNames_S_41550" targetNames="S_41550" actEnable="false"/>
-								<SetAttributeValue name ="targetNames_SaveState" targetNames="SaveState=" actSetVal="Staged"/>
+								<SetAttributeValue name ="targetNames_SaveState" targetNames="SaveState" actSetVal="Staged"/>
 
 								<CallFunction>
 									<LocalFunctionName name ="submit" type="submit" val="SubmitForm"/>
@@ -5426,7 +5422,7 @@ If the Oncotype Dx score is less than 11, then Stage = IA
 		</ChildItems>
 	</Body>
 	<Footer name="footer" ID="Breast.Ca.Stg.Calc.359_.CTP9_sdcFDF">
-		<Property type="meta" styleClass="copyright" propName="CopyrightFooter" name="CopyrightFooter under footer"
+		<Property type="meta" styleClass="copyright" propName="CopyrightFooter" name="CopyrightFooter-under-footer"
 		val="(c) 2018 College of American Pathologists. All rights reserved. License required for use."/>
 	</Footer>
 </FormDesign>

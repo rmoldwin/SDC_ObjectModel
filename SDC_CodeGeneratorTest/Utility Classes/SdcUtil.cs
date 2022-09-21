@@ -1133,8 +1133,9 @@ namespace SDC.Schema
 					{
 						var att = t.GetMethod("ShouldSerialize" + p.Name)?.Invoke(elementNode, null);
 						if (att is bool shouldSerialize && shouldSerialize) //if (shouldSerialize is true)
+							//Test if the property's default value does not match the current property value
 							if (//p.PropertyType.IsAssignableTo(typeof(string)) &&
-								(GetAttributeDefaultValue(p) ?? "").ToString() != //Test if the default value matches the current property value
+								(GetAttributeDefaultValue(p) ?? "").ToString() != 
 								(p.GetValue(elementNode) ?? "").ToString())
 							{
 								nodeIndex++;
