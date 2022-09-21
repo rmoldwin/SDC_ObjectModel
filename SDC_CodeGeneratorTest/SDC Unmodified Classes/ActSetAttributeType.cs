@@ -43,14 +43,14 @@ using System.Collections.Generic;
 public partial class ActSetAttributeType : ExtensionBaseType
 {
     #region Private fields
-    private bool _shouldSerializeactReadOnly;
-    private bool _shouldSerializeactDeleteResponse;
-    private bool _shouldSerializeactSelect;
-    private bool _shouldSerializeactActivate;
-    private bool _shouldSerializeactMaxCard;
-    private bool _shouldSerializeactMinCard;
-    private bool _shouldSerializeactEnable;
-    private bool _shouldSerializeactVisible;
+    protected internal bool _shouldSerializeactReadOnly;
+    protected internal bool _shouldSerializeactDeleteResponse;
+    protected internal bool _shouldSerializeactSelect;
+    protected internal bool _shouldSerializeactActivate;
+    protected internal bool _shouldSerializeactMaxCard;
+    protected internal bool _shouldSerializeactMinCard;
+    protected internal bool _shouldSerializeactEnable;
+    protected internal bool _shouldSerializeactVisible;
     private string _targetNames;
     private bool _actVisible;
     private bool _actEnable;

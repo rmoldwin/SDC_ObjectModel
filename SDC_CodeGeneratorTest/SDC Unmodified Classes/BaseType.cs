@@ -251,7 +251,7 @@ using System.Collections.Generic;
 public abstract partial class BaseType : SdcEntityBase
 {
     #region Private fields
-    private bool _shouldSerializeorder;
+    protected internal bool _shouldSerializeorder;
     private string _name;
     private string _type;
     private string _styleClass;

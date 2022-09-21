@@ -45,6 +45,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="SDC Schema\Schema Classes\SdcEntityBase.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="Utility Classes\Extensions\Unimplemented Extensions.cs" />
     <None Include="Utility Classes\Junk\SDC_CodeGeneratorTest.csproj_old" />
   </ItemGroup>
@@ -74,7 +78,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="SDC Schema\Schema Classes\" />
     <Folder Include="Utility Classes\Interfaces\" />
   </ItemGroup>
 

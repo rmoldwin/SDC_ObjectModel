@@ -74,7 +74,7 @@ using System.Collections.Generic;
 public partial class DataTypes_DEType : ExtensionBaseType
 {
     #region Private fields
-    private bool _shouldSerializeItemElementName;
+    protected internal bool _shouldSerializeItemElementName;
     private BaseType _item;
     private ItemChoiceType2 _itemElementName;
     #endregion

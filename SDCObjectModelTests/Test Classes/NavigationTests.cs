@@ -654,9 +654,9 @@ namespace SDCObjectModelTests.TestClasses
 			foreach (IdentifiedExtensionType n in Setup.FD.IETnodes)
 			{
 				var en = n.ElementName;
-				int enLen = 27 - en.Length;
+				int enLen = 36 - en.Length;
 				int pad = (enLen > 0) ? enLen : 0;
-				Debug.Print($"<<<<<<<<<<<<<<<<<   IET Node: {en}   {"".PadRight(pad, gt)}");
+				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  IET Node: {en}   {"".PadRight(pad, gt)}");
 				var sublist = n.GetSortedSubtreeIETList();
 
 				Dictionary<string, List<AttributeInfo>> dlai = new();
@@ -674,12 +674,12 @@ namespace SDCObjectModelTests.TestClasses
 			void Log(BaseType subNode, List<AttributeInfo> lai)
 			{
 				var en = subNode.ElementName;
-				int enLen = 28 - en.Length;
+				int enLen = 36 - en.Length;
 				int pad = (enLen > 0) ? enLen : 0;
-				Debug.Print($"<=<<<<<<<<<<<<<<<   SubNode: {en}   {"".PadRight(pad, gt)}");
-				Debug.Print("<==<==<== Attr ==>==>==>|<==<==<==<==<== Val ==>==>==>==>==>");
+				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  SubNode: {en}    {"".PadRight(pad, gt)}");
+				Debug.Print("<==<==<== Attr ==>==>==>| Default Val |<==<==<==<==<== Val ==>==>==>==>==>");
 				foreach (AttributeInfo ai in lai)					
-					Debug.Print($"{ai.Name.PadRight(24)}| {ai.AttributeValue?.ToString()}");
+					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString()??"").PadRight(13)}| {ai.AttributeValue?.ToString()}");
 			}
 			//  ------------------------------------------------------------------------------------
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");

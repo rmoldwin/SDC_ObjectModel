@@ -36,8 +36,8 @@ using System.Collections.Generic;
 public partial class date_Stype : BaseType
 {
     #region Private fields
-    private bool _shouldSerializequantEnum;
-    private bool _shouldSerializeval;
+    protected internal bool _shouldSerializequantEnum;
+    protected internal bool _shouldSerializeval;
     private System.DateTime _val;
     private string _timeZone;
     private dtQuantEnum _quantEnum;

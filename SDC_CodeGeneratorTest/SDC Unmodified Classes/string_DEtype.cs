@@ -35,8 +35,8 @@ using System.Collections.Generic;
 public partial class string_DEtype : string_Stype
 {
     #region Private fields
-    private bool _shouldSerializemaxLength;
-    private bool _shouldSerializeminLength;
+    protected internal bool _shouldSerializemaxLength;
+    protected internal bool _shouldSerializeminLength;
     private ulong _minLength;
     private ulong _maxLength;
     private string _pattern;

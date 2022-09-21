@@ -36,7 +36,7 @@ using System.Collections.Generic;
 public partial class gYearMonth_Stype : BaseType
 {
     #region Private fields
-    private bool _shouldSerializequantEnum;
+    protected internal bool _shouldSerializequantEnum;
     private string _val;
     private string _timeZone;
     private dtQuantEnum _quantEnum;

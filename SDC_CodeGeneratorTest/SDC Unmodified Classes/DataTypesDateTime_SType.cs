@@ -49,7 +49,7 @@ using System.Collections.Generic;
 public partial class DataTypesDateTime_SType : ExtensionBaseType
 {
     #region Private fields
-    private bool _shouldSerializeItemElementName;
+    protected internal bool _shouldSerializeItemElementName;
     private BaseType _item;
     private ItemChoiceType3 _itemElementName;
     #endregion

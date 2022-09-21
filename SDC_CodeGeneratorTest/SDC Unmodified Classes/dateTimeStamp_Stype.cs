@@ -36,7 +36,7 @@ using System.Collections.Generic;
 public partial class dateTimeStamp_Stype : BaseType
 {
     #region Private fields
-    private bool _shouldSerializeval;
+    protected internal bool _shouldSerializeval;
     private System.DateTime _val;
     #endregion
     

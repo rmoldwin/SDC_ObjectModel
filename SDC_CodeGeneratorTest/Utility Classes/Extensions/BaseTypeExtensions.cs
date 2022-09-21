@@ -122,24 +122,32 @@ namespace SDC.Schema
 		}
 
 		/// <summary>
-		/// This method determines if a BaseType object (bt) has a private _shouldSerializePropertyName field for a public struct property ("PropertyName"), 
+		/// This method determines if a BaseType object (bt) has a private _shouldSerializePropertyName field 
+		/// for a public value-type <paramref name="property"/> ("PropertyName"), 
 		/// and if so, sets it (using the serializeDefaultValue parameter) to the desired true or false default) value.
-		/// The _shouldSerializePropertyName field exists only on simple non-nullable types (structs), including all numeric, DateTime, and TimeSpan (duration) types.
+		/// The _shouldSerializePropertyName field exists only on simple non-nullable types (structs), 
+		/// including all numeric, DateTime, and TimeSpan (duration) types.
 		/// If the private _shouldSerializePropertyName field exists, setting it to true will force the PropertyName to be serialized, 
 		/// even if it contains its default value.  
 		/// Whenever a property is set in code, _shouldSerializePropertyName is set to true.  
-		/// Setting _shouldSerializePropertyName to false will prevent the property on the bt object from being serialized if it contains its default value.
-		/// In general, this method need only be called to set _shouldSerializePropertyName to false, and thus the default value of serializeDefaultValue = false. 
+		/// Setting _shouldSerializePropertyName to false will prevent the <paramref name="property"/> 
+		/// on the bt object from being serialized if it contains its default value.
+		/// In general, this method need only be called to set _shouldSerializePropertyName to false, 
+		/// and thus the default value of serializeDefaultValue = false. 
 		/// It is most useful for forcing or suppressing the serialization of default values (e.g., 0) from numeric types from byte to decimal.  
 		/// When .NET Core 7 (C# 11) is available with constraints for numeric values (e.g., Tin: INumeric), 
 		/// this method may be updated to support that additional constraint, to exclude, e.g., enums etc.
 		/// </summary>
-		/// <typeparam name="Tin">Tin represents any property of a struct type</typeparam>
-		/// <param name="bt">The BaseType object that contains property</param>
-		/// <param name="property">The property struct object for which we want to set its private _shouldSerialize field</param>
-		/// <param name="shouldSerialize">Set to true to serialize the default value of <paramref name="property"/>; set to false to omit the default value of <paramref name="property"/> (i.e., do not serialize <paramref name="property"/> if it holds its default value).</param>
-		/// <returns>true for success, false if _shouldSerializePropertyName does not exist on bt, or if an exception occurs</returns>
-		public static bool ShouldSerialize<Tin>(this BaseType bt, Tin property, bool shouldSerialize = false)
+		/// <typeparam name="Tin">Tin represents any <paramref name="property"/> of a struct type</typeparam>
+		/// <param name="bt">The BaseType object that contains <paramref name="property"/></param>
+		/// <param name="property">The <paramref name="property"/> value-type object 
+		/// for which we want to set its private _shouldSerialize field</param>
+		/// <param name="shouldSerialize">Set to true to serialize the default value of <paramref name="property"/>; 
+		/// set to false to omit the default value of <paramref name="property"/> 
+		/// (i.e., do not serialize <paramref name="property"/> if it holds its default value).</param>
+		/// <returns>true for success, false if a _shouldSerializePropertyName field does not exist in bt, 
+		/// or if the <paramref name="property"/> itself was not found in bt</returns>
+		public static bool SetShouldSerialize<Tin>(this BaseType bt, Tin property, bool shouldSerialize = false)
 			where Tin : struct
 		{
 			var pi = bt.GetType().GetField("_shouldSerialize" + property.GetType().Name);
@@ -147,5 +155,7 @@ namespace SDC.Schema
 			pi.SetValue(bt, shouldSerialize);
 			return true;
 		}
+
+
 	}
 }

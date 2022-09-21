@@ -13,6 +13,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.IO.IsolatedStorage;
 using System.Reflection;
 using System.Security.Cryptography;
 //using System.Runtime.InteropServices.WindowsRuntime;
@@ -1120,43 +1121,43 @@ namespace SDC.Schema
 			{
 				t = s.Pop();
 				piIE = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-						.Where(p => p.GetCustomAttributes<XmlAttributeAttribute>().Any());
+						.Where(pi => pi.GetCustomAttributes<XmlAttributeAttribute>().Any());
 				foreach (var p in piIE)
 				{
 					nodeIndex++;
-					if (getAllAttributes)
-					{
-						nodeIndex++;
-						attributes.Add(FillAttributeInfo(p, elementNode));
-					}
+					if (getAllAttributes) AddAttribute();
 					else
 					{
-						var att = t.GetMethod("ShouldSerialize" + p.Name)?.Invoke(elementNode, null);
-						if (att is bool shouldSerialize && shouldSerialize) //if (shouldSerialize is true)
-							//Test if the property's default value does not match the current property value
-							if (//p.PropertyType.IsAssignableTo(typeof(string)) &&
-								(GetAttributeDefaultValue(p) ?? "").ToString() != 
-								(p.GetValue(elementNode) ?? "").ToString())
+						var att = t.GetMethod("SetShouldSerialize" + p.Name)?.Invoke(elementNode, null);
+						var pVal = p.GetValue(elementNode);
+						if (pVal is not null)
+						{
+							if (att is bool shouldSerialize && shouldSerialize) //if (shouldSerialize is true);	
+								AddAttribute();
+							else
 							{
-								nodeIndex++;
-								attributes.Add(FillAttributeInfo(p, elementNode));
-								//if (p.Name.ToLower() == "minselections" || p.Name.ToLower().Contains("maxselections")) Debugger.Break();
-							}
-							else //see if we have a non-default value in elementNode - we would serialize a non-default value.
-							{
-								var defVal = p.GetCustomAttributes<DefaultValueAttribute>().FirstOrDefault();
+								//Test if the property's default value does not match the current property value
+								//see if we have a non-default value in our property - we will serialize a non-default value.
+								var defVal = GetAttributeDefaultValue(p);
 
 								if (defVal is not null)
 								{
-									var pVal = p.GetValue(elementNode)?.ToString();
-									if (pVal is not null && defVal.Value?.ToString() != pVal)
-									{
-										nodeIndex++;
-										attributes.Add(FillAttributeInfo(p, elementNode));
-										if (p.Name.ToLower() == "minselections" || p.Name.ToLower().Contains("maxselections")) Debugger.Break();
-									}
+									if (!defVal.Equals(pVal)) 
+										AddAttribute();
+								}
+								else //see if we have a property value that is not the default for its datatype
+								{
+									var typeDef = GetTypeDefaultValue(pVal.GetType());
+									if (!pVal.Equals(typeDef))
+										AddAttribute();
 								}
 							}
+						}
+					}
+					void AddAttribute()
+					{
+						nodeIndex++;
+						attributes.Add(FillAttributeInfo(p, elementNode));
 					}
 				}
 			}
@@ -1181,6 +1182,25 @@ namespace SDC.Schema
 			var defVal = pi.GetCustomAttributes<DefaultValueAttribute>()?.FirstOrDefault()?.Value;
 			return defVal;
 		}
+
+		public static object? GetPropertyObject(BaseType parent, string propertyName)
+		{
+			var pi = parent.GetType().GetProperty(propertyName);
+			if (pi is null) return null;
+			return pi.GetValue(parent);
+		}
+		public static object? GetPropertyObject(BaseType parent, PropertyInfo piProperty) =>
+			piProperty.GetValue(parent);
+
+		/// <summary>
+		/// Get the default value of a type retrieved at runtime
+		/// </summary>
+		/// <see cref="GetTypeDefaultValue" href="https://stackoverflow.com/questions/1281161/how-to-get-the-default-value-of-a-type-if-the-type-is-only-known-as-system-type"/>
+		/// <param name="type"></param>
+		/// <returns>Nullable object set to its default value</returns>
+		public static object? GetTypeDefaultValue(Type type) =>
+			type.IsValueType ? Activator.CreateInstance(type) : null;
+
 
 		public static bool TryGetChildElements(BaseType item, out ReadOnlyCollection<BaseType>? kids)
 		{

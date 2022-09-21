@@ -35,8 +35,8 @@ using System.Collections.Generic;
 public partial class anyType_DEtype : BaseType
 {
     #region Private fields
-    private bool _shouldSerializemaxLength;
-    private bool _shouldSerializeminLength;
+    protected internal bool _shouldSerializemaxLength;
+    protected internal bool _shouldSerializeminLength;
     private List<System.Xml.XmlElement> _any;
     private ulong _minLength;
     private ulong _maxLength;

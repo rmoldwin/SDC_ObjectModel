@@ -35,10 +35,10 @@ using System.Collections.Generic;
 public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
 {
     #region Private fields
-    private bool _shouldSerializeminInclusive;
-    private bool _shouldSerializemaxInclusive;
-    private bool _shouldSerializeminExclusive;
-    private bool _shouldSerializemaxExclusive;
+    protected internal bool _shouldSerializeminInclusive;
+    protected internal bool _shouldSerializemaxInclusive;
+    protected internal bool _shouldSerializeminExclusive;
+    protected internal bool _shouldSerializemaxExclusive;
     private System.DateTime _maxExclusive;
     private System.DateTime _minExclusive;
     private System.DateTime _maxInclusive;

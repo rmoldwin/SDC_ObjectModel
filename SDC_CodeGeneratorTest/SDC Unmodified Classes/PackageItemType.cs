@@ -38,9 +38,9 @@ using System.Collections.Generic;
 public partial class PackageItemType : ExtensionBaseType
 {
     #region Private fields
-    private bool _shouldSerializeformat;
-    private bool _shouldSerializenewData;
-    private bool _shouldSerializechangedData;
+    protected internal bool _shouldSerializeformat;
+    protected internal bool _shouldSerializenewData;
+    protected internal bool _shouldSerializechangedData;
     private string _formManagerURI;
     private PackageItemTypeFormat _format;
     private string _packageID;

@@ -36,10 +36,10 @@ using System.Collections.Generic;
 public partial class BasePackageType : ExtensionBaseType
 {
     #region Private fields
-    private bool _shouldSerializenewData;
-    private bool _shouldSerializechangedData;
-    private bool _shouldSerializeinstanceVersionPrev;
-    private bool _shouldSerializeinstanceVersion;
+    protected internal bool _shouldSerializenewData;
+    protected internal bool _shouldSerializechangedData;
+    protected internal bool _shouldSerializeinstanceVersionPrev;
+    protected internal bool _shouldSerializeinstanceVersion;
     private TemplateAdminType _admin;
     private string _packageID;
     private string _pkgTitle;

@@ -42,12 +42,12 @@ using System.Collections.Generic;
 public partial class FormDesignType : IdentifiedExtensionType
 {
     #region Private fields
-    private bool _shouldSerializecompletionStatus;
-    private bool _shouldSerializeapprovalStatus;
-    private bool _shouldSerializenewData;
-    private bool _shouldSerializechangedData;
-    private bool _shouldSerializeinstanceVersionPrev;
-    private bool _shouldSerializeinstanceVersion;
+    protected internal bool _shouldSerializecompletionStatus;
+    protected internal bool _shouldSerializeapprovalStatus;
+    protected internal bool _shouldSerializenewData;
+    protected internal bool _shouldSerializechangedData;
+    protected internal bool _shouldSerializeinstanceVersionPrev;
+    protected internal bool _shouldSerializeinstanceVersion;
     private EventType _beforeLoadForm;
     private EventType _beforeLoadData;
     private EventType _beforeShowForm;

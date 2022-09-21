@@ -35,7 +35,7 @@ using System.Collections.Generic;
 public partial class AreaCodeType : BaseType
 {
     #region Private fields
-    private bool _shouldSerializeval;
+    protected internal bool _shouldSerializeval;
     private ushort _val;
     #endregion
     
