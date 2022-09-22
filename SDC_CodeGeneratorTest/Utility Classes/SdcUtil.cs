@@ -1134,14 +1134,6 @@ namespace SDC.Schema
 						//if (p.Name =="hasResponse" && pVal is bool b && b == false) Debugger.Break();
 						if (pVal is not null)
 						{
-							if (false)
-							{	//Sample code
-								//test to reset the default value to force serialization
-								var a = new DefaultValueAttribute(0);
-								var piA = a.GetType().GetProperty("Value");
-								piA?.SetValue(a, int.MinValue);
-							}
-
 							if (sspn is bool shouldSerialize && shouldSerialize) //if (_shouldSerializePropertyName is true);	
 								AddAttribute(); //If pVal is equal to its GetAttributeDefaultValue(p), it will not be serialized to XML -we retrieve it anyway
 							else 
@@ -2144,6 +2136,7 @@ namespace SDC.Schema
 			}
 			return doc.OuterXml;
 		}
+
 		#endregion
 	}
 }
