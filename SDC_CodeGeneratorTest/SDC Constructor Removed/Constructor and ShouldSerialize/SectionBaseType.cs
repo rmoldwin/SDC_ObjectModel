@@ -123,13 +123,13 @@ public abstract partial class SectionBaseType : RepeatingType
 		/// </summary>
 		public virtual bool ShouldSerializeordered()
 		{
-			return _shouldSerializeordered;
+			if (_shouldSerializeordered)
+				{
+					return true;
+				}
+			//return (_ordered != default(bool));
+			return (_ordered != true); // rm changed 2022_09_21
 
-			//if (_shouldSerializeordered)
-			//	{
-			//		return true;
-			//	}
-			//	return (_ordered != default(bool));
 		}
 
 		/// <summary>

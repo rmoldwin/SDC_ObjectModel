@@ -194,8 +194,9 @@ public partial class PredAlternativesType : FuncBoolBaseType
         {
             return true;
         }
-        return (_minAnswered != default(int));
-    }
+        return (_minAnswered != 1); //rm changed 2022_09_21
+
+	}
     
     /// <summary>
     /// Test whether maxAnswered should be serialized

@@ -139,8 +139,8 @@ public abstract partial class FuncBoolBaseType : ExtensionBaseType
         {
             return true;
         }
-        return (_allowNull != default(bool));
-    }
+        return (_allowNull != true); // rm changed 2022_09_21
+		}
     
     /// <summary>
     /// Test whether returnVal should be serialized

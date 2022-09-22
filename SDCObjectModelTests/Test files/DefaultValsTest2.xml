@@ -17,66 +17,71 @@
 			<Section name="S_Onc_Clin_Assess_43969" ID="43969.100004300"
 			title="ONCOLOGIST: Initial Clinical Staging Assessment">
 				<ChildItems name="ch_43969_1">
-					<Question name="Q_cT_52167" type="cT" ID="52167.100004300"
-					title="Primary Tumor (Invasive Carcinoma) (cT)">
+
+					<Question type="cT readOnly.true showInReport.True enabled.false visible.false" name="Q_cT_52167" ID="52167.100004300"
+						title="Primary Tumor (Invasive Carcinoma) (cT)" showInReport="True" readOnly="true" enabled="false" visible="false">
 						<ListField name="lf_52167_1" maxSelections="1" minSelections="1" numCols="1" storedCol="1" colTextDelimiter="|"
-							type="---TEST--- Defaults set for: maxSelections minSelections numCols storedCol colTextDelimiter" >
+							type="---TEST--- maxSelections.1 minSelections.1 numCols.1 storedCol.1 colTextDelimiter.bar" >
 							<List name="lst_52167_2">
 								<ListItem name="LI_cTX_44567" ID="44567.100004300" associatedValue="cTx"
-								title="cTX: Primary tumor cannot be assessed">
+									title="cTX: Primary tumor cannot be assessed">
 									<Property name="p_rptTxt_44567_1" propName="reportText" val="cTX"/>
 									<ChildItems>
-										<Question ID="Q1" title = "---TEST---Q1">
-											<ListField >
+										<Question ID="Q1" title = "Q1">
+											<ListField type="---TEST--- colTextDelimiter.semicolon numCols.2 storedCol.2" colTextDelimiter=";" numCols="2" storedCol="2" >
 												<List>
-													<ListItem ID="testLI1" >
-														<ListItemResponseField type="---TEST--- responseRequired" responseRequired="false">
+													<ListItem ID="testLI1" type="test" >
+														<ListItemResponseField type="---TEST---responseRequired.true" responseRequired="true">
 															<Response>
-																<byte type="---TEST--- allowAPPROX quantEnum maxExclusive minExclusive totalDigits" allowAPPROX="false" quantEnum="EQ" maxExclusive="0" minExclusive="1" totalDigits="2"/>
+																<byte type="---TEST---many attributes" allowAPPROX="false" quantEnum="EQ" maxExclusive="0" minExclusive="1" totalDigits="2"/>
 															</Response>
+															<ResponseUnits type="---TEST--- val.ml unitSystem.custom" unitSystem="custom" val="ml"/>
 														</ListItemResponseField>
 													</ListItem>
 												</List>
 											</ListField>
 										</Question>
-										<Question ID="Q2" readOnly="false" title = "---TEST---Q2 " enabled="true" showInReport="true" 
-											type="---TEST--- readOnly enabled showInReport">
+										<Question type="---TEST---readOnly.false enabled.true showInReport.False" ID="Q2" readOnly="false" title = "Q2" enabled="true" showInReport="False" >
 											<ListField type="---TEST--- no-attributes-specified">
 												<List>
-													<ListItem type="---TEST--- omitWhenSelected mustImplement" ID="testLI2" omitWhenSelected="false" mustImplement="true" >
-														<ListItemResponseField type="---TEST--- responseRequired" responseRequired="true">
+													<ListItem type="---TEST---mustImplement.true omitWhenSelected.false " 
+														ID="testLI2" omitWhenSelected="false"  mustImplement="true" >
+														<ListItemResponseField type="---TEST---responseRequired.false" 
+															responseRequired="false">
 															<Response>
-																<string type="---TEST--- xsi:nil" xsi:nil="false"/> 
+																<string type="---TEST--- xsi:nil.false" xsi:nil="false"/> 
 															</Response>
-															<CallSetValue type="---TEST--- allowNull listDelimiter dataType returnVal" allowNull="true" listDelimiter="|" dataType="string" returnVal="1" >
+															<CallSetValue type="---TEST--- allowNull.true listDelimiter.bar dataType.string returnVal.1" allowNull="true" listDelimiter="|" dataType="string" returnVal="1" >
 																<LocalFunctionName type="---TEST--- val" val="#AJCC_CalcPathStage"/>
 																<ParameterValue type="---TEST--- paramName" paramName="myParam" >
 																	<string/>
 																</ParameterValue>
 															</CallSetValue>
-															<TextAfterResponse val="ml"/>
-															<ResponseUnits unitSystem="UCUM" val="ml"/>
+															<TextAfterResponse type="---TEST--- val.ml" val="ml"/>
+															<ResponseUnits type="---TEST--- val.ml unitSystem.UCUM" unitSystem="UCUM" val="ml"/>
 														</ListItemResponseField>
 														<OnDeselect allowNull="true">
-															<CallBoolFunc type ="---TEST--- responseRequired listDelimiter returnList" listDelimiter="|" returnList="false">
-																<LocalFunctionName val="#Body"/>
+															<CallBoolFunc type="---TEST--- listDelimiter.semicolon returnList.false" listDelimiter=";" returnList="false">
+																<LocalFunctionName type="---TEST--- val" val="#Body" />
 															</CallBoolFunc>
 														</OnDeselect>
-														<SelectIf boolOp="AND">
-															<AttributeEval type="---TEST--- itemNames hasAssociatedValueEQ hasResponse" itemNames="LI_cT0_41284" hasAssociatedValueEQ="EQ" hasResponse="true"/>
+														<SelectIf  type="---TEST--- boolOp.AND" boolOp="AND">
+															<AttributeEval type="---TEST---itemNames hasAssociatedValueEQ.EQ hasResponse.true" itemNames="LI_cT0_41284" hasAssociatedValueEQ="EQ" hasResponse="true"/>
+															<AttributeEval type="---TEST---itemNames hasAssociatedValueEQ.GTE hasResponse.false" itemNames="LI_cT0_41284" hasAssociatedValueEQ="GTE" hasResponse="false"/>
 														</SelectIf>
-													</ListItem>													
+													</ListItem>
+													
 												</List>
 											</ListField>
 										</Question>
 									</ChildItems>
 								</ListItem>
 								<ListItem name="LI_cT0_41284" ID="41284.100004300" associatedValue="cT0"
-								title="cT0: No evidence of primary tumor">
+									title="cT0: No evidence of primary tumor">
 									<Property name="p_rptTxt_41284_1" propName="reportText" val="cT0"/>
-									<ListItemResponseField type="---TEST--- responseRequired" responseRequired="true">
+									<ListItemResponseField type="---TEST--- responseRequired.true" responseRequired="true">
 										<Response>
-											<int type="---TEST--- allowAPPROX quantEnum maxExclusive minExclusive"  allowAPPROX="true" quantEnum="GTE" maxExclusive="3" minExclusive="0" totalDigits="2"/>
+											<int type="---TEST--- allowAPPROX.true quantEnum.GTE maxExclusive.3 minExclusive.0 totalDigits.2"  allowAPPROX="true" quantEnum="GTE" maxExclusive="3" minExclusive="0" totalDigits="2"/>
 										</Response>
 									</ListItemResponseField>
 								</ListItem>
@@ -84,6 +89,13 @@
 							</List>
 						</ListField>
 					</Question>
+					
+
+
+
+
+
+
 
 					<ButtonAction ID="SubmitInitClinAssess" title="Submit Initial Clinical Assessment">
 						<OnClick>

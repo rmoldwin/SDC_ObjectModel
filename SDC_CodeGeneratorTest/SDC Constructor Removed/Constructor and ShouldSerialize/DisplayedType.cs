@@ -520,13 +520,12 @@ public partial class DisplayedType : IdentifiedExtensionType
 		/// </summary>
 		public virtual bool ShouldSerializeenabled()
 		{
-			return _shouldSerializeenabled;
 
-			//if (_shouldSerializeenabled)
-			//      {
-			//          return true;
-			//      }
-			//      return (_enabled != default(bool));
+			if (_shouldSerializeenabled)
+			{
+			    return true;
+			}
+			return (_enabled != true);  //rm changed 2022_09_21
 		}
 
 		/// <summary>
@@ -534,12 +533,11 @@ public partial class DisplayedType : IdentifiedExtensionType
 		/// </summary>
 		public virtual bool ShouldSerializevisible()
 		{
-			return _shouldSerializeenabled;
-			//if (_shouldSerializevisible)
-			//{
-			//	return true;
-			//}
-			//return (_visible != default(bool));
+			if (_shouldSerializevisible)
+			{
+				return true;
+			}
+			return (_visible != true); // rm changed 2022_09_21
 		}
 
 		/// <summary>
@@ -547,13 +545,11 @@ public partial class DisplayedType : IdentifiedExtensionType
 		/// </summary>
 		public virtual bool ShouldSerializemustImplement()
 		{
-			return _shouldSerializeenabled;
-
-			//if (_shouldSerializemustImplement)
-			//{
-			//	return true;
-			//}
-			//return (_mustImplement != default(bool));
+			if (_shouldSerializemustImplement)
+			{
+				return true;
+			}
+			return (_mustImplement != true); // rm changed 2022_09_21
 		}
 
 		/// <summary>
@@ -561,12 +557,12 @@ public partial class DisplayedType : IdentifiedExtensionType
 		/// </summary>
 		public virtual bool ShouldSerializeshowInReport()
 		{
-			return _shouldSerializeenabled;
-			//if (_shouldSerializeshowInReport)
-			//{
-			//	return true;
-			//}
-			//return (_showInReport != default(DisplayedTypeShowInReport));
+			// rm changed 2022_09_21
+			if (_shouldSerializeshowInReport)
+			{
+				return true;
+			}
+			return (_showInReport != default(DisplayedTypeShowInReport));
 		}
 
 		/// <summary>

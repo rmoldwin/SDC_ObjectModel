@@ -822,7 +822,6 @@ namespace SDC.Schema
 		public ButtonItemType(BaseType parentNode, string id = "") : base(parentNode)
 		{
 			Init();
-			//SetNames(elementName, elementPrefix);
 		}
 		private void Init()
 		{
@@ -838,7 +837,6 @@ namespace SDC.Schema
 		public InjectFormType(BaseType parentNode, string id = "") : base(parentNode, id)
 		{
 			Init();
-			//SetNames(elementName, elementPrefix);
 		}
 		private void Init()
 		{
@@ -854,8 +852,6 @@ namespace SDC.Schema
 		internal SectionBaseType(BaseType parentNode, string id = "") : base(parentNode, id)
 		{
 			Init();
-
-			//SetNames(elementName, elementPrefix);
 		}
 		private void Init()
 		{
@@ -930,9 +926,7 @@ namespace SDC.Schema
 			//this._readOnly = false;  // tag:#IsThisCorrect
 		}
 		private static void Init()
-		{
-			// tag:#IsThisCorrect
-		}
+		{ }
 
 		[XmlIgnore]
 		[JsonIgnore]
@@ -1002,7 +996,7 @@ namespace SDC.Schema
 		private void Init()
 		{
 			ElementPrefix = "lf";
-			//this._colTextDelimiter = "|";
+			this._colTextDelimiter = "|";
 			this._numCols = ((byte)(1));
 			this._storedCol = ((byte)(1));
 			this._minSelections = ((ushort)(1));
@@ -1819,10 +1813,6 @@ namespace SDC.Schema
 		{
 			this.ID = id;
 			Init();
-			//if (!string.IsNullOrWhiteSpace(id)) // #IsThisCorrect
-			//    this.ID = id;
-			//else if (this.ObjectGUID != null)
-			//    this.ID = this.ObjectGUID.ToString();
 		}
 		private void Init()
 		{   //The ID may be assigned later by a deserializer after this runs, but that should be OK
@@ -1897,83 +1887,6 @@ namespace SDC.Schema
 			ElementName = "DisplayedItem";
 			ElementPrefix = "DI";
 		}
-		#region IDisplayedType
-		//IDisplayedType idt { get => this as IDisplayedType; }
-		//public LinkType AddLink(int insertPosition = -1)
-		//{ return idt.AddLinkI(insertPosition); }
-		//public BlobType AddBlob(int insertPosition = -1)
-		//{ return idt.AddBlobI(insertPosition); }
-		//public ContactType AddContact(int insertPosition = -1)
-		//{ return idt.AddContactI(insertPosition); }
-		//public CodingType AddCodedValue(int insertPosition = -1)
-		//{ return idt.AddCodedValueI(insertPosition); }
-		#endregion
-
-		#region DisplayedType Events
-		//public OnEventType AddOnEvent()
-		//{ return idt.AddOnEventI(); }
-		//public EventType AddOnEnter()
-		//{ return idt.AddOnEnterI(); }
-		//public EventType AddOnExit()
-		//{ return idt.AddOnExitI(); }
-		//public PredGuardType AddActivateIf()
-		//{ return idt.AddActivateIfI(); }
-		//public PredGuardType AddDeActivateIf()
-		//{ return idt.AddDeActivateIfI(); }
-		//public bool MoveEvent(EventType ev, List<EventType> targetList = null, int index = -1)
-		//{ return idt.MoveEventI(ev, targetList, index); }
-		#endregion
-
-		//#region IChildItemMember
-		//public bool Remove() => sdcTreeBuilder.Remove(this);
-		//public bool Move<T>(T target, int newListIndex) where T : DisplayedType, IChildItemsParent
-		//    => sdcTreeBuilder.MoveAsChild(this, target, newListIndex);
-		//#endregion
-
-		#region IQuestionListMember
-		//IQuestionListMember qlm { get => this as IQuestionListMember; }
-		////Explicit implementaion prevents this interface from being inherited directly by subclasses.
-		//public bool Remove(bool removeDecendants) => qlm.RemoveI(removeDecendants);
-		//public bool IsMoveAllowedToList(QuestionItemType target, out string error)=> qlm.IsMoveAllowedToListI(target, out error);
-		//public bool MoveToList(ListType targetList, out string errList, int newListIndex = -1)
-		//    => qlm.MoveToListI(targetList, out errList, newListIndex);
-		//public bool MoveToList(ListItemType dropTarget, out string errList, int newListIndex = -1) //not part of interface
-		//    => qlm.MoveToListI(dropTarget.ParentNode as ListType, out errList, newListIndex);
-		//public bool MoveInList(out string errList, int newListIndex = -1)
-		//{
-		//    if (!(this.ParentNode is ListType))
-		//    {
-		//        errList = "The parent node must be List.  It cannot be ChildItems";
-		//        return false;
-		//    }
-
-		//    return qlm.MoveInListI(out errList, newListIndex);
-		//}
-		//public bool MoveInList(DisplayedType source, DisplayedType target, bool moveAbove)
-		//{
-		//    if (!(this.ParentNode is ListType))
-		//    {
-		//        var err = "The parent node must be List.  It cannot be ChildItems";
-		//        return false;
-		//    }
-
-		//    return qlm.MoveInListI(source, target, moveAbove);
-		//}
-		//public bool MoveInList(DisplayedType source, QuestionItemType target, bool moveAbove)
-		//{
-		//    if (!(this.ParentNode is ListType))
-		//    {
-		//        var err = "The parent node must be List.  It cannot be ChildItems";
-		//        return false;
-		//    }
-
-		//    return qlm.MoveInListI(source, target, moveAbove);
-		//}
-		//public ListItemType ConvertToLI(bool testOnly) => qlm.ConvertToLI_I(testOnly);
-		//public DisplayedType ConvertToDI(bool testOnly) => qlm.ConvertToDI_I(testOnly);
-		//public ListItemType ConvertToLIR(bool testOnly) => qlm.ConvertToLIR_I(testOnly);
-		#endregion
-
 	}
 
 	#region DisplayedType Members
@@ -3970,7 +3883,7 @@ namespace SDC.Schema
 			private void Init()
 			{
 				this._returnList = false;
-				//this._listDelimiter = "|";
+				this._listDelimiter = "|";
 				this._allowNull = true;
 			}
 		}
@@ -4319,7 +4232,7 @@ namespace SDC.Schema
 				ElementName = "";
 				ElementPrefix = "";
 				this._returnList = false;
-				//this._listDelimiter = "|";
+				this._listDelimiter = "|";
 				this._allowNull = true;
 			}
 		}
@@ -4452,16 +4365,6 @@ namespace SDC.Schema
 			{
 				this.ElementPrefix = "cntct";
 			}
-
-			//public PersonType AddPerson()
-			//{
-			//    return (this as IAddPerson).AddPersonI(this);
-			//}
-			//public OrganizationType AddOganization()
-			//{
-			//    return (this as IAddOrganization).AddOrganizationI(this);
-			//}
-
 		}
 
 		public partial class OrganizationType

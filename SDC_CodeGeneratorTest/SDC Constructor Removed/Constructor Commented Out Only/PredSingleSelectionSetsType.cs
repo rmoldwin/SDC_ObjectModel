@@ -119,8 +119,8 @@ public partial class PredSingleSelectionSetsType : FuncBoolBaseType
         {
             return true;
         }
-        return (_maxSelections != default(short));
-    }
+            return (_maxSelections != 1); // default(short)); //rm changed 2022_09_21
+		}
     
     /// <summary>
     /// Test whether listItemNames should be serialized
