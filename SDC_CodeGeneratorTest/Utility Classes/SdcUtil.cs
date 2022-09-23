@@ -1089,14 +1089,19 @@ namespace SDC.Schema
 		}
 
 		/// <summary>
-		/// Given a parent node, retrieve the list of correctly-ordered child Xml Attribute nodes, if present.
+		/// Given a parent SDC <see cref="BaseType"/> node (<paramref name="elementNode"/>), retrieve the list of correctly-ordered 
+		/// child <see cref="XmlAttribute"/> nodes (i.e., those with properties decorated with <see cref="XmlAttribute"/>), if present.
 		/// Uses reflection only, and does not use any node dictionaries.
 		/// </summary>
 		/// <param name="elementNode"></param>
-		/// <param name="getAllAttributes">If true (the default), returns all attributes.    
+		/// <param name="getAllXmlAttributes">If true (the default), returns all attributes.    
 		/// If false, returns only those attributes which have values that will be serialized</param>
+		/// <param name="omitDefaultValues"> if <paramref name="getAllXmlAttributes"/> is false, 
+		/// setting <paramref name="omitDefaultValues"/> to false will include those XmlAttribute properties that are set to their 
+		/// default values, as designated in a <see cref="DefaultValueAttribute"/> decorating the property accessor.
+		/// </param>
 		/// <returns>List&lt;BaseType>? containing the child nodes</returns>
-		public static List<AttributeInfo> ReflectChildAttributes(BaseType elementNode, bool getAllAttributes = true)
+		public static List<AttributeInfo> ReflectChildXmlAttributes(BaseType elementNode, bool getAllXmlAttributes = true, bool omitDefaultValues = true)
 		{
 			if (elementNode is null) throw new NullReferenceException("elementNode cannot be null"); //You can't have sibs without a parent
 																									 //List<PropertyInfo> attributesX = new();
@@ -1126,31 +1131,45 @@ namespace SDC.Schema
 				foreach (var p in piIE)
 				{
 					nodeIndex++;
-					if (getAllAttributes) AddAttribute();
+					if (getAllXmlAttributes) AddAttribute();
 					else
 					{
 						var sspn = t.GetMethod("ShouldSerialize" + p.Name)?.Invoke(elementNode, null);
+						//if (sspn is null) Debugger.Break();
 						var pVal = p.GetValue(elementNode);
-						//if (p.Name =="hasResponse" && pVal is bool b && b == false) Debugger.Break();
-						if (pVal is not null)
-						{
-							if (sspn is bool shouldSerialize && shouldSerialize) //if (_shouldSerializePropertyName is true);	
-								AddAttribute(); //If pVal is equal to its GetAttributeDefaultValue(p), it will not be serialized to XML -we retrieve it anyway
-							else 
-							{
-								//Test if the property's default value does not match the current property value
-								//see if we have a non-default value in our property - we will serialize a non-default value.
-								var defVal = GetAttributeDefaultValue(p);
+						var attDefVal = GetAttributeDefaultValue(p);
 
-								if (defVal is not null)
+						//if (p.Name == "minCard") Debugger.Break();  //&& (pVal?.Equals(0)??false)
+						if (pVal is not null) //if pVal is null, there is nothing to serialize
+						{
+							bool pValIsAttributeDefault = false;
+
+							if (omitDefaultValues)  //The XML serializer emits all properties set to the Value of the DefaultValueAttribute, assuming DefaultValueAttribute decorates the property
+							{
+								if (attDefVal is not null)
+									if (attDefVal.Equals(pVal))
+										pValIsAttributeDefault = true;  //true prevents serialization of this property
+							}
+
+							if (sspn is bool shouldSerialize && shouldSerialize) //if(_shouldSerializePropertyName is true);	
+							{
+
+								if (!pValIsAttributeDefault)  //Make sure the property does not hold a default value (based on DefaultValueAttribute's Value property)
+									AddAttribute();
+							}
+							else if (sspn is null)  // ShouldSerializePropertyName idoes not exist for property p.  This can occur for properties like byte[], HTML/XML types, etc.
+							{								
+
+								if (attDefVal is not null) //Test if the property's DefaultValueAttribute (it's unlikely if this is present) value does not match the current property value,
 								{
-									if (!defVal.Equals(pVal)) 
+									if (!pValIsAttributeDefault)
 										AddAttribute();
 								}
-								else //see if we have a property value that is not the default for its datatype
+								else //There was no DefaultValueAttribute found (i.e., attDefVal is null and thus pValIsAttributeDefault is false),
+									 //so now we see if we have a non-default (e.g., non-null for reference types) property value (obtained from GetTypeDefaultValue) for its datatype.
 								{
-									var typeDef = GetTypeDefaultValue(pVal.GetType());
-									if (!pVal.Equals(typeDef))
+									var typeDefaultVal = GetTypeDefaultValue(pVal.GetType());
+									if (!pVal.Equals(typeDefaultVal))
 										AddAttribute();
 								}
 							}
@@ -1199,7 +1218,7 @@ namespace SDC.Schema
 		/// </summary>
 		/// <see cref="GetTypeDefaultValue" href="https://stackoverflow.com/questions/1281161/how-to-get-the-default-value-of-a-type-if-the-type-is-only-known-as-system-type"/>
 		/// <param name="type"></param>
-		/// <returns>Nullable object set to its default value</returns>
+		/// <returns>Nullable object?, set to its default value</returns>
 		public static object? GetTypeDefaultValue(Type type) =>
 			type.IsValueType ? Activator.CreateInstance(type) : null;
 
@@ -1587,7 +1606,7 @@ namespace SDC.Schema
 			string? enumName = GetElementNameFromItemChoiceType(piItem);
 			if (enumName == null) return null!;
 
-			var enumObj = item.ParentNode.GetType()?.GetProperty(enumName)?.GetValue(item.ParentNode);
+			var enumObj = item.ParentNode?.GetType()?.GetProperty(enumName)?.GetValue(item.ParentNode);
 			if (enumObj is Enum e) return e;
 			if (enumObj is IEnumerable ie) return ie;
 			return null;
@@ -1974,7 +1993,7 @@ namespace SDC.Schema
 			where S : notnull, IdentifiedExtensionType
 			where T : notnull, IdentifiedExtensionType
 		{
-			ChildItemsType ci;
+			ChildItemsType? ci;
 			switch (source)
 			{
 				case SectionItemType _:
@@ -1996,7 +2015,7 @@ namespace SDC.Schema
 					}
 
 				case QuestionItemType q:
-					ci = (source as ChildItemsType);
+					ci = source as ChildItemsType;
 					switch (target)
 					{
 						case QuestionItemType _:
@@ -2006,7 +2025,7 @@ namespace SDC.Schema
 					}
 
 				case ListItemType _:
-					ci = (source as ChildItemsType);
+					ci = source as ChildItemsType;
 					switch (target)
 					{
 						case SectionItemType _:
@@ -2038,7 +2057,7 @@ namespace SDC.Schema
 		private static void X_AssignXmlElementAndOrder<T>(T bt) where T : notnull, BaseType
 		{
 			var pi = SdcUtil.GetElementPropertyInfoMeta(bt);
-			bt.ElementName = pi.XmlElementName;
+			bt.ElementName = pi.XmlElementName??"";
 			bt.ElementOrder = pi.XmlOrder;
 		}
 

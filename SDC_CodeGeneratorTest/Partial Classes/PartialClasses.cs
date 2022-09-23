@@ -1160,7 +1160,7 @@ namespace SDC.Schema
 	#endregion
 
 	#region Base Types
-	public partial class BaseType : IBaseType //TODO: need to explicitly implement INavigate interface
+	public partial class BaseType : IBaseType //IBaseType inherits IMoveRemove and INavigate
 	{
 
 		#region  Local Members
@@ -1824,9 +1824,14 @@ namespace SDC.Schema
 	public partial class RepeatingType //this is an SDC abstract class
 	{
 		protected RepeatingType()
-		{  // tag:#IsThisCorrect
+		{
+			Init();
 		}
 		protected RepeatingType(BaseType parentNode, string id = "") : base(parentNode, id)
+		{
+			Init();
+		}
+		private void Init()
 		{
 			this._minCard = ((ushort)(1));
 			this._maxCard = ((ushort)(1));
@@ -2179,12 +2184,12 @@ namespace SDC.Schema
 				//SetNames(elementName, elementPrefix);
 			}
 			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
+			{	//it's not necessary to set bool default values;
+				//this._allowGT = false;
+				//this._allowGTE = false;
+				//this._allowLT = false;
+				//this._allowLTE = false;
+				//this._allowAPPROX = false;
 			}
 		}
 
@@ -2199,7 +2204,7 @@ namespace SDC.Schema
 			private void Init()
 			{
 				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "byte";
+				ElementPrefix = "sbyte";
 		}
 		[XmlIgnore]
 		[JsonIgnore]

@@ -27,27 +27,16 @@ namespace SDC.Schema
 	using System.ComponentModel.DataAnnotations;
 	using System.Collections.Generic;
 
-	[XmlInclude(typeof(unsignedByte_DEtype))]
 	[System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
 	[Serializable]
 	[DesignerCategoryAttribute("code")]
 	[XmlTypeAttribute(Namespace = "urn:ihe:qrph:sdc:2016")]
-	[JsonObject("unsignedByte_Stype")]
-	public partial class unsignedByte_Stype : BaseType
+	[JsonObject("CountryCodeType")]
+	public partial class CountryCodeType : BaseType
 	{
 		#region Private fields
-		protected internal bool _shouldSerializequantEnum;
 		private byte _val;
-		private dtQuantEnum _quantEnum;
 		#endregion
-
-		///// <summary>
-		///// unsignedByte_Stype class constructor
-		///// </summary>
-		//public unsignedByte_Stype()
-		//{
-		//    _quantEnum = dtQuantEnum.EQ;
-		//}
 
 		[XmlAttribute]
 		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -66,39 +55,6 @@ namespace SDC.Schema
 				}
 				_shouldSerializeval = true;
 			}
-		}
-
-		[XmlAttribute]
-		[DefaultValue(dtQuantEnum.EQ)]
-		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-		[JsonConverter(typeof(StringEnumConverter))]
-		public virtual dtQuantEnum quantEnum
-		{
-			get
-			{
-				return _quantEnum;
-			}
-			set
-			{
-				if ((_quantEnum.Equals(value) != true))
-				{
-					_quantEnum = value;
-					OnPropertyChanged("quantEnum", value);
-				}
-				_shouldSerializequantEnum = true;
-			}
-		}
-
-		/// <summary>
-		/// Test whether quantEnum should be serialized
-		/// </summary>
-		public virtual bool ShouldSerializequantEnum()
-		{
-			if (_shouldSerializequantEnum)
-			{
-				return true;
-			}
-			return (_quantEnum != default(dtQuantEnum));
 		}
 
 		protected internal bool _shouldSerializeval; //rm added 2022_09_22

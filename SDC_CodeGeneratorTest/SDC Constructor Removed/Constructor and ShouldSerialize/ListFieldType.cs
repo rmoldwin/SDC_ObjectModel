@@ -303,6 +303,7 @@ namespace SDC.Schema
 					_numCols = value;
 					OnPropertyChanged("numCols", value);
 				}
+				_shouldSerializenumCols = true;
 			}
 		}
 
@@ -326,6 +327,7 @@ namespace SDC.Schema
 					_storedCol = value;
 					OnPropertyChanged("storedCol", value);
 				}
+				_shouldSerializestoredCol = true;
 			}
 		}
 
@@ -482,7 +484,7 @@ namespace SDC.Schema
 			{
 				return true;
 			}
-			return (_minSelections != 1); //default(uint)); //rm changed 2022_09_21
+			return (_minSelections > 1); //default(uint)); //rm changed 2022_09_21
 
 		}
 
@@ -567,7 +569,7 @@ namespace SDC.Schema
 			{
 				return true;
 			}
-			return (_numCols != 1); //rm added 2022_09_21
+			return (_numCols > 1); //rm added 2022_09_21
 		}
 
 		/// <summary>
@@ -579,7 +581,7 @@ namespace SDC.Schema
 			{
 				return true;
 			}
-			return (_storedCol != 1); //rm added 2022_09_21
+			return (_storedCol > 1); //rm added 2022_09_21
 		}
 	}
 }
