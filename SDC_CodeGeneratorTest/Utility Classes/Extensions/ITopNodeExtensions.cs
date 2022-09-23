@@ -21,8 +21,8 @@ namespace SDC.Schema
 		{ return ((_ITopNode)itn)._Nodes; }
 
 		public static List<BaseType> ReorderNodes(this ITopNode itn)
-		{
-			return SdcUtil.ReflectSubtreeList((BaseType)itn.TopNode, reOrder: true, reRegisterNodes: true);
+		{	//no dictionaries are used for sorting here:
+			return SdcUtil.ReflectRefreshSubtreeList((BaseType)itn.TopNode, reOrder: true, reRegisterNodes: true);
 		}
 		public static bool AssignElementNamesByReflection(this ITopNode itn)
 		{

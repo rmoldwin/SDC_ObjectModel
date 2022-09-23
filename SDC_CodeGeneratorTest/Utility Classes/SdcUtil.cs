@@ -220,12 +220,59 @@ namespace SDC.Schema
 
 		#region SDC Helpers
 
+		public static string CreateNameBaseFromsGuid(BaseType n)
+		{
+			string  sg = new(n.sGuid);
+			Regex pattern = new("^[a-zA-Z0-9-_]{22}");				
+
+			if (!pattern.IsMatch(sg))
+				if (sg.IsNullOrWhitespace() || sg.Length != 22 || !pattern.IsMatch(sg)) throw new ArgumentException("The supplied node does not have a valid sGuid");
+
+			var sgl = sg.ToList();
+			int i = -1;
+			do
+			{ //remove any integer, -, or _ in the first position, as these are illegal for varable names
+				i++;
+				char c = sgl[0];
+				if ((c >= '0' && c <= '9') || c == '_' || c == '-')
+				{
+					sgl.RemoveAt(0);
+				}
+				else break;
+			} while (i < sgl.Count - 1);
+
+			int stopSize = 6;
+			i = 0;
+			do
+			{ //remove any 0, -, or _ in any remaining position, as these do not make nice variable names
+				char c2 = sgl[i];
+				if (c2 == '0' || c2 == '_' || c2 == '-') sgl.RemoveAt(i);
+				else i++;
+
+				//if (i > stopSize) break;
+			} while (i <= stopSize && i < sgl.Count);
+
+			var sb = new StringBuilder();
+			foreach (var c in sgl.Take(stopSize)) sb.Append(c);
+
+			return sb.ToString();
+
+
+		}
+
+
 		/// <summary>
-		/// If refreshTree is true,
-		///		this method uses reflection to refresh the Nodes, ParentNodes and ChildNodes dictionaries in ITopNode, with all nodes in the proper .
+		/// If refreshTree is true (default),
+		///		this method uses reflection to refresh the _TTopNode._Nodes, _TTopNode_ParentNodes and _TTopNode_ChildNodes dictionaries, with all nodes in the proper order.
 		///		Some BaseType properties are updated:
-		///		SGuid properties are refreshed (but not replaced), and name and order properties are updated (and replaced when needed), 
-		/// If refreshTree is false, this method returns an ordered IList&lt;BaseType>, but none of the above refresh actions are performed
+		///		SGuid properties are created if missing, and name and order properties are created/updated as needed.  
+		///		Names will be overwritten with new names that may not match the original.
+		///		TODO: names prefixed with "_" will be preserved.
+		///		TODO: names and IDs will be added to internal dictionaries to ensure uniqueness within a template.
+		///		TODO: create a default nameing system that uses the first 6 good characters of the sGuid instead of the ID, for the "ID part" of the name.
+		///			skip: starting numbers, -, _, 0 and move on to the next letter; then change to all lower case.
+		///		TODO: check for unacceptable words in sGuids and names; this provides almost 2 billion choices for each template 
+		/// If refreshTree is false, this method returns an ordered List&lt;BaseType>, but none of the above refresh actions are performed.
 		/// </summary>
 		/// <param name="topNode">The ITopNode SDC node that will have its tree refreshed</param>
 		/// <param name="treeText">An "out" variable containing, if print is true, a text representation of some important properties of each node</param>
@@ -233,8 +280,8 @@ namespace SDC.Schema
 		/// The default is false.</param>
 		/// <param name="refreshTree">Determines whether to refresh the Dictionaries and BaseType properties, as described in the summary.
 		/// The default is true.</param>
-		/// <returns>IList&lt;BaseType> containing all of the SDC tree nodes in sorted top-bottom order</returns>
-		public static IList<BaseType> RefreshReflectedTree(ITopNode topNode, out string? treeText, bool print = false, bool refreshTree = true)
+		/// <returns>List&lt;BaseType> containing all of the SDC tree nodes in sorted top-bottom order</returns>
+		public static List<BaseType> ReflectRefreshTree(ITopNode topNode, out string? treeText, bool print = false, bool refreshTree = true)
 		{
 			try
 			{
@@ -440,12 +487,22 @@ namespace SDC.Schema
 			}
 		}
 		/// <summary>
-		/// Lighter weight tree walker that uses only reflection, and no node dictionaries
+		/// Reflects the SDC tree and re-registers all nodes in the tree in the 3 main SDC OM dictionaries: _ITopNode._Nodes, _ITopNode._ParentNodes, _ITopNode._ChildNodes.
+		/// </summary>
+		/// <param name="tn"></param>
+		/// <returns> Sorted List<BaseType> containing all nodes subsumed under <paramref name="tn"/></returns>
+		public static List<BaseType> ReflectUpdateTreeDictionaries(ITopNode tn)
+		{
+			return ReflectRefreshSubtreeList((BaseType)tn.TopNode);
+		}
+		/// <summary>
+		/// Lighter-weight reflection tree walker that uses only reflection, and no node dictionaries.
+		/// Does not update any tree nodes or dictionaries.
 		/// </summary>
 		/// <param name="topNode"></param>
 		/// <param name="print"></param>
 		/// <param name="treeText"></param>
-		/// <returns></returns>
+		/// <returns>Sorted List&lt;BaseType> cotaining all nodes in the tree</returns>
 		public static List<BaseType> ReflectTreeList(ITopNode topNode, out string treeText, bool print = false)
 		{
 			TreeSort_ClearNodeIds();
@@ -499,18 +556,15 @@ namespace SDC.Schema
 		{
 			return GetSortedSubtreeList((BaseType)tn.TopNode);
 		}
-		public static List<BaseType> ReflectSortedTreeList(ITopNode tn)
-		{
-			return ReflectSubtreeList((BaseType)tn.TopNode);
-		}
 
-		public static List<BaseType> GetSortedSubtreeList(BaseType n, int startReorder = -1, int orderMultiplier = 1)
+		public static List<BaseType> GetSortedSubtreeList(BaseType n, int startReorder = 0, int orderInterval = 1, bool ResetSortFlags = true)
 		{
 			//var nodes = n.TopNode.Nodes;
 			var topNode = (_ITopNode)n.TopNode;
 			var cn = topNode._ChildNodes;
 			int i = 0;
 			var sortedList = new List<BaseType>();
+			if(ResetSortFlags) TreeSort_ClearNodeIds();
 
 			MoveNext(n);
 
@@ -519,14 +573,20 @@ namespace SDC.Schema
 				sortedList.Add(n);
 				if (startReorder >= 0)
 				{
-					n.order = i * orderMultiplier;
-					i++;
+					n.order = i;
+					i+= orderInterval;
 				}
+
+				//shorter code option:
+				//List<BaseType>? childList = SortElementKids(n);
+				//if (childList != null)
+				//	foreach (var child in childList)
+				//		MoveNext(child);
 
 				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
 				{
 					if (childList != null)
-					{
+					{					
 						SortElementKids(n, childList);
 						foreach (var child in childList)
 							MoveNext(child);
@@ -543,12 +603,13 @@ namespace SDC.Schema
 		/// <param name="n">The node whose subtree we ae retrieving</param>
 		/// <param name="resortChildNodes">Set to true if the child nodes may be incoreectly sorted.  This should not be needed.</param>
 		/// <returns></returns>
-		public static List<BaseType> GetSortedSubtreeIET(BaseType n, bool resortChildNodes = false)
+		public static List<BaseType> GetSortedSubtreeIET(BaseType n, bool resortChildNodes = false, bool ResetSortFlags = true)
 		{
 			var topNode = (_ITopNode)n.TopNode;
 			var cn = topNode._ChildNodes;
 			var sortedList = new List<BaseType>();
 			int i = -1;
+			if (ResetSortFlags) TreeSort_ClearNodeIds();
 
 			MoveNext(n);
 
@@ -575,13 +636,13 @@ namespace SDC.Schema
 
 		//!Should not need sorting of child nodes
 		//Consider this parameter list: ReflectSubtreeList(BaseType bt, int startReorder = -1, int orderMultiplier = 1)
-		public static List<BaseType> ReflectSubtreeList(BaseType bt, bool reOrder = false, bool reRegisterNodes = false)
+		public static List<BaseType> ReflectRefreshSubtreeList(BaseType bt, bool reOrder = false, bool reRegisterNodes = false, int startReorder = 0, byte orderInterval = 1)
 		{
 			//if (bt is null) return null;
-			var i = 0;
+			var i = startReorder;
 			var kids = new List<BaseType>();
 			kids.Add(bt); //root node
-			if (reOrder) bt.order = i++;
+			if (reOrder) bt.order = i++; //bt.order = startOrder
 
 			ReflectSubtree2(bt);
 			void ReflectSubtree2(BaseType bt)
@@ -598,7 +659,11 @@ namespace SDC.Schema
 							c.UnRegisterParent();
 							c.RegisterParent(bt);
 						}
-						if (reOrder) c.order = i++;
+						if (reOrder)
+						{
+							c.order = i;
+							i += orderInterval;
+						}
 
 						ReflectSubtree2(c);
 					}
@@ -625,6 +690,11 @@ namespace SDC.Schema
 					n.order = i * orderMultiplier;
 					i++;
 				}
+
+				//shorter code:
+				//List<BaseType>? childList = SortElementKids(n);
+				//if (childList != null)
+				//	foreach (var child in childList) MoveNext(child);
 
 				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
 				{
@@ -1089,22 +1159,22 @@ namespace SDC.Schema
 		}
 
 		/// <summary>
-		/// Given a parent SDC <see cref="BaseType"/> node (<paramref name="elementNode"/>), retrieve the list of correctly-ordered 
-		/// child <see cref="XmlAttribute"/> nodes (i.e., those with properties decorated with <see cref="XmlAttribute"/>), if present.
+		/// Given a parent SDC <see cref="BaseType"/> node (<paramref name="elementNode"/>), <br/>retrieve the list of correctly-ordered 
+		/// child <see cref="XmlAttribute"/> nodes <br/>(i.e., those with properties decorated with <see cref="XmlAttribute"/>), if present.<br/>
 		/// Uses reflection only, and does not use any node dictionaries.
 		/// </summary>
 		/// <param name="elementNode"></param>
 		/// <param name="getAllXmlAttributes">If true (the default), returns all attributes.    
 		/// If false, returns only those attributes which have values that will be serialized</param>
 		/// <param name="omitDefaultValues"> if <paramref name="getAllXmlAttributes"/> is false, 
-		/// setting <paramref name="omitDefaultValues"/> to false will include those XmlAttribute properties that are set to their 
-		/// default values, as designated in a <see cref="DefaultValueAttribute"/> decorating the property accessor.
+		/// setting <b><paramref name="omitDefaultValues"/></b> to <b>false</b> will include those XmlAttribute properties that are set to their 
+		/// default values, as designated in a <see cref="DefaultValueAttribute"/> attribute decorating the property accessor.
 		/// </param>
-		/// <returns>List&lt;BaseType>? containing the child nodes</returns>
+		/// <returns>List&lt;AttributeInfo>? containing the child nodes</returns>
 		public static List<AttributeInfo> ReflectChildXmlAttributes(BaseType elementNode, bool getAllXmlAttributes = true, bool omitDefaultValues = true)
 		{
 			if (elementNode is null) throw new NullReferenceException("elementNode cannot be null"); //You can't have sibs without a parent
-																									 //List<PropertyInfo> attributesX = new();
+																									 
 			List<AttributeInfo> attributes = new();
 			IEnumerable<PropertyInfo>? piIE = null;
 			int nodeIndex = -1;
@@ -2109,17 +2179,27 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="parentItem">The parent SDC node</param>
 		/// <param name="kids">"kids" is a List&lt;BaseType> containing all the child nodes under parentItem.
-		/// This is generally obtained from TopNode.ChildNodes Dictionary object</param>
-		private static void SortElementKids(BaseType parentItem, List<BaseType> kids)
+		/// This is generally obtained from the parentItem using the _ITopNode._ChildNodes Dictionary object
+		/// If it is not supplied, it will be obtained below from parentItem</param>
+		/// <returns>List&lt;BaseType>? containing ordered list of child nodes, or null or no child nodes are present</returns>
+		private static List<BaseType>? SortElementKids(BaseType parentItem, List<BaseType>? kids = null)
 		{
-			//Sorting uses reflection, and is this an expensive operation, so we only sort once per parent node
-			//TreeSort_NodeIds holds the ObjectIDs of nodes whose children have already been sorted.
-			//If a parent node's children have already been sorted, it appears in TreeSort_NodeIds, and we can skip it. 
+			//Sorting uses reflection, and this is an expensive operation, so we only sort once per parent node
+			//TreeSort_NodeIds is a SortedSet that holds the ObjectIDs of parent nodes whose children have already been sorted.
+			//If a parent node's children have already been sorted, it appears in TreeSort_NodeIds, and we can skip sorting it again. 
+
+			//(This method is NOT used by IMoveRemoveExtensions.RegisterParentNode, which uses the reflection-based TreeSibComparer directly for child nodes - 
+			//This ensures that the node dictionaries (_Nodes, _ParentNodes and _ChildNodes) are kept sorted in the same order as they will be serialized in XML.)
+
+			if (kids is null || kids.Count == 0)
+				if (!((_ITopNode)parentItem)._ChildNodes.TryGetValue(parentItem.ObjectGUID, out kids)) return null;
+
 			if (!TreeSort_NodeIds.Contains(parentItem.ObjectID))
-			{
-				TreeSort_NodeIds.Add(parentItem.ObjectID);
+			{				
 				kids.Sort(new TreeSibComparer());
+				TreeSort_NodeIds.Add(parentItem.ObjectID);
 			}
+			return kids;
 		}
 
 		public static string XmlFormat(string Xml)

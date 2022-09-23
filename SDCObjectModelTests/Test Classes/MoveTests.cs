@@ -53,7 +53,7 @@ namespace SDCObjectModelTests.TestClasses
                 lst2 = SdcUtil.ReflectChildElements(Setup.FD.GetListItemByID("38493.100004300"));
                 lst3 = SdcUtil.ReflectChildElements(Setup.FD.GetItemByName("lst_44135_3"));
 
-                lst3 = SdcUtil.ReflectSubtreeList(Setup.FD.GetSectionByID("43969.100004300"));
+                lst3 = SdcUtil.ReflectRefreshSubtreeList(Setup.FD.GetSectionByID("43969.100004300"));
                 //foreach (var n in lst3) Debug.Print(n.name);
                 var tc = new TreeComparer();
                 lst3.Sort(tc);
@@ -89,7 +89,7 @@ namespace SDCObjectModelTests.TestClasses
                 int i = 0;
                 foreach (var n in propList) Debug.Print((i++).ToString() + ": " + n.name);
 
-                SdcUtil.ReflectSubtreeList(lst4[0], true, true);
+                SdcUtil.ReflectRefreshSubtreeList(lst4[0], true, true);
                 foreach (var n in lst4) Debug.Print(n.name + ": " + n.ElementName + ", " + n.ObjectID.ToString() + ", order:" + n.order.ToString() );
 
 

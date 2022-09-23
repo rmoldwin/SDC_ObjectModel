@@ -1226,14 +1226,15 @@ namespace SDC.Schema
 		private RetrieveFormPackageType _PackageNode;
 		private static ITopNode? topNodeTemp;
 
-		private static ITopNode TopNodeTemp
+		private static ITopNode? TopNodeTemp
 		{
 			get { return topNodeTemp; }
 			set
 			{
-				if (topNodeTemp is null)
+				if (topNodeTemp is null & value is not null)
 				{ topNodeTemp = value; }
-				else { throw new Exception("TopNode has already been assigned.  A call to ResetSdcImport() is required before this object can be set for importing a new SDC template;"); }
+				else if(value is not null) throw new Exception("TopNode has already been assigned.  A call to ResetSdcImport() is required before this object can be set for importing a new SDC template;"); 
+				else if (value is null) throw new Exception("The setter value for TopNodeTemp was null.");
 			}
 		}
 		internal void StoreError(string errorMsg) //ToDo: Replace with even that logs each error
@@ -1537,15 +1538,13 @@ namespace SDC.Schema
 				newGuid = ShortGuid.NewGuid();
 				sGuid = ShortGuid.Encode(newGuid);
 			}
-			ObjectGUID = newGuid;
+			ObjectGUID = newGuid; //newGuid matches sGuid here
 			InitBaseType();
 		}
 
 		#region     Init Methods
 		private void InitBaseType()
 		{
-			order = 0;
-
 			//TODO:
 			//A better model is this:
 			//If the node is ITopNode, start an ITopNode (sub)tree, 
@@ -1574,7 +1573,7 @@ namespace SDC.Schema
 			{
 				//this will never be entered, but it could be used if we want to support nested TopeNodes, such FormDesign and Data Element nodes inside an SDCPackage node
 			}
-			else throw new InvalidOperationException("TopNodeTemp was null and the current node (\"this\") did not implement ITopNode.");
+			else throw new InvalidOperationException("TopNodeTemp was null and the current node did not implement ITopNode.");
 			TopNode = TopNodeTemp;
 			ObjectID = ((_ITopNode)TopNode)._MaxObjectIDint++;
 
@@ -1678,7 +1677,7 @@ namespace SDC.Schema
 		{
 			T obj = SdcSerializer<T>.Deserialize(sdcXml);
 			//return InitParentNodesFromXml<T>(sdcXml, obj);
-			SdcUtil.RefreshReflectedTree(obj, out _);
+			SdcUtil.ReflectRefreshTree(obj, out _);
 			return obj;
 		}
 		//!+JSON
@@ -1691,7 +1690,7 @@ namespace SDC.Schema
 		{
 			T obj = SdcSerializerJson<T>.DeserializeJson<T>(sdcJson);
 			//return InitParentNodesFromXml<T>(sdcXml, obj);
-			SdcUtil.RefreshReflectedTree(obj, out _);
+			SdcUtil.ReflectRefreshTree(obj, out _);
 			return obj;
 		}
 		//!+MsgPack
@@ -1704,7 +1703,7 @@ namespace SDC.Schema
 		{
 			T obj = SdcSerializerMsgPack<T>.DeserializeMsgPack(sdcMsgPack);
 			//return InitParentNodesFromXml<T>(sdcXml, obj);
-			SdcUtil.RefreshReflectedTree(obj, out _);
+			SdcUtil.ReflectRefreshTree(obj, out _);
 			return obj;
 		}
 
@@ -1718,7 +1717,7 @@ namespace SDC.Schema
 		{
 			T obj = SdcSerializerBson<T>.DeserializeBson(sdcBson);
 			//return InitParentNodesFromXml<T>(sdcXml, obj);
-			SdcUtil.RefreshReflectedTree(obj, out _);
+			SdcUtil.ReflectRefreshTree(obj, out _);
 			return obj;
 		}
 		#endregion  
@@ -1811,7 +1810,9 @@ namespace SDC.Schema
 		protected IdentifiedExtensionType() { Init(); }
 		protected IdentifiedExtensionType(BaseType parentNode, string id = "") : base(parentNode)
 		{
-			this.ID = id;
+			if (id.IsNullOrWhitespace())
+				ID = sGuid; //sGuid was assigned or created in the BaseType constructor Init() method
+			else ID = id;
 			Init();
 		}
 		private void Init()

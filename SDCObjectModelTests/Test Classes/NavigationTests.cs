@@ -46,7 +46,7 @@ namespace SDCObjectModelTests.TestClasses
 		public void MoveNext_RefreshTree_X1_NoPrint()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var sdcList = SdcUtil.RefreshReflectedTree(Setup.FD, out string s, true);
+			var sdcList = SdcUtil.ReflectRefreshTree(Setup.FD, out string s, true);
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 			Debug.Print(s);
 
@@ -55,15 +55,15 @@ namespace SDCObjectModelTests.TestClasses
 		public void MoveNext_RefreshTree_X3()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			SdcUtil.RefreshReflectedTree(Setup.FD, out _);
+			SdcUtil.ReflectRefreshTree(Setup.FD, out _);
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			SdcUtil.RefreshReflectedTree(Setup.FD, out _);
+			SdcUtil.ReflectRefreshTree(Setup.FD, out _);
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var sdcList = SdcUtil.RefreshReflectedTree(Setup.FD, out string s, true);
+			var sdcList = SdcUtil.ReflectRefreshTree(Setup.FD, out string s, true);
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 			Debug.Print(s);
 
@@ -634,7 +634,7 @@ namespace SDCObjectModelTests.TestClasses
 		[TestMethod]
 		public void GetXmlAttributesFilled()
 		{
-			SdcUtil.RefreshReflectedTree(Setup.FD, out _);
+			SdcUtil.ReflectRefreshTree(Setup.FD, out _);
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 			var FD = Setup.FD;
 
