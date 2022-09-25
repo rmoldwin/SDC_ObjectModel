@@ -1588,7 +1588,7 @@ namespace SDC.Schema
 			//    + $"The parent ObjectID is {this.ParentObjID.ToString()}");
 		}
 
-		//!+TODO: InitParentNodesFromXml should be moved out of BaseType, probably into ITopNNode or ISdcUtil
+		//!+TODO: InitParentNodesFromXml should be moved out of BaseType, probably into ITopNode or ISdcUtil
 		private static T InitParentNodesFromXml<T>(string sdcXml, T obj) where T : class, ITopNode
 		{
 			//read as XMLDocument to walk tree

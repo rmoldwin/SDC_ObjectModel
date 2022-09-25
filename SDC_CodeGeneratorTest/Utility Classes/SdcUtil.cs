@@ -220,6 +220,9 @@ namespace SDC.Schema
 
 		#region SDC Helpers
 
+		public delegate string CreateName(BaseType node, string nameSpace, string body, string prefix, string suffix);
+		public delegate string NodeAnnotation (BaseType node, byte[] icon, string html);
+		
 		public static string CreateNameBaseFromsGuid(BaseType n)
 		{
 			string  sg = new(n.sGuid);
@@ -234,10 +237,8 @@ namespace SDC.Schema
 			{ //remove any integer, -, or _ in the first position, as these are illegal for varable names
 				i++;
 				char c = sgl[0];
-				if ((c >= '0' && c <= '9') || c == '_' || c == '-')
-				{
+				if ((c >= '0' && c <= '9') || c == '_' || c == '-') 
 					sgl.RemoveAt(0);
-				}
 				else break;
 			} while (i < sgl.Count - 1);
 
@@ -246,10 +247,10 @@ namespace SDC.Schema
 			do
 			{ //remove any 0, -, or _ in any remaining position, as these do not make nice variable names
 				char c2 = sgl[i];
-				if (c2 == '0' || c2 == '_' || c2 == '-') sgl.RemoveAt(i);
+				if (c2 == '0' || c2 == '_' || c2 == '-') 
+					sgl.RemoveAt(i);
 				else i++;
 
-				//if (i > stopSize) break;
 			} while (i <= stopSize && i < sgl.Count);
 
 			var sb = new StringBuilder();
@@ -281,7 +282,7 @@ namespace SDC.Schema
 		/// <param name="refreshTree">Determines whether to refresh the Dictionaries and BaseType properties, as described in the summary.
 		/// The default is true.</param>
 		/// <returns>List&lt;BaseType> containing all of the SDC tree nodes in sorted top-bottom order</returns>
-		public static List<BaseType> ReflectRefreshTree(ITopNode topNode, out string? treeText, bool print = false, bool refreshTree = true)
+		public static List<BaseType> ReflectRefreshTree(ITopNode topNode, out string? treeText, bool print = false, bool refreshTree = true, CreateName? createNodeName= null)
 		{
 			try
 			{
