@@ -44,9 +44,11 @@ public partial class PredGuardType : FuncBoolBaseType
     #region Private fields
     protected internal bool _shouldSerializeboolOp;
     protected internal bool _shouldSerializenot;
+    protected internal bool _not;
+    protected internal PredEvalAttribValuesTypeBoolOp _boolOp;
     private List<ExtensionBaseType> _items;
-    private bool _not;
-    private PredEvalAttribValuesTypeBoolOp _boolOp;
+
+		
     #endregion
     
     ///// <summary>

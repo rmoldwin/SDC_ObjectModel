@@ -26,11 +26,12 @@ namespace SDC.Schema
 			{ Result(1); return 1; }
 			var parA = nodeA.ParentNode;
 			var parB = nodeB.ParentNode;
+			if (parA is null && parB is null) throw new Exception("nodeA and nodeB both have null parent _Nodes, and thus cannot be sorted");
 			if (parA is null && nodeB.ParentNode != null) return -1; //nodeA is the top node
 			if (parB is null && nodeA.ParentNode != null) return 1;  //nodeB is the top node
 
 			//If both nodes live inside the same parent object:
-			if (parA == parB) return SibComparer(parA, nodeA, nodeB, out _);
+			if (parA == parB) return SibComparer(parA!, nodeA, nodeB, out _);
 
 			//create ascending ancestor ("anc") set ("ancSet") for nodeA branch, with nodeA as the first element in the ancester set, i.e., ancSetA[0] == nodeA
 			BaseType? prevPar = null;
@@ -84,7 +85,7 @@ namespace SDC.Schema
 				prevPar = ancSetB[indexB]?.ParentNode ?? null; //increment the nodeB ancestor node - move one parent level higher
 			}
 			if (failed || prevPar is null)
-				throw new Exception("the supplied nodes cannot be compared because they do not have a common ancester node");
+				throw new Exception("the supplied _Nodes cannot be compared because they do not have a common ancester node");
 
 			//We have found the lowest common ancester ("ANC") located at index indexA in ancSetA and at IndexB in ancSetB
 			//We now move one parent node further from the root on each tree branch (ancSetA and ancSetA), closer to nodeA and nodeB
@@ -160,7 +161,7 @@ namespace SDC.Schema
 					}
 				}
 			}
-			throw new InvalidOperationException("The supplied nodes do not share a common parent node");
+			throw new InvalidOperationException("The supplied _Nodes do not share a common parent node");
 		}
 	}
 

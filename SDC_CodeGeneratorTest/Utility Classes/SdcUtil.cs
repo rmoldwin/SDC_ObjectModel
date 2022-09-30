@@ -220,67 +220,43 @@ namespace SDC.Schema
 
 		#region SDC Helpers
 
-		public delegate string CreateName(BaseType node, string nameSpace, string body, string prefix, string suffix);
-		public delegate string NodeAnnotation (BaseType node, byte[] icon, string html);
-		
-		public static string CreateNameBaseFromsGuid(BaseType n)
-		{
-			string  sg = new(n.sGuid);
-			Regex pattern = new("^[a-zA-Z0-9-_]{22}");				
+		/// <summary>
+		/// Delegate that points to a single method for creating a new <see cref="BaseType.name"/> value for the designated <paramref name="node"/>.
+		/// </summary>
+		/// <param name="node">The SDC <see cref="BaseType"/> node that will have its <see cref="BaseType.name"/> property receive a new value.</param>
+		/// <param name="prefix">The first part of a string to be applied to <see cref="BaseType.name"/></param>
+		/// <param name="body">The middle of a string to be applied to <see cref="BaseType.name"/></param>
+		/// <param name="suffix">The last part of a string to be applied to <see cref="BaseType.name"/> </param>
+		/// <param name="exclusionPrefix"> The <paramref name="exclusionPrefix"/> parameter is an optional string that is used to match the first part of a <see cref="BaseType.name"/>.  <br/>
+		/// If <paramref name="exclusionPrefix"/> matches the start of a <see cref="BaseType.name"/>, then <see cref="BaseType.name"/> will not be refreshed with a new value.</param>
+		/// <returns>The new name that was used to refresh <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
+		public delegate string CreateName(BaseType node, string prefix = "", string body = "", string suffix = "", string exclusionPrefix = "");
 
-			if (!pattern.IsMatch(sg))
-				if (sg.IsNullOrWhitespace() || sg.Length != 22 || !pattern.IsMatch(sg)) throw new ArgumentException("The supplied node does not have a valid sGuid");
-
-			var sgl = sg.ToList();
-			int i = -1;
-			do
-			{ //remove any integer, -, or _ in the first position, as these are illegal for varable names
-				i++;
-				char c = sgl[0];
-				if ((c >= '0' && c <= '9') || c == '_' || c == '-') 
-					sgl.RemoveAt(0);
-				else break;
-			} while (i < sgl.Count - 1);
-
-			int stopSize = 6;
-			i = 0;
-			do
-			{ //remove any 0, -, or _ in any remaining position, as these do not make nice variable names
-				char c2 = sgl[i];
-				if (c2 == '0' || c2 == '_' || c2 == '-') 
-					sgl.RemoveAt(i);
-				else i++;
-
-			} while (i <= stopSize && i < sgl.Count);
-
-			var sb = new StringBuilder();
-			foreach (var c in sgl.Take(stopSize)) sb.Append(c);
-
-			return sb.ToString();
-
-
-		}
+		/// <summary>
+		/// Reserved for future use. <paramref name=""/>
+		/// </summary>
+		/// <param name="node"></param>
+		/// <param name="icon"></param>
+		/// <param name="html"></param>
+		/// <returns></returns>
+		public delegate string NodeAnnotation(BaseType node, byte[] icon, string html);
 
 
 		/// <summary>
-		/// If refreshTree is true (default),
-		///		this method uses reflection to refresh the _TTopNode._Nodes, _TTopNode_ParentNodes and _TTopNode_ChildNodes dictionaries, with all nodes in the proper order.
+		/// If <paramref name="refreshTree"/> is true (default),
+		///		this method uses reflection to refresh the _TTopNode._Nodes, _ITopNode_ParentNodes and _TTopNode_ChildNodes dictionaries, with all nodes in the proper order.
 		///		Some BaseType properties are updated:
 		///		SGuid properties are created if missing, and name and order properties are created/updated as needed.  
 		///		Names will be overwritten with new names that may not match the original.
-		///		TODO: names prefixed with "_" will be preserved.
-		///		TODO: names and IDs will be added to internal dictionaries to ensure uniqueness within a template.
-		///		TODO: create a default nameing system that uses the first 6 good characters of the sGuid instead of the ID, for the "ID part" of the name.
-		///			skip: starting numbers, -, _, 0 and move on to the next letter; then change to all lower case.
-		///		TODO: check for unacceptable words in sGuids and names; this provides almost 2 billion choices for each template 
-		/// If refreshTree is false, this method returns an ordered List&lt;BaseType>, but none of the above refresh actions are performed.
+		/// If <paramref name="refreshTree"/> is false, this method returns an ordered List&lt;BaseType>, but none of the above refresh actions are performed.
 		/// </summary>
 		/// <param name="topNode">The ITopNode SDC node that will have its tree refreshed</param>
-		/// <param name="treeText">An "out" variable containing, if print is true, a text representation of some important properties of each node</param>
-		/// <param name="print">If print is true, then treeText will be generated.  If print is false, treeText will be null.
+		/// <param name="treeText">An "out" variable containing, if <paramref name="print"/> is true, a text representation of some important properties of each node</param>
+		/// <param name="print">If <paramref name="print"/> is true, then <paramref name="treeText"/> will be generated.  If <paramref name="print"/> is false, <paramref name="treeText"/> will be null.
 		/// The default is false.</param>
 		/// <param name="refreshTree">Determines whether to refresh the Dictionaries and BaseType properties, as described in the summary.
 		/// The default is true.</param>
+		/// <param name="createNodeName">A delegate to represent a single function that will create a <see cref="BaseType.name"/> for each refreshed node in the ITopNode tree.</param>
 		/// <returns>List&lt;BaseType> containing all of the SDC tree nodes in sorted top-bottom order</returns>
 		public static List<BaseType> ReflectRefreshTree(ITopNode topNode, out string? treeText, bool print = false, bool refreshTree = true, CreateName? createNodeName= null)
 		{
@@ -405,8 +381,8 @@ namespace SDC.Schema
 
 					void RefreshTree(BaseType parentNode, PropertyInfo piChildProperty)
 					{
-						//pi is the PropertyInfo object from the btProp property
-						//Neither pi nor btProp reliably contains the XML element name for the btProp node
+						//piChildProperty is the PropertyInfo object from the btProp property
+						//Neither piChildProperty nor btProp reliably contains the XML element name for the btProp node
 						//In some cases, it can be obtained by looking at the parentNode,
 						//finding the IEnumerable<> Property that contains btProp, and then looking for 
 						//the enum value that contains the XML element name.
@@ -434,7 +410,7 @@ namespace SDC.Schema
 						if (elementName.IsNullOrWhitespace()) Debugger.Break();
 						btProp.ElementName = elementName;
 						btProp.ElementOrder = elementOrder;
-						btProp.order = order++;
+						btProp.order = ++order;
 
 						if (btProp.sGuid is null)
 						{
@@ -451,10 +427,11 @@ namespace SDC.Schema
 						{
 							//subIetCounter++;
 							//suffix = "_" + subIetCounter.ToString();
-							suffix = "_" + btProp.SubIETcounter.ToString();
-							if (suffix is null) Debugger.Break();
+							suffix = ("_" + btProp.SubIETcounter.ToString())??"";
 						}
-						btProp.name = btProp.CreateElementNameCAP(".100004300", suffix);
+						if(createNodeName is not null) btProp.name = createNodeName(node: btProp, prefix: btProp.ElementPrefix, body: "", suffix: suffix) ?? btProp.name;
+
+						//btProp.name = btProp.CreateElementNameCAP("", ".100004300", suffix!);
 
 						if (print)
 						{
@@ -470,8 +447,8 @@ namespace SDC.Schema
 				string content(BaseType n)
 				{
 					string s;
-					if (n is DisplayedType) s = "; title: " + (n as DisplayedType).title;
-					else if (n is PropertyType) s = "; " + (n as PropertyType).propName + ": " + (n as PropertyType).val;
+					if (n is DisplayedType) s = "; title: " + (n as DisplayedType)?.title??"";
+					else if (n is PropertyType) s = "; " + (n as PropertyType)?.propName??"" + ": " + (n as PropertyType)?.val??"";
 					else s = $"; type: {n.GetType().Name}";
 					return s;
 				}
@@ -916,7 +893,7 @@ namespace SDC.Schema
 			var lst = ReflectChildElements(par);
 			var myIndex = lst?.IndexOf(item) ?? -1;
 			if (myIndex < 0 || myIndex == lst?.Count - 1) return null;
-			return lst[myIndex + 1] ?? null;
+			return lst?[myIndex + 1] ?? null;
 		}
 		public static BaseType? GetLastSibElement(BaseType item)
 		{
@@ -935,6 +912,11 @@ namespace SDC.Schema
 			var lst = ReflectChildElements(par);
 			return lst?.Last();
 		}
+		/// <summary>
+		/// Retrieve the previous <see cref="BaseType"/> SDC element node using _TopNode dictionaries.<br/>
+		/// This node may be a previous sibling, or a non-sibling node higher up in the SDC tree (closer to the SDC root node), under a different parent node.		/// </summary>
+		/// <param name="item"></param>
+		/// <returns></returns>
 		public static BaseType? GetPrevElement(BaseType item)
 		{
 			if (item is null) return null;
@@ -953,6 +935,12 @@ namespace SDC.Schema
 
 			return par;
 		}
+		/// <summary>
+		/// Retrieve the previous <see cref="BaseType"/> SDC element node by reflection.<br/>
+		/// This node may be a previous sibling, or a non-sibling node higher up in the SDC tree (closer to the SDC root node), under a different parent node.
+		/// </summary>
+		/// <param name="item"></param>
+		/// <returns></returns>
 		public static BaseType? ReflectPrevElement(BaseType item)
 		{
 			if (item is null) return null;
@@ -974,6 +962,11 @@ namespace SDC.Schema
 
 			return par;
 		}
+		/// <summary>
+		/// Retrieve the previous <see cref="BaseType"/> sibling SDC element node, using the _ChildNodes dictionary.
+		/// </summary>
+		/// <param name="item"></param>
+		/// <returns></returns>
 		public static BaseType? GetPrevSibElement(BaseType item)
 		{
 			var par = item.ParentNode;
@@ -987,6 +980,11 @@ namespace SDC.Schema
 			if (index == 0) return null; //item is the first item
 			return sibs?[index - 1];
 		}
+		/// <summary>
+		/// Retrieve the previous <see cref="BaseType"/> sibling SDC element node by reflection from the parent node.
+		/// </summary>
+		/// <param name="item"></param>
+		/// <returns></returns>
 		public static BaseType? ReflectPrevSibElement(BaseType item)
 		{
 			var par = item.ParentNode;
@@ -1051,6 +1049,11 @@ namespace SDC.Schema
 			}
 			return null;
 		}
+		/// <summary>
+		/// Given a <see cref="BaseType"/> item node, retrieve its first <see cref="BaseType"/> child note, if one is present.
+		/// </summary>
+		/// <param name="item">The node from which the first <see cref="BaseType"/>  child node will be retrieved.</param>
+		/// <returns>The first <see cref="BaseType"/> child node</returns>
 		public static BaseType? GetFirstChildElement(BaseType item)
 		{
 			var topNode = (_ITopNode)item.TopNode;
@@ -1103,6 +1106,11 @@ namespace SDC.Schema
 			}
 			return null;
 		}
+		/// <summary>
+		/// Given a <see cref="BaseType"/> <paramref name="item"/> object, retrieve a <see cref="ReadOnlyCollection&lt;BaseType>"/> of its child <see cref="BaseType"/>  nodes
+		/// </summary>
+		/// <param name="item">The node from which we want to retrieve its child nodes</param>
+		/// <returns><see cref="ReadOnlyCollection&lt;BaseType>"/></returns>
 		public static ReadOnlyCollection<BaseType>? GetChildElements(BaseType item)
 		{
 			var topNode = (_ITopNode)item.TopNode;
@@ -1275,13 +1283,19 @@ namespace SDC.Schema
 			return defVal;
 		}
 
+		/// <summary>
+		/// Given a <paramref name="propertyName"/>, retrieve the property object, if it exists, from <paramref name="parent"/> object
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="propertyName"></param>
+		/// <returns></returns>
 		public static object? GetPropertyObject(BaseType parent, string propertyName)
 		{
 			var pi = parent.GetType().GetProperty(propertyName);
 			if (pi is null) return null;
 			return pi.GetValue(parent);
 		}
-		public static object? GetPropertyObject(BaseType parent, PropertyInfo piProperty) =>
+		public static object? X_GetPropertyObject(BaseType parent, PropertyInfo piProperty) =>
 			piProperty.GetValue(parent);
 
 		/// <summary>
@@ -1516,7 +1530,8 @@ namespace SDC.Schema
 						&& p.GetCustomAttributes(typeof(XmlElementAttribute)).Any()  //We must confirm that our IEnumerable has a XmlElementAttribute,
 																					 //since we added some shadow properties in the partial classes
 																					 //like "ChildItems_List" for "Items"
-																					 //&& p.GetValue(par) is not null			//This will be good for a future refactoring of the lambda expression; it will get the matched property directly and concisely.
+																					 //&& p.GetValue(par) is not null			
+																					 //This may be good for a future refactoring of the lambda expression; it will get the matched property directly and concisely.
 						);
 
 				if (ieParProps is null || !ieParProps.Any())
@@ -1543,7 +1558,7 @@ namespace SDC.Schema
 		}
 
 		/// <summary>
-		/// If piItem is passed as null, the method will retrieve it
+		/// If <paramref name="piItem"/> is passed as null, the method will retrieve it from <paramref name="item"/>
 		/// </summary>
 		/// <param name="piItem"></param>
 		/// <param name="item"></param>
@@ -1768,7 +1783,7 @@ namespace SDC.Schema
 		}
 
 		/// <summary>
-		/// Reflect the object tree to determine if <paramref name="item"/> can be attached to new parent node,
+		/// Reflect the object tree to determine if the supplied <paramref name="item"/> item node can be attached to new parent node,
 		/// which is defined by the <paramref name="piNewParentProperty"/> PropertyInfo type.   
 		/// We must find an <em>exact</em> match for <paramref name="item"/>'s element name and the data type in <paramref name="piNewParentProperty"/> to allow the move.
 		/// </summary>
@@ -1839,6 +1854,176 @@ namespace SDC.Schema
 			}
 			return false;
 		}
+		#endregion
+		#region Helpers
+
+		/// <summary>
+		/// This is a method for creating a new <see cref="BaseType.name"/> value for the designated <paramref name="node"/>.<br/>
+		/// For each SDC node, the ID of the closest <see cref="IdentifiedExtensionType"/> ancestor is used to create a "short id" <br/>
+		/// for all of its non-<see cref="IdentifiedExtensionType"/> child elements.  <br/>
+		/// This short id is used in conjunction with other node properties of the object <br/>
+		/// (e.g., prefix, propName (for Properties) etc.) to create a unique @name attribute <br/>
+		/// for every SDC node (and thus each serialized XML element).
+		/// </summary>
+		/// <param name="node">The SDC <see cref="BaseType"/> node that will have its <see cref="BaseType.name"/> property receive a new value.</param>
+		/// <param name="prefix">The first part of a string to be applied to <see cref="BaseType.name"/></param>
+		/// <param name="body">The middle of a string to be applied to <see cref="BaseType.name"/></param>
+		/// <param name="suffix">The last part of a string to be applied to <see cref="BaseType.name"/> </param>
+		/// <param name="exclusionPrefix"> The <paramref name="exclusionPrefix"/> parameter is an optional string that is used to match the first part of a <see cref="BaseType.name"/>.  <br/>
+		/// If <paramref name="exclusionPrefix"/> matches the start of a <see cref="BaseType.name"/>, then <see cref="BaseType.name"/> will not be refreshed with a new value.</param>
+		/// <returns>The new name that was used to refresh <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
+		public static string CreateElementNameCAP(this BaseType node, string prefix, string body, string suffix, string exclusionPrefix)
+		{
+			//prefix = bt.ElementPrefix;
+			string bodyShortID;
+			string nameSpace = ".100004300";
+			if (node is PropertyType pt && pt.propName is not null)
+			{
+				prefix = prefix + "_" + pt.propName + "_";
+			}
+			if (node is IdentifiedExtensionType iet)
+			{
+				bodyShortID = "_" + Regex.Replace(iet.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
+				if (iet.name?.ToLower() == "body") bodyShortID = "body" + bodyShortID;
+				else if (iet.name?.ToLower() == "footer") bodyShortID = "footer" + bodyShortID;
+				else if (iet.name?.ToLower() == "header") bodyShortID = "header" + bodyShortID;
+				else bodyShortID = iet.ID.Replace(nameSpace, "") ?? "";
+			}
+			else
+			{
+				bodyShortID = Regex.Replace(
+				node.ParentIETypeNode?.ID.Replace(nameSpace, "") ?? "",
+				@"\W+", ""); //remove namespace and special characters
+			}
+			if (prefix.Length > 0 &&
+				(bodyShortID.Length > 0 || suffix.Length > 0)) prefix += "_";
+			//Debug.Write(prefix + shortID + nameSuffix + "\r\n");
+			return prefix + bodyShortID + suffix;
+		}
+
+		//TODO: names prefixed with "_" will be preserved.
+		//TODO: names and IDs will be added to internal dictionaries to ensure uniqueness within a template.
+		//TODO: create a default naming system that uses the first 6 good characters of the sGuid instead of the ID, for the "ID part" of the name.
+		//			skip: starting numbers, -, _, 0 and move on to the next letter; then change to all lower case.
+		//TODO: check for unacceptable words in sGuids and names; this provides almost 2 billion choices for each template 
+
+		/// <summary>
+		/// Process the characters in a node's short Guid (sGuid) to create a alphanumeric string suiatable for use 
+		/// as a programming variable name, or for part of such a name, or for us as part/all of an <see cref="IdentifiedExtensionType.ID"/>.
+		/// </summary>
+		/// <param name="n"></param>
+		/// <param name="nameBaseLength">The length of the alphanumeric string to return.
+		/// In some cases, the string may be shorter than this length, due to removal of illegal characters (0, -, and _), 
+		/// as well as any numbers at the first character of the string.</param>
+		/// <param name="allLowerCase">If set to true, the method returns a lower case alphanumeric string.  
+		/// If false (the default), the method returns an alphanumeric string not converted to lower case</param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException"></exception>
+		public static string CreateNameBaseFromsGuid(BaseType n, int nameBaseLength = 6, bool allLowerCase = false)
+		{
+			if (nameBaseLength > 20 || nameBaseLength < 1) throw new ArgumentException("nameBaseLength must be > 0 and < 21");
+			string  sg = new(n.sGuid);			
+			Regex pattern = new("^[a-zA-Z0-9-_]{22}");				
+
+			if (!pattern.IsMatch(sg))
+				if (sg.IsNullOrWhitespace() || sg.Length != 22 || !pattern.IsMatch(sg)) throw new ArgumentException("The supplied node does not have a valid sGuid");
+			var sgl = sg.ToList();
+			int i = -1;
+			do
+			{ //remove any integer, -, or _ in the first position, as these are illegal for varable names
+				i++;
+				char c = sgl[0];
+				if ((c >= '0' && c <= '9') || c == '_' || c == '-') 
+					sgl.RemoveAt(0);
+				else break;
+			} while (i < sgl.Count - 1);
+
+			i = 0;
+			do
+			{ //remove any 0, -, or _ in any remaining position, as these do not make nice variable names
+				char c2 = sgl[i];
+				if (c2 == '0' || c2 == '_' || c2 == '-') 
+					sgl.RemoveAt(i);
+				else i++;
+
+			} while (i <= nameBaseLength && i < sgl.Count);
+
+			var sb = new StringBuilder();
+			foreach (var c in sgl.Take(nameBaseLength)) sb.Append(c);
+			if (allLowerCase) return sb.ToString().ToLower();
+
+			return sb.ToString();
+
+
+		}
+		/// <summary>
+		/// Given a parent SDC node, this method will sort the child nodes (kids)
+		/// This method is used to keep lists of sibling nodes in the same order as the SDC object tree
+		/// </summary>
+		/// <param name="parentItem">The parent SDC node</param>
+		/// <param name="kids">"kids" is a List&lt;BaseType> containing all the child nodes under parentItem.
+		/// This is generally obtained from the parentItem using the _ITopNode._ChildNodes Dictionary object
+		/// If it is not supplied, it will be obtained below from parentItem</param>
+		/// <returns>List&lt;BaseType>? containing ordered list of child nodes, or null or no child nodes are present</returns>
+		private static List<BaseType>? SortElementKids(BaseType parentItem, List<BaseType>? kids = null)
+		{
+			//Sorting uses reflection, and this is an expensive operation, so we only sort once per parent node
+			//TreeSort_NodeIds is a SortedSet that holds the ObjectIDs of parent nodes whose children have already been sorted.
+			//If a parent node's children have already been sorted, it appears in TreeSort_NodeIds, and we can skip sorting it again. 
+
+			//(This method is NOT used by IMoveRemoveExtensions.RegisterParentNode, which uses the reflection-based TreeSibComparer directly for child nodes - 
+			//This ensures that the node dictionaries (_Nodes, _ParentNodes and _ChildNodes) are kept sorted in the same order as they will be serialized in XML.)
+
+			if (kids is null || kids.Count == 0)
+				if (!((_ITopNode)parentItem)._ChildNodes.TryGetValue(parentItem.ObjectGUID, out kids)) return null;
+
+			if (!TreeSort_NodeIds.Contains(parentItem.ObjectID))
+			{				
+				kids.Sort(new TreeSibComparer());
+				TreeSort_NodeIds.Add(parentItem.ObjectID);
+			}
+			return kids;
+		}
+
+		/// <summary>
+		/// Returns formatted XML a minified or poorly formatted XML string
+		/// </summary>
+		/// <param name="Xml">The input XML to be formatted</param>
+		/// <returns></returns>
+		public static string XmlFormat(string Xml)
+		{
+			return System.Xml.Linq.XDocument.Parse(Xml).ToString();  //prettify the minified doc XML 
+		}
+
+		/// <summary>
+		/// Write a new order attribute and value into every element of an Xml file
+		/// </summary>
+		/// <param name="Xml">The input XML, to which the @order attributes will be written</param>
+		/// <returns>XMl with populated @order attributes</returns>
+		/// <exception cref="InvalidOperationException"></exception>
+		public static string XmlReorder(string Xml)
+		{
+			var doc = new XmlDocument();
+			doc.LoadXml(Xml);
+			if (doc is null) throw new InvalidOperationException("the Xml string could not be loaded into an XmlDocument");
+			var xmlNodeList = doc.SelectNodes("//*");
+			if (xmlNodeList is null) throw new InvalidOperationException("the Xml string could not be loaded into an xmlNodeList");
+			int j = 0;
+			foreach (XmlNode node in xmlNodeList)
+			{   //renumber the XML elements in Node order
+				if (node.NodeType == XmlNodeType.Element)
+				{
+					if (node.Attributes!.GetNamedItem("order") is null)
+					{
+						var attOrder = doc.CreateAttribute("order");
+						node.Attributes.Append(attOrder);
+					}
+					node.Attributes!["order"]!.Value = j++.ToString();
+				}
+			}
+			return doc.OuterXml;
+		}
+
 		#endregion
 		#region Retired
 		public static List<BaseType>? X_ReflectChildList(BaseType bt)
@@ -2134,109 +2319,5 @@ namespace SDC.Schema
 
 		#endregion
 
-		#region Helpers
-
-		/// <summary>
-		/// For each SDC node, the ID of the closest IdentifiedExtensionType ancestor is used to create a "shortID" 
-		/// for all of its non-IdentifiedExtensionType child elements.  
-		/// This shortID is used in conjuntion with other node properties of the object 
-		/// (e.g., prefix, propName (for Properties) etc.)
-		/// to create a unique name attribute for every SDC node (and thus each serialized XML element).
-		/// </summary>
-		/// <param name="bt">an object of type BaseType</param>
-		/// <param name="nameSpace">The namespace part of BaseType.ID. Must be ".100004300" for CAP </param>
-		/// <param name="nameSuffix">the last part of the new name</param>
-		/// <returns></returns>
-		public static string CreateElementNameCAP(this BaseType bt, string nameSpace, string nameSuffix)
-		{
-			string prefix = bt.ElementPrefix;
-			string shortID = "";
-			if (bt is PropertyType pt && pt.propName is not null)
-			{
-				prefix = prefix + "_" + pt.propName + "_";
-			}
-			if (bt is IdentifiedExtensionType iet)
-			{
-				shortID = "_" + Regex.Replace(iet.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
-				if (iet.name?.ToLower() == "body") shortID = "body" + shortID;
-				else if (iet.name?.ToLower() == "footer") shortID = "footer" + shortID;
-				else if (iet.name?.ToLower() == "header") shortID = "header" + shortID;
-				else shortID = iet.ID.Replace(nameSpace, "") ?? "";
-			}
-			else
-			{
-				shortID = Regex.Replace(
-				bt.ParentIETypeNode?.ID.Replace(nameSpace, "") ?? "",
-				@"\W+", ""); //remove namespace and special characters
-			}
-			if (prefix.Length > 0 &&
-				(shortID.Length > 0 || nameSuffix.Length > 0)) prefix += "_";
-			//Debug.Write(prefix + shortID + nameSuffix + "\r\n");
-			return prefix + shortID + nameSuffix;
-		}
-		/// <summary>
-		/// Given a parent SDC node, this method will sort the child nodes (kids)
-		/// This method is used to keep lists of sibling nodes in the same order as the SDC object tree
-		/// </summary>
-		/// <param name="parentItem">The parent SDC node</param>
-		/// <param name="kids">"kids" is a List&lt;BaseType> containing all the child nodes under parentItem.
-		/// This is generally obtained from the parentItem using the _ITopNode._ChildNodes Dictionary object
-		/// If it is not supplied, it will be obtained below from parentItem</param>
-		/// <returns>List&lt;BaseType>? containing ordered list of child nodes, or null or no child nodes are present</returns>
-		private static List<BaseType>? SortElementKids(BaseType parentItem, List<BaseType>? kids = null)
-		{
-			//Sorting uses reflection, and this is an expensive operation, so we only sort once per parent node
-			//TreeSort_NodeIds is a SortedSet that holds the ObjectIDs of parent nodes whose children have already been sorted.
-			//If a parent node's children have already been sorted, it appears in TreeSort_NodeIds, and we can skip sorting it again. 
-
-			//(This method is NOT used by IMoveRemoveExtensions.RegisterParentNode, which uses the reflection-based TreeSibComparer directly for child nodes - 
-			//This ensures that the node dictionaries (_Nodes, _ParentNodes and _ChildNodes) are kept sorted in the same order as they will be serialized in XML.)
-
-			if (kids is null || kids.Count == 0)
-				if (!((_ITopNode)parentItem)._ChildNodes.TryGetValue(parentItem.ObjectGUID, out kids)) return null;
-
-			if (!TreeSort_NodeIds.Contains(parentItem.ObjectID))
-			{				
-				kids.Sort(new TreeSibComparer());
-				TreeSort_NodeIds.Add(parentItem.ObjectID);
-			}
-			return kids;
-		}
-
-		public static string XmlFormat(string Xml)
-		{
-			return System.Xml.Linq.XDocument.Parse(Xml).ToString();  //prettify the minified doc XML 
-		}
-
-		/// <summary>
-		/// Write a new order attribute and value into every element of an Xml file
-		/// </summary>
-		/// <param name="Xml"></param>
-		/// <returns></returns>
-		/// <exception cref="InvalidOperationException"></exception>
-		public static string XmlReorder(string Xml)
-		{
-			var doc = new XmlDocument();
-			doc.LoadXml(Xml);
-			if (doc is null) throw new InvalidOperationException("the Xml string could not be loaded into an XmlDocument");
-			var xmlNodeList = doc.SelectNodes("//*");
-			if (xmlNodeList is null) throw new InvalidOperationException("the Xml string could not be loaded into an xmlNodeList");
-			int j = 0;
-			foreach (XmlNode node in xmlNodeList)
-			{   //renumber the XML elements in Node order
-				if (node.NodeType == XmlNodeType.Element)
-				{
-					if (node.Attributes!.GetNamedItem("order") is null)
-					{
-						var attOrder = doc.CreateAttribute("order");
-						node.Attributes.Append(attOrder);
-					}
-					node.Attributes!["order"]!.Value = j++.ToString();
-				}
-			}
-			return doc.OuterXml;
-		}
-
-		#endregion
 	}
 }

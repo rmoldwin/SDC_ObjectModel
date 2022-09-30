@@ -30,11 +30,11 @@ namespace SDC.Schema
 
 		protected FormDesignType() : base()
 		{ Init(); }
-		public FormDesignType(BaseType parentNode, string id): base(parentNode, id)
+		public FormDesignType(BaseType parentNode, string id) : base(parentNode, id)
 		{ Init(); }
 		//public FormDesignType(string id) : base(null, id)
 		//{ Init(); }
-		private void  Init()
+		private void Init()
 		{
 			ElementName = "FormDesign";
 			ElementPrefix = "fd";
@@ -297,9 +297,9 @@ namespace SDC.Schema
 			//TODO:Add dictionaries for nodes etc
 			//TODO:Make sure BaseType constructor functions work
 		}
-		private static void Init()
+		private void Init()
 		{
-
+			ElementPrefix = "DE";
 		}
 
 		#region ITopNode
@@ -432,9 +432,9 @@ namespace SDC.Schema
 		{
 			Init();//TODO:Make sure BaseType constructor functions work
 		}
-		private static void Init()
+		private void Init()
 		{
-
+			ElementPrefix = "RFP";
 		}
 
 		#region ITopNode
@@ -568,7 +568,7 @@ namespace SDC.Schema
 		{
 			Init();//TODO:Make sure BaseType constructor functions work
 		}
-		private static void Init()
+		private void Init()
 		{
 
 		}
@@ -869,7 +869,7 @@ namespace SDC.Schema
 		protected SectionItemType() { Init(); } //change back to protected
 		public SectionItemType(BaseType parentNode, string id = "") : base(parentNode, id)
 		{ Init(); }
-		private static void Init()
+		private void Init()
 		{
 
 		}
@@ -901,7 +901,7 @@ namespace SDC.Schema
 			//this._readOnly = false;
 			ElementName = "Question";
 			ElementPrefix = "Q";
-			
+
 		}
 
 		#region IChildItemsParent
@@ -925,7 +925,7 @@ namespace SDC.Schema
 			Init();
 			//this._readOnly = false;  // tag:#IsThisCorrect
 		}
-		private static void Init()
+		private void Init()
 		{ }
 
 		[XmlIgnore]
@@ -1092,7 +1092,7 @@ namespace SDC.Schema
 		public LookupEndPointType(ListFieldType parentNode) : base(parentNode)
 		{
 			Init();
-			
+
 		}
 		private void Init()
 		{
@@ -1111,7 +1111,7 @@ namespace SDC.Schema
 		public ListItemResponseFieldType(ListItemBaseType parentNode) : base(parentNode)
 		{
 			Init();
-			
+
 		}
 		private void Init()
 		{
@@ -1126,7 +1126,7 @@ namespace SDC.Schema
 		public ResponseFieldType(IdentifiedExtensionType parentNode) : base(parentNode)
 		{
 			Init();
-			
+
 		}
 		private void Init()
 		{
@@ -1143,7 +1143,7 @@ namespace SDC.Schema
 		{
 			Init();
 
-			
+
 		}
 		private void Init()
 		{
@@ -1197,29 +1197,25 @@ namespace SDC.Schema
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		internal int SubIETcounter {
+		internal int SubIETcounter
+		{
 			get
-			{                
-				if (this is IdentifiedExtensionType) return 0;				
+			{
+				if (this is IdentifiedExtensionType) return 0;
 				if (TopNode.Nodes is null || ParentNode is null) throw new Exception("Could not find SubIETcounter because TopNode or ParentNode is null");
-				BaseType? prevNode = null;
+
 				BaseType? node = this;
-				//if (this.ParentIETypeNode?.ID == "58427.100004300" && this is ListType) Debugger.Break();
+				int nodeCount = TopNode.Nodes.Values.Count;
+
 				var i = 0;
 				do
 				{
 					i++;
-					//prevNode = SdcUtil.ReflectPrevSib(node);  //Switch to non-reflected method if it can be trusted that all previous nodes have been refreshed.
-					prevNode = node.GetNodePreviousSib();
-					if (prevNode is null)
-					{
-						prevNode = node.ParentNode;
-						if (prevNode is IdentifiedExtensionType) return i;
-						if (prevNode is null) return -1; // throw new Exception("Could not locate an ancestor node of type IdentifiedExtensionType");
-					}
-					node = prevNode;
-				} while (node != null);					
-				return -1;
+					node = node.GetNodePrevious();
+					if (node is IdentifiedExtensionType) return i;
+				} while (node != null && i < nodeCount);
+
+				throw new Exception("Could not determine SubIETcounter because an ancestor node of type IdentifiedExtensionType could not be found");
 			}
 		}
 		//private BaseType _ParentNode;
@@ -1233,7 +1229,7 @@ namespace SDC.Schema
 			{
 				if (topNodeTemp is null & value is not null)
 				{ topNodeTemp = value; }
-				else if(value is not null) throw new Exception("TopNode has already been assigned.  A call to ResetSdcImport() is required before this object can be set for importing a new SDC template;"); 
+				else if (value is not null) throw new Exception("TopNode has already been assigned.  A call to ResetSdcImport() is required before this object can be set for importing a new SDC template;");
 				else if (value is null) throw new Exception("The setter value for TopNodeTemp was null.");
 			}
 		}
@@ -1319,11 +1315,11 @@ namespace SDC.Schema
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		public string ElementName 
+		public string ElementName
 		{
 			get
 			{
-				if(!_elementName.IsNullOrWhitespace())
+				if (!_elementName.IsNullOrWhitespace())
 					return _elementName;
 				try
 				{
@@ -1338,7 +1334,7 @@ namespace SDC.Schema
 					return "";
 				}
 
-				
+
 			}
 			protected internal set
 			{
@@ -1410,10 +1406,12 @@ namespace SDC.Schema
 				//if (this is QuestionItemType && _elementPrefix != "Q") Debugger.Break();
 				return _elementPrefix;
 			}
-			set {
+			set
+			{
 
 				//if (this is QuestionItemType && _elementPrefix != "Q") Debugger.Break();
-				_elementPrefix = value; }
+				_elementPrefix = value;
+			}
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -1582,7 +1580,7 @@ namespace SDC.Schema
 			if (this is IdentifiedExtensionType iet) //Register This Node, if it's an IET
 				((_ITopNode)TopNode)._IETnodes.Add(iet);
 
-			order = ObjectID;			
+			order = ObjectID;
 
 			//Debug.WriteLine($"The node with ObjectID: {this.ObjectID} has entered the BaseType ctor. Item type is {this.GetType()}.  "
 			//    + $"The parent ObjectID is {this.ParentObjID.ToString()}");
@@ -1720,7 +1718,7 @@ namespace SDC.Schema
 			SdcUtil.ReflectRefreshTree(obj, out _);
 			return obj;
 		}
-		#endregion  
+		#endregion
 
 		~BaseType() //destructor
 		{ }
@@ -1731,7 +1729,7 @@ namespace SDC.Schema
 		protected ExtensionBaseType() { Init(); }
 		public ExtensionBaseType(BaseType parentNode) : base(parentNode)
 		{ Init(); }
-		private static void Init()
+		private void Init()
 		{
 
 		}
@@ -1743,7 +1741,7 @@ namespace SDC.Schema
 		private IExtensionBaseTypeMember Iebtm { get => (IExtensionBaseTypeMember)this; }
 		protected ExtensionType() { Init(); }
 		public ExtensionType(BaseType parentNode) : base(parentNode) { Init(); }
-		private static void Init()
+		private void Init()
 		{
 
 		}
@@ -1761,7 +1759,7 @@ namespace SDC.Schema
 		public PropertyType(ExtensionBaseType parentNode) : base(parentNode)
 		{
 			Init();
-			
+
 		}
 		private void Init()
 		{
@@ -1790,7 +1788,7 @@ namespace SDC.Schema
 		public CommentType(BaseType parentNode) : base(parentNode)
 		{
 			Init();
-			
+
 		}
 		private void Init()
 		{
@@ -1847,7 +1845,7 @@ namespace SDC.Schema
 		public ChildItemsType(BaseType parentNode) : base(parentNode)
 		{
 			Init();
-			
+
 		}
 		private void Init()
 		{
@@ -1882,7 +1880,7 @@ namespace SDC.Schema
 		public DisplayedType(BaseType parentNode, string id = "", string elementName = "", string elementPrefix = "") : base(parentNode, id)
 		{
 			Init();
-			
+
 		}
 		private void Init()
 		{
@@ -1903,7 +1901,7 @@ namespace SDC.Schema
 		public BlobType(DisplayedType parentNode) : base(parentNode)
 		{
 			Init();
-			
+
 		}
 		private void Init()
 		{
@@ -1918,7 +1916,7 @@ namespace SDC.Schema
 		public LinkType(DisplayedType parentNode) : base(parentNode)
 		{
 			Init();
-			
+
 		}
 		private void Init()
 		{
@@ -1934,7 +1932,7 @@ namespace SDC.Schema
 		public CodingType(ExtensionBaseType parentNode) : base(parentNode)
 		{
 			Init();
-			
+
 
 		}
 		private void Init()
@@ -1950,7 +1948,7 @@ namespace SDC.Schema
 		public CodeMatchType(CodingType parentNode) : base(parentNode)
 		{
 			Init();
-			
+
 		}
 		private void Init()
 		{
@@ -1966,7 +1964,7 @@ namespace SDC.Schema
 		public CodeSystemType(ExtensionBaseType parentNode) : base(parentNode)
 		{
 			Init();
-			
+
 		}
 		private void Init()
 		{
@@ -2012,7 +2010,7 @@ namespace SDC.Schema
 		protected anyType_DEtype() { Init(); }
 		public anyType_DEtype(BaseType parentNode) : base(parentNode)
 		{
-			Init();			
+			Init();
 		}
 		private void Init()
 		{
@@ -2033,10 +2031,10 @@ namespace SDC.Schema
 			ElementPrefix = "DataTypes";
 		}
 
-			/// <summary>
-			/// any *_SType data type
-			/// </summary>
-			[XmlIgnore]
+		/// <summary>
+		/// any *_SType data type
+		/// </summary>
+		[XmlIgnore]
 		[JsonIgnore]
 		public BaseType DataTypeS_Item
 		{
@@ -2051,7 +2049,7 @@ namespace SDC.Schema
 		public anyURI_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
 			Init();
-			
+
 		}
 		private void Init()
 		{
@@ -2067,7 +2065,7 @@ namespace SDC.Schema
 		public anyURI_Stype(BaseType parentNode) : base(parentNode)
 		{
 			Init();
-			
+
 
 		}
 		private void Init()
@@ -2081,7 +2079,7 @@ namespace SDC.Schema
 			get => val;
 			set
 			{//patterns like '#..#' (more than one '#') and '%ZZ' (illegal ASCII escape codes) are not allowed in a URI.  '%20' (space code) and a single '#' are allowed.
-				//null, "", and empty spaces are allowed, but these values will not be serialized to XML, JSON, etc
+			 //null, "", and empty spaces are allowed, but these values will not be serialized to XML, JSON, etc
 				if (value is null || !(Regex.Match(value, @"%(?![0-9A-F]{2})|#.*#").Success))
 					val = value;
 				else StoreError("Supplied value parameter was not in anyURI string format");
@@ -2099,12 +2097,12 @@ namespace SDC.Schema
 			//ElementPrefix = "b64";
 			//SetNames(elementName, elementPrefix);
 		}
-		private static void Init()
+		private void Init()
 		{
-
+			ElementPrefix = "b64DE";
 		}
 
-		}
+	}
 
 	public partial class base64Binary_Stype : IVal
 	{
@@ -2112,11 +2110,11 @@ namespace SDC.Schema
 		public base64Binary_Stype(BaseType parentNode) : base(parentNode)
 		{
 			Init();
-			
+
 		}
 		private void Init()
 		{
-			ElementPrefix = "b64";
+			ElementPrefix = "b64S";
 		}
 
 		[XmlIgnore]
@@ -2134,34 +2132,34 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class boolean_DEtype
+	public partial class boolean_DEtype
+	{
+		protected boolean_DEtype() { Init(); }
+		public boolean_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected boolean_DEtype() { Init(); }
-			public boolean_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "bool";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-
-			}
+			Init();
+			//ElementPrefix = "bool";
+			//SetNames(elementName, elementPrefix);
+		}
+		private void Init()
+		{
 
 		}
 
-		public partial class boolean_Stype : IVal
+	}
+
+	public partial class boolean_Stype : IVal
+	{
+		protected boolean_Stype() { Init(); }
+		public boolean_Stype(BaseType parentNode) : base(parentNode)
 		{
-			protected boolean_Stype() { Init(); }
-			public boolean_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "bool";
-			}
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "bool";
+		}
 		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
@@ -2176,36 +2174,36 @@ namespace SDC.Schema
 	}
 
 	public partial class byte_DEtype
+	{
+		protected byte_DEtype() { Init(); }
+		public byte_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected byte_DEtype() { Init(); }
-			public byte_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "byte";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{	//it's not necessary to set bool default values;
-				//this._allowGT = false;
-				//this._allowGTE = false;
-				//this._allowLT = false;
-				//this._allowLTE = false;
-				//this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "byte";
+			//SetNames(elementName, elementPrefix);
 		}
+		private void Init()
+		{   //it's not necessary to set bool default values;
+			//this._allowGT = false;
+			//this._allowGTE = false;
+			//this._allowLT = false;
+			//this._allowLTE = false;
+			//this._allowAPPROX = false;
+		}
+	}
 
-		public partial class byte_Stype : IVal
+	public partial class byte_Stype : IVal
+	{
+		protected byte_Stype() { Init(); }
+		public byte_Stype(BaseType parentNode) : base(parentNode)
 		{
-			protected byte_Stype() { Init(); }
-			public byte_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "sbyte";
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "sbyte";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2219,81 +2217,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class date_DEtype
+	public partial class date_DEtype
+	{
+		protected date_DEtype() { Init(); }
+		public date_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected date_DEtype() { Init(); }
-			public date_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "date";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "date";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class date_Stype : IVal
+		private void Init()
 		{
-			protected date_Stype() { Init(); }
-			public date_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "date";
-			}
-		[XmlIgnore]
-		[JsonIgnore]
-		public string ValXmlString
-		{
-			get => throw new NotImplementedException();
-			set
-			{
-				throw new NotImplementedException();
-			}
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
 		}
 	}
 
-		public partial class dateTime_DEtype
+	public partial class date_Stype : IVal
+	{
+		protected date_Stype() { Init(); }
+		public date_Stype(BaseType parentNode) : base(parentNode)
 		{
-			protected dateTime_DEtype() { Init(); }
-			public dateTime_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "dt";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
-		}
+			Init();
 
-		public partial class dateTime_Stype : IVal
+		}
+		private void Init()
 		{
-			protected dateTime_Stype() { Init(); }
-			public dateTime_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "dt";
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "date";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2307,32 +2261,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class dateTimeStamp_DEtype
+	public partial class dateTime_DEtype
+	{
+		protected dateTime_DEtype() { Init(); }
+		public dateTime_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected dateTimeStamp_DEtype() { Init(); }
-			public dateTimeStamp_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "dts";
-				//SetNames(elementName, elementPrefix);
-			}
-			private static void Init()
-			{
-
-			}
+			Init();
+			//ElementPrefix = "dt";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class dateTimeStamp_Stype : IVal
+		private void Init()
 		{
-			protected dateTimeStamp_Stype() { Init(); }
-			public dateTimeStamp_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "dts";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class dateTime_Stype : IVal
+	{
+		protected dateTime_Stype() { Init(); }
+		public dateTime_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "dt";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2346,37 +2305,32 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class dayTimeDuration_DEtype
+	public partial class dateTimeStamp_DEtype
+	{
+		protected dateTimeStamp_DEtype() { Init(); }
+		public dateTimeStamp_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected dayTimeDuration_DEtype() { Init(); }
-			public dayTimeDuration_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "dtdur";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "dts";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class dayTimeDuration_Stype : IVal
+		private  void Init()
 		{
-			protected dayTimeDuration_Stype() { Init(); }
-			public dayTimeDuration_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "dtdur";
+			ElementPrefix = "dtsDE";
+		}
+	}
+
+	public partial class dateTimeStamp_Stype : IVal
+	{
+		protected dateTimeStamp_Stype() { Init(); }
+		public dateTimeStamp_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "dtsS";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2390,37 +2344,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class decimal_DEtype
+	public partial class dayTimeDuration_DEtype
+	{
+		protected dayTimeDuration_DEtype() { Init(); }
+		public dayTimeDuration_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected decimal_DEtype() { Init(); }
-			public decimal_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "dec";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "dtdur";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class decimal_Stype : IVal
+		private void Init()
 		{
-			protected decimal_Stype() { Init(); }
-			public decimal_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "dec";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class dayTimeDuration_Stype : IVal
+	{
+		protected dayTimeDuration_Stype() { Init(); }
+		public dayTimeDuration_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "dtdur";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2434,37 +2388,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class double_DEtype
+	public partial class decimal_DEtype
+	{
+		protected decimal_DEtype() { Init(); }
+		public decimal_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected double_DEtype() { Init(); }
-			public double_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "dbl";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "dec";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class double_Stype : IVal
+		private void Init()
 		{
-			protected double_Stype() { Init(); }
-			public double_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "dbl";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class decimal_Stype : IVal
+	{
+		protected decimal_Stype() { Init(); }
+		public decimal_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "dec";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2478,37 +2432,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class duration_DEtype
+	public partial class double_DEtype
+	{
+		protected double_DEtype() { Init(); }
+		public double_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected duration_DEtype() { Init(); }
-			public duration_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "dur";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "dbl";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class duration_Stype : IVal
+		private void Init()
 		{
-			protected duration_Stype() { Init(); }
-			public duration_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class double_Stype : IVal
+	{
+		protected double_Stype() { Init(); }
+		public double_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "dbl";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2522,37 +2476,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class float_DEtype
+	public partial class duration_DEtype
+	{
+		protected duration_DEtype() { Init(); }
+		public duration_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected float_DEtype() { Init(); }
-			public float_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "flt";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "dur";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class float_Stype : IVal
+		private void Init()
 		{
-			protected float_Stype() { Init(); }
-			public float_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "flt";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class duration_Stype : IVal
+	{
+		protected duration_Stype() { Init(); }
+		public duration_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2566,37 +2520,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class gDay_DEtype
+	public partial class float_DEtype
+	{
+		protected float_DEtype() { Init(); }
+		public float_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected gDay_DEtype() { Init(); }
-			public gDay_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "day";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "flt";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class gDay_Stype : IVal
+		private void Init()
 		{
-			protected gDay_Stype() { Init(); }
-			public gDay_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "day";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class float_Stype : IVal
+	{
+		protected float_Stype() { Init(); }
+		public float_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "flt";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2610,37 +2564,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class gMonth_DEtype
+	public partial class gDay_DEtype
+	{
+		protected gDay_DEtype() { Init(); }
+		public gDay_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected gMonth_DEtype() { Init(); }
-			public gMonth_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "mon";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "day";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class gMonth_Stype : IVal
+		private void Init()
 		{
-			protected gMonth_Stype() { Init(); }
-			public gMonth_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "mon";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class gDay_Stype : IVal
+	{
+		protected gDay_Stype() { Init(); }
+		public gDay_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "day";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2654,38 +2608,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class gMonthDay_DEtype
+	public partial class gMonth_DEtype
+	{
+		protected gMonth_DEtype() { Init(); }
+		public gMonth_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected gMonthDay_DEtype() { Init(); }
-			public gMonthDay_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "mday";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
+			Init();
+			//ElementPrefix = "mon";
+			//SetNames(elementName, elementPrefix);
 		}
-
+		private void Init()
+		{
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
 	}
 
-		public partial class gMonthDay_Stype : IVal
+	public partial class gMonth_Stype : IVal
+	{
+		protected gMonth_Stype() { Init(); }
+		public gMonth_Stype(BaseType parentNode) : base(parentNode)
 		{
-			protected gMonthDay_Stype() { Init(); }
-			public gMonthDay_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "mday";
+			Init();
+
+		}
+		private void Init()
+		{
+			this.quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "mon";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2699,37 +2652,38 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class gYear_DEtype
+	public partial class gMonthDay_DEtype
+	{
+		protected gMonthDay_DEtype() { Init(); }
+		public gMonthDay_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected gYear_DEtype() { Init(); }
-			public gYear_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "y";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "mday";
+			//SetNames(elementName, elementPrefix);
+		}
+		private void Init()
+		{
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
 		}
 
-		public partial class gYear_Stype : IVal
+	}
+
+	public partial class gMonthDay_Stype : IVal
+	{
+		protected gMonthDay_Stype() { Init(); }
+		public gMonthDay_Stype(BaseType parentNode) : base(parentNode)
 		{
-			protected gYear_Stype() { Init(); }
-			public gYear_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "y";
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "mday";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2743,36 +2697,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class gYearMonth_DEtype
+	public partial class gYear_DEtype
+	{
+		protected gYear_DEtype() { Init(); }
+		public gYear_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected gYearMonth_DEtype() { Init(); }
-			public gYearMonth_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "ym";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "y";
+			//SetNames(elementName, elementPrefix);
 		}
-		public partial class gYearMonth_Stype : IVal
+		private void Init()
 		{
-			protected gYearMonth_Stype() { Init(); }
-			public gYearMonth_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "ym";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class gYear_Stype : IVal
+	{
+		protected gYear_Stype() { Init(); }
+		public gYear_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "y";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2786,34 +2741,77 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class hexBinary_DEtype
+	public partial class gYearMonth_DEtype
+	{
+		protected gYearMonth_DEtype() { Init(); }
+		public gYearMonth_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected hexBinary_DEtype() { Init(); }
-			public hexBinary_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "hexb";
-				//SetNames(elementName, elementPrefix);
-			}
-			private static void Init()
-			{
+			Init();
+			//ElementPrefix = "ym";
+			//SetNames(elementName, elementPrefix);
+		}
+		private void Init()
+		{
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+	public partial class gYearMonth_Stype : IVal
+	{
+		protected gYearMonth_Stype() { Init(); }
+		public gYearMonth_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
 
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "ym";
+		}
+		[XmlIgnore]
+		[JsonIgnore]
+		public string ValXmlString
+		{
+			get => throw new NotImplementedException();
+			set
+			{
+				throw new NotImplementedException();
 			}
 		}
+	}
 
-		public partial class hexBinary_Stype : IVal
+	public partial class hexBinary_DEtype
+	{
+		protected hexBinary_DEtype() { Init(); }
+		public hexBinary_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			string _hexBinaryStringVal;
+			Init();
+			//ElementPrefix = "hexb";
+			//SetNames(elementName, elementPrefix);
+		}
+		private void Init()
+		{
+			ElementPrefix = "hxBinDE";
+		}
+	}
 
-			protected hexBinary_Stype() { Init(); }
-			public hexBinary_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "hexb";
+	public partial class hexBinary_Stype : IVal
+	{
+		string _hexBinaryStringVal;
+
+		protected hexBinary_Stype() { Init(); }
+		public hexBinary_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "hexb";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2827,38 +2825,39 @@ namespace SDC.Schema
 		}
 
 		[System.Xml.Serialization.XmlAttributeAttribute(DataType = "string")] //changed to string
-			public string valHex
-			{
-				get { return _hexBinaryStringVal; }
-				set { _hexBinaryStringVal = value; }
-			}
-		}
-
-		public partial class HTML_DEtype
+		public string valHex
 		{
-			protected HTML_DEtype() { Init(); }
-			public HTML_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "html";
-				//SetNames(elementName, elementPrefix);
-				//this.Any = new List<System.Xml.XmlElement>();
-			}
-			private static void Init()
-			{
-			}
+			get { return _hexBinaryStringVal; }
+			set { _hexBinaryStringVal = value; }
 		}
+	}
 
-		public partial class HTML_Stype : IVal
+	public partial class HTML_DEtype
+	{
+		protected HTML_DEtype() { Init(); }
+		public HTML_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected HTML_Stype()
-			{
-				Init();
-			}
-			public HTML_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
+			Init();
+			//ElementPrefix = "html";
+			//SetNames(elementName, elementPrefix);
+			//this.Any = new List<System.Xml.XmlElement>();
+		}
+		private void Init()
+		{
+			ElementPrefix = "htmlDE";
+		}
+	}
+
+	public partial class HTML_Stype : IVal
+	{
+		protected HTML_Stype()
+		{
+			Init();
+		}
+		public HTML_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2871,45 +2870,45 @@ namespace SDC.Schema
 			}
 		}
 		private void Init()
-			{
-				this.Any = new List<System.Xml.XmlElement>();  // #NeedsTest
-				this.AnyAttr = new List<System.Xml.XmlAttribute>();
-				ElementPrefix = "html";
-			}
-		}
-
-
-		public partial class int_DEtype
 		{
-			protected int_DEtype() { Init(); }
-			public int_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "int";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			this.Any = new List<System.Xml.XmlElement>();  // #NeedsTest
+			this.AnyAttr = new List<System.Xml.XmlAttribute>();
+			ElementPrefix = "html";
 		}
+	}
 
-		public partial class int_Stype : IVal
+
+	public partial class int_DEtype
+	{
+		protected int_DEtype() { Init(); }
+		public int_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected int_Stype() { Init(); }
-			public int_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "int";
+			Init();
+			//ElementPrefix = "int";
+			//SetNames(elementName, elementPrefix);
+		}
+		private void Init()
+		{
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class int_Stype : IVal
+	{
+		protected int_Stype() { Init(); }
+		public int_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "int";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2923,36 +2922,36 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class integer_DEtype
+	public partial class integer_DEtype
+	{
+		protected integer_DEtype() { Init(); }
+		public integer_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected integer_DEtype() { Init(); }
-			public integer_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;            //ElementPrefix = "intr";
-			}
+			Init();
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class integer_Stype : IVal
+		private void Init()
 		{
-			protected integer_Stype() { Init(); }
-			public integer_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "intr";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;            //ElementPrefix = "intr";
+		}
+	}
+
+	public partial class integer_Stype : IVal
+	{
+		protected integer_Stype() { Init(); }
+		public integer_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "intr";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -2999,37 +2998,37 @@ namespace SDC.Schema
 
 	}
 
-		public partial class long_DEtype
+	public partial class long_DEtype
+	{
+		protected long_DEtype() { Init(); }
+		public long_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected long_DEtype() { Init(); }
-			public long_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "lng";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "lng";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class long_Stype : IVal
+		private void Init()
 		{
-			protected long_Stype() { Init(); }
-			public long_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "lng";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class long_Stype : IVal
+	{
+		protected long_Stype() { Init(); }
+		public long_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "lng";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3043,37 +3042,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class negativeInteger_DEtype
+	public partial class negativeInteger_DEtype
+	{
+		protected negativeInteger_DEtype() { Init(); }
+		public negativeInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected negativeInteger_DEtype() { Init(); }
-			public negativeInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "nint";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
+			Init();
+			//ElementPrefix = "nint";
+			//SetNames(elementName, elementPrefix);
+		}
+		private void Init()
+		{
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
 		}
 	}
 
-		public partial class negativeInteger_Stype : IVal
+	public partial class negativeInteger_Stype : IVal
+	{
+		protected negativeInteger_Stype() { Init(); }
+		public negativeInteger_Stype(BaseType parentNode) : base(parentNode)
 		{
-			protected negativeInteger_Stype() { Init(); }
-			public negativeInteger_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "nint";
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "nint";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3087,37 +3086,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class nonNegativeInteger_DEtype
+	public partial class nonNegativeInteger_DEtype
+	{
+		protected nonNegativeInteger_DEtype() { Init(); }
+		public nonNegativeInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected nonNegativeInteger_DEtype() { Init(); }
-			public nonNegativeInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "nnint";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "nnint";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class nonNegativeInteger_Stype : IVal
+		private void Init()
 		{
-			protected nonNegativeInteger_Stype() { Init(); }
-			public nonNegativeInteger_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "nnint";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class nonNegativeInteger_Stype : IVal
+	{
+		protected nonNegativeInteger_Stype() { Init(); }
+		public nonNegativeInteger_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "nnint";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3131,37 +3130,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class nonPositiveInteger_DEtype
+	public partial class nonPositiveInteger_DEtype
+	{
+		protected nonPositiveInteger_DEtype() { Init(); }
+		public nonPositiveInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected nonPositiveInteger_DEtype() { Init(); }
-			public nonPositiveInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "npint";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "npint";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class nonPositiveInteger_Stype : IVal
+		private void Init()
 		{
-			protected nonPositiveInteger_Stype() { Init(); }
-			public nonPositiveInteger_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "npint";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class nonPositiveInteger_Stype : IVal
+	{
+		protected nonPositiveInteger_Stype() { Init(); }
+		public nonPositiveInteger_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "npint";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3175,37 +3174,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class positiveInteger_DEtype
+	public partial class positiveInteger_DEtype
+	{
+		protected positiveInteger_DEtype() { Init(); }
+		public positiveInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected positiveInteger_DEtype() { Init(); }
-			public positiveInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "pint";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "pint";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class positiveInteger_Stype : IVal
+		private void Init()
 		{
-			protected positiveInteger_Stype() { Init(); }
-			public positiveInteger_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "pint";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class positiveInteger_Stype : IVal
+	{
+		protected positiveInteger_Stype() { Init(); }
+		public positiveInteger_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "pint";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3219,22 +3218,22 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class short_DEtype
+	public partial class short_DEtype
+	{
+		protected short_DEtype() { Init(); }
+		public short_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected short_DEtype() { Init(); }
-			public short_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "sh";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
+			Init();
+			//ElementPrefix = "sh";
+			//SetNames(elementName, elementPrefix);
+		}
+		private void Init()
+		{
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3248,18 +3247,18 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class short_Stype : IVal
+	public partial class short_Stype : IVal
+	{
+		protected short_Stype() { Init(); }
+		public short_Stype(BaseType parentNode) : base(parentNode)
 		{
-			protected short_Stype() { Init(); }
-			public short_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "sh";
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "sh";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3273,32 +3272,32 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class string_DEtype
+	public partial class string_DEtype
+	{
+		protected string_DEtype() { Init(); }
+		public string_DEtype(BaseType parentNode) : base(parentNode)
 		{
-			protected string_DEtype() { Init(); }
-			public string_DEtype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "str";
-				//SetNames(elementName, elementPrefix);
-			} //{if (elementName.Length > 0) ElementName = elementName; }
-			private static void Init()
-			{
-
-			}
+			Init();
+			//ElementPrefix = "str";
+			//SetNames(elementName, elementPrefix);
+		} //{if (elementName.Length > 0) ElementName = elementName; }
+		private void Init()
+		{
+			ElementPrefix = "strDE";
 		}
+	}
 
-		public partial class string_Stype
+	public partial class string_Stype
+	{
+		protected string_Stype() { Init(); }
+		public string_Stype(BaseType parentNode) : base(parentNode)
 		{
-			protected string_Stype() { Init(); }
-			public string_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "str";
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "str";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3312,37 +3311,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class time_DEtype
+	public partial class time_DEtype
+	{
+		protected time_DEtype() { Init(); }
+		public time_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected time_DEtype() { Init(); }
-			public time_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "tim";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "tim";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class time_Stype : IVal
+		private void Init()
 		{
-			protected time_Stype() { Init(); }
-			public time_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "tim";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class time_Stype : IVal
+	{
+		protected time_Stype() { Init(); }
+		public time_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "tim";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3356,37 +3355,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class unsignedByte_DEtype
+	public partial class unsignedByte_DEtype
+	{
+		protected unsignedByte_DEtype() { Init(); }
+		public unsignedByte_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected unsignedByte_DEtype() { Init(); }
-			public unsignedByte_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "ubyte";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "ubyte";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class unsignedByte_Stype : IVal
+		private void Init()
 		{
-			protected unsignedByte_Stype() { Init(); }
-			public unsignedByte_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "ubyte";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class unsignedByte_Stype : IVal
+	{
+		protected unsignedByte_Stype() { Init(); }
+		public unsignedByte_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "ubyte";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3400,38 +3399,38 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class unsignedInt_DEtype
+	public partial class unsignedInt_DEtype
+	{
+		protected unsignedInt_DEtype() { Init(); }
+		public unsignedInt_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected unsignedInt_DEtype() { Init(); }
-			public unsignedInt_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "unint";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
-
+			Init();
+			//ElementPrefix = "unint";
+			//SetNames(elementName, elementPrefix);
+		}
+		private void Init()
+		{
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
 		}
 
-		public partial class unsignedInt_Stype : IVal
+	}
+
+	public partial class unsignedInt_Stype : IVal
+	{
+		protected unsignedInt_Stype() { Init(); }
+		public unsignedInt_Stype(BaseType parentNode) : base(parentNode)
 		{
-			protected unsignedInt_Stype() { Init(); }
-			public unsignedInt_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "uint";
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "uint";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3445,37 +3444,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class unsignedLong_DEtype
+	public partial class unsignedLong_DEtype
+	{
+		protected unsignedLong_DEtype() { Init(); }
+		public unsignedLong_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected unsignedLong_DEtype() { Init(); }
-			public unsignedLong_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "ulng";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "ulng";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class unsignedLong_Stype : IVal
+		private void Init()
 		{
-			protected unsignedLong_Stype() { Init(); }
-			public unsignedLong_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "ulng";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class unsignedLong_Stype : IVal
+	{
+		protected unsignedLong_Stype() { Init(); }
+		public unsignedLong_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "ulng";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3489,37 +3488,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class unsignedShort_DEtype
+	public partial class unsignedShort_DEtype
+	{
+		protected unsignedShort_DEtype() { Init(); }
+		public unsignedShort_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected unsignedShort_DEtype() { Init(); }
-			public unsignedShort_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "ush";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "ush";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class unsignedShort_Stype : IVal
+		private void Init()
 		{
-			protected unsignedShort_Stype() { Init(); }
-			public unsignedShort_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "ush";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class unsignedShort_Stype : IVal
+	{
+		protected unsignedShort_Stype() { Init(); }
+		public unsignedShort_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "ush";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3533,38 +3532,35 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class XML_DEtype
+	public partial class XML_DEtype
+	{
+		protected XML_DEtype() { Init(); }//this.Any = new List<XmlElement>(); }
+		public XML_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected XML_DEtype() { Init(); }//this.Any = new List<XmlElement>(); }
-			public XML_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "xml";
-				//SetNames(elementName, elementPrefix);
-				//this.Any = new List<XmlElement>();
-			}
-			private static void Init()
-			{
-
-			}
+			Init();
+			//this.Any = new List<XmlElement>();
 		}
-
-		public partial class XML_Stype : IVal
+		private void Init()
 		{
-			protected XML_Stype()
-			{
-				Init();
-			}
-			public XML_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.Any = new List<System.Xml.XmlElement>();  // #NeedsTest
-															   //this.AnyAttr = new List<System.Xml.XmlAttribute>(); // Add AnyAttr to Schema? #NeedsFix ?
-				ElementPrefix = "xml";
+			ElementPrefix = "xmlDE";
+		}
+	}
+
+	public partial class XML_Stype : IVal
+	{
+		protected XML_Stype()
+		{
+			Init();
+		}
+		public XML_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			this.Any = new List<System.Xml.XmlElement>();  // #NeedsTest
+														   //this.AnyAttr = new List<System.Xml.XmlAttribute>(); // Add AnyAttr to Schema? #NeedsFix ?
+			ElementPrefix = "xmlS";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3578,37 +3574,37 @@ namespace SDC.Schema
 		}
 	}
 
-		public partial class yearMonthDuration_DEtype
+	public partial class yearMonthDuration_DEtype
+	{
+		protected yearMonthDuration_DEtype() { Init(); }
+		public yearMonthDuration_DEtype(DataTypes_DEType parentNode) : base(parentNode)
 		{
-			protected yearMonthDuration_DEtype() { Init(); }
-			public yearMonthDuration_DEtype(DataTypes_DEType parentNode) : base(parentNode)
-			{
-				Init();
-				//ElementPrefix = "ymd";
-				//SetNames(elementName, elementPrefix);
-			}
-			private void Init()
-			{
-				this._allowGT = false;
-				this._allowGTE = false;
-				this._allowLT = false;
-				this._allowLTE = false;
-				this._allowAPPROX = false;
-			}
+			Init();
+			//ElementPrefix = "ymd";
+			//SetNames(elementName, elementPrefix);
 		}
-
-		public partial class yearMonthDuration_Stype : IVal
+		private void Init()
 		{
-			protected yearMonthDuration_Stype() { Init(); }
-			public yearMonthDuration_Stype(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._quantEnum = dtQuantEnum.EQ;
-				ElementPrefix = "ymd";
+			this._allowGT = false;
+			this._allowGTE = false;
+			this._allowLT = false;
+			this._allowLTE = false;
+			this._allowAPPROX = false;
+		}
+	}
+
+	public partial class yearMonthDuration_Stype : IVal
+	{
+		protected yearMonthDuration_Stype() { Init(); }
+		public yearMonthDuration_Stype(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._quantEnum = dtQuantEnum.EQ;
+			ElementPrefix = "ymd";
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3621,1215 +3617,1237 @@ namespace SDC.Schema
 			}
 		}
 	}
-		#endregion
+	#endregion
 
-		#region Rules
+	#region Rules
 
-		public partial class ItemNameType
+	public partial class ItemNameType
+	{
+		protected ItemNameType() { Init(); }
+		public ItemNameType(BaseType parentNode) : base(parentNode)
 		{
-			protected ItemNameType() { Init(); }
-			public ItemNameType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "itnm";
-			}
-		}
-		public partial class ItemNameAttributeType
-		{
-			protected ItemNameAttributeType() { Init(); }
+			Init();
 
-			public ItemNameAttributeType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._attributeName = "val";
-			}
 		}
-		public partial class NameType
+		private void Init()
 		{
-			protected NameType() { Init(); }
-			public NameType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "nm";
-			}
+			ElementPrefix = "itnm";
 		}
-		public partial class TargetItemIDType
-		{
-			protected TargetItemIDType() { Init(); }
-			public TargetItemIDType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "tiid";
-			}
-		}
-		public partial class TargetItemNameType
-		{
-			protected TargetItemNameType() { Init(); }
-			public TargetItemNameType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "tinm";
-			}
-		}
-		public partial class TargetItemXPathType
-		{
-			protected TargetItemXPathType() { Init(); }
-			public TargetItemXPathType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "tixp";
-			}
-			//{if (elementName.Length > 0) ElementName = elementName; }
-		}
-		public partial class ListItemParameterType
-		{
-			protected ListItemParameterType() { Init(); }
-			public ListItemParameterType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				this._listItemAttribute = "associatedValue";
-			}
-			private void Init()
-			{
-				this._dataType = "string";
-			}
-		}
-		public partial class ParameterItemType
-		{
-			protected ParameterItemType() { Init(); }
-			public ParameterItemType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._dataType = "string";
-				this._sourceItemAttribute = "val";
-			}
-		}
-		public partial class PredAlternativesType
-		{
-			public PredAlternativesType() { Init(); }
-			public PredAlternativesType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._not = false;
-				this._minAnswered = 1;
-				this._maxAnswered = 0;
-			}
-		}
-		public partial class PredEvalAttribValuesType
-		{
-			protected PredEvalAttribValuesType() { Init(); }
-			public PredEvalAttribValuesType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._not = false;
-				this._boolOp = PredEvalAttribValuesTypeBoolOp.AND;
-			}
-		}
-		public partial class PredGuardTypeSelectionSets
-		{
-			protected PredGuardTypeSelectionSets() { Init(); }
-			public PredGuardTypeSelectionSets(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._not = false;
-			}
-		}
-		public partial class PredSingleSelectionSetsType
-		{
-			protected PredSingleSelectionSetsType() { Init(); }
-			public PredSingleSelectionSetsType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._maxSelections = ((short)(1));
-			}
-		}
-		public partial class RuleAutoActivateType
-		{
-			protected RuleAutoActivateType() { Init(); }
-			public RuleAutoActivateType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._onlyIf = false;
-				this._setVisibility = toggleType.@true;
-				this._setEnabled = toggleType.@true;
-				this._setExpanded = toggleType.@true;
-				//this._x_removeResponsesWhenDeactivated = false;
-			}
-		}
-		public partial class RuleAutoSelectType
-		{
-			protected RuleAutoSelectType() { Init(); }
-			public RuleAutoSelectType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._onlyIf = false;
-			}
-		}
-		public partial class RuleListItemMatchTargetsType
-		{
-			protected RuleListItemMatchTargetsType() { Init(); }
-			public RuleListItemMatchTargetsType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._attributeToMatch = RuleListItemMatchTargetsTypeAttributeToMatch.associatedValue;
-			}
-		}
-		//public partial class SelectionSetsActionType
-		//{
-		//    protected SelectionSetsActionType() { Init(); }
-		//    public SelectionSetsActionType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
-		//    {
-		//        Init();
-		//    }
-		//    private void Init()
-		//    {
-		//        this._not = false;
-		//    }
-		//}
-		public partial class ValidationTypeSelectionSets
-		{
-			protected ValidationTypeSelectionSets() { Init(); }
-			public ValidationTypeSelectionSets(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._not = false;
-			}
-		}
-		public partial class ValidationTypeSelectionTest
-		{
-			protected ValidationTypeSelectionTest() { Init(); }
-			public ValidationTypeSelectionTest(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._not = false;
-			}
-		}
-		public partial class PredSelectionTestType
-		{
-			protected PredSelectionTestType() { Init(); }
-			public PredSelectionTestType(BaseType parentNode) : base(parentNode)
-			{ Init(); }
-			private static void Init()
-			{
-
-			}
-		}
-		public partial class CallFuncType
-		{
-			protected CallFuncType() { Init(); }
-			public CallFuncType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._dataType = "string";
-			}
-		}
-		partial class CallFuncBaseType
-		{
-			protected CallFuncBaseType() { Init(); }
-			public CallFuncBaseType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._returnList = false;
-				this._listDelimiter = "|";
-				this._allowNull = true;
-			}
-		}
-		partial class CallFuncBoolType
-		{
-			protected CallFuncBoolType() { Init(); }
-			public CallFuncBoolType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._not = false;
-			}
-		}
-
-
-		#endregion
-		#region PredActions
-		//AttributeEval -       AttributeEvalActionType (actions)
-		//ScriptBoolFunc -      ScriptBoolFuncActionType (actions)
-		//CallBoolFunction -    CallFuncBoolActionType (actions)
-		//MultiSelections -     MultiSelectionsActionType
-		//SelectionSets -       SelectionSetsActionType (rule)
-		//SelectionTest -       SelectionTestActionType
-		//Group -               PredActionType (events)
-		//SelectMatchingListItems - RuleSelectMatchingListItemsType (actions)
-		//public partial class MultiSelectionsActionType
-		//{
-		//    protected MultiSelectionsActionType()
-		//    { Init(); }
-		//    public MultiSelectionsActionType(BaseType parentNode) : base(parentNode)
-		//    { Init(); }
-		//    private void Init()
-		//    {
-
-		//    }
-		//}
-		//public partial class SelectionTestActionType
-		//{
-		//    protected SelectionTestActionType()
-		//    { Init(); }
-		//    public SelectionTestActionType(BaseType parentNode) : base(parentNode)
-		//    { Init(); }
-		//    private void Init()
-		//    {
-
-		//    }
-		//}
-
-		public partial class PredMultiSelectionSetBoolType
-		{
-			protected PredMultiSelectionSetBoolType() { Init(); }
-			public PredMultiSelectionSetBoolType(BaseType parentNode) : base(parentNode)
-			{ Init(); }
-			private static void Init()
-			{
-
-			}
-		}
-
-
-		#endregion
-		#region  Actions
-
-		public partial class ActionsType : IActions
-		{
-			protected ActionsType() { Init(); }
-			public ActionsType(ExtensionBaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "Actions";
-				ElementPrefix = "act";
-			}
-		}
-		public partial class ActActionType
-		{
-			protected ActActionType() { Init(); }
-			public ActActionType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "Action";
-			}
-			[XmlIgnore]
-			public List<ExtensionBaseType> ActAction_Items
-			{
-				get { return Items; }
-				set
-				{
-					if (Items == value)
-						return;
-					Items = value;
-					OnPropertyChanged(nameof(ActAction_Items), this);
-				}
-			}
-		}
-		public partial class RuleSelectMatchingListItemsType
-		{
-			protected RuleSelectMatchingListItemsType() { Init(); }
-			public RuleSelectMatchingListItemsType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "SelectMatchingListItems";
-			}
-		}
-		public partial class ActAddCodeType
-		{
-			protected ActAddCodeType() { Init(); }
-			public ActAddCodeType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "AddCode";
-			}
-		}
-		public partial class ActInjectType : InjectFormType
-		{
-			protected ActInjectType() { Init(); }
-			public ActInjectType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "Inject";
-			}
-		}
-		public partial class ActSaveResponsesType
-		{
-			protected ActSaveResponsesType() { Init(); }
-			public ActSaveResponsesType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "Save";
-			}
-		}
-		public partial class ActSendReportType
-		{
-			protected ActSendReportType() { Init(); }
-			public ActSendReportType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "SendReport";
-			}
-
-			internal List<ExtensionBaseType> Email_Phone_WebSvc_List
-			{
-				get { return this.Items; }
-				set { this.Items = value; }
-			}
-		}
-		public partial class ActSendMessageType
-		{
-			protected ActSendMessageType() { Init(); }
-			public ActSendMessageType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			} //"SendMessage111" in Schema
-			private void Init()
-			{
-				ElementName = "SendMessage";
-			}
-
-			/// <summary>
-			/// List&lt;BaseType> accepts: EmailAddressType, PhoneNumberType, WebServiceType
-			/// </summary>
-			internal List<ExtensionBaseType> Email_Phone_WebSvc_List
-			{
-				get { return this.Items; }
-				set { this.Items = value; }
-			}
-		}
-		public partial class ActSetAttributeType
-		{
-			protected ActSetAttributeType() { Init(); }
-			public ActSetAttributeType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "SetAttributeValue";
-				ElementPrefix = "setAtVal";
-			}
 	}
-		public partial class ActSetAttrValueScriptType
+	public partial class ItemNameAttributeType
+	{
+		protected ItemNameAttributeType() { Init(); }
+
+		public ItemNameAttributeType(BaseType parentNode) : base(parentNode)
 		{
-			protected ActSetAttrValueScriptType() { Init(); }
-			public ActSetAttrValueScriptType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "SetAttributeValueScript";
-				ElementPrefix = "setAtValScr";
-			}
+			Init();
 		}
-		public partial class ActSetBoolAttributeValueCodeType
+		private void Init()
 		{
-			protected ActSetBoolAttributeValueCodeType() { Init(); }
-			public ActSetBoolAttributeValueCodeType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "SetBoolAttributeValueCode";
-				this._attributeName = "val";
-			}
+			this._attributeName = "val";
 		}
-		public partial class ScriptCodeBoolType
+	}
+	public partial class NameType
+	{
+		protected NameType() { Init(); }
+		public NameType(BaseType parentNode) : base(parentNode)
 		{
-			protected ScriptCodeBoolType() { Init(); }
-			public ScriptCodeBoolType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "";
-				this._not = false;
-			}
+			Init();
+
 		}
-		public partial class ActShowFormType
+		private void Init()
 		{
-			protected ActShowFormType() { Init(); }
-			public ActShowFormType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "ShowForm";
-				ElementPrefix = "showFrm";
-			}
+			ElementPrefix = "nm";
 		}
-		public partial class ActShowMessageType
+	}
+	public partial class TargetItemIDType
+	{
+		protected TargetItemIDType() { Init(); }
+		public TargetItemIDType(BaseType parentNode) : base(parentNode)
 		{
-			protected ActShowMessageType() { Init(); }
-			public ActShowMessageType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "ShowMessage";
-				ElementPrefix = "showMsg";
-			}
+			Init();
+
 		}
-		public partial class ActShowReportType
+		private void Init()
 		{
-			protected ActShowReportType() { Init(); }
-
-			public ActShowReportType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "ShowReport";
-				ElementPrefix = "showRpt";
+			ElementPrefix = "tiid";
 		}
-		}
-		public partial class ActPreviewReportType
+	}
+	public partial class TargetItemNameType
+	{
+		protected TargetItemNameType() { Init(); }
+		public TargetItemNameType(BaseType parentNode) : base(parentNode)
 		{
-			protected ActPreviewReportType() { Init(); }
-			public ActPreviewReportType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "PreviewReport";
-				ElementPrefix = "prevRpt";
-			}
+			Init();
+
 		}
-		public partial class ActValidateFormType
+		private void Init()
 		{
-			protected ActValidateFormType() { Init(); }
-			public ActValidateFormType(ActionsType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				ElementName = "ValidateForm";
-				ElementPrefix = "valFrm";
-				this._validateDataTypes = false;
-				this._validateRules = false;
-				this._validateCompleteness = false;
-			}
-			public ActValidateFormType Fill_ActValidateFormType()
-			{ return null; }
+			ElementPrefix = "tinm";
 		}
-
-		//public partial class ScriptBoolFuncActionType
-		//{
-		//    protected ScriptBoolFuncActionType() { Init(); }
-		//    public ScriptBoolFuncActionType(ActionsType parentNode) : base(parentNode)
-		//    {
-		//        Init();
-		//    }
-		//    private void Init()
-		//    {
-		//        ElementName = "ScriptBoolFunc";
-		//    }
-		//}
-
-		public partial class ScriptCodeAnyType
+	}
+	public partial class TargetItemXPathType
+	{
+		protected TargetItemXPathType() { Init(); }
+		public TargetItemXPathType(BaseType parentNode) : base(parentNode)
 		{
-			protected ScriptCodeAnyType()
-			{ Init(); }
-			public ScriptCodeAnyType(ActionsType parentNode) : base(parentNode)
-			{ Init(); }
-			private void Init()
-			{
-				ElementName = "RunCode";
-				this._dataType = "string";
-			}
+			Init();
+
 		}
-		public partial class ScriptCodeBaseType
+		private void Init()
 		{
-			protected ScriptCodeBaseType() { Init(); }
-			public ScriptCodeBaseType(ActionsType parentNode) : base(parentNode)
-			{ Init(); }
-			private void Init()
-			{
-				ElementName = "";
-				ElementPrefix = "";
-				this._returnList = false;
-				this._listDelimiter = "|";
-				this._allowNull = true;
-			}
+			ElementPrefix = "tixp";
 		}
-		//public partial class CallFuncActionType
-		//{
-		//    protected CallFuncActionType() { Init(); }
-		//    public CallFuncActionType(ActionsType parentNode) : base(parentNode) 
-		//    { Init(); }
-		//    private void Init()
-		//    {
-		//        ElementName = "CallFunction";
-		//    }
-		//}
-
-		//public partial class CallFuncBoolActionType
-		//{
-		//    protected CallFuncBoolActionType() { Init(); }
-		//    public CallFuncBoolActionType(ActionsType parentNode) : base(parentNode)
-		//    { Init(); }
-		//    private void Init()
-		//    {
-		//        ElementName = "CallBoolFunction";
-		//    }
-		//}
-
-		#endregion
-		#region Events
-		public partial class OnEventType : IDisplayedTypeMember
+		//{if (elementName.Length > 0) ElementName = elementName; }
+	}
+	public partial class ListItemParameterType
+	{
+		protected ListItemParameterType() { Init(); }
+		public ListItemParameterType(BaseType parentNode) : base(parentNode)
 		{
-			protected OnEventType() { Init(); }
-			public OnEventType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "onev";
-			}
+			Init();
+			this._listItemAttribute = "associatedValue";
 		}
-
-		public partial class RulesType
+		private void Init()
 		{
-			protected RulesType() { Init(); }
-			public RulesType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "rul";
-			}
+			this._dataType = "string";
+			ElementPrefix = "liParam";
 		}
-
-		public partial class EventType : IDisplayedTypeMember
+	}
+	public partial class ParameterItemType
+	{
+		protected ParameterItemType() { Init(); }
+		public ParameterItemType(BaseType parentNode) : base(parentNode)
 		{
-			protected EventType() { Init(); }
-			public EventType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "evnt";
-			}
+			Init();
 		}
-
-		public partial class PredGuardType : IDisplayedTypeMember
+		private void Init()
 		{
-
-			protected PredGuardType() { Init(); }
-			public PredGuardType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-			}
-			private void Init()
-			{
-				this._not = false;
-				this._boolOp = PredEvalAttribValuesTypeBoolOp.AND;
-			}
+			this._dataType = "string";
+			this._sourceItemAttribute = "val";
+			ElementPrefix = "paramItem";
 		}
-
-		public partial class PredActionType
+	}
+	public partial class PredAlternativesType
+	{
+		public PredAlternativesType() { Init(); }
+		public PredAlternativesType(BaseType parentNode) : base(parentNode)
 		{
-			protected PredActionType() { Init(); }
-			public PredActionType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				//this._not = false;
-				//this._boolOp = PredEvalAttribValuesTypeBoolOp.AND;
-				ElementPrefix = "pa";
-			}
+			Init();
 		}
-
-		public partial class FuncBoolBaseType
+		private void Init()
 		{
-			protected FuncBoolBaseType() { Init(); }
-			public FuncBoolBaseType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this._allowNull = true;
-				ElementPrefix = "fbb";
-			}
+			this._not = false;
+			this._minAnswered = 1;
+			this._maxAnswered = 0;
+			ElementPrefix = "predAlt";
 		}
-
-
-		#endregion
-
-		#region Contacts
-
-		public partial class ContactType : IDisplayedTypeMember, IAddPerson, IAddOrganization
+	}
+	public partial class PredEvalAttribValuesType
+	{
+		protected PredEvalAttribValuesType() { Init(); }
+		public PredEvalAttribValuesType(BaseType parentNode) : base(parentNode)
 		{
-			protected ContactType() { Init(); }
-			public ContactType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "cntct";
-			}
+			Init();
 		}
-
-		public partial class OrganizationType
+		private void Init()
 		{
-			protected OrganizationType() { Init(); }
-			public OrganizationType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "org";
-			}
+			this._not = false;
+			this._boolOp = PredEvalAttribValuesTypeBoolOp.AND;
+			ElementPrefix = "predEvAttVal";
 		}
-
-		public partial class PersonType
+	}
+	public partial class PredGuardTypeSelectionSets
+	{
+		protected PredGuardTypeSelectionSets() { Init(); }
+		public PredGuardTypeSelectionSets(BaseType parentNode) : base(parentNode)
 		{
-			protected PersonType() { Init(); }
-			public PersonType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "pers";
-			}
+			Init();
 		}
-
-		public partial class AddressType
+		private void Init()
 		{
-			protected AddressType() { Init(); }
-			public AddressType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "adrs";
-			}
+			this._not = false;
 		}
-
-		public partial class AreaCodeType
+	}
+	public partial class PredSingleSelectionSetsType
+	{
+		protected PredSingleSelectionSetsType() { Init(); }
+		public PredSingleSelectionSetsType(BaseType parentNode) : base(parentNode)
 		{
-			protected AreaCodeType() { Init(); }
-			public AreaCodeType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "arcd";
-			}
+			Init();
 		}
-		#endregion
-
-		#region Resources
-		public partial class RichTextType : IHtmlHelpers
+		private void Init()
 		{
-			protected RichTextType() { Init(); }
-			public RichTextType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "rtt";
-			}
-			IHtmlHelpers ihh { get => this; }
-			public HTML_Stype AddHTML()
-			{
-				var h = ihh.AddHTML(this);
-				return h;
-			}
+			this._maxSelections = ((short)(1));
+			ElementPrefix = "predSngSelSet";
 		}
-
-
-		#endregion
-
-		#region Classes that need ctor parameters
-
-		#region RequestForm (Package)
-		public partial class ComplianceRuleType
+	}
+	public partial class RuleAutoActivateType
+	{
+		protected RuleAutoActivateType() { Init(); }
+		public RuleAutoActivateType(BaseType parentNode) : base(parentNode)
 		{
-			protected ComplianceRuleType() { Init(); }
-			public ComplianceRuleType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "cr";
-			}
+			Init();
 		}
-
-		public partial class SubmissionRuleType
+		private void Init()
 		{
-			protected SubmissionRuleType() { Init(); }
-			public SubmissionRuleType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "sr";
-			}
-
+			this._onlyIf = false;
+			this._setVisibility = toggleType.@true;
+			this._setEnabled = toggleType.@true;
+			this._setExpanded = toggleType.@true;
+			ElementPrefix = "raa";
+			//this._x_removeResponsesWhenDeactivated = false;
 		}
-
-
-		public partial class HashType
+	}
+	public partial class RuleAutoSelectType
+	{
+		protected RuleAutoSelectType() { Init(); }
+		public RuleAutoSelectType(BaseType parentNode) : base(parentNode)
 		{
-			protected HashType() { Init(); }
-			public HashType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "hsh";
-			}
+			Init();
 		}
-
-
-		public partial class IdentifierType
+		private void Init()
 		{
-			protected IdentifierType() { Init(); }
-			public IdentifierType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "id";
-			}
+			this._onlyIf = false;
+			ElementPrefix = "ras";
 		}
-
-		public partial class LanguageCodeISO6393_Type
+	}
+	public partial class RuleListItemMatchTargetsType
+	{
+		protected RuleListItemMatchTargetsType() { Init(); }
+		public RuleListItemMatchTargetsType(BaseType parentNode) : base(parentNode)
 		{
-			protected LanguageCodeISO6393_Type() { Init(); }
-			public LanguageCodeISO6393_Type(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "lc";
-			}
+			Init();
 		}
-
-		public partial class LanguageType
+		private void Init()
 		{
-			protected LanguageType() { Init(); }
-			public LanguageType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "lng";
-			}
+			this._attributeToMatch = RuleListItemMatchTargetsTypeAttributeToMatch.associatedValue;
+			ElementPrefix = "rlimt";
 		}
-
-		public partial class ProvenanceType
+	}
+	//public partial class SelectionSetsActionType
+	//{
+	//    protected SelectionSetsActionType() { Init(); }
+	//    public SelectionSetsActionType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
+	//    {
+	//        Init();
+	//    }
+	//    private void Init()
+	//    {
+	//        this._not = false;
+	//    }
+	//}
+	public partial class ValidationTypeSelectionSets
+	{
+		protected ValidationTypeSelectionSets() { Init(); }
+		public ValidationTypeSelectionSets(BaseType parentNode) : base(parentNode)
 		{
-			protected ProvenanceType() { Init(); }
-			public ProvenanceType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "prv";
-			}
+			Init();
 		}
-
-		public partial class ReplacedIDsType
+		private void Init()
 		{
-			protected ReplacedIDsType() { Init(); }
-			public ReplacedIDsType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "rid";
-			}
+			this._not = false;
+			ElementPrefix = "vtss";
 		}
-
-		public partial class VersionType
+	}
+	public partial class ValidationTypeSelectionTest
+	{
+		protected ValidationTypeSelectionTest() { Init(); }
+		public ValidationTypeSelectionTest(BaseType parentNode) : base(parentNode)
 		{
-			protected VersionType() { Init(); }
-			public VersionType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "ver";
-			}
+			Init();
 		}
-
-		public partial class VersionTypeChanges
+		private void Init()
 		{
-			protected VersionTypeChanges() { Init(); }
-			public VersionTypeChanges(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				this.ElementPrefix = "vch";
-			}
+			this._not = false;
+			ElementPrefix = "valTypSel";
 		}
-
-
-		#endregion
-
-		#region Contacts classes
-
-		public partial class ContactsType
+	}
+	public partial class PredSelectionTestType
+	{
+		protected PredSelectionTestType() { Init(); }
+		public PredSelectionTestType(BaseType parentNode) : base(parentNode)
+		{ Init(); }
+		private  void Init()
 		{
-			protected ContactsType() { Init(); }
-			public ContactsType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				this.ElementPrefix = "ctc";
-				
-			}
-			private static void Init()
-			{
-
-			}
+			ElementPrefix = "predSelTst";
 		}
-
-		public partial class CountryCodeType
+	}
+	public partial class CallFuncType
+	{
+		protected CallFuncType() { Init(); }
+		public CallFuncType(BaseType parentNode) : base(parentNode)
 		{
-			protected CountryCodeType() { Init(); }
-			public CountryCodeType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "ctc";
-			}
+			Init();
 		}
-
-		public partial class DestinationType
+		private void Init()
 		{
-			protected DestinationType() { Init(); }
-			public DestinationType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-
-			}
-			private void Init()
-			{
-				ElementPrefix = "dst";
-			}
+			this._dataType = "string";
+			ElementPrefix = "callFunc";
 		}
-
-
-		public partial class PhoneNumberType
+	}
+	partial class CallFuncBaseType
+	{
+		protected CallFuncBaseType() { Init(); }
+		public CallFuncBaseType(BaseType parentNode) : base(parentNode)
 		{
-			protected PhoneNumberType() { Init(); }
-			public PhoneNumberType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "phn";
-			}
+			Init();
 		}
-
-		public partial class PhoneType
+		private void Init()
 		{
-			protected PhoneType() { Init(); }
-			public PhoneType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementName = "PhoneType";
-				ElementPrefix = "pht";
-			}
+			this._returnList = false;
+			this._listDelimiter = "|";
+			this._allowNull = true;
+			ElementPrefix = "callFuncBase";
 		}
-
-		public partial class JobType
+	}
+	partial class CallFuncBoolType
+	{
+		protected CallFuncBoolType() { Init(); }
+		public CallFuncBoolType(BaseType parentNode) : base(parentNode)
 		{
-			protected JobType() { Init(); }
-			public JobType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "job";
-			}
+			Init();
 		}
-		#endregion
-
-		#region  Email
-		public partial class EmailAddressType
+		private void Init()
 		{
-			protected EmailAddressType() { Init(); }
-			public EmailAddressType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "emd";
-			}
+			this._not = false;
+			ElementPrefix = "callFuncBool";
 		}
+	}
 
-		public partial class EmailType
+
+	#endregion
+	#region PredActions
+	//AttributeEval -       AttributeEvalActionType (actions)
+	//ScriptBoolFunc -      ScriptBoolFuncActionType (actions)
+	//CallBoolFunction -    CallFuncBoolActionType (actions)
+	//MultiSelections -     MultiSelectionsActionType
+	//SelectionSets -       SelectionSetsActionType (rule)
+	//SelectionTest -       SelectionTestActionType
+	//Group -               PredActionType (events)
+	//SelectMatchingListItems - RuleSelectMatchingListItemsType (actions)
+	//public partial class MultiSelectionsActionType
+	//{
+	//    protected MultiSelectionsActionType()
+	//    { Init(); }
+	//    public MultiSelectionsActionType(BaseType parentNode) : base(parentNode)
+	//    { Init(); }
+	//    private void Init()
+	//    {
+
+	//    }
+	//}
+	//public partial class SelectionTestActionType
+	//{
+	//    protected SelectionTestActionType()
+	//    { Init(); }
+	//    public SelectionTestActionType(BaseType parentNode) : base(parentNode)
+	//    { Init(); }
+	//    private void Init()
+	//    {
+
+	//    }
+	//}
+
+	public partial class PredMultiSelectionSetBoolType
+	{
+		protected PredMultiSelectionSetBoolType() { Init(); }
+		public PredMultiSelectionSetBoolType(BaseType parentNode) : base(parentNode)
+		{ Init(); }
+		private void Init()
 		{
-			protected EmailType() { Init(); }
-			public EmailType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-				//this.Usage = new string_Stype();
-				//this.EmailClass = new string_Stype();
-				//this.EmailAddress = new EmailAddressType();
-			}
-			private void Init()
-			{
-				ElementPrefix = "em";
-			}
+			ElementPrefix = "pmssb";
 		}
-
-		#endregion
-
-		#region Files
+	}
 
 
-		public partial class ApprovalType
+	#endregion
+	#region  Actions
+
+	public partial class ActionsType : IActions
+	{
+		protected ActionsType() { Init(); }
+		public ActionsType(ExtensionBaseType parentNode) : base(parentNode)
 		{
-			protected ApprovalType() { Init(); }
-			public ApprovalType(BaseType parentNode) : base(parentNode)
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "Actions";
+			ElementPrefix = "act";
+		}
+	}
+	public partial class ActActionType
+	{
+		protected ActActionType() { Init(); }
+		public ActActionType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "Action";
+			ElementPrefix = "actAct";
+		}
+		[XmlIgnore]
+		public List<ExtensionBaseType> ActAction_Items
+		{
+			get { return Items; }
+			set
 			{
-				Init();
-				
+				if (Items == value)
+					return;
+				Items = value;
+				OnPropertyChanged(nameof(ActAction_Items), this);
 			}
-			private void Init()
-			{
-				ElementPrefix = "app";
-			}
+		}
+	}
+	public partial class RuleSelectMatchingListItemsType
+	{
+		protected RuleSelectMatchingListItemsType() { Init(); }
+		public RuleSelectMatchingListItemsType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "SelectMatchingListItems";
+			ElementPrefix = "selMli";
+		}
+	}
+	public partial class ActAddCodeType
+	{
+		protected ActAddCodeType() { Init(); }
+		public ActAddCodeType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "AddCode";
+			ElementPrefix = "actCode";
+		}
+	}
+	public partial class ActInjectType : InjectFormType
+	{
+		protected ActInjectType() { Init(); }
+		public ActInjectType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "Inject";
+			ElementPrefix = "actInj";
+		}
+	}
+	public partial class ActSaveResponsesType
+	{
+		protected ActSaveResponsesType() { Init(); }
+		public ActSaveResponsesType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "Save";
+			ElementPrefix = "actSvRsp";
+		}
+	}
+	public partial class ActSendReportType
+	{
+		protected ActSendReportType() { Init(); }
+		public ActSendReportType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "SendReport";
+			ElementPrefix = "actSndRep";
 		}
 
-		public partial class AssociatedFilesType
+		internal List<ExtensionBaseType> Email_Phone_WebSvc_List
 		{
-			protected AssociatedFilesType() { Init(); }
-			public AssociatedFilesType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "asf";
-			}
+			get { return this.Items; }
+			set { this.Items = value; }
+		}
+	}
+	public partial class ActSendMessageType
+	{
+		protected ActSendMessageType() { Init(); }
+		public ActSendMessageType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		} //"SendMessage111" in Schema
+		private void Init()
+		{
+			ElementName = "SendMessage";
+			ElementPrefix = "actSndMsg";
 		}
 
-		public partial class AcceptabilityType
+		/// <summary>
+		/// List&lt;BaseType> accepts: EmailAddressType, PhoneNumberType, WebServiceType
+		/// </summary>
+		internal List<ExtensionBaseType> Email_Phone_WebSvc_List
 		{
-			protected AcceptabilityType() { Init(); }
-			public AcceptabilityType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "acc";
-			}
+			get { return this.Items; }
+			set { this.Items = value; }
 		}
+	}
+	public partial class ActSetAttributeType
+	{
+		protected ActSetAttributeType() { Init(); }
+		public ActSetAttributeType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "SetAttributeValue";
+			ElementPrefix = "actSetAttVal";
+		}
+	}
+	public partial class ActSetAttrValueScriptType
+	{
+		protected ActSetAttrValueScriptType() { Init(); }
+		public ActSetAttrValueScriptType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "SetAttributeValueScript";
+			ElementPrefix = "setAttValScr";
+		}
+	}
+	public partial class ActSetBoolAttributeValueCodeType
+	{
+		protected ActSetBoolAttributeValueCodeType() { Init(); }
+		public ActSetBoolAttributeValueCodeType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "SetBoolAttributeValueCode";
+			this._attributeName = "actSetBlAttValCode";
+		}
+	}
+	public partial class ScriptCodeBoolType
+	{
+		protected ScriptCodeBoolType() { Init(); }
+		public ScriptCodeBoolType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "";
+			ElementPrefix = "scbt";
+			this._not = false;
+		}
+	}
+	public partial class ActShowFormType
+	{
+		protected ActShowFormType() { Init(); }
+		public ActShowFormType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "ShowForm";
+			ElementPrefix = "actShowFrm";
+		}
+	}
+	public partial class ActShowMessageType
+	{
+		protected ActShowMessageType() { Init(); }
+		public ActShowMessageType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "ShowMessage";
+			ElementPrefix = "actShowMsg";
+		}
+	}
+	public partial class ActShowReportType
+	{
+		protected ActShowReportType() { Init(); }
+
+		public ActShowReportType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "ShowReport";
+			ElementPrefix = "actShowRpt";
+		}
+	}
+	public partial class ActPreviewReportType
+	{
+		protected ActPreviewReportType() { Init(); }
+		public ActPreviewReportType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "PreviewReport";
+			ElementPrefix = "actPrevRpt";
+		}
+	}
+	public partial class ActValidateFormType
+	{
+		protected ActValidateFormType() { Init(); }
+		public ActValidateFormType(ActionsType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "ValidateForm";
+			ElementPrefix = "actValFrm";
+			this._validateDataTypes = false;
+			this._validateRules = false;
+			this._validateCompleteness = false;
+		}
+		public ActValidateFormType Fill_ActValidateFormType()
+		{ return null; }
+	}
+
+	//public partial class ScriptBoolFuncActionType
+	//{
+	//    protected ScriptBoolFuncActionType() { Init(); }
+	//    public ScriptBoolFuncActionType(ActionsType parentNode) : base(parentNode)
+	//    {
+	//        Init();
+	//    }
+	//    private void Init()
+	//    {
+	//        ElementName = "ScriptBoolFunc";
+	//    }
+	//}
+
+	public partial class ScriptCodeAnyType
+	{
+		protected ScriptCodeAnyType()
+		{ Init(); }
+		public ScriptCodeAnyType(ActionsType parentNode) : base(parentNode)
+		{ Init(); }
+		private void Init()
+		{
+			ElementName = "RunCode";
+			ElementPrefix = "sca";
+			this._dataType = "string";
+		}
+	}
+	public partial class ScriptCodeBaseType
+	{
+		protected ScriptCodeBaseType() { Init(); }
+		public ScriptCodeBaseType(ActionsType parentNode) : base(parentNode)
+		{ Init(); }
+		private void Init()
+		{
+			ElementName = "";
+			ElementPrefix = "scb";
+			this._returnList = false;
+			this._listDelimiter = "|";
+			this._allowNull = true;
+		}
+	}
+	//public partial class CallFuncActionType
+	//{
+	//    protected CallFuncActionType() { Init(); }
+	//    public CallFuncActionType(ActionsType parentNode) : base(parentNode) 
+	//    { Init(); }
+	//    private void Init()
+	//    {
+	//        ElementName = "CallFunction";
+	//    }
+	//}
+
+	//public partial class CallFuncBoolActionType
+	//{
+	//    protected CallFuncBoolActionType() { Init(); }
+	//    public CallFuncBoolActionType(ActionsType parentNode) : base(parentNode)
+	//    { Init(); }
+	//    private void Init()
+	//    {
+	//        ElementName = "CallBoolFunction";
+	//    }
+	//}
+
+	#endregion
+	#region Events
+	public partial class OnEventType : IDisplayedTypeMember
+	{
+		protected OnEventType() { Init(); }
+		public OnEventType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "onEv";
+		}
+	}
+
+	public partial class RulesType
+	{
+		protected RulesType() { Init(); }
+		public RulesType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "rules";
+		}
+	}
+
+	public partial class EventType : IDisplayedTypeMember
+	{
+		protected EventType() { Init(); }
+		public EventType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "evnt";
+		}
+	}
+
+	public partial class PredGuardType : IDisplayedTypeMember
+	{
+
+		protected PredGuardType() { Init(); }
+		public PredGuardType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+		}
+		private void Init()
+		{
+			this._not = false;
+			this._boolOp = PredEvalAttribValuesTypeBoolOp.AND;
+			ElementPrefix = "predGrd";
+		}
+	}
+
+	public partial class PredActionType
+	{
+		protected PredActionType() { Init(); }
+		public PredActionType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._not = false;
+			this._boolOp = PredEvalAttribValuesTypeBoolOp.AND;
+			ElementPrefix = "predAct";
+		}
+	}
+
+	public partial class FuncBoolBaseType
+	{
+		protected FuncBoolBaseType() { Init(); }
+		public FuncBoolBaseType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this._allowNull = true;
+			ElementPrefix = "funcBoolBase";
+		}
+	}
 
 
-		public partial class FileDatesType
+	#endregion
+
+	#region Contacts
+
+	public partial class ContactType : IDisplayedTypeMember, IAddPerson, IAddOrganization
+	{
+		protected ContactType() { Init(); }
+		public ContactType(BaseType parentNode) : base(parentNode)
 		{
-			protected FileDatesType() { Init(); }
-			public FileDatesType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "fld";
-			}
+			Init();
+
 		}
-		public partial class FileHashType
+		private void Init()
 		{
-			protected FileHashType() { Init(); }
-			public FileHashType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "flh";
-			}
+			this.ElementPrefix = "cntct";
+		}
+	}
+
+	public partial class OrganizationType
+	{
+		protected OrganizationType() { Init(); }
+		public OrganizationType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this.ElementPrefix = "org";
+		}
+	}
+
+	public partial class PersonType
+	{
+		protected PersonType() { Init(); }
+		public PersonType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this.ElementPrefix = "pers";
+		}
+	}
+
+	public partial class AddressType
+	{
+		protected AddressType() { Init(); }
+		public AddressType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this.ElementPrefix = "adrs";
+		}
+	}
+
+	public partial class AreaCodeType
+	{
+		protected AreaCodeType() { Init(); }
+		public AreaCodeType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this.ElementPrefix = "arcd";
+		}
+	}
+	#endregion
+
+	#region Resources
+	public partial class RichTextType : IHtmlHelpers
+	{
+		protected RichTextType() { Init(); }
+		public RichTextType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this.ElementPrefix = "rtt";
+		}
+		IHtmlHelpers ihh { get => this; }
+		public HTML_Stype AddHTML()
+		{
+			var h = ihh.AddHTML(this);
+			return h;
+		}
+	}
+
+
+	#endregion
+
+	#region Classes that need ctor parameters
+
+	#region RequestForm (Package)
+	public partial class ComplianceRuleType
+	{
+		protected ComplianceRuleType() { Init(); }
+		public ComplianceRuleType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this.ElementPrefix = "cr";
+		}
+	}
+
+	public partial class SubmissionRuleType
+	{
+		protected SubmissionRuleType() { Init(); }
+		public SubmissionRuleType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this.ElementPrefix = "sr";
 		}
 
-		public partial class FileType
-		{
-			protected FileType() { Init(); }
-			public FileType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "fil";
-			}
-		}
+	}
 
-		public partial class FileUsageType
+
+	public partial class HashType
+	{
+		protected HashType() { Init(); }
+		public HashType(BaseType parentNode) : base(parentNode)
 		{
-			protected FileUsageType() { Init(); }
-			public FileUsageType(BaseType parentNode) : base(parentNode)
-			{
-				Init();
-				
-			}
-			private void Init()
-			{
-				ElementPrefix = "flu";
-			}
+			Init();
+
 		}
+		private void Init()
+		{
+			this.ElementPrefix = "hsh";
+		}
+	}
+
+
+	public partial class IdentifierType
+	{
+		protected IdentifierType() { Init(); }
+		public IdentifierType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+
+		}
+		private void Init()
+		{
+			this.ElementPrefix = "id";
+		}
+	}
+
+	public partial class LanguageCodeISO6393_Type
+	{
+		protected LanguageCodeISO6393_Type() { Init(); }
+		public LanguageCodeISO6393_Type(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this.ElementPrefix = "lc";
+		}
+	}
+
+	public partial class LanguageType
+	{
+		protected LanguageType() { Init(); }
+		public LanguageType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+
+		}
+		private void Init()
+		{
+			this.ElementPrefix = "lng";
+		}
+	}
+
+	public partial class ProvenanceType
+	{
+		protected ProvenanceType() { Init(); }
+		public ProvenanceType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this.ElementPrefix = "prv";
+		}
+	}
+
+	public partial class ReplacedIDsType
+	{
+		protected ReplacedIDsType() { Init(); }
+		public ReplacedIDsType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this.ElementPrefix = "rid";
+		}
+	}
+
+	public partial class VersionType
+	{
+		protected VersionType() { Init(); }
+		public VersionType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this.ElementPrefix = "ver";
+		}
+	}
+
+	public partial class VersionTypeChanges
+	{
+		protected VersionTypeChanges() { Init(); }
+		public VersionTypeChanges(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			this.ElementPrefix = "vch";
+		}
+	}
+
+
+	#endregion
+
+	#region Contacts classes
+
+	public partial class ContactsType
+	{
+		protected ContactsType() { Init(); }
+		public ContactsType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "contacts";
+		}
+	}
+
+	public partial class CountryCodeType
+	{
+		protected CountryCodeType() { Init(); }
+		public CountryCodeType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "ctc";
+		}
+	}
+
+	public partial class DestinationType
+	{
+		protected DestinationType() { Init(); }
+		public DestinationType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "dest";
+		}
+	}
+
+
+	public partial class PhoneNumberType
+	{
+		protected PhoneNumberType() { Init(); }
+		public PhoneNumberType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "phn";
+		}
+	}
+
+	public partial class PhoneType
+	{
+		protected PhoneType() { Init(); }
+		public PhoneType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementName = "PhoneType";
+			ElementPrefix = "pht";
+		}
+	}
+
+	public partial class JobType
+	{
+		protected JobType() { Init(); }
+		public JobType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "job";
+		}
+	}
+	#endregion
+
+	#region  Email
+	public partial class EmailAddressType
+	{
+		protected EmailAddressType() { Init(); }
+		public EmailAddressType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "emd";
+		}
+	}
+
+	public partial class EmailType
+	{
+		protected EmailType() { Init(); }
+		public EmailType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+			//this.Usage = new string_Stype();
+			//this.EmailClass = new string_Stype();
+			//this.EmailAddress = new EmailAddressType();
+		}
+		private void Init()
+		{
+			ElementPrefix = "em";
+		}
+	}
+
+	#endregion
+
+	#region Files
+
+
+	public partial class ApprovalType
+	{
+		protected ApprovalType() { Init(); }
+		public ApprovalType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "app";
+		}
+	}
+
+	public partial class AssociatedFilesType
+	{
+		protected AssociatedFilesType() { Init(); }
+		public AssociatedFilesType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "asf";
+		}
+	}
+
+	public partial class AcceptabilityType
+	{
+		protected AcceptabilityType() { Init(); }
+		public AcceptabilityType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "acc";
+		}
+	}
+
+
+	public partial class FileDatesType
+	{
+		protected FileDatesType() { Init(); }
+		public FileDatesType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "fld";
+		}
+	}
+	public partial class FileHashType
+	{
+		protected FileHashType() { Init(); }
+		public FileHashType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "flh";
+		}
+	}
+
+	public partial class FileType
+	{
+		protected FileType() { Init(); }
+		public FileType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "fil";
+		}
+	}
+
+	public partial class FileUsageType
+	{
+		protected FileUsageType() { Init(); }
+		public FileUsageType(BaseType parentNode) : base(parentNode)
+		{
+			Init();
+
+		}
+		private void Init()
+		{
+			ElementPrefix = "flu";
+		}
+	}
 
 	#endregion
 

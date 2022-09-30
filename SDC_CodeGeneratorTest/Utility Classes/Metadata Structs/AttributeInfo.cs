@@ -16,15 +16,15 @@ namespace SDC.Schema
 	public readonly struct AttributeInfo
 	{
 		/// <summary>
-		/// Constructor for AttributeInfo&lt;T>
+		/// Constructor for <see cref="AttributeInfo"/>
 		/// </summary>
 		/// <param name="parentNode"></param>
-		/// <param name="sdcElementNodeSguid">The ShortGuid property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.</param>
+		/// <param name="sdcElementNode_sGuid">The ShortGuid (sGuid) property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.</param>
 		/// <param name="attributeValue">The value of this attribute instance.</param>
 		/// <param name="attributePropInfo">The PropertyInfo object that describes this attribute on its parent object node (which is represented by SdcElementNodeSguid).</param>
 		/// <param name="order">The serialized ordinal position of the attribute in the current element</param>
 		public AttributeInfo(BaseType parentNode, 
-			ShortGuid sdcElementNodeSguid, 
+			ShortGuid sdcElementNode_sGuid, 
 			object? attributeValue, 
 			PropertyInfo attributePropInfo, 
 			int order)

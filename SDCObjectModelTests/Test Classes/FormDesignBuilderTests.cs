@@ -23,7 +23,7 @@ namespace SDCObjectModelTests.TestClasses
         public void AssignNamesFromXmlDoc()
         {
             Setup.TimerStart($"==>{Setup.CallerName()} Started");
-            Setup.FD.AssignElementNamesFromXmlDoc(Setup.GetXml());
+            Setup.FD.U_AssignElementNamesFromXmlDoc(Setup.GetXml());
             Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
         }
         [TestMethod]
