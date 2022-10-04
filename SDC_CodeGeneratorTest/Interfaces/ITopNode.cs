@@ -22,7 +22,7 @@ namespace SDC.Schema
 		/// <summary>
 		/// ReadOnlyObservableCollection of IET nodes.
 		/// </summary>
-		ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes { get; }
+		ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes { get; }
 
 		[XmlIgnore]
 		[JsonIgnore]

@@ -95,7 +95,7 @@ namespace SDC.Schema
 		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _ietNodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
 		{
 			get
 			{
@@ -266,22 +266,22 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="path"></param>
 		/// <param name="ex"></param>
-		public void SaveXmlToFile(string path) => SdcSerializer<DemogFormDesignType>.SaveToFile(path, this);
+		public new void  SaveXmlToFile(string path) => SdcSerializer<DemogFormDesignType>.SaveToFile(path, this);
 		/// <summary>
 		/// Save the current SDC object tree to an SDC Json file at a known location (path)
 		/// </summary>
 		/// <param name="path"></param>
-		public void SaveJsonToFile(string path) => SdcSerializerJson<DemogFormDesignType>.SaveToFileJson(path, this);
+		public new void SaveJsonToFile(string path) => SdcSerializerJson<DemogFormDesignType>.SaveToFileJson(path, this);
 		/// <summary>
 		/// Save the current SDC object tree to an SDC Bson file at a known location (path)
 		/// </summary>
 		/// <param name="path"></param>
-		public void SaveBsonToFile(string path) => SdcSerializerBson<DemogFormDesignType>.SaveToFileBson(path, this);
+		public new void SaveBsonToFile(string path) => SdcSerializerBson<DemogFormDesignType>.SaveToFileBson(path, this);
 		/// <summary>
 		/// Save the current SDC object tree to an SDC MessagePack file at a known location (path)
 		/// </summary>
 		/// <param name="path"></param>
-		public void SaveMsgPackToFile(string path) => SdcSerializerMsgPack<DemogFormDesignType>.SaveToFileMsgPack(path, this);
+		public new void SaveMsgPackToFile(string path) => SdcSerializerMsgPack<DemogFormDesignType>.SaveToFileMsgPack(path, this);
 
 
 		#endregion
@@ -338,7 +338,7 @@ namespace SDC.Schema
 		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETNodes;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
 		{
 			get
 			{
@@ -473,7 +473,7 @@ namespace SDC.Schema
 		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETNodes;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
 		{
 			get
 			{
@@ -608,7 +608,7 @@ namespace SDC.Schema
 		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETNodes;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
 		{
 			get
 			{
@@ -729,7 +729,7 @@ namespace SDC.Schema
 		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETNodes;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
 		{
 			get
 			{
@@ -864,7 +864,7 @@ namespace SDC.Schema
 		//{ sdcTreeBuilder.FillSectionBase(this); }
 	}
 
-	public partial class SectionItemType : IChildItemsParent<SectionItemType>, IChildItemsMember<SectionItemType>
+	public partial class SectionItemType : IChildItemsParent, IChildItemsMember<SectionItemType>
 	{
 		protected SectionItemType() { Init(); } //change back to protected
 		public SectionItemType(BaseType parentNode, string id = "") : base(parentNode, id)
@@ -875,7 +875,7 @@ namespace SDC.Schema
 		}
 
 		#region IChildItemsParent Implementation
-		private IChildItemsParent<SectionItemType> ci => this as IChildItemsParent<SectionItemType>;
+		private IChildItemsParent ci => this as IChildItemsParent;
 		[XmlIgnore]
 		[JsonIgnore]
 		public ChildItemsType ChildItemsNode
@@ -889,7 +889,7 @@ namespace SDC.Schema
 
 	#region Question
 
-	public partial class QuestionItemType : IChildItemsParent<QuestionItemType>, IChildItemsMember<QuestionItemType>, IQuestionItem, IQuestionList
+	public partial class QuestionItemType : IChildItemsParent, IChildItemsMember<QuestionItemType>, IQuestionItem, IQuestionList
 	{
 		protected QuestionItemType() { Init(); }  //need public parameterless constructor to support generics
 		public QuestionItemType(BaseType parentNode, string id = "", string elementName = "", string elementPrefix = "") : base(parentNode, id)
@@ -905,7 +905,7 @@ namespace SDC.Schema
 		}
 
 		#region IChildItemsParent
-		IChildItemsParent<QuestionItemType> ci { get => (IChildItemsParent<QuestionItemType>)this; }
+		IChildItemsParent ci { get => (IChildItemsParent)this; }
 		[XmlIgnore]
 		[JsonIgnore]
 		public ChildItemsType ChildItemsNode
@@ -1034,7 +1034,7 @@ namespace SDC.Schema
 
 	}
 
-	public partial class ListItemType : IChildItemsParent<ListItemType> //, IListItem //, IQuestionListMember
+	public partial class ListItemType : IChildItemsParent //, IListItem //, IQuestionListMember
 	{
 		protected ListItemType() { Init(); }
 		public ListItemType(ListType parentNode, string id = "", string elementName = "", string elementPrefix = "") : base(parentNode, id)
@@ -1499,6 +1499,16 @@ namespace SDC.Schema
 			//IETresetCounter = 0; //TODO: this will be a problem when moving nodes in the tree, since the counter will be incorrect
 		}
 
+		[XmlIgnore]
+		[JsonIgnore]
+		/// <summary
+		/// Loaded => 1; <br/>
+		/// New => 2; <br/>
+		/// MovedUp => 3; <br/>
+		/// MovedDown => 4; <br/>
+		/// Updated => 5;
+		/// </summary>
+		public int ItemViewState { get; set; } = 1;
 		#endregion
 
 		#region ChangeTracking

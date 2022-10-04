@@ -244,15 +244,18 @@ namespace SDC.Schema
 
 		/// <summary>
 		/// If <paramref name="refreshTree"/> is true (default),
-		///		this method uses reflection to refresh the _TTopNode._Nodes, _ITopNode_ParentNodes and _TTopNode_ChildNodes dictionaries, with all nodes in the proper order.
-		///		Some BaseType properties are updated:
-		///		SGuid properties are created if missing, and name and order properties are created/updated as needed.  
-		///		Names will be overwritten with new names that may not match the original.
-		/// If <paramref name="refreshTree"/> is false, this method returns an ordered List&lt;BaseType>, but none of the above refresh actions are performed.
+		///		this method uses reflection to refresh the <br/>
+		///		_TTopNode._Nodes, _ITopNode_ParentNodes and _TTopNode_ChildNodes dictionaries, with all nodes in the proper order.<br/>
+		///		Some BaseType properties are updated: <br/>
+		///		SGuid properties are created if missing, and name and order properties are created/updated as needed.  <br/>
+		///		Names will be overwritten with new names that may not match the original.<br/>
+		/// If <paramref name="refreshTree"/> is false, this method returns an ordered List&lt;BaseType>, <br/>
+		/// but none of the above refresh actions are performed.
 		/// </summary>
 		/// <param name="topNode">The ITopNode SDC node that will have its tree refreshed</param>
 		/// <param name="treeText">An "out" variable containing, if <paramref name="print"/> is true, a text representation of some important properties of each node</param>
-		/// <param name="print">If <paramref name="print"/> is true, then <paramref name="treeText"/> will be generated.  If <paramref name="print"/> is false, <paramref name="treeText"/> will be null.
+		/// <param name="print">If <paramref name="print"/> is true, then <paramref name="treeText"/> will be generated.  
+		/// If <paramref name="print"/> is false, <paramref name="treeText"/> will be null.
 		/// The default is false.</param>
 		/// <param name="refreshTree">Determines whether to refresh the Dictionaries and BaseType properties, as described in the summary.
 		/// The default is true.</param>
@@ -581,11 +584,11 @@ namespace SDC.Schema
 		/// <param name="n">The node whose subtree we ae retrieving</param>
 		/// <param name="resortChildNodes">Set to true if the child nodes may be incoreectly sorted.  This should not be needed.</param>
 		/// <returns></returns>
-		public static List<BaseType> GetSortedSubtreeIET(BaseType n, bool resortChildNodes = false, bool ResetSortFlags = true)
+		public static List<IdentifiedExtensionType> GetSortedSubtreeIET(BaseType n, bool resortChildNodes = false, bool ResetSortFlags = true)
 		{
 			var topNode = (_ITopNode)n.TopNode;
 			var cn = topNode._ChildNodes;
-			var sortedList = new List<BaseType>();
+			var sortedList = new List<IdentifiedExtensionType>();
 			int i = -1;
 			if (ResetSortFlags) TreeSort_ClearNodeIds();
 
@@ -595,7 +598,7 @@ namespace SDC.Schema
 			{
 				i++;
 				if (n is IdentifiedExtensionType && i > 0 ) return;
-				sortedList.Add(n);
+				sortedList.Add((IdentifiedExtensionType)n);
 				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
 				{
 					if (childList != null)
@@ -1721,6 +1724,7 @@ namespace SDC.Schema
 			if (newParent is null) return false;
 			//make sure that item and target are not null and are part of the same tree
 			if (Nodes(item)[newParent.ObjectGUID] is null) return false;
+			if (item.IsDescendantOf(newParent)) return false;
 
 			Type itemType = item.GetType();
 			var thisPi = SdcUtil.GetElementPropertyInfoMeta(item);
@@ -1853,6 +1857,51 @@ namespace SDC.Schema
 				}
 			}
 			return false;
+		}
+
+		#endregion
+		#region TE Helpers
+		//!+There probably is no need for CreateNewId, since the SDC OM assigns new IDs upon object creation, using the sGuid property
+		public static string CreateNewId()
+		{
+			return Guid.NewGuid().ToString();
+		}
+
+		public static ItemTypeEnum GetItemType(IdentifiedExtensionType node)
+		{
+			if (typeof(SectionItemType).IsInstanceOfType(node))
+			{
+				return ItemTypeEnum.Section;
+			}
+
+			if (typeof(QuestionItemType).IsInstanceOfType(node))
+			{
+				var data = (node as QuestionItemType);
+				if (data.ListField_Item != null)
+				{
+					return data.ListField_Item.maxSelections == 0 ? ItemTypeEnum.QuestionMultiple : ItemTypeEnum.QuestionSingle;
+				}
+
+				if (data.ResponseField_Item != null)
+				{
+					return ItemTypeEnum.QuestionResponse;
+				}
+
+				return ItemTypeEnum.QuestionRaw;
+			}
+
+			if (typeof(ListItemType).IsInstanceOfType(node))
+			{
+				var LI = node as ListItemType;
+				return LI.ShouldSerializeListItemResponseField() ? ItemTypeEnum.ListItemResponse : ItemTypeEnum.ListItem;
+			}
+
+			if (typeof(DisplayedType).IsInstanceOfType(node))
+			{
+				return ItemTypeEnum.DisplayedItem;
+			}
+
+			return ItemTypeEnum.None;
 		}
 		#endregion
 		#region Helpers

@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Xml.Serialization;
 
 
-
 //using SDC;
 namespace SDC.Schema
 {

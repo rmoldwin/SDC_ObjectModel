@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SDC_CodeGeneratorTest\SDC_CodeGeneratorTest.csproj" />
+    <ProjectReference Include="..\SDC_CodeGeneratorTest\SDC.Schema.csproj" />
   </ItemGroup>
 
   <ItemGroup>

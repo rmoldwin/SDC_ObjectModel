@@ -618,7 +618,7 @@ namespace SDCObjectModelTests.TestClasses
 		public void ReflectSubtree()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var lst = Setup.FD.TopNode.GetItemByName("S_57219")
+			var lst = Setup.FD.TopNode.GetNodeByName("S_57219")
 				.GetSubtreeList();
 			//Setup.FD._
 			foreach (var n in lst)
@@ -631,7 +631,7 @@ namespace SDCObjectModelTests.TestClasses
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 
 			var FD = Setup.FD;
-			var lst = FD.TopNode.GetItemByName("S_57219")
+			var lst = FD.TopNode.GetNodeByName("S_57219")
 				.GetXmlAttributesAll();			
 			foreach (var n in lst) Debug.Print($"{n.Name}");
 
@@ -657,7 +657,7 @@ namespace SDCObjectModelTests.TestClasses
 			SortedList<string, Dictionary<string, List<AttributeInfo>>> dictAttr = new();
 			char gt = ">"[0];
 			//  ------------------------------------------------------------------------------------
-			foreach (IdentifiedExtensionType n in Setup.FD.IETnodes)
+			foreach (IdentifiedExtensionType n in Setup.FD.IETNodes)
 			{
 				var en = n.ElementName;
 				int enLen = 36 - en.Length;

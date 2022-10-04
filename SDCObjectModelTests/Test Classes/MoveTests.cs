@@ -51,7 +51,7 @@ namespace SDCObjectModelTests.TestClasses
 
                 lst1 = SdcUtil.ReflectChildElements(Setup.FD.GetListItemByID("51689.100004300"));
                 lst2 = SdcUtil.ReflectChildElements(Setup.FD.GetListItemByID("38493.100004300"));
-                lst3 = SdcUtil.ReflectChildElements(Setup.FD.GetItemByName("lst_44135_3"));
+                lst3 = SdcUtil.ReflectChildElements(Setup.FD.GetNodeByName("lst_44135_3"));
 
                 lst3 = SdcUtil.ReflectRefreshSubtreeList(Setup.FD.GetSectionByID("43969.100004300"));
                 //foreach (var n in lst3) Debug.Print(n.name);

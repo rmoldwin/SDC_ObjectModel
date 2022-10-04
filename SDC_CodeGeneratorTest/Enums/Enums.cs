@@ -166,19 +166,6 @@ namespace SDC.Schema
         Dicom = 0x800,
         BlobGroup = Image | Video | Blob | Dicom,
     }
-    [Flags]
-    public enum QuestionEnum
-    {
-        QuestionRaw = ItemTypeEnum.QuestionRaw,
-        QuestionSingle = ItemTypeEnum.QuestionSingle,
-        QuestionMultiple = ItemTypeEnum.QuestionMultiple,
-        QuestionSingleOrMultiple = ItemTypeEnum.QuestionSingleOrMultiple,
-        QuestionFill = ItemTypeEnum.QuestionResponse,
-        QuestionLookup = ItemTypeEnum.QuestionLookup, //generic QR
-        QuestionLookupSingle = ItemTypeEnum.QuestionLookupSingle,
-        QuestionLookupMultiple = ItemTypeEnum.QuestionLookupMultiple,
-        QuestionGroup = ItemTypeEnum.QuestionGroup //generic Q
-    }
     public enum QuestionListMemberEnum //items that can be dropped on a Question node (Question/ListField/List
     {
         DisplayedItem, //0..*

@@ -108,7 +108,7 @@ namespace SDC.Schema
 			if (newParent is null) throw new NullReferenceException("newParent must not be null.");
 			if (btSource.ParentNode is null) throw new NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved");
 
-			if (btSource.IsParentNodeAllowed(newParent, out object targetObj))
+			if (btSource.IsParentNodeAllowed(newParent, out object? targetObj))
 			{
 
 				if (targetObj is BaseType) //btSource can be attached directly to the target

@@ -14,8 +14,8 @@ using Newtonsoft.Json;
 //using SDC;
 namespace SDC.Schema
 {
-    public interface IChildItemsParent<T> //implemented by items that can have a ChildItems node.
-        where T : BaseType, IChildItemsParent<T>
+    public interface IChildItemsParent //implemented by items that can have a ChildItems node.
+        //where T : BaseType, IChildItemsParent<T>
     {
         public ChildItemsType ChildItemsNode { get; set; }
 

@@ -212,7 +212,7 @@ namespace SDC.Schema
 
 			char gt = ">"[0];
 			//  ------------------------------------------------------------------------------------
-			foreach (IdentifiedExtensionType n in itn.IETnodes)
+			foreach (IdentifiedExtensionType n in itn.IETNodes)
 			{
 				var en = n.ElementName;
 				int enLen = 36 - en.Length;
@@ -295,7 +295,7 @@ namespace SDC.Schema
 
 			return lst;
 		}
-		public static IdentifiedExtensionType? GetItemByID(this ITopNode itn, string id)
+		public static IdentifiedExtensionType? GetNodeByID(this ITopNode itn, string id)
 		{
 			IdentifiedExtensionType? iet;
 			iet = (IdentifiedExtensionType?)_Nodes(itn).Values.Where(
@@ -303,13 +303,13 @@ namespace SDC.Schema
 					t => ((IdentifiedExtensionType)t).ID == id).FirstOrDefault();
 			return iet;
 		}
-		public static BaseType? GetItemByName(this ITopNode itn, string name)
-		{
-			BaseType? bt;
-			bt = _Nodes(itn).Values.Where(
-				n => n.name == name).FirstOrDefault();
-			return bt;
-		}
+		//public static BaseType? GetItemByName(this ITopNode itn, string name)
+		//{
+		//	BaseType? bt;
+		//	bt = _Nodes(itn).Values.Where(
+		//		n => n.name == name).FirstOrDefault();
+		//	return bt;
+		//}
 		public static QuestionItemType? GetQuestionByID(this ITopNode itn, string id)
 		{
 			QuestionItemType? q;

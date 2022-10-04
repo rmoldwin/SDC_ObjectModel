@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json;
+using System.Xml.Serialization;
 using System;
 namespace SDC.Schema
 
 {
     public interface IBaseType : IMoveRemove, INavigate
     {
-        #region Public Members
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         public bool AutoNameFlag { get; set; }
         ///// <summary>
@@ -20,7 +20,7 @@ namespace SDC.Schema
         /// <summary>
         /// The root text ("shortName") used to construct the name property.  The code may add a prefix and/or suffix to BaseName
         /// </summary>
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         public string X_BaseName { get; set; }
 
@@ -35,7 +35,7 @@ namespace SDC.Schema
         /// In many cases, ElementName will be assigned through class constructors, but it can also be assigned 
         /// through this property after the object is instantiated
         /// </summary>
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         public string ElementName { get; }
 
@@ -43,20 +43,20 @@ namespace SDC.Schema
         /// The prefix used 
         /// in the @name attribute that is output from this class instance
         /// </summary>
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         public string ElementPrefix { get; set; }
 
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         public int ObjectID { get; }
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         public Guid ObjectGUID { get; }
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         public ItemTypeEnum NodeType { get; }
-        //[System.Xml.Serialization.XmlIgnore]
+        //[XmlIgnore]
         //[JsonIgnore]
         //public Boolean IsLeafNode { get; }
 
@@ -65,7 +65,7 @@ namespace SDC.Schema
         /// Returns the ID of the parent object (representing the parent XML element)
         /// This is the ObjectID, which is a sequentially assigned integer value.
         /// </summary>
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         public int ParentID
         {
@@ -86,28 +86,45 @@ namespace SDC.Schema
         /// <summary>
         /// Retrieve the BaseType object that is the immediate parent of the current object in the object tree
         /// </summary>
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         public BaseType? ParentNode { get; }
 
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         public IdentifiedExtensionType? ParentIETypeNode { get; }
         /// <summary>
         /// Returns the ID property of the closest ancestor of type IdentifiedExtensionType.  
         /// </summary>
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         public string? ParentIETypeID { get; }
 
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         public ITopNode TopNode { get; }
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         [JsonIgnore]
         public RetrieveFormPackageType PackageNode { get; }
-        //public abstract void SetNames(string elementName = "", string elementPrefix = "", string baseName = "");
-        #endregion
+		//public abstract void SetNames(string elementName = "", string elementPrefix = "", string baseName = "");
 
-    }
+
+
+		//!+Added to support TE Blazor module.
+
+
+		/// <summary>
+		/// Used to indicate if an item is new, has been moved or updated.<br/>
+		/// Loaded => 1 (default); <br/>
+		/// New => 2; <br/>
+		/// MovedUp => 3; <br/>
+		/// MovedDown => 4; <br/>
+		/// Updated => 5;
+		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		int ItemViewState { get; set; }
+
+
+	}
 }

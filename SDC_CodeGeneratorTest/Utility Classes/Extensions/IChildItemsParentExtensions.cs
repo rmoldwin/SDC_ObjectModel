@@ -7,9 +7,10 @@ namespace SDC.Schema
 {
 	public static class IChildItemsParentExtensions
 	{
-		public static SectionItemType AddChildSection<T>(this IChildItemsParent<T> T_Parent, string id, string? defTitle = null, int insertPosition = -1) where T : BaseType, IChildItemsParent<T>
+		public static SectionItemType AddChildSection(this IChildItemsParent parent, string id, string? defTitle = null, int insertPosition = -1) 
+			//where T : BaseType, IChildItemsParent<T>
 		{
-			var childItems = T_Parent.AddChildItemsNode();
+			var childItems = parent.AddChildItemsNode();
 			var childItemsList = childItems.ChildItemsList;
 			var sNew = new SectionItemType(childItems, id);
 			sNew.title = defTitle;
@@ -19,9 +20,10 @@ namespace SDC.Schema
 
 			return sNew;
 		}
-		public static QuestionItemType AddChildQuestion<T>(this IChildItemsParent<T> T_Parent, QuestionEnum qType, string id, string title = null, int insertPosition = -1) where T : BaseType, IChildItemsParent<T>
+		public static QuestionItemType AddChildQuestion(this IChildItemsParent parent, QuestionEnum qType, string id, string title = null, int insertPosition = -1) 
+			//where T : BaseType, IChildItemsParent<T>
 		{
-			var childItems = T_Parent.AddChildItemsNode();
+			var childItems = parent.AddChildItemsNode();
 			var childItemsList = childItems.ChildItemsList;
 			var qNew = new QuestionItemType(childItems, id);
 			//ListFieldType lf;
@@ -55,7 +57,7 @@ namespace SDC.Schema
 			return qNew;
 		}
 
-		public static QuestionItemType AddChildQuestionResponse<T>(this IChildItemsParent<T> T_Parent,
+		public static QuestionItemType AddChildQuestionResponse(this IChildItemsParent parent,
 			string id,
 			out DataTypes_DEType deType,
 			string defTitle = null,
@@ -64,9 +66,9 @@ namespace SDC.Schema
 			string textAfterResponse = null,
 			string units = null,
 			dtQuantEnum dtQuant = dtQuantEnum.EQ,
-			object valDefault = null) where T : BaseType, IChildItemsParent<T>
+			object valDefault = null) //where T : BaseType, IChildItemsParent<T>
 		{
-			var childItems = T_Parent.AddChildItemsNode();
+			var childItems = parent.AddChildItemsNode();
 			var childItemsList = childItems.ChildItemsList;
 			var qNew = new QuestionItemType(childItems, id);
 			qNew.title = defTitle;
@@ -81,9 +83,10 @@ namespace SDC.Schema
 			return qNew;
 
 		}
-		public static DisplayedType AddChildDisplayedItem<T>(this IChildItemsParent<T> T_Parent, string id, string defTitle = null, int insertPosition = -1) where T : BaseType, IChildItemsParent<T>
+		public static DisplayedType AddChildDisplayedItem(this IChildItemsParent parent, string id, string defTitle = null, int insertPosition = -1) 
+			//where T : BaseType, IChildItemsParent<T>
 		{
-			var childItems = T_Parent.AddChildItemsNode();
+			var childItems = parent.AddChildItemsNode();
 			var childItemsList = childItems.ChildItemsList;
 			var dNew = new DisplayedType(childItems, id);
 			dNew.title = defTitle;
@@ -93,9 +96,10 @@ namespace SDC.Schema
 
 			return dNew;
 		}
-		public static ButtonItemType AddChildButtonAction<T>(this IChildItemsParent<T> T_Parent, string id, string defTitle = null, int insertPosition = -1) where T : BaseType, IChildItemsParent<T>
+		public static ButtonItemType AddChildButtonAction(this IChildItemsParent parent, string id, string defTitle = null, int insertPosition = -1) 
+			//where T : BaseType, IChildItemsParent<T>
 		{
-			var childItems = T_Parent.AddChildItemsNode();
+			var childItems = parent.AddChildItemsNode();
 			var childItemsList = childItems.ChildItemsList;
 			var btnNew = new ButtonItemType(childItems, id);
 			btnNew.title = defTitle;
@@ -106,9 +110,10 @@ namespace SDC.Schema
 			// TODO: Add AddButtonActionTypeItems(btnNew);
 			return btnNew;
 		}
-		public static InjectFormType AddChildInjectedForm<T>(this IChildItemsParent<T> T_Parent, string id, int insertPosition = -1) where T : BaseType, IChildItemsParent<T>
+		public static InjectFormType AddChildInjectedForm(this IChildItemsParent parent, string id, int insertPosition = -1) 
+			//where T : BaseType, IChildItemsParent<T>
 		{
-			var childItems = T_Parent.AddChildItemsNode();
+			var childItems = parent.AddChildItemsNode();
 			var childItemsList = childItems.ChildItemsList;
 			var injForm = new InjectFormType(childItems, id);
 			var count = childItemsList.Count;
@@ -118,12 +123,13 @@ namespace SDC.Schema
 
 			return injForm;
 		}
-		public static bool HasChildItems<T>(this IChildItemsParent<T> T_Parent) where T : BaseType, IChildItemsParent<T>
+		public static bool HasChildItems(this IChildItemsParent parent) 
+			//where T : BaseType, IChildItemsParent<T>
 		{
 			{
-				if (T_Parent?.ChildItemsNode?.ChildItemsList != null)
+				if (parent?.ChildItemsNode?.ChildItemsList != null)
 				{
-					foreach (var n in T_Parent.ChildItemsNode.ChildItemsList)
+					foreach (var n in parent.ChildItemsNode.ChildItemsList)
 					{ if (n != null) return true; }
 				}
 			}
@@ -133,24 +139,26 @@ namespace SDC.Schema
 		/// Retrieve all DisplayedTypes subsumed under the ChildItems node
 		/// </summary>
 		/// <returns>ImmutableList&lt;DisplayedType> or null if the ChildItems node is null or has no descendants </returns>
-		static ImmutableList<DisplayedType>? GetChildDisplayedTypes<T>(this IChildItemsParent<T> T_Parent) where T : BaseType, IChildItemsParent<T>
+		static ImmutableList<DisplayedType>? GetChildDisplayedTypes(this IChildItemsParent parent) 
+			//where T : BaseType, IChildItemsParent<T>
 		{
-			return T_Parent.ChildItemsNode?.ChildItemsList?.Cast<DisplayedType>()?.ToImmutableList();
+			return parent.ChildItemsNode?.ChildItemsList?.Cast<DisplayedType>()?.ToImmutableList();
 		}
-		public static ChildItemsType AddChildItemsNode<T>(this IChildItemsParent<T> T_Parent) where T : BaseType, IChildItemsParent<T>
+		public static ChildItemsType AddChildItemsNode(this IChildItemsParent parent) 
+			//where T : BaseType, IChildItemsParent
 		{
 			ChildItemsType childItems = null;  //this class contains an "Items" list
-			if (T_Parent == null)
-				throw new ArgumentNullException(nameof(T_Parent));
+			if (parent == null)
+				throw new ArgumentNullException(nameof(parent));
 			//return childItems; 
-			else if (T_Parent.ChildItemsNode == null)
+			else if (parent.ChildItemsNode == null)
 			{
-				childItems = new ChildItemsType((BaseType)T_Parent);
-				T_Parent.ChildItemsNode = childItems;  //This may be null for the Header, Body and Footer  - need to check this
+				childItems = new ChildItemsType((BaseType)parent);
+				parent.ChildItemsNode = childItems;  //This may be null for the Header, Body and Footer  - need to check this
 													   //SdcUtil.AssignXmlElementAndOrder(childItems);
 			}
-			else //(T_Parent.ChildItemsNode != null)
-				childItems = T_Parent.ChildItemsNode;
+			else //(parent.ChildItemsNode != null)
+				childItems = parent.ChildItemsNode;
 
 			if (childItems.ChildItemsList == null)
 				childItems.ChildItemsList = new List<IdentifiedExtensionType>();
