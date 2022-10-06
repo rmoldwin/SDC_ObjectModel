@@ -47,7 +47,10 @@ namespace SDC.Schema
 
 			var par = descendantNode.ParentNode;
 			while (par != null)
-			{ if (par.Equals(ancestorNode)) return true; }
+			{ if (par.Equals(ancestorNode)) 
+					return true;
+				par = par.ParentNode;
+			}
 
 			return false;
 		}
@@ -87,7 +90,11 @@ namespace SDC.Schema
 
 			var par = descendantNode.ParentNode;
 			while (par != null)
-			{ if (par.Equals(ancestorNode)) return true; }
+			{ 
+				if (par.Equals(ancestorNode)) 
+					return true;
+				par = par.ParentNode;
+			}
 			return false;
 		}
 
@@ -136,7 +143,7 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="bt">The node whose subtree we are retrieving </param>
 		/// <returns></returns>
-		public static List<IdentifiedExtensionType> GetSortedSubtreeIETList(this BaseType bt)
+		public static List<BaseType> GetSortedSubtreeIETList(this BaseType bt)
 		{
 			return SdcUtil.GetSortedSubtreeIET(bt);
 		}

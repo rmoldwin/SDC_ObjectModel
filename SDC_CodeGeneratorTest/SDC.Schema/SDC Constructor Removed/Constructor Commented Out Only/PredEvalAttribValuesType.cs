@@ -816,7 +816,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         {
             return true;
         }
-        return (_hasResponse != default(bool));
+       return (_hasResponse != default(bool));
     }
     
     /// <summary>

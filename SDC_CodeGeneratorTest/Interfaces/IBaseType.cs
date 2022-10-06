@@ -9,6 +9,8 @@ namespace SDC.Schema
         [XmlIgnore]
         [JsonIgnore]
         public bool AutoNameFlag { get; set; }
+
+
         ///// <summary>
         ///// Field to hold the ordinal position of an object (XML element) under an IdentifiedExtensionType (IET)-derived object.
         ///// This number is used for creating the name attribute suffix.
@@ -76,6 +78,7 @@ namespace SDC.Schema
                 else return -1;
             }
         }
+
         ///// <summary>
         ///// Returns the ID property of the closest ancestor of type DisplayedType.  
         ///// For eCC, this is the Parent node's ID, which is derived from  the parent node's CTI_Ckey, a.k.a. ParentItemCkey.
@@ -83,6 +86,7 @@ namespace SDC.Schema
         //[System.Xml.Serialization.XmlIgnore]
         //[JsonIgnore]
         //public IdentifiedExtensionType ParentIETypeNode { get; }
+
         /// <summary>
         /// Retrieve the BaseType object that is the immediate parent of the current object in the object tree
         /// </summary>
@@ -111,8 +115,6 @@ namespace SDC.Schema
 
 
 		//!+Added to support TE Blazor module.
-
-
 		/// <summary>
 		/// Used to indicate if an item is new, has been moved or updated.<br/>
 		/// Loaded => 1 (default); <br/>

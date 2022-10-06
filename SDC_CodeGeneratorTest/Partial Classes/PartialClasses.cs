@@ -1187,11 +1187,11 @@ namespace SDC.Schema
 		//[JsonIgnore]
 		//private static int IETresetCounter { get; set; }
 
-
+		//TODO: This method does not yet work for nested TopNodes, such as packages and InjectForm (which allows injected FormDesign nodes)
 		/// <summary>
 		/// Field to hold the ordinal position of an object (XML element) under an IdentifiedExtensionType (IET)-derived object.
 		/// This number is used for creating the name attribute suffix.
-		/// //TODO: this will be a problem when moving nodes in the tree, since the counter will be incorrect; 
+		/// TODO: This method does not yet work for nested TopNodes, such as packages and InjectForm (which allows injected FormDesign nodes)
 		/// this will need to be calculated by walking up the parent tree to the closest IET ancestor.  
 		/// It should not have a setter
 		/// </summary>
@@ -1201,8 +1201,11 @@ namespace SDC.Schema
 		{
 			get
 			{
-				if (this is IdentifiedExtensionType) return 0;
-				if (TopNode.Nodes is null || ParentNode is null) throw new Exception("Could not find SubIETcounter because TopNode or ParentNode is null");
+				if (this is IdentifiedExtensionType || this is ITopNode) return 0;
+				if (TopNode.Nodes is null) 					
+					throw new Exception("Could not find SubIETcounter because TopNode.Nodes is null");
+				if (ParentNode is null)
+					throw new Exception("Could not find SubIETcounter because ParentNode is null");
 
 				BaseType? node = this;
 				int nodeCount = TopNode.Nodes.Values.Count;
@@ -1212,7 +1215,7 @@ namespace SDC.Schema
 				{
 					i++;
 					node = node.GetNodePrevious();
-					if (node is IdentifiedExtensionType) return i;
+					if (node is IdentifiedExtensionType || node is ITopNode) return i;
 				} while (node != null && i < nodeCount);
 
 				throw new Exception("Could not determine SubIETcounter because an ancestor node of type IdentifiedExtensionType could not be found");

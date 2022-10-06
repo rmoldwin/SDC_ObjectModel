@@ -167,7 +167,7 @@ namespace SDC.Schema
 				.Where(n => n.ID.Trim() == id.Trim()).FirstOrDefault();
 		public static BaseType? GetNodeByName(this ITopNode itn, string name)=>
 			topNode(itn)._Nodes.Values
-				.Where(n => n.name.Trim() == name.Trim()).FirstOrDefault();
+				.Where(n => n?.name?.Trim() == name.Trim()).FirstOrDefault();
 		public static BaseType? GetNodeByShortGuid(this ITopNode itn, string sGuid) =>
 			topNode(itn)._Nodes.Values
 			.Where(n => n.sGuid.Trim() == sGuid.Trim()).FirstOrDefault();

@@ -584,11 +584,11 @@ namespace SDC.Schema
 		/// <param name="n">The node whose subtree we ae retrieving</param>
 		/// <param name="resortChildNodes">Set to true if the child nodes may be incoreectly sorted.  This should not be needed.</param>
 		/// <returns></returns>
-		public static List<IdentifiedExtensionType> GetSortedSubtreeIET(BaseType n, bool resortChildNodes = false, bool ResetSortFlags = true)
+		public static List<BaseType> GetSortedSubtreeIET(BaseType n, bool resortChildNodes = false, bool ResetSortFlags = true)
 		{
 			var topNode = (_ITopNode)n.TopNode;
 			var cn = topNode._ChildNodes;
-			var sortedList = new List<IdentifiedExtensionType>();
+			var sortedList = new List<BaseType>();
 			int i = -1;
 			if (ResetSortFlags) TreeSort_ClearNodeIds();
 
@@ -597,8 +597,8 @@ namespace SDC.Schema
 			void MoveNext(BaseType n)
 			{
 				i++;
-				if (n is IdentifiedExtensionType && i > 0 ) return;
-				sortedList.Add((IdentifiedExtensionType)n);
+				if (n is IdentifiedExtensionType iet && i > 0 ) return;
+				sortedList.Add(n);
 				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
 				{
 					if (childList != null)
@@ -1724,7 +1724,7 @@ namespace SDC.Schema
 			if (newParent is null) return false;
 			//make sure that item and target are not null and are part of the same tree
 			if (Nodes(item)[newParent.ObjectGUID] is null) return false;
-			if (item.IsDescendantOf(newParent)) return false;
+			if (newParent.IsDescendantOf(item)) return false;
 
 			Type itemType = item.GetType();
 			var thisPi = SdcUtil.GetElementPropertyInfoMeta(item);
@@ -1760,7 +1760,7 @@ namespace SDC.Schema
 						}
 					}
 				}
-				//Also try matching element names found in the ItemChoiceType enums.  This is more reliable that using data types.
+				//TODO: Also try matching element names found in the ItemChoiceType enums.  This is more reliable that using data types.
 
 				//if none of the XmlElementAttributes had a matching Type an ElementName, perhaps the property Type will match directly
 				if (p.Name == itemName)
