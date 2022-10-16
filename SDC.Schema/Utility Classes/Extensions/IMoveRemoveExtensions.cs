@@ -3,6 +3,7 @@ using System.Collections;
 using System.Data;
 using System.Diagnostics;
 using System.Reflection.Emit;
+using System.Xml.Linq;
 
 
 
@@ -63,11 +64,18 @@ namespace SDC.Schema
 			if (cancelIfChildNodes && btSource.TryGetChildNodes(out _)) return false;
 			var topNode = (_ITopNode)(par.TopNode);
 
-			foreach (var childNode in topNode._ChildNodes[btSource.ObjectGUID])
-				childNode.Remove(); //note - this is recursive
+
+			if (topNode._ChildNodes.TryGetValue(btSource.ObjectGUID, out List<BaseType>? kids))
+				while (kids.Count > 0)
+				{
+					var kid = kids.First();
+					Debug.Print($"kids.Remove recursive: {kid.name}");
+					kid.Remove(cancelIfChildNodes); //note - this is recursive
+				}
 
 			//reflect the parent property that represents the "this" object, then set the property to null
-			var prop = par.GetType().GetProperties().Where(p => p.GetValue(par) == btSource).FirstOrDefault();
+			var prop = btSource.GetPropertyInfoMetaData().PropertyInfo;
+			//var prop = par.GetType().GetProperties().Where(p => p.GetValue(par) == btSource).FirstOrDefault();
 			if (prop is null) throw new InvalidOperationException("Cannot obtain parent Property holding btSource.");
 
 			if (prop != null)
@@ -75,11 +83,17 @@ namespace SDC.Schema
 				var propObj = prop.GetValue(par);
 				if (propObj is IList propIL && propIL[0] != null)
 				{
-					(propObj as IList<BaseType>)?.Remove(btSource);
+					(propObj as IList)?.Remove(btSource);
+					Debug.Print($"IList.Remove: {btSource.name}");
 				}
-				else prop.SetValue(par, null);
+				else
+				{
+					prop.SetValue(par, null);
+					Debug.Print($"SetValue null: {btSource.name}");
+				}
 
 				btSource.UnRegisterThis();
+				Debug.Print($"Unregister: {btSource.name}");
 
 				return true;
 			}
@@ -150,15 +164,23 @@ namespace SDC.Schema
 		#region Register-UnRegister
 		//TODO: ChildNodes are not maintained in sorted order here; consider adding a sort flag to sort nodes after adding.
 		//Alternatively, add a required index to specify where the incoming child node should be inserted among the sib nodes.
-		//Ther is always a risk of getting out of sync with the nodes in the SDC object model classes.
-		internal static void RegisterParent<T>(this BaseType btSource, T inParentNode, bool childNodesSort = false) where T : BaseType
+		//There is always a risk of getting out of sync with the nodes in the SDC object model classes.
+		internal static void RegisterParent(this BaseType btSource, BaseType inParentNode, bool childNodesSort = false)
 		{
-			try
+			if (inParentNode != null)
 			{
-				//ChildNodesSort = false;
-				if (inParentNode != null)
+				var topNode = (_ITopNode)btSource.TopNode;
+				RegisterParentNode(btSource, inParentNode, topNode, childNodesSort);
+				if (btSource is _ITopNode)
+				{//also register this ITopNode object in its own dictionaries.
+					topNode = (_ITopNode)btSource;
+					RegisterParentNode(btSource, inParentNode, topNode, childNodesSort);
+				}
+			}
+			static void RegisterParentNode(BaseType btSource, BaseType inParentNode, _ITopNode topNode, bool childNodesSort)
+			{
+				try
 				{   //Register parent node
-					var topNode = (_ITopNode)btSource.TopNode;
 
 					topNode._ParentNodes.Add(btSource.ObjectGUID, inParentNode);
 
@@ -172,16 +194,16 @@ namespace SDC.Schema
 					}
 					else
 					{
-						kids.Add(btSource );
-						if(kids.Count > 1 & childNodesSort)
+						kids.Add(btSource);
+						if (kids.Count > 1 & childNodesSort)
 							kids.Sort(treeSibComparer); //sort by reflecting the object tree
 					}
 				}
-			}
-			catch (Exception ex)
-			{ 
-				Debug.WriteLine(ex.Message + "/n  ObjectID:" + btSource.ObjectID.ToString());
-				throw;
+				catch (Exception ex)
+				{
+					Debug.WriteLine(ex.Message + "/n  ObjectID:" + btSource.ObjectID.ToString());
+					throw;
+				}
 			}
 		}
 
@@ -200,8 +222,13 @@ namespace SDC.Schema
 				if (par != null)
 				{
 					if (topNode._ChildNodes.ContainsKey(par.ObjectGUID))
-						success = topNode._ChildNodes[par.ObjectGUID].Remove(btSource); //Returns a List<BaseType> and removes "item" from that list
-																								//if (!success) throw new Exception($"Could not remove object from ChildNodes dictionary: name: {this.name ?? "(none)"}, ObjectID: {this.ObjectID}");
+					{
+						var childList = topNode._ChildNodes[par.ObjectGUID];
+						success = childList.Remove(btSource); //Returns a List<BaseType> and removes "item" from that list
+						if (!success) throw new Exception($"Could not remove list node from ChildNodes dictionary: name: {btSource.name ?? "(none)"}, ObjectID: {btSource.ObjectID}");
+						if (childList.Count == 0) success = topNode._ChildNodes.Remove(par.ObjectGUID); //remove the entire entry from _ChildNodes
+						if (!success) throw new Exception($"Could not remove parent entry from ChildNodes dictionary: name: {par.name ?? "(none)"}, ObjectID: {par.ObjectID}");
+					}
 				}
 			}
 			catch (Exception ex)

@@ -32,9 +32,10 @@ namespace SDCObjectModelTests.TestClasses
 
         public ValidationTests()
         {
-            BaseType.ResetSdcImport();
-            string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
+			BaseType.ResetRootNode();
+			string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
             fd = SdcUtilSerializer<FormDesignType>.DeserializeFromXmlPath(path);
+
         }
 
 

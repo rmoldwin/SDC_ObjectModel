@@ -31,7 +31,7 @@ namespace SDC.Schema
 	/// <summary>
 	/// Convert many ArrayHelpers and SDC Helpers to extension methods
 	/// </summary>
-	public static class SdcUtil 
+	public static class SdcUtil
 	{
 		private static _ITopNode topNode(BaseType item)
 		{ return (_ITopNode)item.TopNode; }
@@ -261,211 +261,229 @@ namespace SDC.Schema
 		/// The default is true.</param>
 		/// <param name="createNodeName">A delegate to represent a single function that will create a <see cref="BaseType.name"/> for each refreshed node in the ITopNode tree.</param>
 		/// <returns>List&lt;BaseType> containing all of the SDC tree nodes in sorted top-bottom order</returns>
-		public static List<BaseType> ReflectRefreshTree(ITopNode topNode, out string? treeText, bool print = false, bool refreshTree = true, CreateName? createNodeName= null)
+		public static List<BaseType> ReflectRefreshTree(ITopNode topNode, out string? treeText, bool print = false, bool refreshTree = true, CreateName? createNodeName = null)
 		{
-			try
+			TreeSort_ClearNodeIds();
+			int counter = 0;
+			int indent = 0;
+			int order = 0;
+			IdentifiedExtensionType lastIet;
+			List<BaseType> SortedNodes = new();  //this will be the returned object from this method
+
+			var sbTreeText = new StringBuilder();
+			var newPropsText = new StringBuilder();
+			_ITopNode global_ITopNode = (_ITopNode)topNode;
+			//If the initial topNode has subsumed other ITopNode subtrees,
+			//currentTopNode will track the current subtree ITopNode 
+			_ITopNode current_ITopNode = global_ITopNode;
+			BaseType btNode = (BaseType)current_ITopNode;
+			btNode.order = 0;
 			{
-				TreeSort_ClearNodeIds();
-				int counter = 0;
-				int indent = 0;
-				int order = 0;
-				IdentifiedExtensionType lastIet;
-				List<BaseType> SortedNodes = new();
-
-				var sbTreeText = new StringBuilder();
-				var newPropsText = new StringBuilder();
-				BaseType btNode = (BaseType)topNode;
-				btNode.order = 0;
-				{					
-					if (topNode is DemogFormDesignType dfd)  //DemogForm is also a FormDesignType, so it must come first 
-					{
-						dfd.ElementName = "DemogFormDesign";
-						dfd.name = Regex.Replace(dfd.ID, @"\W+", ""); //replaces any characters that are not numbers, letters or "_"
-					}
-					else if (topNode is FormDesignType fd)
-					{
-						fd.ElementName = "FormDesign";
-						fd.name = Regex.Replace(fd.ID, @"\W+", ""); 
-					}
-
-					else if (topNode is DataElementType de)
-					{
-						de.ElementName = "DataElement";
-						de.name = Regex.Replace(de.ID, @"\W+", "");
-					}
-					else if (topNode is RetrieveFormPackageType rfp)
-					{
-						rfp.ElementName = "RetrieveFormPackage";
-						if (!rfp.instanceID.IsNullOrWhitespace()) rfp.name = Regex.Replace(rfp.instanceID, @"\W+", "");
-						else rfp.name = Regex.Replace(rfp.packageID, @"\W+", "");
-					}
-					else if (topNode is MappingType mp)
-					{
-						mp.ElementName = "MappingType";
-						if (!mp.templateID.IsNullOrWhitespace()) mp.name = Regex.Replace(mp.templateID, @"\W+", "");
-						else mp.name = Regex.Replace(mp.templateID, @"\W+", "");
-					}
-				}  //Set TopNode
-				var _topNode = (_ITopNode)topNode;
-				if (refreshTree)
+				if (current_ITopNode is DemogFormDesignType dfd)  //DemogForm is also a FormDesignType, so it must come first 
 				{
-					
-					_topNode._Nodes.Clear();
-					_topNode._ParentNodes.Clear();
-					_topNode._ChildNodes.Clear();
+					dfd.ElementName = "DemogFormDesign";
+					dfd.name = Regex.Replace(dfd.ID, @"\W+", ""); //replaces any characters that are not numbers, letters or "_"
 				}
-				_topNode._Nodes.Add(btNode.ObjectGUID, btNode);
-				SortedNodes.Add(btNode);
-
-				if (print) sbTreeText.Append($"({btNode.DotLevel})#{counter}; OID: {btNode.ObjectID}; name: {btNode.name}{content(btNode)}");
-
-				//DoTree(topNode as BaseType);
-				DoTree(btNode);
-				//-------------------------------------------
-
-				void DoTree(BaseType node)
+				else if (current_ITopNode is FormDesignType fd)
 				{
-					indent++;  //indentation level of the node for output formatting
-					counter++; //simple integer counter, incremented with each node; should match the ObjectID assigned during XML deserialization
-					BaseType? btProp = null;  //holds the current property
-					if (print) sbTreeText.Append("\r\n");
+					fd.ElementName = "FormDesign";
+					fd.name = Regex.Replace(fd.ID, @"\W+", "");
+				}
 
-					//Create a LIFO stack of the targetNode inheritance hierarchy.  The stack's top level type will always be BaseType
-					//For most non-datatype SDC objects, it could be a bit more efficient to use ExtensionBaseType - we can test this another time
-					Type t = node.GetType();
-					var s = new Stack<Type>();
-					s.Push(t);
+				else if (current_ITopNode is DataElementType de)
+				{
+					de.ElementName = "DataElement";
+					de.name = Regex.Replace(de.ID, @"\W+", "");
+				}
+				else if (current_ITopNode is RetrieveFormPackageType rfp)
+				{
+					rfp.ElementName = "RetrieveFormPackage";
+					if (!rfp.instanceID.IsNullOrWhitespace()) rfp.name = Regex.Replace(rfp.instanceID, @"\W+", "");
+					else rfp.name = Regex.Replace(rfp.packageID, @"\W+", "");
+				}
+				else if (current_ITopNode is MappingType mp)
+				{
+					mp.ElementName = "MappingType";
+					if (!mp.templateID.IsNullOrWhitespace()) mp.name = Regex.Replace(mp.templateID, @"\W+", "");
+					else mp.name = Regex.Replace(mp.templateID, @"\W+", "");
+				}
+			}
+			//Set _currentTopNode; If other ITopNode nodes are subsumed in this tree, current_ITopNode will be adjusted to the subsumed node(s)
+			if (refreshTree)
+			{
+				Init_ITopNode(current_ITopNode);
+				Fill_NodesAnd_IETnodes(btNode, null);
+				btNode.TopNode = current_ITopNode; //points to itself, indicating this is the root node
+			}
 
-					do
-					{//build the stack of inherited types
-						t = t.BaseType!;
-						if (t.IsSubclassOf(typeof(BaseType))) s.Push(t);
-						else break; //quit when we hit a non-BaseType type
-					} while (true);
+			SortedNodes.Add(btNode);
 
-					while (s.Count > 0)
+			if (print) sbTreeText.Append($"({btNode.DotLevel})#{counter}; OID: {btNode.ObjectID}; name: {btNode.name}{content(btNode)}");
+
+			//DoTree(currentTopNode as BaseType);
+			DoTree(btNode);
+			//-------------------------------------------
+
+			void DoTree(BaseType node)
+			{
+				indent++;  //indentation level of the node for output formatting
+				counter++; //simple integer counter, incremented with each node; should match the ObjectID assigned during XML deserialization
+				BaseType? btProp = null;  //holds the current property
+				if (print) sbTreeText.Append("\r\n");
+
+				//Create a LIFO stack of the targetNode inheritance hierarchy.  The stack's top level type will always be BaseType
+				//For most non-datatype SDC objects, it could be a bit more efficient to use ExtensionBaseType - we can test this another time
+				Type t = node.GetType();
+				var s = new Stack<Type>();
+				s.Push(t);
+
+				do
+				{//build the stack of inherited types
+					t = t.BaseType!;
+					if (t.IsSubclassOf(typeof(BaseType))) s.Push(t);
+					else break; //quit when we hit a non-BaseType type
+				} while (true);
+
+				while (s.Count > 0)
+				{
+					var props = s.Pop().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+						.Where(p => p.IsDefined(typeof(XmlElementAttribute)))
+						//.OrderBy(p => p.GetCustomAttributes<XmlElementAttribute>()  //ordering is not currently needed to retrieve
+						//.First().Order)											  //properties in XML Element order, but this could change
+						;
+					foreach (var p in props)
 					{
-						var props = s.Pop().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-							.Where(p => p.IsDefined(typeof(XmlElementAttribute)))
-							//.OrderBy(p => p.GetCustomAttributes<XmlElementAttribute>()  //ordering is not currently needed to retrieve
-							//.First().Order)											  //properties in XML Element order, but this could change
-							;
-						foreach (var p in props)
+						var prop = p.GetValue(node);
+						if (prop != null)
 						{
-							var prop = p.GetValue(node);
-							if (prop != null)
+							if (prop is BaseType)
 							{
-								if (prop is BaseType)
+								btProp = (BaseType)prop;
+								if (refreshTree) RefreshTree(parentNode: node, piChildProperty: p);
+								if (print) sbTreeText.Append($"{"".PadRight(indent, '.')}({btProp.DotLevel})#{counter}; OID: {btProp.ObjectID}; name: {btProp.name}{content(btProp)}");
+								//Debug.Assert(btProp.ObjectID == counter);
+								SortedNodes.Add(btProp);
+								DoTree(btProp);
+							}
+							else if (prop is IEnumerable<BaseType> ieProp)
+							{
+								foreach (BaseType btItem in ieProp)
 								{
-									btProp = (BaseType)prop;
+									btProp = btItem;
 									if (refreshTree) RefreshTree(parentNode: node, piChildProperty: p);
-									if (print) sbTreeText.Append($"{"".PadRight(indent, '.')}({btProp.DotLevel})#{counter}; OID: {btProp.ObjectID}; name: {btProp.name}{content(btProp)}");
-									//Debug.Assert(btProp.ObjectID == counter);
+									if (print) sbTreeText.Append($"{"".PadRight(indent, '.')}({btProp.DotLevel})#{counter}; OID: {btProp.ObjectID}; name: {btProp.name}{content(btItem)}");
+									//Debug.Assert(btItem.ObjectID == counter);
 									SortedNodes.Add(btProp);
 									DoTree(btProp);
-								}
-								else if (prop is IEnumerable<BaseType> ieProp)
-								{
-									foreach (BaseType btItem in ieProp)
-									{
-										btProp = btItem;
-										if (refreshTree) RefreshTree(parentNode: node, piChildProperty: p);
-										if (print) sbTreeText.Append($"{"".PadRight(indent, '.')}({btProp.DotLevel})#{counter}; OID: {btProp.ObjectID}; name: {btProp.name}{content(btItem)}");
-										//Debug.Assert(btItem.ObjectID == counter);
-										SortedNodes.Add(btProp);
-										DoTree(btProp);
-									}
 								}
 							}
 						}
 					}
-					indent--;
-					//!-------------------------------------------------------------------------------------------------------------------------------
-
-					void RefreshTree(BaseType parentNode, PropertyInfo piChildProperty)
-					{
-						//piChildProperty is the PropertyInfo object from the btProp property
-						//Neither piChildProperty nor btProp reliably contains the XML element name for the btProp node
-						//In some cases, it can be obtained by looking at the parentNode,
-						//finding the IEnumerable<> Property that contains btProp, and then looking for 
-						//the enum value that contains the XML element name.
-						//The enum location is found in XmlChoiceIdentifierAttribute on the IEnumerable Property
-						//This should be handled in ReflectSdcElement
-
-						//Refill the node dictionaries with the current node
-						_topNode._Nodes.Add(btProp.ObjectGUID, btProp);
-						TreeSort_NodeIds.Add(parentNode.ObjectID);
-						btProp.RegisterParent(parentNode);
-
-						AssignSdcProperties(parentNode, piChildProperty);
-
-					}
-
-					void AssignSdcProperties(BaseType parentNode, PropertyInfo pi)
-					{
-
-						string elementName;
-						int elementOrder = -1;
-						string suffix = "";
-						//Fill some useful properties, while it's efficient to do so, 
-						//because we have the PropertyInfo object (pi) and the actual property object (btProp) already available.
-						elementName = SdcUtil.ReflectSdcElement(pi, btProp, out _, out elementOrder, out _, out _, out _, out string? errorMsg);
-						if (elementName.IsNullOrWhitespace()) Debugger.Break();
-						btProp.ElementName = elementName;
-						btProp.ElementOrder = elementOrder;
-						btProp.order = ++order;
-
-						if (btProp.sGuid is null)
-						{
-							if (btProp.ObjectGUID == Guid.Empty) btProp.ObjectGUID = new Guid();
-							btProp.sGuid = new CSharpVitamins.ShortGuid(btProp.ObjectGUID).Value;
-						}
-						if (btProp is IdentifiedExtensionType iet)
-						{
-							if (iet.ID.IsNullOrEmpty()) iet.ID = iet.sGuid;
-							lastIet = iet;
-							//subIetCounter = 0;
-						}
-						else
-						{
-							//subIetCounter++;
-							//suffix = "_" + subIetCounter.ToString();
-							suffix = ("_" + btProp.SubIETcounter.ToString())??"";
-						}
-						if(createNodeName is not null) btProp.name = createNodeName(node: btProp, prefix: btProp.ElementPrefix, body: "", suffix: suffix) ?? btProp.name;
-
-						//btProp.name = btProp.CreateElementNameCAP("", ".100004300", suffix!);
-
-						if (print)
-						{
-							sbTreeText.Append($"ElementName: {btProp.ElementName}; ElementOrder: {btProp.ElementOrder}; order: {btProp.order}; name: {btProp.name}; sGuid = {btProp.sGuid}");
-							sbTreeText.Append("\r\n");
-						}
-					}
 				}
+				indent--;
+				//!-------------------------------------------------------------------------------------------------------------------------------
 
-
-				//This is a temporary kludge to generate printable output.  
-				//It should be easy to create a tree walker to create any desired output by visiting each node.
-				string content(BaseType n)
+				void RefreshTree(BaseType parentNode, PropertyInfo piChildProperty)
 				{
-					string s;
-					if (n is DisplayedType) s = "; title: " + (n as DisplayedType)?.title??"";
-					else if (n is PropertyType) s = "; " + (n as PropertyType)?.propName??"" + ": " + (n as PropertyType)?.val??"";
-					else s = $"; type: {n.GetType().Name}";
-					return s;
-				}
-				//We should instead return SortedBodes, and provide the treeText as an out parameter
+					//piChildProperty is the PropertyInfo object from the btProp property
+					//Neither piChildProperty nor btProp reliably contains the XML element name for the btProp node
+					//In some cases, it can be obtained by looking at the parentNode,
+					//finding the IEnumerable<> Property that contains btProp, and then looking for 
+					//the enum value that contains the XML element name.
+					//The enum location is found in XmlChoiceIdentifierAttribute on the IEnumerable Property
+					//This should be handled in ReflectSdcElement
+					btProp.TopNode = current_ITopNode;
 
-				if (print) treeText = sbTreeText.ToString();
-				else treeText = null;
-				return SortedNodes;
+					if (btProp is _ITopNode itn) //we have a subsumed ITopNode node
+						current_ITopNode = Init_ITopNode(itn);				
+					
+					//Refill the node dictionaries with the current node
+					Fill_NodesAnd_IETnodes(btProp, parentNode);
+					btProp.RegisterParent(parentNode);
+					Debug.Print(btProp.sGuid + "; Obj ID: " + btProp.ObjectID);
+
+					//Mark parentNode as having its child nodes already sorted
+					TreeSort_NodeIds.Add(parentNode.ObjectID);  //Change ObjectID to ObjectGUID?
+					AssignSdcProperties(parentNode, piChildProperty);
+				}
+
+				void AssignSdcProperties(BaseType parentNode, PropertyInfo pi)
+				{
+					string elementName;
+					int elementOrder = -1;
+					string suffix = "";
+					//Fill some useful properties, while it's efficient to do so, 
+					//because we have the PropertyInfo object (pi) and the actual property object (btProp) already available.
+					elementName = SdcUtil.ReflectSdcElement(pi, btProp, out _, out elementOrder, out _, out _, out _, out string? errorMsg);
+					if (elementName.IsNullOrWhitespace()) Debugger.Break();
+					btProp.ElementName = elementName;
+					btProp.ElementOrder = elementOrder;
+					btProp.order = ++order;
+
+					if (btProp.sGuid is null)
+					{
+						if (btProp.ObjectGUID == Guid.Empty) btProp.ObjectGUID = new Guid();
+						btProp.sGuid = new CSharpVitamins.ShortGuid(btProp.ObjectGUID).Value;
+					}
+					if (btProp is IdentifiedExtensionType iet)
+					{
+						if (iet.ID.IsNullOrEmpty()) iet.ID = iet.sGuid;
+						lastIet = iet;
+						//subIetCounter = 0;
+					}
+					else
+					{
+						//subIetCounter++;
+						//suffix = "_" + subIetCounter.ToString();
+						suffix = ("_" + btProp.SubIETcounter.ToString()) ?? "";
+					}
+					if (createNodeName is not null) btProp.name = createNodeName(node: btProp, prefix: btProp.ElementPrefix, body: "", suffix: suffix) ?? btProp.name;
+
+					//btProp.name = btProp.CreateElementNameCAP("", ".100004300", suffix!);
+
+					if (print)
+					{
+						sbTreeText.Append($"ElementName: {btProp.ElementName}; ElementOrder: {btProp.ElementOrder}; order: {btProp.order}; name: {btProp.name}; sGuid = {btProp.sGuid}");
+						sbTreeText.Append("\r\n");
+					}
+				}
 			}
-			catch { throw; }
-			finally
+			_ITopNode Init_ITopNode(_ITopNode new_ITopNode)
 			{
-				//TreeSort_ClearNodeIds();
+				new_ITopNode.ClearDictionaries();			
+				return new_ITopNode;
 			}
+			void Fill_NodesAnd_IETnodes(BaseType btNode, BaseType? parentNode)
+			{//current_ITopNode here points to the ITopNode ancestor of btNode
+				current_ITopNode._Nodes.Add(btNode.ObjectGUID, btNode);
+				if (btNode is IdentifiedExtensionType iet)
+					current_ITopNode._IETnodes.Add(iet);
+
+				if (btNode is _ITopNode itn && parentNode is not null) 
+				{	//also store the node in the current node's parent ITopNode dictionaries
+					var par_ITopNode = (_ITopNode)parentNode.TopNode;
+					par_ITopNode._Nodes.Add(btNode.ObjectGUID, btNode);
+					if (btNode is IdentifiedExtensionType ietPar)
+						par_ITopNode._IETnodes.Add(ietPar);
+				}
+			}
+
+			//The "content" function is a temporary kludge to generate printable output.  
+			//It should be easy to create a tree walker to create any desired output by visiting each node.
+			string content(BaseType n)
+			{
+				string s;
+				if (n is DisplayedType) s = "; title: " + (n as DisplayedType)?.title ?? "";
+				else if (n is PropertyType) s = "; " + (n as PropertyType)?.propName ?? "" + ": " + (n as PropertyType)?.val ?? "";
+				else s = $"; type: {n.GetType().Name}";
+				return s;
+			}
+			
+			//We should instead return SortedNodes, and provide the treeText as an out parameter
+			if (print) treeText = sbTreeText.ToString();
+			else treeText = null;
+			return SortedNodes;
+
 		}
 		/// <summary>
 		/// Reflects the SDC tree and re-registers all nodes in the tree in the 3 main SDC OM dictionaries: _ITopNode._Nodes, _ITopNode._ParentNodes, _ITopNode._ChildNodes.
@@ -545,7 +563,7 @@ namespace SDC.Schema
 			var cn = topNode._ChildNodes;
 			int i = 0;
 			var sortedList = new List<BaseType>();
-			if(ResetSortFlags) TreeSort_ClearNodeIds();
+			if (ResetSortFlags) TreeSort_ClearNodeIds();
 
 			MoveNext(n);
 
@@ -555,7 +573,7 @@ namespace SDC.Schema
 				if (startReorder >= 0)
 				{
 					n.order = i;
-					i+= orderInterval;
+					i += orderInterval;
 				}
 
 				//shorter code option:
@@ -567,7 +585,7 @@ namespace SDC.Schema
 				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
 				{
 					if (childList != null)
-					{					
+					{
 						SortElementKids(n, childList);
 						foreach (var child in childList)
 							MoveNext(child);
@@ -581,29 +599,32 @@ namespace SDC.Schema
 		/// <summary>
 		/// Get a sorted list of node n, plus of all of node n's sub-elements, up to but not including the next IdentifiedExtensionType node
 		/// </summary>
-		/// <param name="n">The node whose subtree we ae retrieving</param>
+		/// <param name="n">The node whose subtree we are retrieving</param>
 		/// <param name="resortChildNodes">Set to true if the child nodes may be incoreectly sorted.  This should not be needed.</param>
+		/// <param name="resetSortFlags"></param>
 		/// <returns></returns>
-		public static List<BaseType> GetSortedSubtreeIET(BaseType n, bool resortChildNodes = false, bool ResetSortFlags = true)
+		public static List<IdentifiedExtensionType> GetSortedSubtreeIET(BaseType n, bool resortChildNodes = false, bool resetSortFlags = true)
 		{
 			var topNode = (_ITopNode)n.TopNode;
 			var cn = topNode._ChildNodes;
-			var sortedList = new List<BaseType>();
+			var sortedList = new List<IdentifiedExtensionType>();
 			int i = -1;
-			if (ResetSortFlags) TreeSort_ClearNodeIds();
+			if (resortChildNodes && resetSortFlags) TreeSort_ClearNodeIds();
 
 			MoveNext(n);
 
 			void MoveNext(BaseType n)
 			{
-				i++;
-				if (n is IdentifiedExtensionType iet && i > 0 ) return;
-				sortedList.Add(n);
+				if (n is IdentifiedExtensionType iet)
+				{
+					i++;
+					if (i != 0) sortedList.Add(iet);
+				}
 				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
 				{
 					if (childList != null)
 					{
-						if(resortChildNodes) SortElementKids(n, childList);
+						if (resortChildNodes) SortElementKids(n, childList);
 						foreach (var child in childList)
 							MoveNext(child);
 					}
@@ -1118,7 +1139,7 @@ namespace SDC.Schema
 		{
 			var topNode = (_ITopNode)item.TopNode;
 			topNode._ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kids);
-			if (kids is not null) SortElementKids(item, kids);
+			if (kids is not null && kids.Count > 0) SortElementKids(item, kids);
 			return kids?.AsReadOnly();
 		}
 
@@ -1186,7 +1207,7 @@ namespace SDC.Schema
 		public static List<AttributeInfo> ReflectChildXmlAttributes(BaseType elementNode, bool getAllXmlAttributes = true, bool omitDefaultValues = true)
 		{
 			if (elementNode is null) throw new NullReferenceException("elementNode cannot be null"); //You can't have sibs without a parent
-																									 
+
 			List<AttributeInfo> attributes = new();
 			IEnumerable<PropertyInfo>? piIE = null;
 			int nodeIndex = -1;
@@ -1240,7 +1261,7 @@ namespace SDC.Schema
 									AddAttribute();
 							}
 							else if (sspn is null)  // ShouldSerializePropertyName idoes not exist for property p.  This can occur for properties like byte[], HTML/XML types, etc.
-							{								
+							{
 
 								if (attDefVal is not null) //Test if the property's DefaultValueAttribute (it's unlikely if this is present) value does not match the current property value,
 								{
@@ -1316,7 +1337,7 @@ namespace SDC.Schema
 			var topNode = (_ITopNode)item.TopNode;
 			topNode._ChildNodes.TryGetValue(item.ObjectGUID, out List<BaseType>? kidsOut);
 			kids = kidsOut?.AsReadOnly();
-			if (kidsOut is null || kidsOut.Any()) return false;
+			if (kidsOut is null || !kidsOut.Any()) return false;
 			return true;
 		}
 
@@ -1971,8 +1992,8 @@ namespace SDC.Schema
 		public static string CreateNameBaseFromsGuid(BaseType n, int nameBaseLength = 6, bool allLowerCase = false)
 		{
 			if (nameBaseLength > 20 || nameBaseLength < 1) throw new ArgumentException("nameBaseLength must be > 0 and < 21");
-			string  sg = new(n.sGuid);			
-			Regex pattern = new("^[a-zA-Z0-9-_]{22}");				
+			string sg = new(n.sGuid);
+			Regex pattern = new("^[a-zA-Z0-9-_]{22}");
 
 			if (!pattern.IsMatch(sg))
 				if (sg.IsNullOrWhitespace() || sg.Length != 22 || !pattern.IsMatch(sg)) throw new ArgumentException("The supplied node does not have a valid sGuid");
@@ -1982,7 +2003,7 @@ namespace SDC.Schema
 			{ //remove any integer, -, or _ in the first position, as these are illegal for varable names
 				i++;
 				char c = sgl[0];
-				if ((c >= '0' && c <= '9') || c == '_' || c == '-') 
+				if ((c >= '0' && c <= '9') || c == '_' || c == '-')
 					sgl.RemoveAt(0);
 				else break;
 			} while (i < sgl.Count - 1);
@@ -1991,7 +2012,7 @@ namespace SDC.Schema
 			do
 			{ //remove any 0, -, or _ in any remaining position, as these do not make nice variable names
 				char c2 = sgl[i];
-				if (c2 == '0' || c2 == '_' || c2 == '-') 
+				if (c2 == '0' || c2 == '_' || c2 == '-')
 					sgl.RemoveAt(i);
 				else i++;
 
@@ -2024,10 +2045,10 @@ namespace SDC.Schema
 			//This ensures that the node dictionaries (_Nodes, _ParentNodes and _ChildNodes) are kept sorted in the same order as they will be serialized in XML.)
 
 			if (kids is null || kids.Count == 0)
-				if (!((_ITopNode)parentItem)._ChildNodes.TryGetValue(parentItem.ObjectGUID, out kids)) return null;
+				if (!((_ITopNode)parentItem.TopNode)._ChildNodes.TryGetValue(parentItem.ObjectGUID, out kids) && kids?.Count > 0) return null;
 
 			if (!TreeSort_NodeIds.Contains(parentItem.ObjectID))
-			{				
+			{
 				kids.Sort(new TreeSibComparer());
 				TreeSort_NodeIds.Add(parentItem.ObjectID);
 			}
@@ -2362,7 +2383,7 @@ namespace SDC.Schema
 		private static void X_AssignXmlElementAndOrder<T>(T bt) where T : notnull, BaseType
 		{
 			var pi = SdcUtil.GetElementPropertyInfoMeta(bt);
-			bt.ElementName = pi.XmlElementName??"";
+			bt.ElementName = pi.XmlElementName ?? "";
 			bt.ElementOrder = pi.XmlOrder;
 		}
 

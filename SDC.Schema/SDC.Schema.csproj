@@ -19,6 +19,7 @@
     <Compile Remove="SDC MsgPack Generator\**" />
     <Compile Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
     <Compile Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
+    <Compile Remove="SDC.Type\**" />
     <Compile Remove="Utility Classes\Junk\**" />
     <EmbeddedResource Remove="Modified SDC Classes\ConstuctorCommentedOut\**" />
     <EmbeddedResource Remove="Modified SDC Classes\ItemsNodeAnnotated\**" />
@@ -26,6 +27,7 @@
     <EmbeddedResource Remove="SDC MsgPack Generator\**" />
     <EmbeddedResource Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
     <EmbeddedResource Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
+    <EmbeddedResource Remove="SDC.Type\**" />
     <EmbeddedResource Remove="Utility Classes\Junk\**" />
     <None Remove="Modified SDC Classes\ConstuctorCommentedOut\**" />
     <None Remove="Modified SDC Classes\ItemsNodeAnnotated\**" />
@@ -33,10 +35,12 @@
     <None Remove="SDC MsgPack Generator\**" />
     <None Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
     <None Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
+    <None Remove="SDC.Type\**" />
     <None Remove="Utility Classes\Junk\**" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Partial Classes\CC.cs" />
     <Compile Remove="SDC.Schema\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\dayTimeDuration_Stype.cs" />
     <Compile Remove="Utility Classes\Extensions\Unimplemented Extensions.cs" />
     <Compile Remove="Utility Classes\Hex Conversions - Copy %282%29.cs" />
@@ -53,7 +57,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.0.0-preview4" />
+    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.0.0" />
     <PackageReference Include="CSharpVitamins.ShortGuid" Version="2.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.2" />
@@ -77,7 +81,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="SDC.Type\Utils\" />
     <Folder Include="Utility Classes\Interfaces\" />
   </ItemGroup>
 

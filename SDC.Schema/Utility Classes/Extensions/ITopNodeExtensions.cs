@@ -184,12 +184,6 @@ namespace SDC.Schema
 
 		#region Utilities        
 		/// <summary>
-		/// Runs method BaseType.ResetSdcImport(), which resets TopNodeTemp, allowing the addition of a new TopNode for newly added BaseType objects.
-		/// </summary>
-		/// <param name="itn">The itn.</param>
-		public static void ResetSdcImport(this ITopNode itn) => BaseType.ResetSdcImport();
-
-		/// <summary>
 		/// Retrieve a dictionary containing information about the populated SDC attributes <br/>
 		/// on each <see cref="BaseType"/> node in the <see cref="ITopNode"/> tree.<br/>
 		/// Populated attributes are XML attributes that will be serialized to XML.
@@ -299,8 +293,7 @@ namespace SDC.Schema
 		{
 			IdentifiedExtensionType? iet;
 			iet = (IdentifiedExtensionType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(IdentifiedExtensionType)).Where(
-					t => ((IdentifiedExtensionType)t).ID == id).FirstOrDefault();
+				n => n is IdentifiedExtensionType nIet && nIet.ID == id).FirstOrDefault();
 			return iet;
 		}
 		//public static BaseType? GetItemByName(this ITopNode itn, string name)

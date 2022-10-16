@@ -86,8 +86,8 @@ namespace SDCObjectModelTests
         public static void Reset()
         {
             Setup.TimerStart("==>Setup starting----------");
-            BaseType.ResetSdcImport();
-            _Xml = System.IO.File.ReadAllText(_XmlPath);
+			BaseType.ResetRootNode();
+			_Xml = System.IO.File.ReadAllText(_XmlPath);
             FD = SdcUtilSerializer<FormDesignType>.DeserializeFromXml(_Xml);
             Setup.TimerPrintSeconds("  seconds: ", "\r\n<==Setup finished----------\r\n");
         }

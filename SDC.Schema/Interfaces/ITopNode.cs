@@ -37,6 +37,11 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		bool GlobalAutoNameFlag { get; set; }
+		/// <summary>
+		/// Runs method BaseType.ResetSdcImport(), which resets TopNodeTemp, allowing the addition of a new TopNode for newly added BaseType objects.
+		/// </summary>
+		/// <param name="itn">The itn.</param>
+		public void ResetSdcInstance(); //=> BaseType.ResetSdcImport();
 
 		#region Serialization
 		/// <summary>
@@ -86,7 +91,7 @@ namespace SDC.Schema
 		/// <summary>
 		/// Internal base object for initializing IETnodesRO.
 		/// </summary>
-		internal ObservableCollection<IdentifiedExtensionType> _IETnodes { get; }
+		internal ObservableCollection<IdentifiedExtensionType> _IETnodes { get;}
 
 		/// <summary>
 		/// Internal version of MaxObjectID, which has a setter; MaxObjectID only has a getter
@@ -112,6 +117,7 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		internal Dictionary<Guid, List<BaseType>> _ChildNodes { get; }
+		protected internal void ClearDictionaries();
 	}
 }
 

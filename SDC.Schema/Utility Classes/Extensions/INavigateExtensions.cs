@@ -50,17 +50,12 @@ namespace SDC.Schema
 			if (chList is null) return null;
 
 			List<IdentifiedExtensionType> newList = new();
-			//do not return the original List, since the recipient code could modify it(move, remove) in ways that invalidate the _ITopNpde dictionaries.
-			newList.AddRange(chList); 
-			return newList;
 
-
-
+			var IETChildren = new List<IdentifiedExtensionType>();
 			return FindIETChildren((BaseType)n);
-
+			
 			List<IdentifiedExtensionType>? FindIETChildren(BaseType node)
-			{
-				var IETChildren = new List<IdentifiedExtensionType>();
+			{				
 				var children = node.GetChildList();
 				foreach (var child in children ?? new List<BaseType>())
 				{
@@ -68,14 +63,14 @@ namespace SDC.Schema
 					{
 						IETChildren.Add(iet);
 					}
-					else
-					{
-						var ietChildren = FindIETChildren(child);
-						if(ietChildren is not null)
-							IETChildren.AddRange(ietChildren);
-					}
+					FindIETChildren(child);
+					//else
+					//{
+					//	var ietChildren = FindIETChildren(child);
+					//	if(ietChildren is not null)
+					//		IETChildren.AddRange(ietChildren);
+					//}
 				}
-
 				return IETChildren;
 			}
 		}

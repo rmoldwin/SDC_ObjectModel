@@ -41,7 +41,7 @@ namespace SDC.Schema
 					qNew.ListField_Item.maxSelections = 0;
 					break;
 				case QuestionEnum.QuestionFill:
-					qNew.AddQuestionResponseField(out DataTypes_DEType _);
+					qNew.AddQuestionResponseField(out DataTypes_DEType dtDE);
 					break;
 				case QuestionEnum.QuestionLookupSingle:
 					qNew.AddListFieldToQuestion().AddEndpoint();
@@ -147,7 +147,7 @@ namespace SDC.Schema
 		public static ChildItemsType AddChildItemsNode(this IChildItemsParent parent) 
 			//where T : BaseType, IChildItemsParent
 		{
-			ChildItemsType childItems = null;  //this class contains an "Items" list
+			ChildItemsType childItems;  //this class contains an "Items" list
 			if (parent == null)
 				throw new ArgumentNullException(nameof(parent));
 			//return childItems; 

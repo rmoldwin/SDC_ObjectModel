@@ -72,9 +72,9 @@ public partial class ResponseFieldType : ExtensionBaseType
             if (((_response == null) 
                         || (_response.Equals(value) != true)))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "Response";
-                Validator.ValidateProperty(value, validatorPropContext);
+                //ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                //validatorPropContext.MemberName = "Response";
+                //Validator.ValidateProperty(value, validatorPropContext);
                 _response = value;
                 OnPropertyChanged("Response", value);
             }

@@ -17,23 +17,24 @@ namespace SDC.Schema
 		/// <returns></returns>
 		public static List<BaseType>? GetChildList(this BaseType bt)
 		{
-			var topNode = (_ITopNode)bt.TopNode;
-			var cn = topNode?._ChildNodes;
-			if (cn is null) return null;
-			var childListCopy = new List<BaseType>();  //We'll return this list so that we don't return a reference to the List inside the _ChildNodes dictionary
-			if (bt.ParentNode != null)
-				if (cn.TryGetValue(bt.ParentNode.ObjectGUID, out List<BaseType>? childList))
-				{
-					childListCopy.AddRange(childList);
-					return childListCopy;
-				}
-			//if (bt is FormDesignType fd) return fd.ChildItemsNode.ChildItemsList;
-			if (cn.TryGetValue(bt.ObjectGUID, out List<BaseType>? childList2))
-			{
-				childListCopy.AddRange(childList2);
-				return childListCopy;
-			}
-			return null;
+			return SdcUtil.GetChildElements(bt)?.ToList();
+			//var topNode = (_ITopNode)bt.TopNode;
+			//var cn = topNode?._ChildNodes;
+			//if (cn is null) return null;
+			//var childListCopy = new List<BaseType>();  //We'll return this list so that we don't return a reference to the List inside the _ChildNodes dictionary
+			//if (bt.ParentNode != null)
+			//	if (cn.TryGetValue(bt.ParentNode.ObjectGUID, out List<BaseType>? childList))
+			//	{
+			//		childListCopy.AddRange(childList);
+			//		return childListCopy;
+			//	}
+			////if (bt is FormDesignType fd) return fd.ChildItemsNode.ChildItemsList;
+			//if (cn.TryGetValue(bt.ObjectGUID, out List<BaseType>? childList2))
+			//{
+			//	childListCopy.AddRange(childList2);
+			//	return childListCopy;
+			//}
+			//return null;
 		}
 		/// <summary>
 		/// Determine if the current node is an ancestor (i.e., a node closer to the root node) of parameter <paramref name="descendantNode"/>.
@@ -143,7 +144,7 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="bt">The node whose subtree we are retrieving </param>
 		/// <returns></returns>
-		public static List<BaseType> GetSortedSubtreeIETList(this BaseType bt)
+		public static List<IdentifiedExtensionType> GetSortedSubtreeIETList(this BaseType bt)
 		{
 			return SdcUtil.GetSortedSubtreeIET(bt);
 		}

@@ -106,7 +106,7 @@ namespace SDC.Schema
 
         [XmlIgnore]
         [JsonIgnore]
-        public ITopNode TopNode { get; }
+         ITopNode TopNode { get; }
         [XmlIgnore]
         [JsonIgnore]
         public RetrieveFormPackageType PackageNode { get; }
@@ -126,7 +126,11 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		int ItemViewState { get; set; }
-
+		/// <summary>
+		/// Reset TopNodeTemp to null, so that nodes newly added to a top node<br/>
+		/// use the correct node for the top of the object tree
+		/// </summary>
+		//public abstract static void ResetTempTopNode();
 
 	}
 }

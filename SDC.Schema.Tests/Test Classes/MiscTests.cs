@@ -22,8 +22,8 @@ namespace SDCObjectModelTests.TestClasses
 
         public MiscTests()
         {
-            BaseType.ResetSdcImport();
-            string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
+			BaseType.ResetRootNode();
+			string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
             fd = FormDesignType.DeserializeFromXmlPath(path);
         }
 

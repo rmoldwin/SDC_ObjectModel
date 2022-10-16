@@ -18,7 +18,7 @@ namespace SDC.Schema
 		public static ListType AddList(this ListFieldType lf)
 		{
 			ListType list;  //this is not the .NET List class; It's an answer list
-			if (lf.List == null)
+			if (lf.List is null)
 			{
 				list = new ListType(lf);
 				lf.List = list;

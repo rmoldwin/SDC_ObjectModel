@@ -21,9 +21,9 @@ namespace SDCObjectModelTests.TestClasses
         [TestMethod]
         public void DeserializeDEFromPath()
         {
-            BaseType.ResetSdcImport();
-            //string path = @".\Test files\DE sample.xml";
-            string path = Path.Combine("..", "..", "..", "Test files", "DE sample.xml");
+			BaseType.ResetRootNode();
+			//string path = @".\Test files\DE sample.xml";
+			string path = Path.Combine("..", "..", "..", "Test files", "DE sample.xml");
             //string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
             DataElementType DE = SdcUtilSerializer<DataElementType>.DeserializeFromXmlPath(path);
             var myXML = DE.GetXml();
@@ -35,9 +35,9 @@ namespace SDCObjectModelTests.TestClasses
         [TestMethod]
         public void DeserializeDEFromXml()
         {
-            BaseType.ResetSdcImport();
-            //string path = @".\Test files\DE sample.xml";
-            string path = Path.Combine("..", "..", "..", "Test files", "DE sample.xml");
+			BaseType.ResetRootNode();
+			//string path = @".\Test files\DE sample.xml";
+			string path = Path.Combine("..", "..", "..", "Test files", "DE sample.xml");
             string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
             DataElementType DE = SdcUtilSerializer<DataElementType>.DeserializeFromXml(sdcFile);
             var myXML = DE.GetXml();
@@ -50,10 +50,10 @@ namespace SDCObjectModelTests.TestClasses
             Setup.TimerStart("==>[] Started");
 
 
-            BaseType.ResetSdcImport();
-            //string path = @".\Test files\Demog CCO Lung Surgery.xml";
+			BaseType.ResetRootNode();
+			//string path = @".\Test files\Demog CCO Lung Surgery.xml";
 
-            string path = Path.Combine("..", "..", "..", "Test files", "Demog CCO Lung Surgery.xml");
+			string path = Path.Combine("..", "..", "..", "Test files", "Demog CCO Lung Surgery.xml");
             //if (!File.Exists(path)) path = @"/Test files/Demog CCO Lung Surgery.xml";
             //string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
             DemogFormDesignType FD = SdcUtilSerializer<DemogFormDesignType>.DeserializeFromXmlPath(path);
@@ -71,8 +71,8 @@ namespace SDCObjectModelTests.TestClasses
         [TestMethod]
         public void DeserializeFormDesignFromPathSimple()
         {
-            BaseType.ResetSdcImport();
-            string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
+			BaseType.ResetRootNode();
+			string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
             string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
             var FD = FormDesignType.DeserializeFromXmlPath(path);
             var myXml = SdcSerializer<FormDesignType>.Serialize(FD);
@@ -83,22 +83,22 @@ namespace SDCObjectModelTests.TestClasses
         [TestMethod]
         public void DeserializeFormDesignFromPath()
         {
-            BaseType.ResetSdcImport();
-            //string path = @".\Test files\CCO Lung Surgery.xml";
-            //string path = @".\Test files\Breast.Invasive.Staging.359_.CTP9_sdcFDF.xml";
-            string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
+			BaseType.ResetRootNode();
+			//string path = @".\Test files\CCO Lung Surgery.xml";
+			//string path = @".\Test files\Breast.Invasive.Staging.359_.CTP9_sdcFDF.xml";
+			string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
             //string path = @".\Test files\Adrenal.Bx.Res.129_3.004.001.REL_sdcFDF_test.xml";
             string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
 
             var FD = FormDesignType.DeserializeFromXmlPath(path);
             //SDC.Schema.FormDesignType FD = SDC.Schema.FormDesignType.DeserializeSdcFromFile(sdcFile);
             string myXML;
-            //myXML =  SdcSerializer<FormDesignType>.Serialize(FD);
+			//myXML =  SdcSerializer<FormDesignType>.Serialize(FD);
 
-            //Test adding and reading FD object model
-            var Q = (QuestionItemType)FD.Nodes.Values.Where(
+			//Test adding and reading FD object model
+			QuestionItemType Q = (QuestionItemType)FD.Nodes.Values.Where(
                 t => t.GetType() == typeof(QuestionItemType)).Where(
-                q => ((QuestionItemType)q).ID == "58218.100004300").FirstOrDefault();
+                q => ((QuestionItemType)q).ID == "58218.100004300").FirstOrDefault()!;
 
             Assert.IsTrue(Q.ListField_Item.maxSelections == 1, $"maxSelections must be '1', but returned '{Q.ListField_Item.maxSelections}'");  //check that correct default value (1) is set 
             var DI = Q.AddChildDisplayedItem("DDDDD");//should add to end of the <List>
@@ -196,7 +196,7 @@ namespace SDCObjectModelTests.TestClasses
             //    elementPrefix: "s");
 
             Debug.Print(myXML);
-            FD.Clear();
+            FD.ResetSdcInstance();
             //var myMP = FD.GetMsgPack();
             //FD.SaveMsgPackToFile("C:\\MPfile");  //also support REST transactions, like sending packages to SDC endpoints; consider FHIR support
             var myJson = FD.GetJson();
@@ -205,24 +205,24 @@ namespace SDCObjectModelTests.TestClasses
         [TestMethod]
         public void DeserializePkgFromPath()
         {
-            BaseType.ResetSdcImport();
-            //string path = @".\Test files\..Sample SDCPackage.xml";
-            string path = Path.Combine("..", "..", "..", "Test files", "..Sample SDCPackage.xml");
+			BaseType.ResetRootNode();
+			//string path = @".\Test files\..Sample SDCPackage.xml";
+			string path = Path.Combine("..", "..", "..", "Test files", "..Sample SDCPackage.xml");
             //string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
             var Pkg = RetrieveFormPackageType.DeserializeFromXmlPath(path);
-            FormDesignType FD = (FormDesignType)Pkg.Nodes.Values.Where(n => n.GetType() == typeof(FormDesignType)).FirstOrDefault();
+			//XMLPackageType XPT = (XMLPackageType)Pkg.Nodes.Values.Where(n => n is XMLPackageType).FirstOrDefault();
+			FormDesignType FD = (FormDesignType)Pkg.Nodes.Values.Where(n => n is FormDesignType).FirstOrDefault();
 
-
-            var Q = (QuestionItemType?)Pkg.Nodes.Values.Where(
+            var Q = (QuestionItemType?)FD.Nodes.Values.Where(
                 t => t.GetType() == typeof(QuestionItemType)).Where(
                 q => ((QuestionItemType)q).ID == "37387.100004300").FirstOrDefault();
             var DI = Q.AddChildDisplayedItem("DDDDD");//should add to end of the <List>
             DI.name = "my added DI";
 
-            DisplayedType DI1 = (DisplayedType)Pkg.Nodes.Values.Where(n => n.name == "my added DI").First();
-            DisplayedType DI2 = (DisplayedType)Q.ChildItemsNode.Items[0];
-            QuestionItemType Q1 = (QuestionItemType)DI2.ParentNode.ParentNode;
-            string diName = Q.Item1.Items[0].name;
+            DisplayedType? DI1 = (DisplayedType)Pkg.Nodes.Values.Where(n => n.name == "my added DI").FirstOrDefault();
+            DisplayedType? DI2 = (DisplayedType)Q.ChildItemsNode.Items[0];
+            QuestionItemType? Q1 = (QuestionItemType)DI2.ParentNode.ParentNode;
+            string diName = Q.Item1.Items[0].name;  
             string diName2 = Q.ChildItemsNode.ChildItemsList[0].ID;
             int i = Q.ChildItemsNode.ChildItemsList.Count();
             bool b1 = Q.ChildItemsNode.ShouldSerializeItems();
