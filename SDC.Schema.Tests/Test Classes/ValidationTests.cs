@@ -13,7 +13,6 @@ using System.Security.Claims;
 using Microsoft.VisualStudio.TestPlatform.CoreUtilities.Extensions;
 using Newtonsoft.Json;
 using Microsoft.VisualBasic;
-using SDC.Schema.Interfaces;
 //using SDC.Schema;
 
 namespace SDCObjectModelTests.TestClasses
@@ -34,7 +33,7 @@ namespace SDCObjectModelTests.TestClasses
         {
 			BaseType.ResetRootNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
-            fd = SdcUtilSerializer<FormDesignType>.DeserializeFromXmlPath(path);
+            fd = TopNodeSerializer<FormDesignType>.DeserializeFromXmlPath(path);
 
         }
 

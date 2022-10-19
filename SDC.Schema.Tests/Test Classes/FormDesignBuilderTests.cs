@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-//using SDC.Schema;
+using SDC.Schema.Extensions;
 
 namespace SDCObjectModelTests.TestClasses
 {
@@ -22,8 +22,12 @@ namespace SDCObjectModelTests.TestClasses
         [TestMethod]
         public void AssignNamesFromXmlDoc()
         {
+            return; //no longer needed
             Setup.TimerStart($"==>{Setup.CallerName()} Started");
-            Setup.FD.U_AssignElementNamesFromXmlDoc(Setup.GetXml());
+
+            //This method is now private:
+            //Setup.FD.X_AssignElementNamesFromXmlDoc(Setup.GetXml());
+
             Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
         }
         [TestMethod]

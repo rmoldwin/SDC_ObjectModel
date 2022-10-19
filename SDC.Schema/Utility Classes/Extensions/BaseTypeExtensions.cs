@@ -1,11 +1,12 @@
 ﻿//using SDC;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
 
-namespace SDC.Schema
+namespace SDC.Schema.Extensions
 {
 	/// <summary>
-	/// Extensions that will appear on all <see cref="BaseClass"/> objects
+	/// Extensions that will appear on all <see cref="BaseType"/> objects
 	/// </summary>
 	public static class BaseTypeExtensions
 	{
@@ -15,26 +16,9 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="bt"></param>
 		/// <returns></returns>
-		public static List<BaseType>? GetChildList(this BaseType bt)
+		public static ReadOnlyCollection<BaseType>? GetChildNodes(this BaseType bt)
 		{
-			return SdcUtil.GetChildElements(bt)?.ToList();
-			//var topNode = (_ITopNode)bt.TopNode;
-			//var cn = topNode?._ChildNodes;
-			//if (cn is null) return null;
-			//var childListCopy = new List<BaseType>();  //We'll return this list so that we don't return a reference to the List inside the _ChildNodes dictionary
-			//if (bt.ParentNode != null)
-			//	if (cn.TryGetValue(bt.ParentNode.ObjectGUID, out List<BaseType>? childList))
-			//	{
-			//		childListCopy.AddRange(childList);
-			//		return childListCopy;
-			//	}
-			////if (bt is FormDesignType fd) return fd.ChildItemsNode.ChildItemsList;
-			//if (cn.TryGetValue(bt.ObjectGUID, out List<BaseType>? childList2))
-			//{
-			//	childListCopy.AddRange(childList2);
-			//	return childListCopy;
-			//}
-			//return null;
+			return SdcUtil.GetChildElements(bt);
 		}
 		/// <summary>
 		/// Determine if the current node is an ancestor (i.e., a node closer to the root node) of parameter <paramref name="descendantNode"/>.
@@ -171,18 +155,22 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="bt"></param>
 		/// <returns></returns>
-		public static List<BaseType>? GetSibs(this BaseType bt)
+		public static IReadOnlyCollection<BaseType>? GetSibNodes(this BaseType bt)
 		{
-			var topNode = (_ITopNode)bt.TopNode;
-			var par = bt?.ParentNode;
-			if (par is null) return null;
-			var sibListCopy = new List<BaseType>();  //we use this list to avoid returning a reference to Value List inside _ChildNodes.
-			if (topNode._ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs))
-			{
-				sibListCopy.AddRange(sibs);
-				return sibListCopy;
-			}
-			return null;
+			if (bt.ParentNode is not null)
+				return SdcUtil.GetChildElements(bt.ParentNode);
+			else return null;
+
+			//var topNode = (_ITopNode)bt.TopNode;
+			//var par = bt?.ParentNode;
+			//if (par is null) return null;
+			//var sibListCopy = new List<BaseType>();  //we use this list to avoid returning a reference to Value List inside _ChildNodes.
+			//if (topNode._ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs))
+			//{
+			//	sibListCopy.AddRange(sibs);
+			//	return sibListCopy;
+			//}
+			//return null;
 		}
 
 		/// <summary>
@@ -234,7 +222,7 @@ namespace SDC.Schema
 		/// <param name="targetType"></param>
 		/// <returns></returns>
 		/// <exception cref="NotImplementedException"></exception>
-		public static bool X_IsItemChangeAllowed_(this IdentifiedExtensionType iet, IdentifiedExtensionType targetType)
+		private static bool X_IsItemChangeAllowed_(this IdentifiedExtensionType iet, IdentifiedExtensionType targetType)
 		=>	throw new NotImplementedException();
 
 

@@ -1,7 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using SDC.Schema;
-using SDC.Schema.Interfaces;
+using SDC.Schema.Extensions;
 using System;
 using System.Data;
 using System.Diagnostics;
@@ -25,7 +25,7 @@ namespace SDCObjectModelTests.TestClasses
 			//string path = @".\Test files\DE sample.xml";
 			string path = Path.Combine("..", "..", "..", "Test files", "DE sample.xml");
             //string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
-            DataElementType DE = SdcUtilSerializer<DataElementType>.DeserializeFromXmlPath(path);
+            DataElementType DE = TopNodeSerializer<DataElementType>.DeserializeFromXmlPath(path);
             var myXML = DE.GetXml();
             Debug.Print(myXML);
             Debug.Print(DE.GetJson());
@@ -39,7 +39,7 @@ namespace SDCObjectModelTests.TestClasses
 			//string path = @".\Test files\DE sample.xml";
 			string path = Path.Combine("..", "..", "..", "Test files", "DE sample.xml");
             string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
-            DataElementType DE = SdcUtilSerializer<DataElementType>.DeserializeFromXml(sdcFile);
+            DataElementType DE = TopNodeSerializer<DataElementType>.DeserializeFromXml(sdcFile);
             var myXML = DE.GetXml();
             Debug.Print(myXML);
 
@@ -56,8 +56,8 @@ namespace SDCObjectModelTests.TestClasses
 			string path = Path.Combine("..", "..", "..", "Test files", "Demog CCO Lung Surgery.xml");
             //if (!File.Exists(path)) path = @"/Test files/Demog CCO Lung Surgery.xml";
             //string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
-            DemogFormDesignType FD = SdcUtilSerializer<DemogFormDesignType>.DeserializeFromXmlPath(path);
-            var myXML = SdcUtilSerializer<DemogFormDesignType>.GetXml(FD);
+            DemogFormDesignType FD = TopNodeSerializer<DemogFormDesignType>.DeserializeFromXmlPath(path);
+            var myXML = TopNodeSerializer<DemogFormDesignType>.GetXml(FD);
             Debug.Print(myXML);
             //Debug.Print(FD.GetJson());
             var doc = new XmlDocument();
@@ -169,7 +169,7 @@ namespace SDCObjectModelTests.TestClasses
             //    .Where(n => n.GetType() == typeof(PropertyType)).Cast<PropertyType>()
             //    .Where(p => p.propName == "TemplateID").FirstOrDefault();
 
-            var prop1 = FD.GetChildList().OfType<PropertyType>()
+            var prop1 = FD.GetChildNodes().OfType<PropertyType>()
                 .Where(p => p.propName == "TemplateID").FirstOrDefault();
             
 
@@ -211,7 +211,7 @@ namespace SDCObjectModelTests.TestClasses
             //string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
             var Pkg = RetrieveFormPackageType.DeserializeFromXmlPath(path);
 			//XMLPackageType XPT = (XMLPackageType)Pkg.Nodes.Values.Where(n => n is XMLPackageType).FirstOrDefault();
-			FormDesignType FD = (FormDesignType)Pkg.Nodes.Values.Where(n => n is FormDesignType).FirstOrDefault();
+			FormDesignType FD = (FormDesignType)Pkg.Nodes.Values.Where(n => n is FormDesignType).FirstOrDefault()!;
 
             var Q = (QuestionItemType?)FD.Nodes.Values.Where(
                 t => t.GetType() == typeof(QuestionItemType)).Where(

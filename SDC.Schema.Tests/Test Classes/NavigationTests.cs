@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MsgPack.Serialization.CollectionSerializers;
 using SDC.Schema;
+using SDC.Schema.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -209,20 +210,23 @@ namespace SDCObjectModelTests.TestClasses
 				i++;
 
 
-				if (n.TryGetChildNodes(out ReadOnlyCollection<BaseType> kids) )
-				{
-					firstChild = n.GetChildList()?[0];
+				//if (n.TryGetChildNodes(out ReadOnlyCollection<BaseType> kids) )
+				//{
+					firstChild = n.GetChildNodes()?.First();
 					if (firstChild != null)
 						MoveNext(firstChild);
-				}
+				//}
 
 
 				var par = n.ParentNode;
 				if (par != null)
 				{
-					if (par.TryGetChildNodes(out ReadOnlyCollection<BaseType> sibList))
+					//if (par.TryGetChildNodes(out ReadOnlyCollection<BaseType> sibList))
+					//{
+					var sibList = par.GetChildNodes()?.ToList();
+					if (sibList is not null)
 					{
-						var index = sibList.IndexOf(n);
+						int index = sibList.IndexOf(n);
 						if (index < sibList.Count - 1)
 						{
 							nextSib = sibList[index + 1];
@@ -230,6 +234,7 @@ namespace SDCObjectModelTests.TestClasses
 								MoveNext(nextSib);
 						}
 					}
+					//}
 				}
 			}
 

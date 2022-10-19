@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 
 //using SDC;
-namespace SDC.Schema
+namespace SDC.Schema.Extensions
 {
 	public static class IMoveRemoveExtensions
 	{
@@ -34,18 +34,18 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="btSource">The SDC node to test for its ability to be attached to the <paramref name="newParent"/> node.</param>
 		/// <param name="newParent">The node to which the <paramref name="btSource"/> node should be moved.</param>
-		/// <param name="pObj">The property object on <paramref name="newParent"/> that would attach to <paramref name="item"/> (hold its object reference).
+		/// <param name="pObj">The property object on <paramref name="newParent"/> that would attach to <paramref name="btSource"/> (hold its object reference).
 		/// pObj may be a List&lt;> or a non-List object.</param>
 		/// <returns>True for allowed parent nodes, false for disallowed not allowed</returns>
 		internal static bool IsParentNodeAllowed(this BaseType btSource, BaseType newParent, out object? pObj)
 			=> SdcUtil.IsParentNodeAllowed(btSource, newParent, out pObj);
 
 		/// <summary>
-		/// Reflect the object tree to determine if <paramref name="item"/> can be attached to <paramref name="newParent"/>.   
-		/// We must find an <em>exact</em> match for <paramref name="item"/>'s element name and the data type in <paramref name="newParent"/> to allow the move.
+		/// Reflect the object tree to determine if <paramref name="btSource"/> can be attached to <paramref name="newParent"/>.   
+		/// We must find an <em>exact</em> match for <paramref name="btSource"/>'s element name and the data type in <paramref name="newParent"/> to allow the move.
 		/// </summary>
 		/// <param name="btSource">The SDC node to test for its ability to be attached to the <paramref name="newParent"/> node.</param>
-		/// <param name="newParent">The node to which the <paramref name="item"/> node should be moved.</param>
+		/// <param name="newParent">The node to which the <paramref name="btSource"/> node should be moved.</param>
 		/// <returns>True for allowed parent nodes, false for disallowed not allowed</returns>
 		public static bool IsParentNodeAllowed(this BaseType btSource, BaseType newParent)
 			=> SdcUtil.IsParentNodeAllowed(btSource, newParent, out _);
@@ -225,9 +225,9 @@ namespace SDC.Schema
 					{
 						var childList = topNode._ChildNodes[par.ObjectGUID];
 						success = childList.Remove(btSource); //Returns a List<BaseType> and removes "item" from that list
-						if (!success) throw new Exception($"Could not remove list node from ChildNodes dictionary: name: {btSource.name ?? "(none)"}, ObjectID: {btSource.ObjectID}");
+						if (!success) throw new Exception($"Could not remove list node from GetChildNodes dictionary: name: {btSource.name ?? "(none)"}, ObjectID: {btSource.ObjectID}");
 						if (childList.Count == 0) success = topNode._ChildNodes.Remove(par.ObjectGUID); //remove the entire entry from _ChildNodes
-						if (!success) throw new Exception($"Could not remove parent entry from ChildNodes dictionary: name: {par.name ?? "(none)"}, ObjectID: {par.ObjectID}");
+						if (!success) throw new Exception($"Could not remove parent entry from GetChildNodes dictionary: name: {par.name ?? "(none)"}, ObjectID: {par.ObjectID}");
 					}
 				}
 			}
@@ -244,7 +244,7 @@ namespace SDC.Schema
 		{
 			var topNode = (_ITopNode)btSource.TopNode;
 			bool success = topNode._Nodes.Remove(btSource.ObjectGUID);
-			if (!success) throw new Exception($"Could not remove object from Nodes dictionary: name: {btSource.name ?? "(none)"}, ObjectID: {btSource.ObjectID}");
+			if (!success) throw new Exception($"Could not remove object from GetNodes dictionary: name: {btSource.name ?? "(none)"}, ObjectID: {btSource.ObjectID}");
 			btSource.UnRegisterParent();
 
 			if (btSource is IdentifiedExtensionType iet)

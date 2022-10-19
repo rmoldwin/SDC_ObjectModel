@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema;
+using SDC.Schema.Extensions;
 using SDCObjectModelTests;
 using System;
 using System.Collections.Generic;

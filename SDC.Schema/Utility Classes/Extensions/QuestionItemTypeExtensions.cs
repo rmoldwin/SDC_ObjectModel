@@ -1,8 +1,7 @@
 ﻿
-
-//using SDC;
 using System.Collections.Immutable;
 using System.Drawing;
+using SDC.Schema.Extensions;
 
 namespace SDC.Schema
 {
@@ -135,7 +134,7 @@ namespace SDC.Schema
 		/// <returns>Ordered List&lt;DisplayedType> or null if the Question has no child ListItem or DisplayedType nodes</returns>
 		static ImmutableList<DisplayedType>? ListItems(this QuestionItemType q)
 		{
-			return q?.ListField_Item?.List?.GetChildList()?.Cast<DisplayedType>().ToImmutableList();
+			return q?.ListField_Item?.List?.GetChildNodes()?.Cast<DisplayedType>().ToImmutableList();
 		}
 		/// <summary>
 		/// In a QuestionResponse (QR) node, retrieve the DataTypeDE_Item (e.g., &lt;string/>, &lt;decimal/>)

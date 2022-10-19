@@ -5,13 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SDC.Schema.Interfaces
+namespace SDC.Schema
 {
     /// <summary>
     /// Contains SDC (de)serialization static methods designed to be accessed for ITopNode classes.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public static class SdcUtilSerializer<T> where T : ITopNode
+    public static class TopNodeSerializer<T> where T : ITopNode
     {
 		//!+XML
 

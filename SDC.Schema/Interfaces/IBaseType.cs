@@ -6,7 +6,12 @@ namespace SDC.Schema
 {
     public interface IBaseType : IMoveRemove, INavigate
     {
-        [XmlIgnore]
+        //TODO: implement AutoNameFlag
+		/// <summary>
+		/// Boolean flag to determine if @name values should be automatically generated for each SDC element node<br/>
+        /// Not currently implemented.
+		/// </summary>
+		[XmlIgnore]
         [JsonIgnore]
         public bool AutoNameFlag { get; set; }
 
@@ -17,45 +22,46 @@ namespace SDC.Schema
         ///// </summary>
         //[System.Xml.Serialization.XmlIgnore]
         //[JsonIgnore]
-        //public decimal SubIETcounter { get; }
+        //public int SubIETcounter { get; }
 
-        /// <summary>
-        /// The root text ("shortName") used to construct the name property.  The code may add a prefix and/or suffix to BaseName
-        /// </summary>
-        [XmlIgnore]
-        [JsonIgnore]
-        public string X_BaseName { get; set; }
 
         /// <summary>
         /// The name of XML element that is output from this class instance.
-        /// Some SDC types are used in conjunction with multiple element names.  
-        /// The auto-generated classes do not provide a way to determine the element name form the class instance.
-        /// This property allows the code whichj creates each object to specify the element names that it is adding 
-        /// as each object is creeated in code.  Although it may be possible to achieve this effect by reflection of 
-        /// attributes, this ElementName approach provides more flexibility and is probably more efficient.
-        /// ElementName will be most useful for auto-generating @name attributes for some elements.
-        /// In many cases, ElementName will be assigned through class constructors, but it can also be assigned 
-        /// through this property after the object is instantiated
         /// </summary>
         [XmlIgnore]
         [JsonIgnore]
         public string ElementName { get; }
 
         /// <summary>
-        /// The prefix used 
-        /// in the @name attribute that is output from this class instance
+        /// The prefix used to autogenerate the value of the @name attribute, if AutoNameFlag = true.  <br/>
+        /// A default prefix is assigned for each SDC element, based on its SDC type.<br/>
+        /// THat prefix may be cusomized here.
         /// </summary>
         [XmlIgnore]
         [JsonIgnore]
         public string ElementPrefix { get; set; }
-
+        /// <summary>
+        /// A monotonically increasing integer value, added to each SDC node as it is constructed in an SDC tree.<br/>
+        /// The numeric value does not mecessarily specify the order of nodes in the SDC tree, <br/>
+        /// since nodes may be added between other nodes or moved after the initial tree is created.<br/>
+        /// The ObjectID is created anew each time an SDC tree is deserialized, and therefore should not <br/>
+        /// be treated as a stable identifier that maintains its value after a serialization/deserialization cycle.
+        /// </summary>
         [XmlIgnore]
         [JsonIgnore]
         public int ObjectID { get; }
-        [XmlIgnore]
+		/// <summary>
+		/// A unique identifier added to each SDC node as it is constructed in teh object tree. <br/>
+        /// If sGuid (a short GUID) is used, it is derived automatically from the ObjectGUID
+		/// </summary>
+		[XmlIgnore]
         [JsonIgnore]
         public Guid ObjectGUID { get; }
-        [XmlIgnore]
+		//TODO: NodeType not currently implemented	
+		/// <summary>
+		/// The SDC Type of the current node.
+		/// </summary>
+		[XmlIgnore]
         [JsonIgnore]
         public ItemTypeEnum NodeType { get; }
         //[XmlIgnore]
@@ -94,7 +100,10 @@ namespace SDC.Schema
         [JsonIgnore]
         public BaseType? ParentNode { get; }
 
-        [XmlIgnore]
+		/// <summary>
+		/// 
+		/// </summary>
+		[XmlIgnore]
         [JsonIgnore]
         public IdentifiedExtensionType? ParentIETypeNode { get; }
         /// <summary>
@@ -104,10 +113,17 @@ namespace SDC.Schema
         [JsonIgnore]
         public string? ParentIETypeID { get; }
 
-        [XmlIgnore]
+		/// <summary>
+		/// 
+		/// </summary>
+		[XmlIgnore]
         [JsonIgnore]
-         ITopNode TopNode { get; }
-        [XmlIgnore]
+		public ITopNode TopNode { get; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		[XmlIgnore]
         [JsonIgnore]
         public RetrieveFormPackageType PackageNode { get; }
 		//public abstract void SetNames(string elementName = "", string elementPrefix = "", string baseName = "");
@@ -125,7 +141,7 @@ namespace SDC.Schema
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		int ItemViewState { get; set; }
+		public int ItemViewState { get; set; }
 		/// <summary>
 		/// Reset TopNodeTemp to null, so that nodes newly added to a top node<br/>
 		/// use the correct node for the top of the object tree

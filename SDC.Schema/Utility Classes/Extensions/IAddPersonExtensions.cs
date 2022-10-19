@@ -1,7 +1,7 @@
 ﻿
 
 //using SDC;
-namespace SDC.Schema
+namespace SDC.Schema.Extensions
 {
 	public static class IAddPersonExtensions
 	{

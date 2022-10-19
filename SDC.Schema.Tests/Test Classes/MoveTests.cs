@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.ObjectModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema;
+using SDC.Schema.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;

@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
+namespace SDC.Schema.Extensions;
 public static class StringExtensions
 {
 	/// <summary>

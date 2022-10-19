@@ -3,7 +3,7 @@
 //using SDC;
 using System.Collections.Immutable;
 
-namespace SDC.Schema
+namespace SDC.Schema.Extensions
 {
 	public static class IChildItemsParentExtensions
 	{

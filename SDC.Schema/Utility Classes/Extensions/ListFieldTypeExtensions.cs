@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace SDC.Schema
+namespace SDC.Schema.Extensions
 {
 	public static class ListFieldTypeExtensions
 	{

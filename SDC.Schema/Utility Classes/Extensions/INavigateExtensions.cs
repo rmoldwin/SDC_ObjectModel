@@ -2,11 +2,13 @@
 
 //using SDC;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml.Linq;
 
-namespace SDC.Schema
+namespace SDC.Schema.Extensions
 {
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	public static class INavigateExtensions
 	{
 		public static BaseType? GetNodeFirstSib(this INavigate n)
@@ -30,8 +32,8 @@ namespace SDC.Schema
 		public static bool TryGetChildNodes(this INavigate n, out ReadOnlyCollection<BaseType>? kids)
 		{
 			kids = null;
-			if (n is not null && n is BaseType) return SdcUtil.TryGetChildElements((BaseType)n, out kids); 
-			else return false; 
+			if (n is not null && n is BaseType) return SdcUtil.TryGetChildElements((BaseType)n, out kids);
+			else return false;
 		}
 
 		public static ReadOnlyCollection<BaseType>? GetChildList(this INavigate n)
@@ -46,17 +48,17 @@ namespace SDC.Schema
 
 		public static List<IdentifiedExtensionType>? GetIETChildren(this INavigate n)
 		{
-			var chList =  (n as IChildItemsParent)?.ChildItemsNode?.ChildItemsList;
+			var chList = (n as IChildItemsParent)?.ChildItemsNode?.ChildItemsList;
 			if (chList is null) return null;
 
 			List<IdentifiedExtensionType> newList = new();
 
 			var IETChildren = new List<IdentifiedExtensionType>();
 			return FindIETChildren((BaseType)n);
-			
+
 			List<IdentifiedExtensionType>? FindIETChildren(BaseType node)
-			{				
-				var children = node.GetChildList();
+			{
+				var children = node.GetChildNodes()?.ToList();
 				foreach (var child in children ?? new List<BaseType>())
 				{
 					if (child is IdentifiedExtensionType iet)
@@ -75,5 +77,16 @@ namespace SDC.Schema
 			}
 		}
 
+		private static List<IdentifiedExtensionType>? GetIETDescendants_(this INavigate n, bool includeCurrentIETNode)
+		{ throw new NotImplementedException(); }
+		private static List<ITopNode>? GetITopNodeDescendants_(this INavigate n, bool includeCurrentITopNode)
+		{ throw new NotImplementedException(); }
+		public static List<BaseType>? GetFullTree(this INavigate n)
+		{
+			var root = ((BaseType)n).FindRootNode() as ITopNode;
+			if (root is not null)
+				return SdcUtil.GetSortedTreeList(root);
+			throw new InvalidOperationException("Could not obtain the root node from SdcUtil.FindRootNode");
+		}
 	}
 }

@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Runtime.CompilerServices;
 using SDC.Schema;
+using SDC.Schema.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
-using SDC.Schema.Interfaces;
 
 namespace SDCObjectModelTests
 {
@@ -88,7 +88,7 @@ namespace SDCObjectModelTests
             Setup.TimerStart("==>Setup starting----------");
 			BaseType.ResetRootNode();
 			_Xml = System.IO.File.ReadAllText(_XmlPath);
-            FD = SdcUtilSerializer<FormDesignType>.DeserializeFromXml(_Xml);
+            FD = TopNodeSerializer<FormDesignType>.DeserializeFromXml(_Xml);
             Setup.TimerPrintSeconds("  seconds: ", "\r\n<==Setup finished----------\r\n");
         }
 

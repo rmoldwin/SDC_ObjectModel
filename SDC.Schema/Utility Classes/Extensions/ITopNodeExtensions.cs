@@ -13,7 +13,7 @@ using System.Xml.Linq;
 
 
 //using SDC;
-namespace SDC.Schema
+namespace SDC.Schema.Extensions
 {
 	/// <summary>
 	/// Extension methods for nodes implementing the SDC ITopNode interface, e.g., FormDesignType, RetrieveFormPackageType, etc.
@@ -45,7 +45,7 @@ namespace SDC.Schema
 		/// <param name="reOrderNodes">bool; true will add new sequential @order values to each node</param>
 		/// <param name="reRegisterNodes">bool; Clear and re-write all _ITopNode dictionaries</param>
 		/// <param name="startReorder">int; the starting number for the first node if reOrderNodes = true</param>
-		/// <param name="orderInterval">int; The interval between @order values in sequential node, if reOrderNodes = true</param>
+		/// <param name="orderInterval">int; The interval between @order values in sequential nodes, if reOrderNodes = true</param>
 		/// <returns>A sorted <see cref="List&lt;T>"/> of type <see cref="BaseType"/> containing references to every tree node</returns>
 		public static List<BaseType> RefreshTree(this ITopNode itn, bool reOrderNodes =  true, bool reRegisterNodes = true, int startReorder = 0, int orderInterval = 1)
 		{	//no dictionaries are used for sorting here:
@@ -70,11 +70,11 @@ namespace SDC.Schema
 
 		/// <summary>
 		/// Assign the ElementName (the name of the serialized XML element) property for each node, <br/>
-		/// by comparison with teh source XML document that was used to hydrate the SDC object tree
+		/// by comparison with the source XML document that was used to hydrate the SDC object tree
 		/// </summary>
 		/// <param name="itn"></param>
 		/// <param name="sdcXml"></param>
-		public static void U_AssignElementNamesFromXmlDoc(this ITopNode itn, string sdcXml)
+		private static void X_AssignElementNamesFromXmlDoc(this ITopNode itn, string sdcXml)
 		{
 			//read as XMLDocument to walk tree
 			var x = new XmlDocument();
@@ -115,7 +115,7 @@ namespace SDC.Schema
 		/// all nodes with a root node at the current ITopNode node.
 		/// </summary>
 		/// <param name="itn"></param>
-		/// <returns></returns>
+		/// <returns><see cref="ObservableCollection{BaseType}"/></returns>
 		public static ObservableCollection<BaseType> GetSortedNodesObsCol(this ITopNode itn)
 		=> new (itn.GetSortedNodes());
 
@@ -170,7 +170,7 @@ namespace SDC.Schema
 				.Where(n => n?.name?.Trim() == name.Trim()).FirstOrDefault();
 		public static BaseType? GetNodeByShortGuid(this ITopNode itn, string sGuid) =>
 			topNode(itn)._Nodes.Values
-			.Where(n => n.sGuid.Trim() == sGuid.Trim()).FirstOrDefault();
+			.Where(n => n.sGuid == sGuid.Trim()).FirstOrDefault();
 		public static BaseType? GetNodeByObjectGUID(this ITopNode itn, Guid objectGUID)
 		{
 			topNode(itn)._Nodes.TryGetValue(objectGUID, out BaseType? n);
@@ -289,7 +289,7 @@ namespace SDC.Schema
 
 			return lst;
 		}
-		public static IdentifiedExtensionType? GetNodeByID(this ITopNode itn, string id)
+		private static IdentifiedExtensionType? X_GetNodeByID(this ITopNode itn, string id)
 		{
 			IdentifiedExtensionType? iet;
 			iet = (IdentifiedExtensionType?)_Nodes(itn).Values.Where(

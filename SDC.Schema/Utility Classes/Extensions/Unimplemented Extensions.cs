@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SDC.Schema
+namespace SDC.Schema.Extensions.Unused
 {
 	#region Empty Interface Extension Classes	 - Not yet used
 	public static class INewTopLevelExtensions { } //Empty

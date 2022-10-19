@@ -17,8 +17,8 @@ using CSharpVitamins;
 using System.Reflection.Emit;
 using System.Data;
 using System.Reflection.PortableExecutable;
-using SDC.Schema.Interfaces;
 using System.Xml.Linq;
+using SDC.Schema.Extensions;
 
 
 //!Handling Item and Items generic types derived from the xsd2Code++ code generator
@@ -26,12 +26,12 @@ namespace SDC.Schema
 {
 
 	#region   ..Top SDC Elements
-	public partial class FormDesignType : _ITopNode
+	public partial class FormDesignType : _ITopNode, ITopNodeDeserialize<FormDesignType>
 	{
 		#region ctor
 
 		protected FormDesignType() : base()
-		{ Init(); }
+		{ Init(); this.GetXml(); }
 		public FormDesignType(BaseType parentNode, string id) : base(parentNode, id)
 		{ Init(); }
 		//public FormDesignType(string id) : base(null, id)
@@ -48,17 +48,6 @@ namespace SDC.Schema
 		/// </summary>
 		~FormDesignType()
 		{ }
-		#endregion
-
-		#region IFormDesign
-		//public SectionItemType AddBody()
-		//{ return (this as IFormDesign).AddBody(); }
-		//public SectionItemType AddFooter()
-		//{ return (this as IFormDesign).AddFooter(); }
-		//public SectionItemType AddHeader()
-		//{ return (this as IFormDesign).AddHeader(); }
-		public RulesType AddRules()
-		{ throw new NotImplementedException(); }
 		#endregion
 
 		#region ITopNode 
@@ -151,73 +140,73 @@ namespace SDC.Schema
 		#region Serialization
 
 		public static FormDesignType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<FormDesignType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static FormDesignType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<FormDesignType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public string GetXml(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null) 
-			=> SdcUtilSerializer<FormDesignType>.GetXml(this, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
+		//public string GetXml(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null) 
+		//	=> TopNodeSerializer<FormDesignType>.GetXml(this, refreshSdc: true, createNameDelegate);
 		public static FormDesignType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<FormDesignType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static FormDesignType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<FormDesignType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public string GetJson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null) 
-			=> SdcUtilSerializer<FormDesignType>.GetJson(this, refreshSdc, createNameDelegate);
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
+		//public string GetJson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null) 
+		//	=> TopNodeSerializer<FormDesignType>.GetJson(this, refreshSdc, createNameDelegate);
 		public static FormDesignType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<FormDesignType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static FormDesignType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<FormDesignType>.DeserializeFromBson(sdcBson);
-		public string GetBson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null) 
-			=> SdcUtilSerializer<FormDesignType>.GetBson(this, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromBson(sdcBson);
+		//public string GetBson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null) 
+		//	=> TopNodeSerializer<FormDesignType>.GetBson(this, refreshSdc: true, createNameDelegate);
 		public static FormDesignType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<FormDesignType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static FormDesignType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<FormDesignType>.DeserializeFromMsgPack(sdcMsgPack);
-		public byte[] GetMsgPack(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null) 
-			=> SdcUtilSerializer<FormDesignType>.GetMsgPack(this, refreshSdc: true, createNameDelegate);
-		/// <summary>
-		/// Save the current SDC object tree to an SDC XML file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveXmlToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<FormDesignType>.SaveXmlToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
-		/// <summary>
-		/// Save the current SDC object tree to an SDC Json file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveJsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null ) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<FormDesignType>.SaveJsonToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
-		/// <summary>
-		/// Save the current SDC object tree to an SDC Bson file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// 		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveBsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<FormDesignType>.SaveBsonToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
-		/// <summary>
-		/// Save the current SDC object tree to an SDC MessagePack file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveMsgPackToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<FormDesignType>.SaveMsgPackToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromMsgPack(sdcMsgPack);
+		//public byte[] GetMsgPack(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null) 
+		//	=> TopNodeSerializer<FormDesignType>.GetMsgPack(this, refreshSdc: true, createNameDelegate);
+		///// <summary>
+		///// Save the current SDC object tree to an SDC XML file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveXmlToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<FormDesignType>.SaveXmlToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
+		///// <summary>
+		///// Save the current SDC object tree to an SDC Json file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveJsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null ) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<FormDesignType>.SaveJsonToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
+		///// <summary>
+		///// Save the current SDC object tree to an SDC Bson file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// 		/// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveBsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<FormDesignType>.SaveBsonToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
+		///// <summary>
+		///// Save the current SDC object tree to an SDC MessagePack file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveMsgPackToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<FormDesignType>.SaveMsgPackToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
 
 		#endregion
 
@@ -238,29 +227,29 @@ namespace SDC.Schema
 		#region Serialization
 
 		public static DemogFormDesignType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DemogFormDesignType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static DemogFormDesignType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DemogFormDesignType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
 		public string GetXml(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DemogFormDesignType>.GetXml(this, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DemogFormDesignType>.GetXml(this, refreshSdc: true, createNameDelegate);
 		public static DemogFormDesignType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DemogFormDesignType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static DemogFormDesignType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DemogFormDesignType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
 		public string GetJson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DemogFormDesignType>.GetJson(this, refreshSdc, createNameDelegate);
+			=> TopNodeSerializer<DemogFormDesignType>.GetJson(this, refreshSdc, createNameDelegate);
 		public static DemogFormDesignType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DemogFormDesignType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static DemogFormDesignType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DemogFormDesignType>.DeserializeFromBson(sdcBson);
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromBson(sdcBson);
 		public string GetBson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DemogFormDesignType>.GetBson(this, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DemogFormDesignType>.GetBson(this, refreshSdc: true, createNameDelegate);
 		public static DemogFormDesignType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DemogFormDesignType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static DemogFormDesignType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DemogFormDesignType>.DeserializeFromMsgPack(sdcMsgPack);
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromMsgPack(sdcMsgPack);
 		public byte[] GetMsgPack(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DemogFormDesignType>.GetMsgPack(this, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DemogFormDesignType>.GetMsgPack(this, refreshSdc: true, createNameDelegate);
 		/// <summary>
 		/// Save the current SDC object tree to an SDC XML file at a known location (path)
 		/// </summary>
@@ -270,7 +259,7 @@ namespace SDC.Schema
 		public void SaveXmlToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
 		{
 			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<DemogFormDesignType>.SaveXmlToFile(this, path, refreshSdc: true, createNameDelegate);
+			TopNodeSerializer<DemogFormDesignType>.SaveXmlToFile(this, path, refreshSdc: true, createNameDelegate);
 		}
 		/// <summary>
 		/// Save the current SDC object tree to an SDC Json file at a known location (path)
@@ -281,7 +270,7 @@ namespace SDC.Schema
 		public void SaveJsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
 		{
 			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<DemogFormDesignType>.SaveJsonToFile(this, path, refreshSdc: true, createNameDelegate);
+			TopNodeSerializer<DemogFormDesignType>.SaveJsonToFile(this, path, refreshSdc: true, createNameDelegate);
 		}
 		/// <summary>
 		/// Save the current SDC object tree to an SDC Bson file at a known location (path)
@@ -292,7 +281,7 @@ namespace SDC.Schema
 		public void SaveBsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
 		{
 			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<DemogFormDesignType>.SaveBsonToFile(this, path, refreshSdc: true, createNameDelegate);
+			TopNodeSerializer<DemogFormDesignType>.SaveBsonToFile(this, path, refreshSdc: true, createNameDelegate);
 		}
 		/// <summary>
 		/// Save the current SDC object tree to an SDC MessagePack file at a known location (path)
@@ -303,14 +292,14 @@ namespace SDC.Schema
 		public void SaveMsgPackToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
 		{
 			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<DemogFormDesignType>.SaveMsgPackToFile(this, path, refreshSdc: true, createNameDelegate);
+			TopNodeSerializer<DemogFormDesignType>.SaveMsgPackToFile(this, path, refreshSdc: true, createNameDelegate);
 		}
 
 		#endregion
 
 		#endregion
 	}
-	public partial class DataElementType : _ITopNode
+	public partial class DataElementType : _ITopNode, ITopNodeDeserialize<DataElementType>
 	{
 		protected DataElementType() : base()
 		{ Init(); }
@@ -411,29 +400,29 @@ namespace SDC.Schema
 		#region Serialization
 
 		public static DataElementType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DataElementType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DataElementType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static DataElementType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DataElementType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DataElementType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
 		public string GetXml(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DataElementType>.GetXml(this, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DataElementType>.GetXml(this, refreshSdc: true, createNameDelegate);
 		public static DataElementType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DataElementType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DataElementType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static DataElementType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DataElementType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DataElementType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
 		public string GetJson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DataElementType>.GetJson(this, refreshSdc, createNameDelegate);
+			=> TopNodeSerializer<DataElementType>.GetJson(this, refreshSdc, createNameDelegate);
 		public static DataElementType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DataElementType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DataElementType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static DataElementType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DataElementType>.DeserializeFromBson(sdcBson);
+			=> TopNodeSerializer<DataElementType>.DeserializeFromBson(sdcBson);
 		public string GetBson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DataElementType>.GetBson(this, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DataElementType>.GetBson(this, refreshSdc: true, createNameDelegate);
 		public static DataElementType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DataElementType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DataElementType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static DataElementType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DataElementType>.DeserializeFromMsgPack(sdcMsgPack);
+			=> TopNodeSerializer<DataElementType>.DeserializeFromMsgPack(sdcMsgPack);
 		public byte[] GetMsgPack(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<DataElementType>.GetMsgPack(this, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<DataElementType>.GetMsgPack(this, refreshSdc: true, createNameDelegate);
 		/// <summary>
 		/// Save the current SDC object tree to an SDC XML file at a known location (path)
 		/// </summary>
@@ -443,7 +432,7 @@ namespace SDC.Schema
 		public void SaveXmlToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
 		{
 			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<DataElementType>.SaveXmlToFile(this, path, refreshSdc: true, createNameDelegate);
+			TopNodeSerializer<DataElementType>.SaveXmlToFile(this, path, refreshSdc: true, createNameDelegate);
 		}
 		/// <summary>
 		/// Save the current SDC object tree to an SDC Json file at a known location (path)
@@ -454,7 +443,7 @@ namespace SDC.Schema
 		public void SaveJsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
 		{
 			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<DataElementType>.SaveJsonToFile(this, path, refreshSdc: true, createNameDelegate);
+			TopNodeSerializer<DataElementType>.SaveJsonToFile(this, path, refreshSdc: true, createNameDelegate);
 		}
 		/// <summary>
 		/// Save the current SDC object tree to an SDC Bson file at a known location (path)
@@ -465,7 +454,7 @@ namespace SDC.Schema
 		public void SaveBsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
 		{
 			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<DataElementType>.SaveBsonToFile(this, path, refreshSdc: true, createNameDelegate);
+			TopNodeSerializer<DataElementType>.SaveBsonToFile(this, path, refreshSdc: true, createNameDelegate);
 		}
 		/// <summary>
 		/// Save the current SDC object tree to an SDC MessagePack file at a known location (path)
@@ -476,7 +465,7 @@ namespace SDC.Schema
 		public void SaveMsgPackToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
 		{
 			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<DataElementType>.SaveMsgPackToFile(this, path, refreshSdc: true, createNameDelegate);
+			TopNodeSerializer<DataElementType>.SaveMsgPackToFile(this, path, refreshSdc: true, createNameDelegate);
 		}
 
 		#endregion
@@ -484,7 +473,7 @@ namespace SDC.Schema
 		#endregion
 
 	}
-	public partial class RetrieveFormPackageType : _ITopNode
+	public partial class RetrieveFormPackageType : _ITopNode, ITopNodeDeserialize<RetrieveFormPackageType>
 	{
 		protected RetrieveFormPackageType() : base()
 		{ Init(); }
@@ -582,73 +571,73 @@ namespace SDC.Schema
 		#region Serialization
 
 		public static RetrieveFormPackageType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<RetrieveFormPackageType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static RetrieveFormPackageType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<RetrieveFormPackageType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public string GetXml(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<RetrieveFormPackageType>.GetXml(this, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
+		//public string GetXml(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//	=> TopNodeSerializer<RetrieveFormPackageType>.GetXml(this, refreshSdc: true, createNameDelegate);
 		public static RetrieveFormPackageType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<RetrieveFormPackageType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static RetrieveFormPackageType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<RetrieveFormPackageType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public string GetJson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<RetrieveFormPackageType>.GetJson(this, refreshSdc, createNameDelegate);
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
+		//public string GetJson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//	=> TopNodeSerializer<RetrieveFormPackageType>.GetJson(this, refreshSdc, createNameDelegate);
 		public static RetrieveFormPackageType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<RetrieveFormPackageType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static RetrieveFormPackageType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<RetrieveFormPackageType>.DeserializeFromBson(sdcBson);
-		public string GetBson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<RetrieveFormPackageType>.GetBson(this, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromBson(sdcBson);
+		//public string GetBson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//	=> TopNodeSerializer<RetrieveFormPackageType>.GetBson(this, refreshSdc: true, createNameDelegate);
 		public static RetrieveFormPackageType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<RetrieveFormPackageType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static RetrieveFormPackageType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<RetrieveFormPackageType>.DeserializeFromMsgPack(sdcMsgPack);
-		public byte[] GetMsgPack(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<RetrieveFormPackageType>.GetMsgPack(this, refreshSdc: true, createNameDelegate);
-		/// <summary>
-		/// Save the current SDC object tree to an SDC XML file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveXmlToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<RetrieveFormPackageType>.SaveXmlToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
-		/// <summary>
-		/// Save the current SDC object tree to an SDC Json file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveJsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<RetrieveFormPackageType>.SaveJsonToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
-		/// <summary>
-		/// Save the current SDC object tree to an SDC Bson file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// 		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveBsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<RetrieveFormPackageType>.SaveBsonToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
-		/// <summary>
-		/// Save the current SDC object tree to an SDC MessagePack file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveMsgPackToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<RetrieveFormPackageType>.SaveMsgPackToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromMsgPack(sdcMsgPack);
+		//public byte[] GetMsgPack(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//	=> TopNodeSerializer<RetrieveFormPackageType>.GetMsgPack(this, refreshSdc: true, createNameDelegate);
+		///// <summary>
+		///// Save the current SDC object tree to an SDC XML file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// <param name="refreshSdc"></param>
+		/////// <param name="createNameDelegate"></param>
+		//public void SaveXmlToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<RetrieveFormPackageType>.SaveXmlToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
+		///// <summary>
+		///// Save the current SDC object tree to an SDC Json file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveJsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<RetrieveFormPackageType>.SaveJsonToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
+		///// <summary>
+		///// Save the current SDC object tree to an SDC Bson file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// 		/// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveBsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<RetrieveFormPackageType>.SaveBsonToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
+		///// <summary>
+		///// Save the current SDC object tree to an SDC MessagePack file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveMsgPackToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<RetrieveFormPackageType>.SaveMsgPackToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
 
 		#endregion
 
@@ -656,7 +645,7 @@ namespace SDC.Schema
 
 
 	}
-	public partial class PackageListType : _ITopNode
+	public partial class PackageListType : _ITopNode, ITopNodeDeserialize<PackageListType>
 	{
 		protected PackageListType() : base()
 		{ Init(); }
@@ -757,79 +746,79 @@ namespace SDC.Schema
 		#region Serialization
 
 		public static PackageListType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<PackageListType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<PackageListType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static PackageListType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<PackageListType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public string GetXml(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<PackageListType>.GetXml(this, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<PackageListType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
+		//public string GetXml(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//	=> TopNodeSerializer<PackageListType>.GetXml(this, refreshSdc: true, createNameDelegate);
 		public static PackageListType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<PackageListType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<PackageListType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static PackageListType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<PackageListType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public string GetJson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<PackageListType>.GetJson(this, refreshSdc, createNameDelegate);
+			=> TopNodeSerializer<PackageListType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
+		//public string GetJson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//	=> TopNodeSerializer<PackageListType>.GetJson(this, refreshSdc, createNameDelegate);
 		public static PackageListType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<PackageListType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<PackageListType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static PackageListType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<PackageListType>.DeserializeFromBson(sdcBson);
-		public string GetBson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<PackageListType>.GetBson(this, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<PackageListType>.DeserializeFromBson(sdcBson);
+		//public string GetBson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//	=> TopNodeSerializer<PackageListType>.GetBson(this, refreshSdc: true, createNameDelegate);
 		public static PackageListType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<PackageListType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<PackageListType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static PackageListType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<PackageListType>.DeserializeFromMsgPack(sdcMsgPack);
-		public byte[] GetMsgPack(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<PackageListType>.GetMsgPack(this, refreshSdc: true, createNameDelegate);
-		/// <summary>
-		/// Save the current SDC object tree to an SDC XML file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveXmlToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<PackageListType>.SaveXmlToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
-		/// <summary>
-		/// Save the current SDC object tree to an SDC Json file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveJsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<PackageListType>.SaveJsonToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
-		/// <summary>
-		/// Save the current SDC object tree to an SDC Bson file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// 		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveBsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<PackageListType>.SaveBsonToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
-		/// <summary>
-		/// Save the current SDC object tree to an SDC MessagePack file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveMsgPackToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<PackageListType>.SaveMsgPackToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
+			=> TopNodeSerializer<PackageListType>.DeserializeFromMsgPack(sdcMsgPack);
+		//public byte[] GetMsgPack(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//	=> TopNodeSerializer<PackageListType>.GetMsgPack(this, refreshSdc: true, createNameDelegate);
+		///// <summary>
+		///// Save the current SDC object tree to an SDC XML file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveXmlToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<PackageListType>.SaveXmlToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
+		///// <summary>
+		///// Save the current SDC object tree to an SDC Json file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveJsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<PackageListType>.SaveJsonToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
+		///// <summary>
+		///// Save the current SDC object tree to an SDC Bson file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// 		/// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveBsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<PackageListType>.SaveBsonToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
+		///// <summary>
+		///// Save the current SDC object tree to an SDC MessagePack file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveMsgPackToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<PackageListType>.SaveMsgPackToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
 
 		#endregion		#endregion
 		#endregion
 
 	}
-	public partial class MappingType : _ITopNode
+	public partial class MappingType : _ITopNode, ITopNodeDeserialize<MappingType>
 	{
 		#region ITopNode
 		#region ITopNodeMain
@@ -917,73 +906,73 @@ namespace SDC.Schema
 		#region Serialization
 
 		public static MappingType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<MappingType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<MappingType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static MappingType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<MappingType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public string GetXml(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<MappingType>.GetXml(this, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<MappingType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
+		//public string GetXml(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//	=> TopNodeSerializer<MappingType>.GetXml(this, refreshSdc: true, createNameDelegate);
 		public static MappingType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<MappingType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<MappingType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static MappingType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<MappingType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public string GetJson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<MappingType>.GetJson(this, refreshSdc, createNameDelegate);
+			=> TopNodeSerializer<MappingType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
+		//public string GetJson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//	=> TopNodeSerializer<MappingType>.GetJson(this, refreshSdc, createNameDelegate);
 		public static MappingType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<MappingType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<MappingType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static MappingType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<MappingType>.DeserializeFromBson(sdcBson);
-		public string GetBson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<MappingType>.GetBson(this, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<MappingType>.DeserializeFromBson(sdcBson);
+		//public string GetBson(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//	=> TopNodeSerializer<MappingType>.GetBson(this, refreshSdc: true, createNameDelegate);
 		public static MappingType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<MappingType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
+			=> TopNodeSerializer<MappingType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static MappingType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<MappingType>.DeserializeFromMsgPack(sdcMsgPack);
-		public byte[] GetMsgPack(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> SdcUtilSerializer<MappingType>.GetMsgPack(this, refreshSdc: true, createNameDelegate);
-		/// <summary>
-		/// Save the current SDC object tree to an SDC XML file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveXmlToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<MappingType>.SaveXmlToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
-		/// <summary>
-		/// Save the current SDC object tree to an SDC Json file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveJsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<MappingType>.SaveJsonToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
-		/// <summary>
-		/// Save the current SDC object tree to an SDC Bson file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// 		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveBsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<MappingType>.SaveBsonToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
-		/// <summary>
-		/// Save the current SDC object tree to an SDC MessagePack file at a known location (path)
-		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="refreshSdc"></param>
-		/// <param name="createNameDelegate"></param>
-		public void SaveMsgPackToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		{
-			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
-			SdcUtilSerializer<MappingType>.SaveMsgPackToFile(this, path, refreshSdc: true, createNameDelegate);
-		}
+			=> TopNodeSerializer<MappingType>.DeserializeFromMsgPack(sdcMsgPack);
+		//public byte[] GetMsgPack(bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//	=> TopNodeSerializer<MappingType>.GetMsgPack(this, refreshSdc: true, createNameDelegate);
+		///// <summary>
+		///// Save the current SDC object tree to an SDC XML file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveXmlToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<MappingType>.SaveXmlToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
+		///// <summary>
+		///// Save the current SDC object tree to an SDC Json file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveJsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<MappingType>.SaveJsonToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
+		///// <summary>
+		///// Save the current SDC object tree to an SDC Bson file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// 		/// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveBsonToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<MappingType>.SaveBsonToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
+		///// <summary>
+		///// Save the current SDC object tree to an SDC MessagePack file at a known location (path)
+		///// </summary>
+		///// <param name="path"></param>
+		///// <param name="refreshSdc"></param>
+		///// <param name="createNameDelegate"></param>
+		//public void SaveMsgPackToFile(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
+		//{
+		//	if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateElementNameCAP;
+		//	TopNodeSerializer<MappingType>.SaveMsgPackToFile(this, path, refreshSdc: true, createNameDelegate);
+		//}
 
 		#endregion		#endregion
 		#endregion
@@ -1346,14 +1335,13 @@ namespace SDC.Schema
 		{
 			Init();
 			//Parent Nodes cannot be assigned through this constructor.  
-			//After the object tree is created, Parent Nodes and other metadata can be assigned by SdcItil.RefreshReflectNodes
+			//After the object tree is created, Parent Nodes and other metadata can be assigned by SdcUtil.RefreshReflectNodes
 		}
 
 		protected BaseType(BaseType parentNode) //: this()
 		{
 			Init();
 			this.RegisterParent(parentNode, true);
-			//if (this is FormDesignType) Debugger.Break();
 		}
 
 		#region     Init Methods
@@ -1366,79 +1354,72 @@ namespace SDC.Schema
 				sGuid = ShortGuid.Encode(newGuid);
 			}
 			ObjectGUID = newGuid; //newGuid matches sGuid here
-			InitBaseType();
-		}
-
-		private void InitBaseType()
-		{
-			//TODO:
-			//If the node is ITopNode, start a TopNode (sub)tree, 
-			//		set the static property TopNodeTemp to this ITopNode node
-			//      removed: set IETresetCounter = 0; (this may not be necessary, if it is computed as needed.
-			//      removed: set sdcTopType = this.GetType().Name.ToEnum<SdcTopNodeTypesEnum>();
-			//If the node is not ITopNode, then set TopNode to the parent node's TopNode (if we know the parent node)
-			//If neither of the above are true, throw exception, or alternatively add a new FormDesign and Body Node to contain the new node.
-
-			//Check the following when refreshing the Top Node: BaseType.RestSdcImport, SdcUtil.ResetSdcImport, tempTopNode, and _ITopNode.Clear()
-			//TopNodeTemp is static, and represents the top of the current SDC (sub)tree that is being populated,  while TopNode is an instance field in the current SDC (sub)tree
-
-			//if (TopNodeTemp is null && this is ITopNode tn)
-
 
 			if (this is ITopNode tn)
 			{
 				var _tn = ((_ITopNode)tn);
 				var par = this.ParentNode;
 
-				if (par?.TopNode is not null) 
+				if (par?.TopNode is not null) //used only by the parameterized constructor
 					//par is a child of a higher ITopNode object,
 					//	and that ITopNode also subsumes this current node.
-					// This node will be present in the current node's dictionaries only
+					// this node will be present in the current node's dictionaries only
 				{
-					//This should be more reliable than relying on the static TopNodeTemp property
-					//but only works when adding nodes through the parameterized constructor that accepts a parent node
-					if (par is ITopNode ptn) TopNode = ptn;
-					else TopNode = par.TopNode;
-					_topNodeTemp = tn;
+					//Find current node's parent ITopNode dictionaries
+					_ITopNode par_ITopNode;
+					if (par is ITopNode ptn) 
+						par_ITopNode = (_ITopNode)par;//only occurs in RetrieveFormPackage under RetrieveFormPackage
+					else par_ITopNode = (_ITopNode)par.TopNode;
+
+					//store the node (this) in the current node's parent ITopNode dictionaries
+					//stoage in the current node's dictionaries is done at the end of this method
+					par_ITopNode._Nodes.Add(this.ObjectGUID, this);
+					if (this is IdentifiedExtensionType ietPar)
+						par_ITopNode._IETnodes.Add(ietPar);
+					TopNode = par_ITopNode;
+					_topNodeTemp = tn; //resets TopNode for subsequent nodes
 				}
-				//TopNodeTemp is static, and thus may be affected by loading of other SDC trees in parallel with this one
-				//We therefore only use it when we are coming from a default constructor (with no parent node parameter)
+				//TopNodeTemp is static, and thus may be affected by loading of other SDC trees, if running in parallel with this one
+				//We therefore only use it when we are coming from a default constructor (i.e., with no parent node parameter)
 				//Or when ParentNode is truly null and the root of a new SDC tree;
-				//	-- in this latter case, TopNodeTemp should have been set to null via ResetTopNodeTemp (the next if clause)
+				//	-- in the latter case, TopNodeTemp should have been set to null via ResetTopNodeTemp (the next if clause)
 				else if (par is null && TopNodeTemp is not null)
-				{   //can we trust TopNodeTemp?  Is it at least in the Node dictionary?				
-					//var n = tn.Nodes[TopNodeTemp.ObjectGUID] is not null;
-					//if(par is not null && par.TopNode == TopNodeTemp)
-					TopNode = TopNodeTemp; //if our new top node is contained inside a parent top node (TopNodeTemp).
+				//this is not the root node; this used the parameterless ctor; parent node is unknown here.
+				{   
+					//our new top node (this) is contained inside a parent top node (TopNodeTemp).
+					TopNode = TopNodeTemp; 
+					_topNodeTemp = tn; //resets TopNode for subsequent nodes
 				}
-				else if (par is null && TopNodeTemp is null)  //TopNodeTemp is null here, so this is the top node, with no ancestor nodes.
-				{  //our current node is the new top node for all subsequent nodes, until we hit another top node.
+				else if (par is null && TopNodeTemp is null)  //TopNodeTemp is null here, so this is the root node, with no ancestor nodes.
+				{  //Our current node (this) is the new top node for all subsequent nodes, until we hit another top node.
+				   //this could have entered via either parameterized or parameterless ctor
+
 					_topNodeTemp = tn;
 					TopNode = tn;
 				}
 				else //if(par is null || (par is not null && par.TopNode is null))
-				{	//this may cause an exception, but this is an anomalous case, and probably deserves to throw an exception 
+				{	//may cause an exception, but it's an anomalous case, and probably deserves to throw an exception 
 					_topNodeTemp = FindTopNode();
 					TopNode = _topNodeTemp;
 				}
 			}
+			//not ITopNode here:
 			else if (TopNodeTemp is not null)
-			{
+			{//this is not the root node; this used the parameterless ctor; parent node is unkown at this point.
 				TopNode = TopNodeTemp;
 			}
-			else if(TopNode is null) throw new InvalidOperationException("TopNodeTemp was null and/or the current node did not implement ITopNode.");
+			else if(TopNodeTemp is null) throw new InvalidOperationException("TopNodeTemp was null and/or the current node did not implement ITopNode.");
 
 
 			ObjectID = ((_ITopNode)TopNode)._MaxObjectIDint++;
 			order = ObjectID;
 
-			var topNode = ((_ITopNode)TopNode);
+			var current_ITopNode = ((_ITopNode)TopNode);
 
-			topNode._Nodes.Add(ObjectGUID, this); //Register This Node
+			current_ITopNode._Nodes.Add(ObjectGUID, this); //Register This Node
 
-			//if (this is FormDesignType) Debugger.Break();
 			if (this is IdentifiedExtensionType iet) //Register this Node, if it's an IET
-				topNode._IETnodes.Add(iet);
+				current_ITopNode._IETnodes.Add(iet);
 			
 			//Debug.WriteLine($"The node with ObjectID: {this.ObjectID} has entered the BaseType ctor. Item type is {this.GetType()}.  "
 			//    + $"The parent ObjectID is {this.ParentObjID.ToString()}");
@@ -1528,13 +1509,9 @@ namespace SDC.Schema
 			exList.Add(exData);
 		}
 
-		//TODO: This method may not yet work for nested TopNodes, such as packages and InjectForm (which allows injected FormDesign nodes)
 		/// <summary>
 		/// Field to hold the ordinal position of an object (XML element) under an IdentifiedExtensionType (IET)-derived object.
 		/// This number is used for creating the name attribute suffix.
-		/// TODO: This method may not yet work for nested TopNodes, such as packages and InjectForm (which allows injected FormDesign nodes)
-		/// this will need to be calculated by walking up the parent tree to the closest IET ancestor.  
-		/// It should not have a setter
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
@@ -1544,7 +1521,7 @@ namespace SDC.Schema
 			{
 				if (this is IdentifiedExtensionType || this is ITopNode) return 0;
 				if (TopNode.Nodes is null)
-					throw new Exception("Could not find SubIETcounter because T.Nodes is null");
+					throw new Exception("Could not find SubIETcounter because T.GetNodes is null");
 				if (ParentNode is null)
 					throw new Exception("Could not find SubIETcounter because ParentNode is null");
 
@@ -1790,11 +1767,14 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		public int ObjectID { get; private set; }
+		/// <inheritdoc/>
 		[XmlIgnore]
 		[JsonIgnore]
 		public Guid ObjectGUID { get; internal set; }
 		[XmlIgnore]
 		[JsonIgnore]
+		//TODO: not currently implemented		
+		///<inheritdoc cref="IBaseType.NodeType"/>
 		public ItemTypeEnum NodeType { get; private set; }
 		//[XmlIgnore]
 		//[JsonIgnore]

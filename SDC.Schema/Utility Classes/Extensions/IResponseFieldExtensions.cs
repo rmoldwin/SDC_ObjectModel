@@ -1,7 +1,7 @@
 ﻿
 
 //using SDC;
-namespace SDC.Schema
+namespace SDC.Schema.Extensions
 {
 	public static class IResponseFieldExtensions
 	{
@@ -23,12 +23,13 @@ namespace SDC.Schema
 			return null;
 		}
 
-		public static RichTextType? AddTextAfterResponse(this ResponseFieldType rf, string taf)
+		public static RichTextType? AddTextAfterResponse(this ResponseFieldType rf, string? asciiText)
 		{
-			if (rf != null && taf != null)
+			if (rf != null && asciiText != null)
 			{
 				var rt = new RichTextType(rf);
 				rf.TextAfterResponse = rt;
+				rt.val = asciiText;
 				return rt;
 			}
 			return null;

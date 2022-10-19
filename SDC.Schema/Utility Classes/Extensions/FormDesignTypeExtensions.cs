@@ -1,7 +1,7 @@
 ﻿
 
 //using SDC;
-namespace SDC.Schema
+namespace SDC.Schema.Extensions
 {
 	public static class FormDesignTypeExtensions
 	{
@@ -36,6 +36,15 @@ namespace SDC.Schema
 			}
 			return fd.Footer;
 		}
+
+		/// <summary>
+		/// Not yet implemented.  Throws NotImplementedException.
+		/// </summary>
+		/// <param name="fd"></param>
+		/// <returns></returns>
+		/// <exception cref="NotImplementedException"></exception>
+		public static RulesType AddRule_(this FormDesignType fd)
+		{ throw new NotImplementedException(); }
 
 	}
 }
