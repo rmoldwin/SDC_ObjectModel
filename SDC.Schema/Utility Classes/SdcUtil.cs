@@ -30,17 +30,17 @@ using System.Xml.Serialization;
 namespace SDC.Schema
 {
 	/// <summary>
-	/// Convert many ArrayHelpers and SDC Helpers to extension methods
+	/// This class is primarily used as source material for creating consistent type and interface-specific SDC extension methods
 	/// </summary>
 	public static class SdcUtil
 	{
-		private static Dictionary<Guid, BaseType> GetNodes(BaseType n)
+		private static Dictionary<Guid, BaseType> Get_Nodes(BaseType n)
 		{ return Get_ITopNode(n)._Nodes; }
-		private static Dictionary<Guid, List<BaseType>> GetChildNodes(BaseType n)
+		private static Dictionary<Guid, List<BaseType>> Get_ChildNodes(BaseType n)
 		{ return Get_ITopNode(n)._ChildNodes; }
-		private static Dictionary<Guid, BaseType> GetParentNodes(BaseType n)
+		private static Dictionary<Guid, BaseType> Get_ParentNodes(BaseType n)
 		{ return Get_ITopNode(n)._ParentNodes; }
-		private static ObservableCollection<IdentifiedExtensionType> GetIETnodes(BaseType n)
+		private static ObservableCollection<IdentifiedExtensionType> Get_IETnodes(BaseType n)
 		{ return Get_ITopNode(n)._IETnodes; }
 
 
@@ -589,7 +589,7 @@ namespace SDC.Schema
 		{
 			//var nodes = n.TopNode.Nodes;
 			//var topNode = Get_ITopNode(n);
-			var cn = GetChildNodes(n);// topNode._ChildNodes;
+			var cn = Get_ChildNodes(n);// topNode._ChildNodes;
 			int i = 0;
 			var sortedList = new List<BaseType>();
 			if (ResetSortFlags) TreeSort_ClearNodeIds();
@@ -637,7 +637,7 @@ namespace SDC.Schema
 		public static List<IdentifiedExtensionType> GetSortedSubtreeIET(BaseType n, bool resortChildNodes = false, bool resetSortFlags = true)
 		{
 			//var topNode = Get_ITopNode(n);
-			var cn = GetChildNodes(n);// topNode._ChildNodes;
+			var cn = Get_ChildNodes(n);// topNode._ChildNodes;
 			var sortedList = new List<IdentifiedExtensionType>();
 			int i = -1;
 			if (resortChildNodes && resetSortFlags) TreeSort_ClearNodeIds();
@@ -717,7 +717,7 @@ namespace SDC.Schema
 		{
 			//var nodes = n.TopNode.Nodes;
 			//var topNode = Get_ITopNode(n);
-			var cn = GetChildNodes(n);// topNode._ChildNodes;
+			var cn = Get_ChildNodes(n);// topNode._ChildNodes;
 			int i = 0;
 			var dict = new Dictionary<Guid, BaseType>();
 			MoveNext(n);
@@ -1068,7 +1068,7 @@ namespace SDC.Schema
 		{
 			//var topNode = Get_ITopNode(n);
 			//topNode._ChildNodes.TryGetValue(n.ObjectGUID, out List<BaseType>? kids);
-			GetChildNodes(n).TryGetValue(n.ObjectGUID, out List<BaseType>? kids);
+			Get_ChildNodes(n).TryGetValue(n.ObjectGUID, out List<BaseType>? kids);
 			if (kids is not null) SortElementKids(n, kids);
 			return kids?.Last();
 		}
@@ -1786,7 +1786,7 @@ namespace SDC.Schema
 
 			if (newParent is null) return false;
 			//make sure that item and target are not null and are part of the same tree
-			if (GetNodes(item)[newParent.ObjectGUID] is null) return false;
+			if (Get_Nodes(item)[newParent.ObjectGUID] is null) return false;
 			if (newParent.IsDescendantOf(item)) return false;
 
 			Type itemType = item.GetType();
@@ -2112,7 +2112,7 @@ namespace SDC.Schema
 			if (kids is null || kids.Count == 0)
 				//if (!((_ITopNode)parentItem.TopNode)._ChildNodes.TryGetValue(parentItem.ObjectGUID, out kids) && kids?.Count > 0) return null;
 				//if (!(Get_ITopNode(parentItem))._ChildNodes.TryGetValue(parentItem.ObjectGUID, out kids) && kids?.Count > 0) return null;
-				if (!GetChildNodes(parentItem).TryGetValue(parentItem.ObjectGUID, out kids) && kids?.Count > 0) return null;
+				if (!Get_ChildNodes(parentItem).TryGetValue(parentItem.ObjectGUID, out kids) && kids?.Count > 0) return null;
 
 			if (!TreeSort_NodeIds.Contains(parentItem.ObjectID) && kids is not null)
 			{

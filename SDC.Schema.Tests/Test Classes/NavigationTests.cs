@@ -47,7 +47,7 @@ namespace SDCObjectModelTests.TestClasses
 		public void ReflectRefreshTree_X1_NoPrint()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-
+			
 			//Create new BaseType names
 			SdcUtil.CreateName? delCreateName = SdcUtil.CreateElementNameCAP;
 			//delCreateName = null;

@@ -225,9 +225,9 @@ namespace SDC.Schema.Extensions
 					{
 						var childList = topNode._ChildNodes[par.ObjectGUID];
 						success = childList.Remove(btSource); //Returns a List<BaseType> and removes "item" from that list
-						if (!success) throw new Exception($"Could not remove list node from GetChildNodes dictionary: name: {btSource.name ?? "(none)"}, ObjectID: {btSource.ObjectID}");
+						if (!success) throw new Exception($"Could not remove list node from Get_ChildNodes dictionary: name: {btSource.name ?? "(none)"}, ObjectID: {btSource.ObjectID}");
 						if (childList.Count == 0) success = topNode._ChildNodes.Remove(par.ObjectGUID); //remove the entire entry from _ChildNodes
-						if (!success) throw new Exception($"Could not remove parent entry from GetChildNodes dictionary: name: {par.name ?? "(none)"}, ObjectID: {par.ObjectID}");
+						if (!success) throw new Exception($"Could not remove parent entry from Get_ChildNodes dictionary: name: {par.name ?? "(none)"}, ObjectID: {par.ObjectID}");
 					}
 				}
 			}
@@ -244,7 +244,7 @@ namespace SDC.Schema.Extensions
 		{
 			var topNode = (_ITopNode)btSource.TopNode;
 			bool success = topNode._Nodes.Remove(btSource.ObjectGUID);
-			if (!success) throw new Exception($"Could not remove object from GetNodes dictionary: name: {btSource.name ?? "(none)"}, ObjectID: {btSource.ObjectID}");
+			if (!success) throw new Exception($"Could not remove object from Get_Nodes dictionary: name: {btSource.name ?? "(none)"}, ObjectID: {btSource.ObjectID}");
 			btSource.UnRegisterParent();
 
 			if (btSource is IdentifiedExtensionType iet)

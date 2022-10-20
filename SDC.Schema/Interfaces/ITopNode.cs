@@ -13,6 +13,10 @@ namespace SDC.Schema
 	/// </summary>
 
 	public interface ITopNode : IBaseType
+	//All ITopNode annotated classes must descend from BaseType 
+	//We can't inherit a class (BaseType), but we can inherit from a common interface (IBaseType) inherited by the BaseType class .
+	//This allows us to serialize ITopNode objects whenever T: IBaseType, as we use in SdcSerializer<T>
+	//If SdcSerializer<T> used T: BaseType, its methods would not accept ITopNode, since an interface cannot inherit a class
 	{
 		/// <summary>
 		/// ReadOnlyObservableCollection of all SDC nodes.
