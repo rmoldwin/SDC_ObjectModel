@@ -216,6 +216,55 @@ namespace SDC.Schema.Extensions
 		=> SdcUtil.GetElementPropertyInfoMeta(bt, false).ItemIndex;
 
 		/// <summary>
+		/// Walk up the SDC object tree to find the first ITopNode ancestor of the current node.<br/>
+		/// Requires that all nodes have their ParentNode property assigned correctly.
+		/// If the current node implements ITopNode and has no ancestors, returns the current node.
+		/// </summary>
+		/// <returns></returns>
+		/// <exception cref="InvalidOperationException"></exception>
+		public static ITopNode? FindTopNode(this BaseType bt)
+		{
+			BaseType? n = bt.ParentNode;
+			int i = 0;
+			if (n is null)
+			{
+				if (bt is ITopNode itn) return itn;
+				else return null;
+				//throw new InvalidOperationException ("The current node has no parent node, and does not implement ITopNode");
+			}
+			while (n is not null)
+			{
+				i++; if (i == 1000000) throw new InvalidOperationException("Lookup exceeded 1000000 loops, possibly due to circular parent node references");
+				if (n is ITopNode itn) return itn;
+				n = n.ParentNode;
+			}
+			return null;
+			//throw new InvalidOperationException ("The current node has no parent node that implements ITopNode");
+		}
+		/// <summary>
+		/// Walk up the SDC object tree to find the root BaseType ancestor of the current node.<br/>
+		/// Requires that all nodes have their ParentNode property assigned correctly.
+		/// </summary>
+		/// <returns></returns>
+		/// <exception cref="InvalidOperationException"></exception>
+		public static BaseType? FindRootNode(this BaseType bt)
+		{
+			BaseType? n = bt;
+			int i = 0;
+			while (n is not null)
+			{
+				i++; if (i == 1000000) throw new InvalidOperationException("Lookup exceeded 1000000 loops, possibly due to circular parent node references");
+				if (n.ParentNode is null) return n;
+				n = n.ParentNode;
+			}
+			return null;
+		}
+
+
+
+
+
+		/// <summary>
 		/// Not implemented.
 		/// </summary>
 		/// <param name="iet"></param>

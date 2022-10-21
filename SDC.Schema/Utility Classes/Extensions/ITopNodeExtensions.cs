@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Diagnostics;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml;
@@ -128,7 +129,7 @@ namespace SDC.Schema.Extensions
 		/// <returns>true if successful; false if not the <see cref="IdentifiedExtensionType"/> node was not found by @ID</returns>
 		public static bool TryGetIetNodeByID(this ITopNode itn, string id, out IdentifiedExtensionType? iet)
 		{
-			iet = topNode(itn).GetIetNodeByID(id);
+			iet = topNode(itn).GetIETnodeByID(id);
 			if (iet is null) return false;
 			return true;
 		}
@@ -162,7 +163,7 @@ namespace SDC.Schema.Extensions
 			if (node is null) return false;
 			return true;
 		}
-		public static IdentifiedExtensionType? GetIetNodeByID(this ITopNode itn, string id)=>
+		public static IdentifiedExtensionType? GetIETnodeByID(this ITopNode itn, string id)=>
 			topNode(itn)._IETnodes
 				.Where(n => n.ID.Trim() == id.Trim()).FirstOrDefault();
 		public static BaseType? GetNodeByName(this ITopNode itn, string name)=>

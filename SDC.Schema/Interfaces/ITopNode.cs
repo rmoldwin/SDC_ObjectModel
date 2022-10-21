@@ -13,10 +13,12 @@ namespace SDC.Schema
 	/// </summary>
 
 	public interface ITopNode : IBaseType
-	//All ITopNode annotated classes must descend from BaseType 
-	//We can't inherit a class (BaseType), but we can inherit from a common interface (IBaseType) inherited by the BaseType class .
-	//This allows us to serialize ITopNode objects whenever T: IBaseType, as we use in SdcSerializer<T>
-	//If SdcSerializer<T> used T: BaseType, its methods would not accept ITopNode, since an interface cannot inherit a class
+	//Note about inheriting from IBaseType:
+	//All ITopNode annotated classes must descend from BaseType, and BaseType implements IBaseType.
+	//An interface can't inherit a class (BaseType), but we can inherit from a common interface (IBaseType), which is also inherited by the BaseType class .
+	//This allows us to use ITopNode objects to close generic functions whenever the generic T is restricted to IBaseType (T: IBaseType).
+	//In particular, SdcSerializer<T> uses "where T:IBaseType" as its generic restricion, enabling the SdcSerializer methods to use ITopNode as a parameter type.
+	//If SdcSerializer<T> used T: BaseType, its methods would not accept ITopNode, since an interface cannot inherit a class (BaseType)
 	{
 		/// <summary>
 		/// ReadOnlyObservableCollection of all SDC nodes.
@@ -45,7 +47,7 @@ namespace SDC.Schema
 		/// Runs method BaseType.ResetSdcImport(), which resets TopNodeTemp, allowing the addition of a new TopNode for newly added BaseType objects.
 		/// </summary>
 		/// <param name="itn">The itn.</param>
-		public void ResetSdcInstance(); //=> BaseType.ResetSdcImport();
+		public void ResetRootNode(); //=> BaseType.ResetSdcImport();
 
 		#region Serialization
 		/// <summary>

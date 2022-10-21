@@ -18,6 +18,7 @@ namespace SDC.Schema
     using System.Text;
     using System.Xml;
     using System.Collections.Generic;
+    using System.Data.SqlTypes;
 
     #region Base entity class
     public static partial class SdcSerializerMsgPack<T> where T: ITopNode
@@ -139,7 +140,12 @@ namespace SDC.Schema
                 file = new System.IO.FileStream(fileName, FileMode.Open, FileAccess.Read);
                 buffer = new byte[file.Length];
                 file.Read(buffer, 0, ((int)(file.Length)));
-                return DeserializeMsgPack(buffer);
+
+                BaseType.ResetRootNode();
+				T obj = DeserializeMsgPack(buffer);
+				BaseType.ResetRootNode();
+
+				return obj;
             }
             finally
             {

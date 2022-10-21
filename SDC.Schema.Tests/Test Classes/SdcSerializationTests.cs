@@ -196,7 +196,7 @@ namespace SDCObjectModelTests.TestClasses
             //    elementPrefix: "s");
 
             Debug.Print(myXML);
-            FD.ResetSdcInstance();
+            FD.ResetRootNode();
             //var myMP = FD.GetMsgPack();
             //FD.SaveMsgPackToFile("C:\\MPfile");  //also support REST transactions, like sending packages to SDC endpoints; consider FHIR support
             var myJson = FD.GetJson();

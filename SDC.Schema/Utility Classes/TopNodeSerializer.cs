@@ -37,7 +37,12 @@ namespace SDC.Schema
 		/// <returns></returns>
 		public static T DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
         {
-            T obj = SdcSerializer<T>.Deserialize(sdcXml);
+
+			BaseType.ResetRootNode();
+			T obj = SdcSerializer<T>.Deserialize(sdcXml);
+			BaseType.ResetRootNode();
+
+			//T obj = SdcSerializer<T>.Deserialize(sdcXml);
             //return InitParentNodesFromXml<T>(sdcXml, obj);
             if (refreshSdc) SdcUtil.ReflectRefreshTree(obj, out _, false, refreshSdc, createNameDelegate);
             return obj;

@@ -1,4 +1,5 @@
-﻿using MsgPack.Serialization;
+﻿using CSharpVitamins;
+using MsgPack.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SDC.Schema;
@@ -281,16 +282,16 @@ namespace SDC.Schema
 			int counter = 0;
 			int indent = 0;
 			int order = 0;
-			IdentifiedExtensionType lastIet;
 			List<BaseType> SortedNodes = new();  //this will be the returned object from this method
 
 			var sbTreeText = new StringBuilder();
 			var newPropsText = new StringBuilder();
 			//If the initial topNode has subsumed other ITopNode subtrees,
 			//currentTopNode will track the current subtree ITopNode 
-			var current_ITopNode = (_ITopNode)topNode;			
+			var current_ITopNode = (_ITopNode)topNode;
 			BaseType btNode = (BaseType)topNode;
 			btNode.order = 0;
+
 			{
 				if (current_ITopNode is DemogFormDesignType dfd)  //DemogForm is also a FormDesignType, so it must come first 
 				{
@@ -442,18 +443,12 @@ namespace SDC.Schema
 					if (btProp is IdentifiedExtensionType iet)
 					{
 						if (iet.ID.IsNullOrEmpty()) iet.ID = iet.sGuid;
-						lastIet = iet;
-						//subIetCounter = 0;
 					}
 					else
 					{
-						//subIetCounter++;
-						//suffix = "_" + subIetCounter.ToString();
 						suffix = ("_" + btProp.SubIETcounter.ToString()) ?? "";
 					}
 					if (createNodeName is not null) btProp.name = createNodeName(node: btProp, prefix: btProp.ElementPrefix, body: "", suffix: suffix) ?? btProp.name;
-
-					//btProp.name = btProp.CreateElementNameCAP("", ".100004300", suffix!);
 
 					if (print)
 					{
@@ -469,6 +464,21 @@ namespace SDC.Schema
 			}
 			void Fill_NodesAnd_IETnodes(BaseType btNode, BaseType? parentNode)
 			{//current_ITopNode here points to the ITopNode ancestor of btNode
+
+				//First, check sGuid and ObjectGUID status:
+				if (btNode.sGuid.IsNullOrWhitespace())
+				{
+					if (btNode.ObjectGUID == default(Guid)) //Empty ObjectGUID
+						btNode.ObjectGUID = Guid.NewGuid();
+					btNode.sGuid = ShortGuid.Encode(btNode.ObjectGUID);
+				}
+				else
+				{	//sGuid and ObjectGUID ideally should match before adding to dictionaries.
+					var decodedShortGuid = ShortGuid.Decode(btNode.sGuid);
+					if (btNode.ObjectGUID != decodedShortGuid)
+						btNode.ObjectGUID = decodedShortGuid;
+				}
+
 				current_ITopNode._Nodes.Add(btNode.ObjectGUID, btNode);
 				if (btNode is IdentifiedExtensionType iet)
 					current_ITopNode._IETnodes.Add(iet);
@@ -2170,7 +2180,7 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="n">The node for which we need to retrieve _ITopNode dictionaries</param>
 		/// <returns>A reference to an _ITopNode object</returns>
-		private static _ITopNode Get_ITopNode(BaseType n)
+		internal static _ITopNode Get_ITopNode(BaseType n)
 		{
 			if (n is _ITopNode itn) return itn;
 			return (_ITopNode)n.TopNode;

@@ -143,8 +143,12 @@ namespace SDC.Schema
                 string dataString = sr.ReadToEnd();
                 sr.Close();
                 file.Close();
-                return DeserializeBson(dataString);
-            }
+
+				BaseType.ResetRootNode();
+				T obj = DeserializeBson(dataString);
+				BaseType.ResetRootNode();
+				return obj;
+			}
             finally
             {
                 if ((file != null))

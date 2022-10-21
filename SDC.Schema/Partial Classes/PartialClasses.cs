@@ -25,15 +25,27 @@ using SDC.Schema.Extensions;
 namespace SDC.Schema
 {
 
-	#region   ..Top SDC Elements
+	#region   ..ITopNode SDC Elements
 	public partial class FormDesignType : _ITopNode, ITopNodeDeserialize<FormDesignType>
 	{
 		#region ctor
 
 		protected FormDesignType() : base()
-		{ Init();  }
-		public FormDesignType(BaseType? parentNode, string id) : base(parentNode, id)
 		{ Init(); }
+		public FormDesignType(BaseType? parentNode, string id) : base(parentNode, id)
+		{
+			if (this is DemogFormDesignType)
+			{
+				if (parentNode is null || parentNode is XMLPackageType parXP)
+					Init();
+			}
+			else if (this is FormDesignType)
+			{
+				if (parentNode is null || parentNode is XMLPackageType parRFP || parentNode is InjectFormType parIF)
+					Init();
+			}
+			else throw new InvalidOperationException("parentNode must be either null or RetrieveFormPackageType or InjectFormType");
+		}
 
 		private void Init()
 		{
@@ -52,13 +64,13 @@ namespace SDC.Schema
 		#region ITopNode 
 		#region ITopNodeMain
 		[JsonIgnore]
-		int _ITopNode._MaxObjectIDint { get; set; } //internal
+		int _ITopNode._MaxObjectIDint { get; set; } = 0; //internal
 		[XmlIgnore]
 		[JsonIgnore]
 		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
 		[XmlIgnore]
 		[JsonIgnore]
-		public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		public int MaxObjectID { get => ((_ITopNode)this)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
 		[XmlIgnore]
@@ -119,9 +131,9 @@ namespace SDC.Schema
 		/// Clears all dictionaries, sets topNodeTemp (which is a static property) to null, sets top level objects to null. <br/>
 		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
 		/// </summary>
-		public void ResetSdcInstance()
+		public void ResetRootNode()
 		{
-			ResetRootNode();
+			BaseType.ResetRootNode();
 			((_ITopNode)TopNode).ClearDictionaries();
 			((_ITopNode)TopNode)._MaxObjectIDint = 0;
 			Property = null;
@@ -166,15 +178,20 @@ namespace SDC.Schema
 		//public DemogFormDesignType(ITreeBuilder treeBuilder, BaseType parentNode = null, string id = "")
 		//    : base(treeBuilder, parentNode, id)
 		//{ }
-		public DemogFormDesignType(BaseType parentNode = null!, string id = "")
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"/>
+		/// <param name="id"></param>
+		public DemogFormDesignType(XMLPackageType? parentNode = null!, string id = "")
 			: base(parentNode, id)
-		{ }
+		{ }//use the FormDesignType constructor (base(parentNode, id))
 
 		#region ITopNode
 		#region Deserialization
 
 		public static DemogFormDesignType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
+		=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
 		public static DemogFormDesignType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
 			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
 		public static DemogFormDesignType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
@@ -198,11 +215,9 @@ namespace SDC.Schema
 	{
 		protected DataElementType() : base()
 		{ Init(); }
-		public DataElementType(string id = "") : base(null)
+		public DataElementType(XMLPackageType? parentNode, string id = "") : base(parentNode, id)
 		{
 			Init();
-			//TODO:Add dictionaries for nodes etc
-			//TODO:Make sure BaseType constructor functions work
 		}
 		private void Init()
 		{
@@ -278,9 +293,9 @@ namespace SDC.Schema
 		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
 		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
 		/// </summary>
-		public void ResetSdcInstance()
+		public void ResetRootNode()
 		{
-			ResetRootNode();
+			BaseType.ResetRootNode();
 			((_ITopNode)TopNode).ClearDictionaries();
 			((_ITopNode)TopNode)._MaxObjectIDint = 0;
 			Property = null;
@@ -320,9 +335,10 @@ namespace SDC.Schema
 	{
 		protected RetrieveFormPackageType() : base()
 		{ Init(); }
-		public RetrieveFormPackageType(string id = "") //: base(null, false)
+		public RetrieveFormPackageType(RetrieveFormPackageType? parentNode, string id = "") : base(parentNode)
 		{
-			Init();//TODO:Make sure BaseType constructor functions work
+			this.packageID = id;
+			Init();
 		}
 		private void Init()
 		{
@@ -394,9 +410,9 @@ namespace SDC.Schema
 		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
 		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
 		/// </summary>
-		public void ResetSdcInstance()
+		public void ResetRootNode()
 		{
-			ResetRootNode();
+			BaseType.ResetRootNode();
 			((_ITopNode)TopNode).ClearDictionaries();
 			((_ITopNode)TopNode)._MaxObjectIDint = 0;
 			Property = null;
@@ -435,17 +451,24 @@ namespace SDC.Schema
 
 
 	}
+	public partial class BasePackageType : ExtensionBaseType
+	{
+		protected BasePackageType()
+		{ }
+		public BasePackageType(RetrieveFormPackageType? parentNode) : base(parentNode)
+		{ }
+	}
 	public partial class PackageListType : _ITopNode, ITopNodeDeserialize<PackageListType>
 	{
 		protected PackageListType() : base()
 		{ Init(); }
-		public PackageListType(string id = "") //: base( null, false)
+		public PackageListType(PackageListType? parentNode) : base(parentNode)
 		{
-			Init();//TODO:Make sure BaseType constructor functions work
+			Init();
 		}
 		private void Init()
 		{
-
+			ElementPrefix = "PL";
 		}
 		#region ITopNode
 		#region ITopNodeMain
@@ -516,9 +539,9 @@ namespace SDC.Schema
 		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
 		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
 		/// </summary>
-		public void ResetSdcInstance()
+		public void ResetRootNode()
 		{
-			ResetRootNode();
+			BaseType.ResetRootNode();
 			((_ITopNode)TopNode).ClearDictionaries();
 			((_ITopNode)TopNode)._MaxObjectIDint = 0;
 			Property = null;
@@ -557,6 +580,17 @@ namespace SDC.Schema
 	}
 	public partial class MappingType : _ITopNode, ITopNodeDeserialize<MappingType>
 	{
+		protected MappingType() : base()
+		{ Init(); }
+		public MappingType(XMLPackageType? parentNode, string templateID = "") : base(parentNode)
+		{
+			this.templateID = templateID;
+			Init();
+		}
+		private void Init()
+		{
+			ElementPrefix = "MAP";
+		}
 		#region ITopNode
 		#region ITopNodeMain
 		[JsonIgnore]
@@ -625,9 +659,9 @@ namespace SDC.Schema
 		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
 		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
 		/// </summary>
-		public void ResetSdcInstance()
+		public void ResetRootNode()
 		{
-			ResetRootNode();
+			BaseType.ResetRootNode();
 			((_ITopNode)TopNode).ClearDictionaries();
 			((_ITopNode)TopNode)._MaxObjectIDint = 0;
 			Property = null;
@@ -664,8 +698,8 @@ namespace SDC.Schema
 
 
 	}
-	#endregion
 
+	#endregion
 
 	#region ..Main Types
 	public partial class ButtonItemType
@@ -1013,101 +1047,99 @@ namespace SDC.Schema
 	#endregion
 
 	#region Base Types
+	/// <summary>
+	/// This constructor is used only to deserialize SDC classes using the SDC.Schema serializers.
+	///		Parent Nodes cannot be assigned through this constructor.  
+	///		Node dictionaries cannot be assigned here either.
+	///		After the SDC object tree is created, parent nodes and other metadata can be assigned by <see cref="SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?)"/>
+	/// </summary>
 	public partial class BaseType : IBaseType //IBaseType inherits IMoveRemove and INavigate
 	{
 		protected BaseType()
 		{
-			Init();
-			//Parent Nodes cannot be assigned through this constructor.  
-			//After the object tree is created, Parent Nodes and other metadata can be assigned by SdcUtil.RefreshReflectNodes
-		}
-
-		protected BaseType(BaseType parentNode) //: this()
-		{
-			Init();
-			this.RegisterParent(parentNode, true);
-		}
-
-		#region     Init Methods
-
-		private void Init()
-		{
-			if (sGuid.IsNullOrWhitespace() || !ShortGuid.TryDecode(sGuid, out Guid newGuid))
+			if (this is ITopNode tn)
 			{
-				newGuid = ShortGuid.NewGuid();
-				sGuid = ShortGuid.Encode(newGuid);
-			}
+				if (LastTopNode is null) 
+				{ 
+					LastTopNode = tn; 
+					TopNode = tn; 
+				}
+				else
+				{
+					TopNode = LastTopNode;
+					LastTopNode = tn;
+				}
+			}//not ITopNode here
+			else if (LastTopNode is not null) TopNode = LastTopNode;
+			else if (LastTopNode is null) { }//the caller is instantiating a standalone node that is not a proper ITopNode.
+
+			ObjectID = BaseType.LastObjectID++;
+
+		}
+
+		protected BaseType(BaseType? parentNode)
+		{
+			//This parameterized constructor is NOT used to deserialize SDC classes.
+			//Therefore, TopNodeTemp should never be needed to find the previous TopNode.
+			//Instead, TopNode should be retrieved from the parent node, if it exists, and used to set the current TopNode.
+
+			//Since this is a brand new node, it has no previous sGuid, so we create it here.
+			Guid newGuid = Guid.NewGuid();
+			//TODO: test for undesirable sGuid words and sequences here...
+			sGuid = ShortGuid.Encode(newGuid);
 			ObjectGUID = newGuid; //newGuid matches sGuid here
+
+			ObjectID = BaseType.LastObjectID++;
 
 			if (this is ITopNode tn)
 			{
-				var _tn = ((_ITopNode)tn);
-				var par = this.ParentNode;
-
-				if (par?.TopNode is not null) //used only by the parameterized constructor
-					//par is a child of a higher ITopNode object,
-					//	and that ITopNode also subsumes this current node.
-					// this node will be present in the current node's dictionaries only
+				if (parentNode is null) TopNode = tn;
+				else if (parentNode is not null)
 				{
-					//Find current node's parent ITopNode dictionaries
-					_ITopNode par_ITopNode;
-					if (par is ITopNode ptn) 
-						par_ITopNode = (_ITopNode)par;//only occurs in RetrieveFormPackage under RetrieveFormPackage
-					else par_ITopNode = (_ITopNode)par.TopNode;
+					if (parentNode.TopNode is not null)
+					{
+						//parentNode's TopNode holds dictionaries we need to populate
+						_ITopNode par_ITopNode;
+						if (parentNode is ITopNode ptn)
+							par_ITopNode = (_ITopNode)parentNode;//only occurs in RetrieveFormPackage under RetrieveFormPackage
+						else par_ITopNode = (_ITopNode)parentNode.TopNode;
 
-					//store the node (this) in the current node's parent ITopNode dictionaries
-					//stoage in the current node's dictionaries is done at the end of this method
-					par_ITopNode._Nodes.Add(this.ObjectGUID, this);
-					if (this is IdentifiedExtensionType ietPar)
-						par_ITopNode._IETnodes.Add(ietPar);
-					TopNode = par_ITopNode;
-					_topNodeTemp = tn; //resets TopNode for subsequent nodes
-				}
-				//TopNodeTemp is static, and thus may be affected by loading of other SDC trees, if running in parallel with this one
-				//We therefore only use it when we are coming from a default constructor (i.e., with no parent node parameter)
-				//Or when ParentNode is truly null and the root of a new SDC tree;
-				//	-- in the latter case, TopNodeTemp should have been set to null via ResetTopNodeTemp (the next if clause)
-				else if (par is null && TopNodeTemp is not null)
-				//this is not the root node; this used the parameterless ctor; parent node is unknown here.
-				{   
-					//our new top node (this) is contained inside a parent top node (TopNodeTemp).
-					TopNode = TopNodeTemp; 
-					_topNodeTemp = tn; //resets TopNode for subsequent nodes
-				}
-				else if (par is null && TopNodeTemp is null)  //TopNodeTemp is null here, so this is the root node, with no ancestor nodes.
-				{  //Our current node (this) is the new top node for all subsequent nodes, until we hit another top node.
-				   //this could have entered via either parameterized or parameterless ctor
+						//store the node (this) in the current node's parent ITopNode dictionaries
 
-					_topNodeTemp = tn;
-					TopNode = tn;
+						par_ITopNode._Nodes.Add(this.ObjectGUID, this);
+						if (this is IdentifiedExtensionType ietPar)
+							par_ITopNode._IETnodes.Add(ietPar);
+						TopNode = par_ITopNode;
+					}
+					else { } //this node descends form a non-ITopNode root node
+							 //throw new InvalidOperationException("ParentNode is not null, but ParentNode.TopNode is null");
 				}
-				else //if(par is null || (par is not null && par.TopNode is null))
-				{	//may cause an exception, but it's an anomalous case, and probably deserves to throw an exception 
-					_topNodeTemp = FindTopNode();
-					TopNode = _topNodeTemp;
-				}
+			}//not ITopNode here
+			else if (parentNode is not null)
+			{
+				if (parentNode is ITopNode ptn)
+					TopNode = (_ITopNode)parentNode;
+				else if (parentNode.TopNode is not null)
+					TopNode = (_ITopNode)parentNode.TopNode;
+				else { } //this node descends form a non-ITopNode root node, and thus it cannot be added to any dictionaries without a TopNode
 			}
-			//not ITopNode here:
-			else if (TopNodeTemp is not null)
-			{//this is not the root node; this used the parameterless ctor; parent node is unkown at this point.
-				TopNode = TopNodeTemp;
+			else if (parentNode is null) { }//the caller is trying to instantiate a standalone root node that is not a proper ITopNode.  TopNode is thus null here
+
+			//Register node in _Nodes and _IETnodes dictionaries:
+			if (TopNode is not null)
+			{
+				var _topNode = (_ITopNode)TopNode;
+				_topNode._Nodes.Add(this.ObjectGUID, this);
+				if (this is IdentifiedExtensionType iet)
+					_topNode._IETnodes.Add(iet);
+
+				//populate the _ChildNodes and _ParentNodes dictionaries:
+				if (parentNode is not null) this.RegisterParent(parentNode, childNodesSort: true);
 			}
-			else if(TopNodeTemp is null) throw new InvalidOperationException("TopNodeTemp was null and/or the current node did not implement ITopNode.");
 
-
-			ObjectID = ((_ITopNode)TopNode)._MaxObjectIDint++;
-			order = ObjectID;
-
-			var current_ITopNode = ((_ITopNode)TopNode);
-
-			current_ITopNode._Nodes.Add(ObjectGUID, this); //Register This Node
-
-			if (this is IdentifiedExtensionType iet) //Register this Node, if it's an IET
-				current_ITopNode._IETnodes.Add(iet);
-			
-			//Debug.WriteLine($"The node with ObjectID: {this.ObjectID} has entered the BaseType ctor. Item type is {this.GetType()}.  "
-			//    + $"The parent ObjectID is {this.ParentObjID.ToString()}");
 		}
+
+		#region     Init Methods
 
 		//!+TODO: InitParentNodesFromXml should be moved out of BaseType, probably into ITopNode or ISdcUtil
 		private static T InitParentNodesFromXml<T>(string sdcXml, T obj) where T : class, ITopNode
@@ -1190,7 +1222,7 @@ namespace SDC.Schema
 			var exData = new Exception();
 			exData.Data.Add("QuestionID: ", ParentIETypeNode?.ID.ToString() ?? "null");
 			exData.Data.Add("Error: ", errorMsg);
-			exList.Add(exData);
+			ExceptionList.Add(exData);
 		}
 
 		/// <summary>
@@ -1223,57 +1255,6 @@ namespace SDC.Schema
 				throw new Exception("Could not determine SubIETcounter because an ancestor node of type IdentifiedExtensionType could not be found");
 			}
 		}
-		/// <summary>
-		/// Return the root node of the SDC object tree.  <br/>
-		/// Requires that all nodes have their ParentNode property assigned correctly. <br/>
-		/// If the current node has no parent, returns the current node
-		/// </summary>
-		/// <returns></returns>
-		/// <exception cref="InvalidOperationException"></exception>
-		public BaseType FindRootNode()
-		{
-			int i = 0;
-			BaseType n = this;
-			BaseType? p = this.ParentNode;			
-
-			if (p is null) return this;
-
-			while (p is not null)
-			{
-				i++;
-				if (i > 1000000) throw new InvalidOperationException
-						("The root node was not found after climbing 1000000 parent nodes");
-				n = p;
-				p = p.ParentNode;
-			}
-			return n;
-		}
-
-		/// <summary>
-		/// Walk up the SDC object tree to find the first ITopNode ancestor of the current node.<br/>
-		/// Requires that all nodes have their ParentNode property assigned correctly.
-		/// If the current node implements ITopNode and has no ancestors, returns the current node.
-		/// </summary>
-		/// <returns></returns>
-		/// <exception cref="InvalidOperationException"></exception>
-		public ITopNode FindTopNode()
-		{ BaseType? n = this.ParentNode;
-			if (n is null)
-			{
-				if (this is ITopNode itn ) return itn;
-				else throw new InvalidOperationException
-						("The current node has no parent node, and does not implement ITopNode");
-			}
-			while(n is not null)
-			{				
-				if (n is ITopNode itn) return itn ;
-				n = n.ParentNode;
-			}
-			throw new InvalidOperationException
-						("The current node has no parent node that implements ITopNode");
-		}
-		/// <inheritdoc/>
-		//private BaseType _ParentNode;
 
 		#endregion
 
@@ -1330,13 +1311,12 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public bool AutoNameFlag { get; set; } = false;
 
-		//private bool cycleGuarded = false;
-		/// <summary>
-		/// The root text ("shortName") used to construct the name property.  The code may add a prefix and/or suffix to BaseName
-		/// </summary>
-		[XmlIgnore]
-		[JsonIgnore]
-		public string X_BaseName { get; set; } = "";
+		///// <summary>
+		///// The root text ("shortName") used to construct the name property.  The code may add a prefix and/or suffix to BaseName
+		///// </summary>
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public string X_BaseName { get; set; } = "";
 
 		/// <summary>
 		/// The name of XML element that is output from this class instance.
@@ -1443,7 +1423,6 @@ namespace SDC.Schema
 			}
 			set
 			{
-
 				//if (this is QuestionItemType && _elementPrefix != "Q") Debugger.Break();
 				_elementPrefix = value;
 			}
@@ -1548,7 +1527,11 @@ namespace SDC.Schema
 		/// Reset TopNodeTemp to null, so that nodes newly added to a top node<br/>
 		/// use the correct node for the top (root) of the object tree
 		/// </summary>
-		public static void ResetRootNode() => _topNodeTemp = null;
+		public static void ResetRootNode()
+		{
+			LastTopNode = null;
+			LastObjectID = 0;
+		}
 		#endregion
 
 		#region ChangeTracking
@@ -1572,94 +1555,21 @@ namespace SDC.Schema
 		private string _elementName = "";
 		private string _elementPrefix = "";
 		private RetrieveFormPackageType _PackageNode;
-		private static ITopNode? _topNodeTemp;
-		private static ITopNode? TopNodeTemp
-		{
-			get { return _topNodeTemp; }
-			set
-			{
-				if (_topNodeTemp is null & value is not null)
-				{ _topNodeTemp = value; }
-				else if (value is not null) throw new Exception("T has already been assigned.  A call to ResetSdcImport() is required before this object can be set for importing a new SDC template;");
-				else if (value is null) throw new Exception("The setter value for TopNodeTemp was null.");
-			}
-		}
-		private List<Exception> exList;
+		private static ITopNode? LastTopNode;
+		//private static BaseType? LastAddedNode;
+		private static int LastObjectID = 0;
+
+		private List<Exception> ExceptionList;
 
 		#endregion
-
-		//TODO: why are these internal static methods in BaseType?  Should they be in SdcUtil or another helper class?
-		//Answer: Because they operate on the SDC Type itself, not on an object instance.  
-		//If they are in the BaseType class, they don't need to be copied into all the ITopNode classes.
-		#region Serialization
-
-		////!+XML
-		//internal static T GetSdcObjectFromXmlPath<T>(string path) where T : ITopNode
-		//{
-		//	string sdcXml = System.IO.File.ReadAllText(path);  // System.Text.Encoding.UTF8);
-		//	return GetSdcObjectFromXml<T>(sdcXml);
-		//}
-		//internal static T GetSdcObjectFromXml<T>(string sdcXml) where T : ITopNode
-		//{
-		//	T obj = SdcSerializer<T>.Deserialize(sdcXml);
-		//	//return InitParentNodesFromXml<T>(sdcXml, obj);
-		//	SdcUtil.ReflectRefreshTree(obj, out _);
-		//	return obj;
-		//}
-		////!+JSON
-		//internal static T GetSdcObjectFromJsonPath<T>(string path) where T : ITopNode
-		//{
-		//	string sdcJson = System.IO.File.ReadAllText(path);
-		//	return GetSdcObjectFromJson<T>(sdcJson);
-		//}
-		//internal static T GetSdcObjectFromJson<T>(string sdcJson) where T : ITopNode
-		//{
-		//	T obj = SdcSerializerJson<T>.DeserializeJson<T>(sdcJson);
-		//	//return InitParentNodesFromXml<T>(sdcXml, obj);
-		//	SdcUtil.ReflectRefreshTree(obj, out _);
-		//	return obj;
-		//}
-		////!+MsgPack
-		//internal static T GetSdcObjectFromMsgPackPath<T>(string path) where T : ITopNode
-		//{
-		//	byte[] sdcMsgPack = System.IO.File.ReadAllBytes(path);
-		//	return GetSdcObjectFromMsgPack<T>(sdcMsgPack);
-		//}
-		//internal static T GetSdcObjectFromMsgPack<T>(byte[] sdcMsgPack) where T : ITopNode
-		//{
-		//	T obj = SdcSerializerMsgPack<T>.DeserializeMsgPack(sdcMsgPack);
-		//	//return InitParentNodesFromXml<T>(sdcXml, obj);
-		//	SdcUtil.ReflectRefreshTree(obj, out _);
-		//	return obj;
-		//}
-
-		////!+BSON
-		//internal static T GetSdcObjectFromBsonPath<T>(string path) where T : ITopNode
-		//{
-		//	string sdcBson = System.IO.File.ReadAllText(path);
-		//	return GetSdcObjectFromBson<T>(sdcBson);
-		//}
-		//internal static T GetSdcObjectFromBson<T>(string sdcBson) where T : ITopNode
-		//{
-		//	T obj = SdcSerializerBson<T>.DeserializeBson(sdcBson);
-		//	//return InitParentNodesFromXml<T>(sdcXml, obj);
-		//	SdcUtil.ReflectRefreshTree(obj, out _);
-		//	return obj;
-		//}
-		#endregion
-
 
 	}
 
 	public partial class ExtensionBaseType : IExtensionBase
 	{
-		protected ExtensionBaseType() { Init(); }
-		public ExtensionBaseType(BaseType parentNode) : base(parentNode)
-		{ Init(); }
-		private void Init()
-		{
-
-		}
+		protected ExtensionBaseType() { }
+		public ExtensionBaseType(BaseType? parentNode) : base(parentNode)
+		{ }
 	}
 
 	#region IExtensionBaseTypeMember
@@ -1733,7 +1643,7 @@ namespace SDC.Schema
 	public partial class IdentifiedExtensionType : IIdentifiedExtensionType
 	{
 		protected IdentifiedExtensionType() { Init(); }
-		protected IdentifiedExtensionType(BaseType parentNode, string id = "") : base(parentNode)
+		protected IdentifiedExtensionType(BaseType? parentNode, string id = "") : base(parentNode)
 		{
 			if (id.IsNullOrWhitespace())
 				ID = sGuid; //sGuid was assigned or created in the BaseType constructor Init() method
