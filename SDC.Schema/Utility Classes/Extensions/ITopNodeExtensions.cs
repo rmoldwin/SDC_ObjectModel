@@ -308,63 +308,56 @@ namespace SDC.Schema.Extensions
 		{
 			QuestionItemType? q;
 			q = (QuestionItemType?)_Nodes(itn).Values.Where(
-					n => (n as QuestionItemType)?.ID == id).FirstOrDefault();
+					t => t is QuestionItemType q && q.ID == id).FirstOrDefault();
 			return q;
 		}
 		public static QuestionItemType? GetQuestionByName(this ITopNode itn, string name)
 		{
 			QuestionItemType? q;
 			q = (QuestionItemType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(QuestionItemType)).Where(
-					t => ((QuestionItemType)t).name == name).FirstOrDefault();
+				t => t is QuestionItemType q && q.name == name).FirstOrDefault();
 			return q;
 		}
 		public static DisplayedType? GetDisplayedTypeByID(this ITopNode itn, string id)
 		{
 			DisplayedType? d;
 			d = (DisplayedType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(DisplayedType)).Where(
-					t => ((DisplayedType)t).ID == id).FirstOrDefault();
+				t => t is DisplayedType d && d.ID == id).FirstOrDefault();
 			return d;
 		}
 		public static DisplayedType? GetDisplayedTypeByName(this ITopNode itn, string name)
 		{
 			DisplayedType? d;
 			d = (DisplayedType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(DisplayedType)).Where(
-					t => ((DisplayedType)t).name == name).FirstOrDefault();
+				t => t is DisplayedType d && d.name == name).FirstOrDefault();
 			return d;
 		}
 		public static SectionItemType? GetSectionByID(this ITopNode itn, string id)
 		{
 			SectionItemType? s;
 			s = (SectionItemType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(SectionItemType)).Where(
-					t => ((SectionItemType)t).ID == id).FirstOrDefault();
+				t => t is SectionItemType s && s.ID == id).FirstOrDefault();
 			return s;
 		}
 		public static SectionItemType? GetSectionByName(this ITopNode itn, string name)
 		{
 			SectionItemType? s;
 			s = (SectionItemType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(SectionItemType)).Where(
-					t => ((SectionItemType)t).name == name).FirstOrDefault();
+				t => t is SectionItemType s && s.name == name).FirstOrDefault();
 			return s;
 		}
 		public static ListItemType? GetListItemByID(this ITopNode itn, string id)
 		{
 			ListItemType? li;
 			li = (ListItemType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(ListItemType)).Where(
-					t => ((ListItemType)t).ID == id).FirstOrDefault();
+				t => t is ListItemType li && li.ID == id).FirstOrDefault();
 			return li;
 		}
 		public static ListItemType? GetListItemByName(this ITopNode itn, string name)
 		{
 			ListItemType? li;
 			li = (ListItemType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(ListItemType)).Where(
-					t => ((ListItemType)t).name == name).FirstOrDefault();
+				t => t is ListItemType li && li.name == name).FirstOrDefault();
 			return li;
 		}
 
@@ -372,43 +365,38 @@ namespace SDC.Schema.Extensions
 		{
 			ButtonItemType? b;
 			b = (ButtonItemType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(ButtonItemType)).Where(
-					t => ((ButtonItemType)t).ID == id).FirstOrDefault();
+				t => t is ButtonItemType b && b.ID == id).FirstOrDefault();
 			return b;
 		}
 		public static ButtonItemType? GetButtonByName(this ITopNode itn, string name)
 		{
 			ButtonItemType? b;
 			b = (ButtonItemType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(ButtonItemType)).Where(
-					t => ((ButtonItemType)t).name == name).FirstOrDefault();
+				t => t is ButtonItemType b && b.name == name).FirstOrDefault();
 			return b;
 		}
 		public static InjectFormType? GetInjectFormByID(this ITopNode itn, string id)
 		{
 			InjectFormType? inj;
 			inj = (InjectFormType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(InjectFormType)).Where(
-					t => ((InjectFormType)t).ID == id).FirstOrDefault();
+				t => t is InjectFormType inj && inj.ID == id).FirstOrDefault();
 			return inj;
 		}
 		public static InjectFormType? GetInjectFormByName(this ITopNode itn, string name)
 		{
 			InjectFormType? inj;
 			inj = (InjectFormType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(InjectFormType)).Where(
-					t => ((InjectFormType)t).name == name).FirstOrDefault();
+				t => t is InjectFormType inj && inj.name == name).FirstOrDefault();
 			return inj;
 		}
 		public static ResponseFieldType? GetResponseFieldByName(this ITopNode itn, string name)
 		{
 			ResponseFieldType? rf;
 			rf = (ResponseFieldType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(ResponseFieldType)).Where(
-					t => ((ResponseFieldType)t).name == name).FirstOrDefault();
-			//rf.Response.Item.GetType().GetProperty("val").ToString();
+				t => t is ResponseFieldType rf && rf.name == name).FirstOrDefault();
 			return rf;
 		}
+
 		//BaseType GetResponseValByQuestionID(string id)
 		//{
 
@@ -420,56 +408,49 @@ namespace SDC.Schema.Extensions
 		{
 			PropertyType? p;
 			p = (PropertyType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(PropertyType)).Where(
-					t => ((PropertyType)t).name == name).FirstOrDefault();
+				t => t is PropertyType p && p.name == name).FirstOrDefault();
 			return p;
 		}
 		public static ExtensionType? GetExtensionByName(this ITopNode itn, string name)
 		{
 			ExtensionType? e;
 			e = (ExtensionType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(ExtensionType)).Where(
-					t => ((ExtensionType)t).name == name).FirstOrDefault();
+				t => t is ExtensionType e && e.name == name).FirstOrDefault();
 			return e;
 		}
 		public static CommentType? GetCommentByName(this ITopNode itn, string name)
 		{
 			CommentType? c;
 			c = (CommentType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(CommentType)).Where(
-					t => ((CommentType)t).name == name).FirstOrDefault();
+				t => t is CommentType c && c.name == name).FirstOrDefault();
 			return c;
 		}
 		public static ContactType? GetContactByName(this ITopNode itn, string name)
 		{
 			ContactType? c;
 			c = (ContactType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(CommentType)).Where(
-					t => ((ContactType)t).name == name).FirstOrDefault();
+				t => t is ContactType c && c.name == name).FirstOrDefault();
 			return c;
 		}
 		public static LinkType? GetLinkByName(this ITopNode itn, string name)
 		{
 			LinkType? l;
 			l = (LinkType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(LinkType)).Where(
-					t => ((LinkType)t).name == name).FirstOrDefault();
+				t => t is LinkType l && l.name == name).FirstOrDefault();
 			return l;
 		}
 		public static BlobType? GetBlobByName(this ITopNode itn, string name)
 		{
 			BlobType? b;
 			b = (BlobType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(BlobType)).Where(
-					t => ((BlobType)t).name == name).FirstOrDefault();
+				t => t is BlobType b && b.name == name).FirstOrDefault();
 			return b;
 		}
 		public static CodingType? GetCodedValueByName(this ITopNode itn, string name)
 		{
 			CodingType? c;
 			c = (CodingType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(CodingType)).Where(
-					t => ((CodingType)t).name == name).FirstOrDefault();
+				t => t is CodingType c && c.name == name).FirstOrDefault();
 			return c;
 		}
 

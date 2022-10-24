@@ -32,6 +32,9 @@ namespace SDC.Schema
 
 		[XmlIgnore]
 		[JsonIgnore]
+		///Holds the largest ObjectID that was most-recently assigned to a new node.  <br/>
+		///The MaxObjectID is incremented by 1 each time a new node is added to an SDC object tree. <br/>
+		///MaxObjectID can be reset to 0 by calling ITopNode.ResetRootNode()
 		int MaxObjectID { get; }
 
 		//[XmlIgnore]
@@ -100,7 +103,7 @@ namespace SDC.Schema
 		internal ObservableCollection<IdentifiedExtensionType> _IETnodes { get;}
 
 		/// <summary>
-		/// Internal version of MaxObjectID, which has a setter; MaxObjectID only has a getter
+		/// Internal version of MaxObjectID, which has a setter; MaxObjectID only has a getter.
 		/// </summary> 
 		internal int _MaxObjectIDint { get; set; }
 

@@ -75,8 +75,10 @@ namespace SDC.Schema
             obj = default(T);
             try
             {
-                obj = DeserializeMsgPack(input);
-                return true;
+				BaseType.ResetRootNode();
+				obj = DeserializeMsgPack(input);
+				BaseType.ResetRootNode();
+				return true;
             }
             catch (System.Exception ex)
             {
@@ -88,7 +90,10 @@ namespace SDC.Schema
         public static bool DeserializeMsgPack(byte[] input, out T obj)
         {
             System.Exception exception = null;
-            return DeserializeMsgPack(input, out obj, out exception);
+			BaseType.ResetRootNode();
+			bool result = DeserializeMsgPack(input, out obj, out exception);
+			BaseType.ResetRootNode();
+            return result;
         }
 
         /// <summary>
@@ -98,10 +103,13 @@ namespace SDC.Schema
         {
             System.IO.MemoryStream byteStream = null;
             try
-            {
-                byteStream = new System.IO.MemoryStream(input);
-                return ((T)(SerializerMsgPack.Unpack(byteStream)));
-            }
+			{
+				byteStream = new System.IO.MemoryStream(input);
+				BaseType.ResetRootNode();
+				T obj = ((T)(SerializerMsgPack.Unpack(byteStream)));
+				BaseType.ResetRootNode();
+				return obj;
+			}
             finally
             {
                 if ((byteStream != null))

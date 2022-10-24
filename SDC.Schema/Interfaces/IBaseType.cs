@@ -118,7 +118,7 @@ namespace SDC.Schema
 		/// </summary>
 		[XmlIgnore]
         [JsonIgnore]
-		public ITopNode TopNode { get; }
+		public ITopNode? TopNode { get; }
 
 		/// <summary>
 		/// 

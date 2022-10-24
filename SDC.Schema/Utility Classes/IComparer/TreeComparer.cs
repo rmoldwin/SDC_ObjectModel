@@ -34,7 +34,7 @@ namespace SDC.Schema
 
 			//create ascending ancestor ("anc") set ("ancSet") for nodeA branch, with nodeA as the first element in the ancester set, i.e., ancSetA[0] == nodeA
 			BaseType? prevPar = null;
-			int count = nodeA?.TopNode.Nodes.Count ?? 1000;
+			int count = nodeA?.TopNode?.Nodes.Count ?? 1000;
 			if (count < 1000) count = 1000;  //in case Nodes is not yet fully populated
 			BaseType[]? ancSetA = new BaseType[count];
 			BaseType[]? ancSetB = new BaseType[count];
@@ -150,16 +150,25 @@ namespace SDC.Schema
 						{
 							if (bt == nodeA) return -1;
 							if (bt == nodeB) return 1;
+							//Debugger.Break();
 						}
-						if (o is IEnumerable<BaseType> ie && ie.Any())
+						else if (o is IEnumerable<BaseType> ie && ie.Any())
 							foreach (var n in ie)
 							{
 								if (n == nodeA) return -1;
 								if (n == nodeB) return 1;
+								//Debugger.Break();
 							}
+						else { //Debugger.Break();
+							    }
+					}
+					else {
+						//Debugger.Break(); 
 					}
 				}
+				//Debugger.Break();
 			}
+			//Debugger.Break();
 			throw new InvalidOperationException("The supplied _Nodes do not share a common parent node");
 		}
 	}

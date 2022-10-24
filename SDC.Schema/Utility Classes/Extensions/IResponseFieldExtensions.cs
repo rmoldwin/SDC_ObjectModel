@@ -39,5 +39,29 @@ namespace SDC.Schema.Extensions
 		//{ throw new NotImplementedException(); }
 		public static ScriptCodeAnyType AddSetValue_(this ResponseFieldType rf)
 		{ throw new NotImplementedException(); }
+
+		private static T? GetVal<T>(this ResponseFieldType rf) where T : BaseType, IVal
+		{//TODO: needs work!
+
+			T? val = default(T);
+			val = rf.Response?.Item as T;			
+
+			return val;
+		}
+
+		private static bool HasVal<T>(this ResponseFieldType rf, out IVal? val)
+		{//TODO: needs work!
+
+			var item = rf.Response?.Item;
+			val = null;
+
+			//use refelcction to retrieve @val here, instead of dynamic
+			//var a = obj.GetType().Get;
+			return false; // (val is not null && val != obj.GetType());
+		}
 	}
+
+
+
+
 }

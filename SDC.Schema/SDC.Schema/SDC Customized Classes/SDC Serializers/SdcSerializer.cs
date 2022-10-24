@@ -93,7 +93,9 @@ namespace SDC.Schema
 			obj = default(T);
 			try
 			{
+				BaseType.ResetRootNode();
 				obj = Deserialize(input);
+				BaseType.ResetRootNode();
 				return true;
 			}
 			catch (System.Exception ex)
@@ -106,7 +108,10 @@ namespace SDC.Schema
 		public static bool Deserialize(string input, out T obj)
 		{
 			System.Exception exception = null;
-			return Deserialize(input, out obj, out exception);
+			BaseType.ResetRootNode();
+			bool result =  Deserialize(input, out obj, out exception);
+			BaseType.ResetRootNode();
+			return result;
 		}
 
 		public new static T Deserialize(string input)

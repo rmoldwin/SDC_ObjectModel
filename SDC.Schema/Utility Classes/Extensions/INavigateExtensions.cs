@@ -21,8 +21,10 @@ namespace SDC.Schema.Extensions
 		{ if (n is not null && n is BaseType) return SdcUtil.GetNextSibElement((BaseType)n); else return null; }
 		public static BaseType? GetNodePrevious(this INavigate n)
 		{ if (n is not null && n is BaseType) return SdcUtil.GetPrevElement((BaseType)n); else return null; }
-		public static BaseType? GetNodeNext(this INavigate n)
+		public static BaseType? GetNodeReflectNext(this INavigate n)
 		{ if (n is not null && n is BaseType) return SdcUtil.ReflectNextElement((BaseType)n); else return null; }
+		public static BaseType? GetNodeNext(this INavigate n)
+		{ if (n is not null && n is BaseType) return SdcUtil.GetNextElement((BaseType)n); else return null; }
 		public static BaseType? GetNodeFirstChild(this INavigate n)
 		{ if (n is not null && n is BaseType) return SdcUtil.GetFirstChildElement((BaseType)n); else return null; }
 		public static BaseType? GetNodeLastChild(this INavigate n)

@@ -111,7 +111,7 @@ namespace SDCObjectModelTests.TestClasses
                 li.Move(list);
                 Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == list.Items.Count() - 1);
             Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-
+            Setup.Reset(); //reset after moving nodes.
         }
         [TestMethod]
         public void MoveListItemToOtherList()
@@ -135,7 +135,8 @@ namespace SDCObjectModelTests.TestClasses
                 Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == 2);
                 Assert.AreEqual(list2, li.ParentNode);
             Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-        }
+			Setup.Reset(); //reset after moving nodes.
+		}
         [TestMethod]
         public void MoveListDInList()
         {

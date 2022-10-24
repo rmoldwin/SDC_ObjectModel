@@ -59,45 +59,66 @@ namespace SDC.Schema.Extensions
 		/// <returns>True if node removal was successful, false if unsuccessful</returns>
 		public static bool Remove(this BaseType btSource, bool cancelIfChildNodes = true)
 		{
+			//+Process all nodes
+			if (btSource is null) return false;
+			if (btSource.TopNode is null) return false;
+			bool result = RemoveLocal((_ITopNode)(btSource.TopNode)); //remove node from TopNode dictionaries
+			if (result is false) return false; //return if unsuccessful
+
+			//+Process ITopNode nodes
 			var par = btSource.ParentNode;
-			if (par is null) throw new InvalidOperationException("btSource.ParentNode cannot be null.");
-			if (cancelIfChildNodes && btSource.TryGetChildNodes(out _)) return false;
-			var topNode = (_ITopNode)(par.TopNode);
-
-
-			if (topNode._ChildNodes.TryGetValue(btSource.ObjectGUID, out List<BaseType>? kids))
-				while (kids.Count > 0)
-				{
-					var kid = kids.First();
-					Debug.Print($"kids.Remove recursive: {kid.name}");
-					kid.Remove(cancelIfChildNodes); //note - this is recursive
-				}
-
-			//reflect the parent property that represents the "this" object, then set the property to null
-			var prop = btSource.GetPropertyInfoMetaData().PropertyInfo;
-			//var prop = par.GetType().GetProperties().Where(p => p.GetValue(par) == btSource).FirstOrDefault();
-			if (prop is null) throw new InvalidOperationException("Cannot obtain parent Property holding btSource.");
-
-			if (prop != null)
+			if (par is null) return result;
+			if (btSource is ITopNode)
 			{
-				var propObj = prop.GetValue(par);
-				if (propObj is IList propIL && propIL[0] != null)
-				{
-					(propObj as IList)?.Remove(btSource);
-					Debug.Print($"IList.Remove: {btSource.name}");
-				}
-				else
-				{
-					prop.SetValue(par, null);
-					Debug.Print($"SetValue null: {btSource.name}");
-				}
-
-				btSource.UnRegisterThis();
-				Debug.Print($"Unregister: {btSource.name}");
-
-				return true;
+				if (btSource.TopNode is null) return false;
+				result = RemoveLocal((_ITopNode)(par.TopNode));//remove node from par.TopNode dictionaries
+				if (result is false) return false;
 			}
-			return false;
+			return true;
+
+			//+Local function
+			bool RemoveLocal(_ITopNode topNode)
+			{
+				var par = btSource.ParentNode;
+				if (par is null) throw new InvalidOperationException("btSource.ParentNode cannot be null.");
+				if (cancelIfChildNodes && btSource.TryGetChildNodes(out _)) return false;
+				//var topNode = (_ITopNode)(par.TopNode);
+
+				if (topNode._ChildNodes.TryGetValue(btSource.ObjectGUID, out List<BaseType>? kids))
+					while (kids.Count > 0)
+					{
+						var kid = kids.First();
+						Debug.Print($"kids.Remove recursive: {kid.name}");
+						kid.Remove(cancelIfChildNodes); //note - this is recursive
+					}
+
+				//reflect the parent property that represents the "this" object, then set the property to null
+				var prop = btSource.GetPropertyInfoMetaData().PropertyInfo;
+				//var prop = par.GetType().GetProperties().Where(p => p.GetValue(par) == btSource).FirstOrDefault();
+				if (prop is null) throw new InvalidOperationException("Cannot obtain parent Property holding btSource.");
+
+				if (prop != null)
+				{
+					var propObj = prop.GetValue(par);
+					if (propObj is IList propIL && propIL[0] != null)
+					{
+						(propObj as IList)?.Remove(btSource);
+						Debug.Print($"IList.Remove: {btSource.name}");
+					}
+					else
+					{
+						prop.SetValue(par, null);
+						Debug.Print($"SetValue null: {btSource.name}");
+					}
+
+					btSource.UnRegisterThis();
+					Debug.Print($"Unregister: {btSource.name}");
+
+					return true;
+				}
+				return false;
+			}
+
 		}
 		/// <summary>
 		/// Move an SDC node from one parent node to another. 
@@ -114,16 +135,54 @@ namespace SDC.Schema.Extensions
 		/// <exception cref="NullReferenceException">NullReferenceException("btSource must not be null.");</exception>
 		/// <exception cref="NullReferenceException">NullReferenceException("newParent must not be null.");</exception>
 		/// <exception cref="NullReferenceException">NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved")</exception>
-		/// <exception cref="Exception">Exception("Could not reflect parent property object to remove node");</exception>
+//		/// <exception cref="Exception">Exception("Could not reflect parent property object to remove node");</exception>
 		/// <exception cref="Exception">Exception("Invalid targetProperty");</exception>
 		public static bool Move(this BaseType btSource, BaseType newParent, int newListIndex = -1)
 		{
 			if (btSource is null) throw new NullReferenceException("btSource must not be null.");
 			if (newParent is null) throw new NullReferenceException("newParent must not be null.");
-			if (btSource.ParentNode is null) throw new NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved");
+			//if (btSource.ParentNode is null) throw new NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved");
+			if (newParent.TopNode is null) throw new NullReferenceException("newParent.TopNode must not be null.");
 
 			if (btSource.IsParentNodeAllowed(newParent, out object? targetObj))
 			{
+				//+Set SameRoot
+				//Do btSource and newParent share the same root node? (Are they from the same SDC tree?)
+				bool sameRoot = false;  //Do source and target share the same root node?
+				var sourceRoot = btSource.FindRootNode();
+				if(sourceRoot is null) throw new NullReferenceException("The root node of btSource could not be determined.");
+				var newParentRoot = newParent.FindRootNode();
+				if (sourceRoot is null) throw new NullReferenceException("The root node of newParent could not be determined.");
+
+				if (sourceRoot.Equals(newParentRoot)) sameRoot = true;
+				else //+Process btSource tree with different root node
+				{
+					BaseType? n;
+					BaseType? nextNode;
+					int i = 0;
+					n = btSource;
+					_ITopNode currentTopNode = (_ITopNode)newParent.TopNode;
+
+					for (;;) //Set TopNodes in btSource tree until we hit a new ITopNode
+					{
+						i++;
+						if (i > 1000000) throw new InvalidOperationException("Could not assign TopNode to nodes in btSource tree, due to inability to walk its SDC tree");
+						
+						n.TopNode = currentTopNode; //currentTopNode can't be null
+												nextNode = btSource.GetNodeReflectNext();
+						if (nextNode is null) break;
+
+						if (n is _ITopNode itn)
+						{							
+							if (nextNode.TopNode is not null) break; //we assume the rest of the tree has correct TopNode assignments
+							currentTopNode = itn;
+						}
+						n = nextNode;
+					}
+					var sourceNodeList = SdcUtil.ReflectRefreshSubtreeList(btSource, false, true, 0, 1, true, true, true,true, SdcUtil.CreateElementNameCAP); //re-create dictionaries for all btSource nodes
+
+				}//TODO: process donor node/branch: ObjectID, sGuid, ObjectID, @name, ID, baseURI?, Link?, events?, rule targets?
+
 
 				if (targetObj is BaseType) //btSource can be attached directly to the target
 				{
@@ -134,7 +193,7 @@ namespace SDC.Schema.Extensions
 				else if (targetObj is IList propList) //btSource can be attached to a member of a List
 				{
 					//Remove this from current parent object
-					btSource.IsParentNodeAllowed(btSource.ParentNode, out object? currentParentObj);
+					btSource.IsParentNodeAllowed(btSource.ParentNode!, out object? currentParentObj);
 					if (currentParentObj is BaseType)
 						currentParentObj = null;  //remove the btSource reference form this parent object
 					else if (currentParentObj is not null && currentParentObj is IList)
@@ -173,8 +232,11 @@ namespace SDC.Schema.Extensions
 				RegisterParentNode(btSource, inParentNode, topNode, childNodesSort);
 				if (btSource is _ITopNode)
 				{//also register this ITopNode object in its own dictionaries.
-					topNode = (_ITopNode)btSource;
-					RegisterParentNode(btSource, inParentNode, topNode, childNodesSort);
+					if (!topNode.Equals((_ITopNode)btSource)) //we already did this... 
+					{
+						topNode = (_ITopNode)btSource;
+						RegisterParentNode(btSource, inParentNode, topNode, childNodesSort);
+					}
 				}
 			}
 			static void RegisterParentNode(BaseType btSource, BaseType inParentNode, _ITopNode topNode, bool childNodesSort)

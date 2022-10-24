@@ -36,7 +36,6 @@ namespace SDC.Schema.Extensions
 					return true;
 				par = par.ParentNode;
 			}
-
 			return false;
 		}
 		/// <summary>
@@ -51,7 +50,7 @@ namespace SDC.Schema.Extensions
 			return false;
 		}
 		/// <summary>
-		/// Determine if the current node is a direct child node <paramref name="parentNode"/>.
+		/// Determine if the current node is a direct child node of <paramref name="parentNode"/>.
 		/// </summary>
 		/// <param name="childNode"></param>
 		/// <param name="parentNode"></param>
@@ -59,6 +58,17 @@ namespace SDC.Schema.Extensions
 		public static bool IsChildOf(this BaseType childNode, BaseType parentNode)
 		{
 			if (childNode.ParentNode == parentNode) return true;
+			return false;
+		}
+		/// <summary>
+		/// Determine if the current node is a sibling node of <paramref name="siblingNode"/>
+		/// </summary>
+		/// <param name="node"></param>
+		/// <param name="siblingNode"></param>
+		/// <returns>true if the current node is a sibling of parameter <paramref name="siblingNode"/>.</returns>
+		public static bool IsSiblingOf(this BaseType node, BaseType siblingNode)
+		{
+			if (node.ParentNode == siblingNode.ParentNode) return true;
 			return false;
 		}
 
