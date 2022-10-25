@@ -150,7 +150,7 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="q"></param>
 		/// <returns> List&lt;IdentifiedExtensionType> containing all nodes, or null if no nodes are present. </returns>
-		public static List<IdentifiedExtensionType>? GetListAndIETChildNodes(this QuestionItemType q)
+		public static List<IdentifiedExtensionType>? GetListAndChildIETCNodes(this QuestionItemType q)
 		{
 			List<IdentifiedExtensionType> lst = new();
 
@@ -174,7 +174,7 @@ namespace SDC.Schema
 		/// </returns>
 		public static bool TryGetListAndChildIETNodes(this QuestionItemType q, out List<IdentifiedExtensionType>? nodeList)
 		{
-			nodeList = GetListAndIETChildNodes(q);
+			nodeList = GetListAndChildIETCNodes(q);
 			return nodeList?.Any()??false;
 
 		}
