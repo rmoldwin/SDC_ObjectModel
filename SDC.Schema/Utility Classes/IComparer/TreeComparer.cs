@@ -150,25 +150,18 @@ namespace SDC.Schema
 						{
 							if (bt == nodeA) return -1;
 							if (bt == nodeB) return 1;
-							//Debugger.Break();
 						}
 						else if (o is IEnumerable<BaseType> ie && ie.Any())
 							foreach (var n in ie)
 							{
 								if (n == nodeA) return -1;
 								if (n == nodeB) return 1;
-								//Debugger.Break();
 							}
-						else { //Debugger.Break();
-							    }
+						else {}
 					}
-					else {
-						//Debugger.Break(); 
-					}
+					else {}
 				}
-				//Debugger.Break();
 			}
-			//Debugger.Break();
 			throw new InvalidOperationException("The supplied _Nodes do not share a common parent node");
 		}
 	}

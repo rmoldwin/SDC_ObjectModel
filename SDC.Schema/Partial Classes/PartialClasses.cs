@@ -931,6 +931,7 @@ namespace SDC.Schema
 		private void Init()
 		{
 			ElementPrefix = "LI";
+			ElementName = "ListItem";
 		}
 
 		#region IChildItemsParent

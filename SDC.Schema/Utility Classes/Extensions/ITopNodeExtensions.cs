@@ -215,7 +215,7 @@ namespace SDC.Schema.Extensions
 
 				if(doLog) sb.Append ($"<<<<<<<<<<<<<<<<<<<<<<<  IET Node: {en}   {"".PadRight(pad, gt)}\r\n");
 				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  IET Node: {en}   {"".PadRight(pad, gt)}");
-				var sublist = n.GetSortedSubtreeIETList();
+				var sublist = n.GetSubtreeIETList();
 
 				Dictionary<string, List<AttributeInfo>> dlai = new();
 

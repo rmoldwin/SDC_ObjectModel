@@ -123,29 +123,29 @@ namespace SDC.Schema.Extensions
 
 			return injForm;
 		}
-		public static bool HasChildItems(this IChildItemsParent parent) 
+		public static bool TryGetChildIETNodes(this IChildItemsParent parent, out List<IdentifiedExtensionType>? childNodes) 
 			//where T : BaseType, IChildItemsParent<T>
 		{
+			childNodes = parent?.ChildItemsNode?.ChildItemsList;
 			{
-				if (parent?.ChildItemsNode?.ChildItemsList != null)
+				if (childNodes != null)
 				{
-					foreach (var n in parent.ChildItemsNode.ChildItemsList)
+					foreach (var n in childNodes)
 					{ if (n != null) return true; }
 				}
 			}
 			return false;
 		}
 		/// <summary>
-		/// Retrieve all DisplayedTypes subsumed under the ChildItems node
+		/// Retrieve all DisplayedTypes subsumed under the ChildItems node. <br/>
+		/// This does not include ListItems and DisplayedType nodes under a Question's List node
 		/// </summary>
-		/// <returns>ImmutableList&lt;DisplayedType> or null if the ChildItems node is null or has no descendants </returns>
-		static ImmutableList<DisplayedType>? GetChildDisplayedTypes(this IChildItemsParent parent) 
-			//where T : BaseType, IChildItemsParent<T>
+		/// <returns>ImmutableList&lt;IdentifiedExtensionType> or null if the ChildItems node is null or has no descendants </returns>
+		public static ImmutableList<IdentifiedExtensionType>? GetChildIETNodes(this IChildItemsParent parent) 
 		{
-			return parent.ChildItemsNode?.ChildItemsList?.Cast<DisplayedType>()?.ToImmutableList();
+			return parent.ChildItemsNode?.ChildItemsList?.Cast<IdentifiedExtensionType>()?.ToImmutableList();
 		}
 		public static ChildItemsType AddChildItemsNode(this IChildItemsParent parent) 
-			//where T : BaseType, IChildItemsParent
 		{
 			ChildItemsType childItems;  //this class contains an "Items" list
 			if (parent == null)

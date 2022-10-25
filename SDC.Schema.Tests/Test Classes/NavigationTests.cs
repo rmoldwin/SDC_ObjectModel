@@ -668,7 +668,7 @@ namespace SDCObjectModelTests.TestClasses
 				int enLen = 36 - en.Length;
 				int pad = (enLen > 0) ? enLen : 0;
 				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  IET Node: {en}   {"".PadRight(pad, gt)}");
-				var sublist = n.GetSortedSubtreeIETList();
+				var sublist = n.GetSubtreeIETList();
 
 				Dictionary<string, List<AttributeInfo>> dlai = new();
 				

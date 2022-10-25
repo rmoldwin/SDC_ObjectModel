@@ -7,11 +7,11 @@ namespace SDC.Schema
 {
 	public static class QuestionItemTypeExtensions
 	{
-		public static QuestionItemType ConvertToQR_(this QuestionItemType q, bool testOnly = false)
+		private static QuestionItemType ConvertToQR_(this QuestionItemType q, bool testOnly = false)
 		{ throw new NotImplementedException(); } //abort if children present
-		public static QuestionItemType ConvertToQS_(this QuestionItemType q, bool testOnly = false)
+		private static QuestionItemType ConvertToQS_(this QuestionItemType q, bool testOnly = false)
 		{ throw new NotImplementedException(); }
-		public static QuestionItemType ConvertToQM_(this QuestionItemType q, int maxSelections = 0, bool testOnly = false)
+		private static QuestionItemType ConvertToQM_(this QuestionItemType q, int maxSelections = 0, bool testOnly = false)
 		{ throw new NotImplementedException(); }
 		//public static DisplayedType ConvertToDI_(this QuestionItemType q, bool testOnly = false)
 		//{ throw new NotImplementedException(); } //abort if LIs or children present
@@ -132,17 +132,52 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="q"></param>
 		/// <returns>Ordered List&lt;DisplayedType> or null if the Question has no child ListItem or DisplayedType nodes</returns>
-		static ImmutableList<DisplayedType>? ListItems(this QuestionItemType q)
+		public static List<DisplayedType>? GetListItems(this QuestionItemType q)
 		{
-			return q?.ListField_Item?.List?.GetChildNodes()?.Cast<DisplayedType>().ToImmutableList();
+			return q?.ListField_Item?.List?.GetChildNodes()?.Cast<DisplayedType>().ToList();
 		}
 		/// <summary>
 		/// In a QuestionResponse (QR) node, retrieve the DataTypeDE_Item (e.g., &lt;string/>, &lt;decimal/>)
 		/// </summary>
 		/// <param name="q"></param>
 		/// <returns>I a QR node, returns DataTypeDE_Item.  Otherwise returns null </returns>
-		static BaseType? ResponseDataTypeNode(this QuestionItemType q) =>
+		public static BaseType? ResponseDataTypeNode(this QuestionItemType q) =>
 			q?.ResponseField_Item?.Response?.DataTypeDE_Item;
+
+		/// <summary>
+		/// Retrieves all ListItem and DisplayedItem nodes under the List node, <br/>
+		/// as well as all IET nodes under the ChildItems node, in sorted order.
+		/// </summary>
+		/// <param name="q"></param>
+		/// <returns> List&lt;IdentifiedExtensionType> containing all nodes, or null if no nodes are present. </returns>
+		public static List<IdentifiedExtensionType>? GetListAndIETChildNodes(this QuestionItemType q)
+		{
+			List<IdentifiedExtensionType> lst = new();
+
+			var liLst = q.GetListItems()?.Cast<IdentifiedExtensionType>();
+			if(liLst is not null) lst.AddRange(liLst);
+
+			var ciLst = q.GetChildIETNodes();
+			if (ciLst is not null) lst?.AddRange(ciLst);
+			return lst;
+		}
+
+		/// <summary>
+		/// Returns true if any List IET nodes and other child IET nodes are present under the question node;
+		/// nodeList will contain all ListItem and DisplayedItem nodes udner the List node, <br/>
+		/// as well as all IET nodes under the ChildItems node, in sorted order.
+		/// </summary>
+		/// <param name="q"></param>
+		/// <param name="nodeList">Contains all ListItems and IET nodes under ChildItems, in sorted order</param>
+		/// <returns>Returns true if any ListItem or other child IET nodes are present under the question node.<br/>
+		/// Returns false if no child nodes are found
+		/// </returns>
+		public static bool TryGetListAndChildIETNodes(this QuestionItemType q, out List<IdentifiedExtensionType>? nodeList)
+		{
+			nodeList = GetListAndIETChildNodes(q);
+			return nodeList?.Any()??false;
+
+		}
 
 	}
 

@@ -125,7 +125,7 @@ namespace SDC.Schema.Extensions
 			return SdcUtil.GetElementPropertyInfoMeta(bt);
 		}
 		/// <summary>
-		/// Starting with the current node, retrieve all descendant nodes in List&lt;BaseType>
+		/// Starting with the current node, retrieve all descendant nodes in List&lt;BaseType. The list is sorted in node order.>
 		/// </summary>
 		/// <param name="bt"></param>
 		/// <returns></returns>
@@ -138,7 +138,7 @@ namespace SDC.Schema.Extensions
 		/// </summary>
 		/// <param name="bt">The node whose subtree we are retrieving </param>
 		/// <returns></returns>
-		public static List<IdentifiedExtensionType> GetSortedSubtreeIETList(this BaseType bt)
+		public static List<IdentifiedExtensionType> GetSubtreeIETList(this BaseType bt)
 		{
 			return SdcUtil.GetSortedSubtreeIET(bt);
 		}

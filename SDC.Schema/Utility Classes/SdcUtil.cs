@@ -1456,10 +1456,11 @@ namespace SDC.Schema
 		public static bool TryGetChildElements(BaseType n, out ReadOnlyCollection<BaseType>? kids)
 		{
 			var topNode = Get_ITopNode(n);
-			topNode._ChildNodes.TryGetValue(n.ObjectGUID, out List<BaseType>? kidsOut);
+			bool tfResult = topNode._ChildNodes.TryGetValue(n.ObjectGUID, out List<BaseType>? kidsOut);
 			kids = kidsOut?.AsReadOnly();
-			if (kidsOut is null || !kidsOut.Any()) return false;
-			return true;
+			return tfResult;
+			//if (kidsOut is null || !kidsOut.Any()) return false;
+			//return true;
 		}
 
 

@@ -25,7 +25,7 @@ namespace SDC.Schema
             //Exception ex;
             List<Exception> exList = new();
 
-            if (rfParent.Response != null) throw new InvalidOperationException("A DataTypes_DEType object already exists on the rfParent parameter (ResponseFieldType)");
+            //if (rfParent.Response != null) throw new InvalidOperationException("A DataTypes_DEType object already exists on the rfParent parameter (ResponseFieldType)");
             rfParent.Response = new DataTypes_DEType(rfParent);
 
             switch (dataTypeEnum)
