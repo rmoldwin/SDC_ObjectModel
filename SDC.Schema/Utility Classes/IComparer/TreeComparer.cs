@@ -8,7 +8,14 @@ namespace SDC.Schema
 {
 	public class TreeComparer : Comparer<BaseType>
 	{
-		public override int Compare(BaseType nodeA, BaseType nodeB)
+
+		public override int Compare(BaseType? nodeA, BaseType? nodeB)
+		{
+			if(nodeA is null || nodeB is null)
+				throw new ArgumentNullException("neither nodeA nor nodeB can be null");
+			return CompareNodes(nodeA, nodeB);
+		}
+		public static int CompareNodes(BaseType nodeA, BaseType nodeB)
 		{
 			//Debug.Print($" {ord},   A:{nodeA.ObjectID},   B:{nodeB.ObjectID}");
 
@@ -49,7 +56,7 @@ namespace SDC.Schema
 				prevPar = ancSetA[indexA]?.ParentNode ?? null;
 			}
 
-			//Find the first intersection of the 2 arrays (lowest common ancestor) - the common node furthest from the tree's top node
+			//Find the first intersection of the 2 arrays (closest common ancestor) - the common node furthest from the tree's top node
 			//If they share an ancestor, get the common ancestor object, to find which ancester is first.
 			//If they have different ancesters, move down one node in both ancSetA and ancSetB.
 			//The set with the highest level (first) parent indicates that the that all nodes in that set come before all nodes in the other set.
@@ -69,6 +76,8 @@ namespace SDC.Schema
 							   //Loop through nodeB ancesters (we build ancSetB as we loop here) until we find a common ancester in nodeA's ancesters (already assembled in ancSetB)
 			prevPar = ancSetB[indexB].ParentNode;
 
+
+
 			while (prevPar != null)
 			{   //add the current nodeB ancestor node to ancSetB
 				ancSetB[++indexB] = prevPar;  //note that we create the ancSetB only as needed.  No need to walk all the way up to the root node if we don't have to.  Thus it's slightly more efficient to place the deeper-on-tree node in nodeB.
@@ -76,7 +85,7 @@ namespace SDC.Schema
 															//indexA is the location of the current nodeB ancestor in the list of nodeA ancestors (ancSetA).
 															//We are looking for the first time a nodeB ancestor appears in ancSetA.
 				if (indexA > -1)
-				{//we found the lowest common parent node at ancSetA[indexA] 
+				{//we found the closest common parent node at ancSetA[indexA] 
 				 //the common ancestor of nodeB and nodeA is not added to ancSetB!!
 				 //indexB is the highest non-null entry in ancSetB, and thus ancSetB[indexB] contains
 					failed = false;
@@ -85,11 +94,11 @@ namespace SDC.Schema
 				prevPar = ancSetB[indexB]?.ParentNode ?? null; //increment the nodeB ancestor node - move one parent level higher
 			}
 			if (failed || prevPar is null)
-				throw new Exception("the supplied _Nodes cannot be compared because they do not have a common ancester node");
+				throw new Exception("the supplied nodes cannot be compared because they do not have a common ancester node");
 
-			//We have found the lowest common ancester ("ANC") located at index indexA in ancSetA and at IndexB in ancSetB
-			//We now move one parent node further from the root on each tree branch (ancSetA and ancSetA), closer to nodeA and nodeB
-			//and determine which of these ancesters has an XML Element sequence that is closer to the root node.
+			//We have found the closest common ancester ("ANC") located at indexA in ancSetA and at IndexB in ancSetB
+			//We now move one parent node further from the root on each tree branch (ancSetA and ancSetB), closer to nodeA and nodeB
+			//and determine which of these ancesters has an XML Element (node) position that is closer to the root node.
 			//Both of these ancester nodes have ANC as a common SDC ParentNode.
 			if (indexA == 0 && indexB > 0)
 			{ Result(-1); return -1; } //nodeA (located at index 0) is a direct ancestor of nodeB, so it must come first
@@ -103,19 +112,22 @@ namespace SDC.Schema
 			//Subtract one from each index above to arrive at one node distal (lower) to the common node in each subtree
 			return SibComparer(prevPar, ancSetA[indexA-1], ancSetB[indexB-1], out _);
 			
-
+			//____________________________________________________________________________________________________________
 			void Result(int i)
 			{	//For debugging only:
 				//Debug.Print($" {i}:ord:{ord},   A:{nodeA.ObjectID},   B:{nodeB.ObjectID}");
 				//if (i != ord) Debugger.Break();
 			}
 		}
+
+
+
 		/// <summary>
-		/// Given a parent node, retrieve the list of child nodes, if present.
+		/// Given a parent node, determine whether nodeA or nodeB comes first in the child list
 		/// Uses reflection only, and does not use any node dictionaries.
 		/// </summary>
 		/// <param name="parentNode"></param>
-		/// <returns>List&lt;BaseType>? containing the child nodes</returns>
+		/// <returns><b>-1</b>: nodeA comes first; <b>1</b>: nodeB comes first; <b>0</b>: the nodeA and nodeB reference the same node.</returns>
 		public static int SibComparer(BaseType parentNode, BaseType nodeA, BaseType nodeB, out int nodeIndex)
 		{
 			nodeIndex = -1;
@@ -139,7 +151,7 @@ namespace SDC.Schema
 			while (s.Count > 0)
 			{
 				piIE = s.Pop()
-					.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+					.GetProperties() //(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
 					.Where(p => p.GetCustomAttributes<XmlElementAttribute>().Any());
 				foreach (var p in piIE)
 				{

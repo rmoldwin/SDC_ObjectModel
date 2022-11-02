@@ -128,7 +128,7 @@ namespace SDCObjectModelTests.TestClasses
 
 			//decimal_DEtype d = qrResponseField.AddDataType(ItemChoiceType.@decimal, dtQuantEnum.EQ, 1.1102).DataTypeDE_Item as decimal_DEtype;
 
-			//WE need to remove items from dictionaries whenever reassigning (Adding) objects to a different reference, as indicated below with li.AddListItemResponseField()
+			//We need to remove items from dictionaries whenever reassigning (Adding) objects to a different reference, as indicated below with li.AddListItemResponseField()
 
 			Q.ResponseField_Item?.AddDataType(ItemChoiceType.@string, dtQuantEnum.EQ, "myVal");
             //li.ListItemResponseField.responseRequired = true;

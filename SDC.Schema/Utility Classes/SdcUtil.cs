@@ -412,7 +412,7 @@ namespace SDC.Schema
 					
 					//Refill the node dictionaries with the current node
 					Fill_NodesAnd_IETnodes(btProp, parentNode);
-					btProp.RegisterParent(parentNode);
+					btProp.RegisterParent(parentNode, childNodesSort: false);
 					Debug.Print(btProp.sGuid + "; Obj ID: " + btProp.ObjectID);
 
 					//Mark parentNode as having its child nodes already sorted

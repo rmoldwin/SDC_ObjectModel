@@ -1220,7 +1220,7 @@ namespace SDC.Schema
 					if (parExists)
 					{
 						//bt.IsLeafNode = true;
-						bt.RegisterParent(btPar!);
+						bt.RegisterParent(btPar!, childNodesSort: false);
 						//Debug.WriteLine($"The node with ObjectID: {bt.ObjectID} is leaving InitializeNodesFromSdcXml. Item type is {bt.GetType().Name}.  " +
 						//            $"Parent ObjectID is {bt?.ParentID}, ParentIETypeID: {bt?.ParentIETypeID}, ParentType: {btPar.GetType().Name}");
 					}
