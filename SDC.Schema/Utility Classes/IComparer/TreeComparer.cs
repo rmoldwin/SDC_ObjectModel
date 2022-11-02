@@ -14,6 +14,7 @@ namespace SDC.Schema
 
 			if (nodeA == nodeB)
 			{ Result(0); return 0; }
+			//These next line works only for trees with a single common TopNode.  We need to generalize it later to support packages with subtrees.
 			if (nodeA.TopNode != nodeB.TopNode) throw new Exception("nodeA and nodeB are derived from different SDC templates");
 			if (nodeA == nodeA.TopNode)
 			{ Result(-1); return -1; }

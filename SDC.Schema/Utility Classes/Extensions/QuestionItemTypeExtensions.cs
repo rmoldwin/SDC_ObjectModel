@@ -111,7 +111,7 @@ namespace SDC.Schema
 			{
 				var rf = new ResponseFieldType(q);
 				q.ResponseField_Item = rf;
-				_ = new DataTypes_DEType(rf);
+				//_ = new DataTypes_DEType(rf);
 				deType = rf.AddDataType(dataType, dtQuant, valDefault);
 				return rf;
 			}

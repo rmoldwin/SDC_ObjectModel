@@ -134,7 +134,7 @@ namespace SDC.Schema.Extensions
 			return SdcUtil.GetSortedSubtreeList(bt);
 		}
 		/// <summary>
-		/// Get a sorted list containing the current node, plus of all of its sub-elements, up to but not including the next <see cref="IdentifiedExtensionType"/> node.
+		/// Get a sorted list containing the current node, plus of all of its sub-elements.
 		/// </summary>
 		/// <param name="bt">The node whose subtree we are retrieving </param>
 		/// <returns></returns>

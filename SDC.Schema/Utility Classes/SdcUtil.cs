@@ -631,12 +631,11 @@ namespace SDC.Schema
 
 		/// <summary>
 		/// Get a sorted list of node n, plus of all of node n's sub-elements, <br/>
-		/// up to but not including the next IdentifiedExtensionType node.<br/>
 		/// Includes the input node n, only if it is an IdentifiedExtensionType node.
 		/// </summary>
 		/// <param name="n">The node whose subtree we are retrieving</param>
 		/// <param name="resortChildNodes">Set to true if the child nodes may be incoreectly sorted.  This should not be needed.</param>
-		/// <param name="resetSortFlags"></param>
+		/// <param name="resetSortFlags">If true, the method will call <see cref="SdcUtil.TreeSort_ClearNodeIds"/> </param>
 		/// <returns></returns>
 		public static List<IdentifiedExtensionType> GetSortedSubtreeIET(BaseType n, bool resortChildNodes = false, bool resetSortFlags = true)
 		{
@@ -652,9 +651,17 @@ namespace SDC.Schema
 			{
 				if (n is IdentifiedExtensionType iet)
 				{
-					i++;
-					if (i != 0) sortedList.Add(iet);
+					sortedList.Add(iet);
+					//Console.WriteLine("SdcUtil.GetSortedSubtreeIET");
+					//Console.WriteLine(n.ElementPrefix + ": " + n.As<DisplayedType>().title ?? "(null)" + "; ");
+					//if (iet is QuestionItemType q1 && q1.name == "Procedure")
+					//{
+					//	Debugger.Break();
+					//	Console.WriteLine("SdcUtil.GetSortedSubtreeIET");
+					//	Console.WriteLine(n.ElementPrefix + ": " + n.As<DisplayedType>().title ?? "(null)" + "; ");
+					//}
 				}
+
 				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
 				{
 					if (childList != null)
@@ -904,12 +911,12 @@ namespace SDC.Schema
 		/// Given a current node (startAfterNode), use reflection to find the next sibling node.
 		/// No node dictionaries are used for this method.
 		/// </summary>
-		/// <param name="startAfterNode">The node for which we want to find the next sibling node</param>
+		/// <param name="startSibNode">The node for which we want to find the next sibling node</param>
 		/// <param name="parentNode">Only required if the ParentNodes dictionary has not been populated or is corrupted or stale</param>
 		/// <returns>The ruturned node will be of type BaseType, or null if no next sibling node is found</returns>
-		public static BaseType? ReflectNextSibElement(BaseType startAfterNode, BaseType? parentNode = null)
+		public static BaseType? ReflectNextSibElement(BaseType startSibNode, BaseType? parentNode = null)
 		{
-			parentNode ??= startAfterNode.ParentNode;
+			parentNode ??= startSibNode.ParentNode;
 			if (parentNode is null) return null; //You can't have sibs without a parent
 			BaseType? nextNode = null;
 			int lowestOrder = 10000;  //Order in XmlElementAttribute, for finding the next property to return; start with a huge value.
@@ -968,7 +975,7 @@ namespace SDC.Schema
 
 								if (o is IEnumerable<BaseType> ie && ie.Any())
 								{
-									int i = IndexOf(ie, startAfterNode!);
+									int i = IndexOf(ie, startSibNode!);
 									if (i > -1)
 									{
 										startAfterNodeWasHit = true; //start looking for nextNode now
@@ -980,7 +987,7 @@ namespace SDC.Schema
 										}
 									}
 								}
-								else if (ReferenceEquals(o, startAfterNode))
+								else if (ReferenceEquals(o, startSibNode))
 									startAfterNodeWasHit = true; //start looking for nextNode now
 							}
 						}
@@ -995,6 +1002,20 @@ namespace SDC.Schema
 			}
 			return null;
 		}
+
+		public static BaseType? X_ReflectNextSibElement(BaseType n)
+		{
+			var par = n.ParentNode;
+			if (par is null) return null;
+
+			var lst = ReflectChildElements(par);
+			var myIndex = lst?.IndexOf(n) ?? -1;
+			if (myIndex < 0 || myIndex == lst?.Count - 1) return null;
+			return lst?[myIndex + 1] ?? null;
+		}
+
+
+
 		public static BaseType? GetFirstSibElement(BaseType n)
 		{
 			var par = n.ParentNode;
@@ -1023,16 +1044,6 @@ namespace SDC.Schema
 			var index = sibs.IndexOf(n);
 			if (index == sibs.Count - 1) return null; //item is the last item
 			return sibs[index + 1];
-		}
-		public static BaseType? ReflectNextSibElement(BaseType n)
-		{
-			var par = n.ParentNode;
-			if (par is null) return null;
-
-			var lst = ReflectChildElements(par);
-			var myIndex = lst?.IndexOf(n) ?? -1;
-			if (myIndex < 0 || myIndex == lst?.Count - 1) return null;
-			return lst?[myIndex + 1] ?? null;
 		}
 		public static BaseType? GetLastSibElement(BaseType n)
 		{
@@ -1263,21 +1274,21 @@ namespace SDC.Schema
 		/// Given a parent node, retrieve the list of correctly-ordered child Xml Element nodes, if present.
 		/// Uses reflection only, and does not use any node dictionaries.
 		/// </summary>
-		/// <param name="n"></param>
+		/// <param name="parentNode"></param>
 		/// <returns>List&lt;BaseType>? containing the child nodes</returns>
-		public static List<BaseType>? ReflectChildElements(BaseType n)
+		public static List<BaseType>? ReflectChildElements(BaseType parentNode)
 		{
-			if (n is null) return null; //You can't have sibs without a parent
+			if (parentNode is null) return null; //You can't have sibs without a parent
 			List<BaseType>? childNodes = new();
 			IEnumerable<PropertyInfo>? piIE = null;
 			int nodeIndex = -1;
 
 			//Create a LIFO stack of the targetNode inheritance hierarchy.  The stack's top level type will always be BaseType
 			//For most non-datatype SDC objects, it could be a bit more efficient to use ExtensionBaseType - we can test this another time
-			Type t = n.GetType();
+			Type t = parentNode.GetType();
 			var s = new Stack<Type>();
 			s.Push(t);
-
+			if (parentNode is QuestionItemType q && q.name == "Procedure") Debugger.Break();
 			do
 			{//build the stack of inherited types from parentNode
 				t = t.BaseType!;
@@ -1294,7 +1305,7 @@ namespace SDC.Schema
 				foreach (var p in piIE)
 				{
 					nodeIndex++;
-					object? o = p.GetValue(n);
+					object? o = p.GetValue(parentNode);
 					if (o is not null)
 					{
 						if (o is BaseType bt)
@@ -1303,6 +1314,12 @@ namespace SDC.Schema
 							childNodes.AddRange((IEnumerable<BaseType>)o);
 					}
 				}
+			}
+			if (parentNode is QuestionItemType q1 && q1.name == "Procedure")
+			{
+				Debugger.Break();
+				Console.WriteLine("SdcUtil.ReflectChild Elements");
+				foreach (IdentifiedExtensionType n1 in childNodes) Console.WriteLine(n1.ElementPrefix + ": " + n1.As<DisplayedType>().title ?? "(null)" + "; ");
 			}
 			return childNodes;
 		}
@@ -1660,7 +1677,7 @@ namespace SDC.Schema
 			BaseType? par = item.ParentNode;
 
 			if (par is null)
-			{ errorMsg = "the ParentNode of n cannot be null"; return -1; }
+			{ errorMsg = $"{nameof(GetElementItemIndex)}: the ParentNode of n cannot be null"; return -1; }
 			if (ieParProps is null)
 			{
 				ieParProps = par.GetType().GetProperties()
@@ -1674,7 +1691,7 @@ namespace SDC.Schema
 						);
 
 				if (ieParProps is null || !ieParProps.Any())
-				{ errorMsg = "the ParentNode of n does not contain an IEnumerable<BaseType> that contains the the target n n"; return -1; }
+				{ errorMsg = $"{nameof(GetElementItemIndex)}: the ParentNode of n does not contain an IEnumerable<BaseType> that contains the the target n n"; return -1; }
 			}
 			foreach (var propInfo in ieParProps!) //loop through IEnumerable PropertyInfo objects in par
 			{   //Reflect each propInfo to see if our item parameter lives in it
@@ -1721,40 +1738,43 @@ namespace SDC.Schema
 			piItemOut = null;
 			Type itemType = item.GetType();
 			Type? parType = null;
-
 			BaseType? par = item.ParentNode;
+
 			if (par is null)
 			{
 				//we are at the top node
 				xmlElementName = itemType.GetCustomAttribute<XmlRootAttribute>()?.ElementName;
 				if (xmlElementName is null)
-					throw new InvalidOperationException("Could not find a name for the n parameter.  This may occur if the n has no parent object");
+					throw new InvalidOperationException($"{nameof(ReflectSdcElement)} could not find a name for the n parameter.  This may occur if the n node has no parent object");
 				return xmlElementName;
 			}
-
-			parType = par.GetType();
-			PropertyInfo[] parProps = parType.GetProperties();
-
-			if (piItem is null)
+					
+			if (piItem is null) //piItem was not supplied, so let's try to find it.
 			{
+				parType = par.GetType();
+				PropertyInfo[] parProps = parType.GetProperties();
 				//Look for a direct item-to-property match, so we can assign propName from the par object		
 				piItemOut = parProps
 					.Where(pi => pi.GetCustomAttributes(typeof(XmlElementAttribute)).Any()  //all serialized properties must have the XmlElementAttribute attribute
-					&& !typeof(IEnumerable<BaseType>).IsAssignableFrom(pi.PropertyType)     //the property is not an IEnumerable (i.e., an Array, List etc.)
+					&& ! typeof(IEnumerable<BaseType>).IsAssignableFrom(pi.PropertyType)     //the property is not an IEnumerable (i.e., an Array, List etc.)
 					&& ReferenceEquals(pi?.GetValue(par), item))?.FirstOrDefault();          //There can be, at most, one match to our item object
 
-				if (piItemOut is not null) piItem = piItemOut;
-			}
-			else piItemOut = piItem;
-			piItem ??= piItemOut;
+				if (piItemOut is not null) 
+					piItem = piItemOut; // piItem is not an IEnumerable here
 
-			//Now we look in IEnumerable properties, to see if "item" is contained inside it.
-			//Let's see if our item object lives in an IEnumerable<BaseClassSubtype> 
-			itemIndex = GetElementItemIndex(item, out ieItems, out PropertyInfo? piOut, out errorMsg);
-			piItemOut ??= piOut;  //Since piOut will be null if item is not an IEnumerable, we only want to use it if piItemOut is null.
-			if (piItemOut is null)
-				throw new NullReferenceException("Could not obtain PropertyInfo object from the n parameter");
-			piItem ??= piItemOut;
+				else if (piItem is null) // piItem is still null; let's try again, in IEnumerable properties
+				{
+					//Now we look in IEnumerable properties, to see if "item" is contained inside it.
+					//Let's see if our item object lives in an IEnumerable<BaseClassSubtype> 
+					itemIndex = GetElementItemIndex(item, out ieItems, out piItemOut, out errorMsg);
+					// piItemOut will be null if item is not an IEnumerable, we only want to use it if piItemOut is null.
+					if (piItemOut is null)
+						throw new NullReferenceException($"{nameof(ReflectSdcElement)} could not obtain a PropertyInfo object from the supplied node parameter. \r\n" + errorMsg);
+					else
+						piItem = piItemOut; // piItem is an IEnumerable here
+				}
+			}
+
 
 			//Find XmlElementAttribute-tagged properties in the pi that matches our par object
 			//XmlElementAttribute[]? xeAtts = (XmlElementAttribute[])Attribute.GetCustomAttributes(piItem, typeof(XmlElementAttribute));

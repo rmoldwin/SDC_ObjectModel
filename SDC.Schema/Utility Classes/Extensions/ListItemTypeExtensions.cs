@@ -7,6 +7,10 @@ namespace SDC.Schema.Extensions
 	{
 		public static ListItemResponseFieldType AddListItemResponseField(this ListItemType li)
 		{
+			if (li.ListItemResponseField is not null) 
+				throw new InvalidOperationException
+					("A ListItemResponseField object (lirf) already exists.  " +
+					"Run the lirf.Remove() method on that object before replacing it");
 			var liRF = new ListItemResponseFieldType(li);
 			li.ListItemResponseField = liRF;
 
