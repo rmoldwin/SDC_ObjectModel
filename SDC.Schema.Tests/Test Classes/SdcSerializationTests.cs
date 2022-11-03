@@ -213,6 +213,7 @@ namespace SDCObjectModelTests.TestClasses
             //string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
             var Pkg = RetrieveFormPackageType.DeserializeFromXmlPath(path);
 			//XMLPackageType XPT = (XMLPackageType)Pkg.Nodes.Values.Where(n => n is XMLPackageType).FirstOrDefault();
+
 			FormDesignType FD = (FormDesignType)Pkg.Nodes.Values.Where(n => n is FormDesignType).FirstOrDefault()!;
 
             var Q = (QuestionItemType?)FD.Nodes.Values.Where(
@@ -221,7 +222,7 @@ namespace SDCObjectModelTests.TestClasses
             var DI = Q.AddChildDisplayedItem("DDDDD");//should add to end of the <List>
             DI.name = "my added DI";
 
-            DisplayedType? DI1 = (DisplayedType)Pkg.Nodes.Values.Where(n => n.name == "my added DI").FirstOrDefault();
+            DisplayedType? DI1 = (DisplayedType)FD.Nodes.Values.Where(n => n.name == "my added DI").FirstOrDefault();
             DisplayedType? DI2 = (DisplayedType)Q.ChildItemsNode.Items[0];
             QuestionItemType? Q1 = (QuestionItemType)DI2.ParentNode.ParentNode;
             string diName = Q.Item1.Items[0].name;  

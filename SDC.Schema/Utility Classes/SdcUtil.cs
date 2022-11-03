@@ -473,23 +473,24 @@ namespace SDC.Schema
 						btNode.ObjectGUID = decodedShortGuid;
 				}
 
-				current_ITopNode._Nodes.Add(btNode.ObjectGUID, btNode);
-				if (btNode is IdentifiedExtensionType iet)
-					current_ITopNode._IETnodes.Add(iet);
+				btNode.RegisterNodeAndParent();
+				//current_ITopNode._Nodes.Add(btNode.ObjectGUID, btNode);
+				//if (btNode is IdentifiedExtensionType iet)
+				//	current_ITopNode._IETnodes.Add(iet);
 
-				if (btNode is _ITopNode itn && parentNode is not null) 
-				{   //also store the node in the current node's parent ITopNode dictionaries
+				//if (btNode is _ITopNode itn && parentNode is not null) 
+				//{   //also store the node in the current node's parent ITopNode dictionaries
 
-					//Find current node's parent ITopNode dictionaries
-					_ITopNode par_ITopNode;
-					if (parentNode is ITopNode ptn) 
-						par_ITopNode = (_ITopNode)parentNode;//only occurs in RetrieveFormPackage under RetrieveFormPackage
-					else par_ITopNode = (_ITopNode)parentNode.TopNode;
+				//	//Find current node's parent ITopNode dictionaries
+				//	_ITopNode par_ITopNode;
+				//	if (parentNode is ITopNode ptn) 
+				//		par_ITopNode = (_ITopNode)parentNode;//only occurs in RetrieveFormPackage under RetrieveFormPackage
+				//	else par_ITopNode = (_ITopNode)parentNode.TopNode;
 
-					par_ITopNode._Nodes.Add(btNode.ObjectGUID, btNode);
-					if (btNode is IdentifiedExtensionType ietPar)
-						par_ITopNode._IETnodes.Add(ietPar);
-				}
+				//	par_ITopNode._Nodes.Add(btNode.ObjectGUID, btNode);
+				//	if (btNode is IdentifiedExtensionType ietPar)
+				//		par_ITopNode._IETnodes.Add(ietPar);
+				//}
 			}
 
 			//The "content" function is a temporary kludge to generate printable output.  

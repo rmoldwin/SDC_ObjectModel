@@ -32,7 +32,6 @@ namespace SDC.Schema.Extensions
 			//We could also use the ChildNodes dictionary to create a new faster TreeComparer, as long as we keep ChildNodes sorted
 		}
 
-
 		/// <summary>
 		/// Reflect the object tree to determine if <paramref name="btSource"/> can be attached to <paramref name="newParent"/>.   
 		/// We must find an <em>exact</em> match for <paramref name="btSource"/>'s element name and the data type in <paramref name="newParent"/> to allow the move.
@@ -62,7 +61,7 @@ namespace SDC.Schema.Extensions
 		/// <param name="cancelIfChildNodes">If true (default), abort node removal if child nodes (descendants) are present.
 		/// If false, btSource and all descendants will be permanently removed.</param>
 		/// <returns>True if node removal was successful, false if unsuccessful</returns>
-		public static bool Remove(this BaseType btSource, bool cancelIfChildNodes = true)
+		internal static bool RemoveRecursive(this BaseType btSource, bool cancelIfChildNodes = true)
 		{
 			if (cancelIfChildNodes && !btSource.TryGetChildNodes(out _))
 				return false;
@@ -75,17 +74,17 @@ namespace SDC.Schema.Extensions
 				throw new InvalidOperationException($"{nameof(btSource.ParentNode)} cannot be null.");
 
 
-			bool result = RemoveNodeFromDictionaries(btSource); //remove node from TopNode dictionaries
+			bool result = RemoveNodesRecursively(btSource); //remove node from TopNode dictionaries
 			if (result is true)
 				return result;
 			else
-				throw new InvalidOperationException($"Method {nameof(Remove)} removed btSource from the object tree dictionaries.\r\n" +
+				throw new InvalidOperationException($"Method {nameof(RemoveRecursive)} removed btSource from the object tree dictionaries.\r\n" +
 					$"However, an error occured while trying to remove the node object (and descendants, if applicable).\r\n" +
 					$"The object tree and its dictionares are now in an inconsistent state.\r\n" +
 					$"Try running {nameof(SdcUtil.ReflectRefreshTree)} to refresh the object tree and its dictionaries");
 
 
-			bool RemoveNodeFromDictionaries(BaseType nodeToRemove)
+			bool RemoveNodesRecursively(BaseType nodeToRemove)
 			{
 				_ITopNode? topNode;
 				if (nodeToRemove is ITopNode)
@@ -99,46 +98,56 @@ namespace SDC.Schema.Extensions
 				{
 					while(kids.Count > 0)
 					{
-						RemoveNodeFromDictionaries(kids.Last()); //recurse depth first 
+						RemoveNodesRecursively(kids.Last()); //recurse depth first 
 						RemoveNodeObject(kids.Last()); //Remove from object tree
-						kids.Last().UnRegister(); //Remove from dictionaries
+						kids.Last().UnRegisterNode(); //Remove from dictionaries
 					}
 					return true;
 				}
 				return false;
 			}
+		}
+		/// <summary>
+		/// Reflect the parent property in the object tree that represents nodeToRemove, 
+		/// then use reflection to set the property to null.  This is non-recursive.<br/>
+		/// Child nodes are not checked and are not individually removed, so the caller must ensure that no child nodes are present.<br/>
+		/// Call UnRegisterNode after this method to remove nodes from the node dictionaries.
+		/// </summary>
+		/// <param name="nodeToRemove"></param>
+		/// <returns>true if the node is successfuly removed</returns>
+		/// <exception cref="InvalidOperationException"></exception>
+		private static bool RemoveNodeObject(BaseType nodeToRemove)
+		{
+			var par = nodeToRemove.ParentNode;
+			if (par is null)
+				throw new InvalidOperationException($"{nameof(nodeToRemove.ParentNode)} cannot be null.");
 
+			var prop = nodeToRemove.GetPropertyInfoMetaData().PropertyInfo;
+			if (prop is null)
+				throw new InvalidOperationException($"{nameof(RemoveNodeObject)}: Cannot obtain parent PropertyInfo holding: {nameof(nodeToRemove)}.");
 
-			bool RemoveNodeObject(BaseType nodeToRemove)
+			var propObj = prop.GetValue(par);
+			if (propObj is null)
+				throw new InvalidOperationException($"{nameof(RemoveNodeObject)}: Cannot reflect the parent object holding: {nameof(nodeToRemove)}.");
+
+			if (propObj is IList propIL)
 			{
-				//reflect the parent property that represents nodeToRemove, then set the property to null
-				var par = nodeToRemove.ParentNode;
-				if (par is null)
-					throw new InvalidOperationException($"{nameof(nodeToRemove.ParentNode)} cannot be null.");
-
-				var prop = nodeToRemove.GetPropertyInfoMetaData().PropertyInfo;
-				if (prop is null)
-					throw new InvalidOperationException($"{nameof(RemoveNodeObject)}: Cannot obtain parent PropertyInfo holding node: {nameof(nodeToRemove)}.");
-
-				var propObj = prop.GetValue(par);
-				if (propObj is null)
-					throw new InvalidOperationException($"{nameof(RemoveNodeObject)}: Cannot reflect the parent object holding node: {nameof(nodeToRemove)}.");
-
-				if (propObj is IList propIL && propIL[0] != null)
+				if (propIL.Contains(nodeToRemove))
 				{
-					(propObj as IList)?.Remove(nodeToRemove); //note - this is recursive
+					propIL.Remove(nodeToRemove);
 					Debug.Print($"Remove SUCCESS IList.Remove: {nodeToRemove.name ?? nodeToRemove.GetType().Name}");
 					return true;
 				}
 				else
-				{
-					prop.SetValue(par, null);
-					Debug.Print($"Remove SUCCESS SetValue null: {nodeToRemove.name ?? nodeToRemove.GetType().Name}");
-					return true;
-				}
-				throw new InvalidOperationException($"{nameof(RemoveNodeObject)}: unable to remove node: {nameof(nodeToRemove)}.");
+					throw new InvalidOperationException($"{nameof(RemoveNodeObject)}: unable to locate {nameof(nodeToRemove)} in IList.");
 			}
-
+			else
+			{
+				prop.SetValue(par, null);
+				Debug.Print($"Remove SUCCESS SetValue null: {nodeToRemove.name ?? nodeToRemove.GetType().Name}");
+				return true;
+			}
+			throw new InvalidOperationException($"{nameof(RemoveNodeObject)}: unable to remove node: {nameof(nodeToRemove)}.");
 		}
 		/// <summary>
 		/// Move an SDC node from one parent node to another. 
@@ -205,7 +214,9 @@ namespace SDC.Schema.Extensions
 						}
 						n = nextNode;
 					}
-					var sourceNodeList = SdcUtil.ReflectRefreshSubtreeList(btSource, false, true, 0, 1, true, true, true, true, SdcUtil.CreateElementNameCAP); //re-create dictionaries for all btSource nodes
+					//Re-create dictionaries, name, sGuid, etc for all btSource nodes.
+					//Order is not reset here, but maybe we'll add it later.
+					var sourceNodeList = SdcUtil.ReflectRefreshSubtreeList(btSource, false, true, 0, 1, true, true, true, true, SdcUtil.CreateElementNameCAP); 
 
 				}//TODO: process donor node/branch: ObjectID, sGuid, ObjectID, @name, ID, baseURI?, Link?, events?, rule targets?
 
@@ -218,75 +229,145 @@ namespace SDC.Schema.Extensions
 				}
 				else if (targetObj is IList propList) //btSource can be attached to a member of a List
 				{
-					//Remove this from current parent object
-					btSource.IsParentNodeAllowed(btSource.ParentNode!, out object? currentParentObj);
-					if (currentParentObj is BaseType)
-						currentParentObj = null;  //remove the btSource reference form this parent object
-					else if (currentParentObj is not null && currentParentObj is IList)
+					var sourceParent = btSource.ParentNode;
+					//par can be null if we are grafting from the btSource tree to another SDC object tree, and btSource is the root node of its tree
+					if (sourceParent is not null) //Remove the reference from par to btSource
 					{
-						//remove the btSource reference from this parent IList
-						var objList = (IList)currentParentObj;
-						if (objList?.IndexOf(btSource) > -1) //this extra test may not be necessary
+						//Remove this from current parent object
+						//The IsParentNodeAllowed call is done only to obtain the currentParentObj, which hold the reference to btSource
+						btSource.IsParentNodeAllowed(sourceParent, out object? currentParentObj);
+						if (currentParentObj is not null)
 						{
-							objList.Remove(btSource);
-							if (objList.Count == 0)
+							if (currentParentObj is BaseType)
 							{
-								var result = btSource.ParentNode?.Remove(cancelIfChildNodes: true) ?? false;
-								if (!result) 
-									throw new Exception("btSource.ParentNode was not removed");
+								RemoveNodeObject(sourceParent);
 							}
-						}
-					}
-					else 
-						throw new Exception("Could not reflect parent property object to remove node");
+							else if (currentParentObj is not null && currentParentObj is IList objList)
+							{
+								//remove the btSource reference from this parent IList
+								//var objList = (IList)currentParentObj;
+								if (objList?.IndexOf(btSource) > -1) //this extra test may not be necessary
+								{
+									objList.Remove(btSource);
 
-					if (newListIndex < 0 || newListIndex >= propList.Count) propList.Add(btSource);
-					else propList.Insert(newListIndex, btSource);
+									if (objList.Count == 0)
+									{
+										RemoveNodeObject(sourceParent);
+									}
+								}
+							}
+							else
+								throw new InvalidOperationException($"Could not reflect parent SDC property object ({nameof(currentParentObj)}) to remove node");
+						}
+						else
+							throw new InvalidOperationException($"Could not obtain SDC property object ({nameof(currentParentObj)})");
+					}
+					else { }//sourceParent is null
+						//btSource.RegisterNodeAndParent();
+
+					if (newListIndex < 0 || newListIndex >= propList.Count) 
+						propList.Add(btSource);
+					else 
+						propList.Insert(newListIndex, btSource);
 
 					btSource.MoveInDictionaries(targetParent: newParent);
 
 					return true;
 				}
-				throw new Exception("Invalid targetProperty");
+				else 
+					throw new InvalidOperationException("Invalid targetObj");
+				
 			}
 			else return false; //invalid Move
 		}
 
 
 		#endregion
-		#region Register-UnRegister
+		#region Dictionary Register-UnRegister
 		//TODO: ChildNodes is maintained in sorted order by default;
 		//Setting childNodesSort to false may speed loading when recreating the dictionaries in the correct order by reflection of the SDC object tree.
 		//When adding nodes without reflection-ordering, always set childNodesSort to true.
 		//childNodesSort uses reflection to determine the proper order that matches the object tree order
 		//There is always a risk of getting out of sync with the nodes in the SDC object model classes.
 		//If that happens, we can run SdcUtil.RefreshReflectTree to rebuild the dictionaries.
-		internal static void RegisterParent(this BaseType btSource, BaseType inParentNode, bool childNodesSort = true)
+
+
+
+		/// <summary>
+		/// Register <b><paramref name="node"/></b> in all TopNode dictionaries.  
+		/// If <b><paramref name="node"/></b> is ITopNode, it is also registered in it's own class's TopNode dictionaries
+		/// </summary>
+		/// <param name="node"/>
+		/// <param name="parentNode">If adding nodes manually, in the BaseType constructor, a parent Node should be provided</param>
+		internal static void RegisterNodeAndParent(this BaseType node, BaseType? parentNode = null)
+		{
+			if (node.TopNode is not null)
+			{
+				parentNode??= node.ParentNode;
+				_ITopNode? _topNode = (_ITopNode)node.TopNode;
+
+				if (_topNode is null)
+					throw new NullReferenceException($"{nameof(node.TopNode)} cannot be null.");
+
+				RegisterNode(_topNode);
+				//Populate the _ChildNodes and _ParentNodes dictionaries:
+				if (parentNode is not null) node.RegisterParent(parentNode, childNodesSort: true);
+
+
+				if (node is _ITopNode _topTopNode && _topTopNode != _topNode) //if we did not already do this... 
+				{   //also register this ITopNode object in its own dictionaries.
+					_topTopNode = (_ITopNode)node;
+					RegisterNode(_topTopNode);
+				}
+
+				void RegisterNode(_ITopNode tn)
+				{
+					tn._Nodes.Add(node.ObjectGUID, node);
+
+					//This is a convenient place to update regTopNode.MaxObjectID; 
+					tn._MaxObjectIDint = BaseType.LastObjectID;
+
+					if (node is IdentifiedExtensionType iet)
+						tn._IETnodes.Add(iet);
+				}
+			}
+			else { } //There is no TopNode to hold our dictionaries, so we can't register the node
+		}
+
+		/// <summary>
+		/// Register <b><paramref name="node"/></b> in _ParentNodes and _ChildNodes dictionaries.  
+		/// If <b><paramref name="node"/></b> is ITopNode, it is also registered in <b><paramref name="node"/></b>'s own TopNode dictionaries
+		/// </summary>
+		/// <param name="node"></param>
+		/// <param name="inParentNode"></param>
+		/// <param name="childNodesSort"></param>
+		/// <exception cref="NullReferenceException"></exception>
+		internal static void RegisterParent(this BaseType node, BaseType inParentNode, bool childNodesSort = true)
 		{
 			if (inParentNode != null)
 			{
-				var topNode = (_ITopNode?)btSource.TopNode;
-				if (topNode is null)
-					throw new NullReferenceException($"{nameof(btSource.TopNode)} cannot be null.");
+				var _topNode = (_ITopNode?)node.TopNode;
+				if (_topNode is null)
+					throw new NullReferenceException($"{nameof(node.TopNode)} cannot be null.");
 
-				RegisterParentNode(btSource, inParentNode, topNode, childNodesSort);
+				RegisterParentNode(node, inParentNode, _topNode, childNodesSort);
 
-				if (btSource is _ITopNode && topNode != (_ITopNode)btSource) //if we did not already do this... 
+				if (node is _ITopNode _topTopNode && _topTopNode != _topNode) //if we did not already do this... 
 				{   //also register this ITopNode object in its own dictionaries.
-					topNode = (_ITopNode)btSource;
-					RegisterParentNode(btSource, inParentNode, topNode, childNodesSort);
+					RegisterParentNode(node, inParentNode, _topTopNode, childNodesSort);
 				}
 			}
-			static void RegisterParentNode(BaseType btSource, BaseType inParentNode, _ITopNode topNode, bool childNodesSort)
+
+			static void RegisterParentNode(BaseType btSource, BaseType inParentNode, _ITopNode tn, bool childNodesSort)
 			{
-				topNode._ParentNodes.Add(btSource.ObjectGUID, inParentNode);
+				tn._ParentNodes.Add(btSource.ObjectGUID, inParentNode);
 
 				List<BaseType>? kids;
-				topNode._ChildNodes.TryGetValue(inParentNode.ObjectGUID, out kids);
+				tn._ChildNodes.TryGetValue(inParentNode.ObjectGUID, out kids);
 				if (kids is null)
 				{
 					kids = new List<BaseType>();
-					topNode._ChildNodes.Add(inParentNode.ObjectGUID, kids);
+					tn._ChildNodes.Add(inParentNode.ObjectGUID, kids);
 					kids.Add(btSource); //no need to sort with only one item in the list
 				}
 				else
@@ -300,61 +381,78 @@ namespace SDC.Schema.Extensions
 			}
 		}
 
-		internal static void UnRegisterParent(this BaseType btSource)
+		/// <summary>
+		/// UnRegister <b><paramref name="node"/></b> in _ParentNodes and _ChildNodes dictionaries.  
+		/// If <b><paramref name="node"/></b> is ITopNode, it is also unregistered in <b><paramref name="node"/></b>'s own TopNode dictionaries
+		/// </summary>
+		/// <param name="node"></param>
+		/// <exception cref="InvalidOperationException"></exception>
+		/// <exception cref="NullReferenceException"></exception>
+		internal static void UnRegisterParent(this BaseType node)
 		{
-			var par = btSource.ParentNode;
-			bool success = false;
-			var topNode = (_ITopNode?)btSource.TopNode;
+			var par = node.ParentNode;
+			bool success;
+			var _topNode = (_ITopNode?)node.TopNode;
+			if (_topNode is null)
+				throw new NullReferenceException($"{nameof(node.TopNode)} cannot be null.");
 
-			if (topNode?._ParentNodes.ContainsKey(btSource.ObjectGUID) ?? false)
-				success = topNode._ParentNodes.Remove(btSource.ObjectGUID);
-			// if (!success) throw new Exception($"Could not remove object from ParentNodes dictionary: name: {this.name ?? "(none)"} , ObjectGUID: {this.ObjectGUID}");
+			UnRegisterParentNode(_topNode);
 
-			if (par is not null)
+			if (node is _ITopNode _topTopNode && _topTopNode != _topNode) //if we did not already do this... 
+			{   //also register this ITopNode object in its own dictionaries.
+				UnRegisterParentNode(_topTopNode);
+			}
+
+			void UnRegisterParentNode(_ITopNode tn)
 			{
-				if (topNode?._ChildNodes.ContainsKey(par.ObjectGUID) ?? false)
+				if (tn?._ParentNodes.ContainsKey(node.ObjectGUID) ?? false)
+					success = tn._ParentNodes.Remove(node.ObjectGUID);
+				// if (!success) throw new Exception($"Could not remove object from ParentNodes dictionary: name: {this.name ?? "(none)"} , ObjectGUID: {this.ObjectGUID}");
+
+				if (par is not null && (tn?._ChildNodes.ContainsKey(par.ObjectGUID) ?? false))
 				{
-					var childList = topNode._ChildNodes[par.ObjectGUID];
-					success = childList.Remove(btSource); //Returns a List<BaseType> and removes "item" from that list
+					var childList = tn._ChildNodes[par.ObjectGUID];
+					success = childList.Remove(node); //Returns a List<BaseType> and removes "item" from that list
 					if (!success)
-						throw new Exception($"Could not remove list node from _ChildNodes dictionary: name: {btSource.name ?? "(none)"}, ObjectGUID: {btSource.ObjectGUID}");
-					if (childList.Count == 0) success = topNode._ChildNodes.Remove(par.ObjectGUID); //remove the entire entry from _ChildNodes
+						throw new InvalidOperationException($"Could not remove list node from _ChildNodes dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
+					if (childList.Count == 0) success = tn._ChildNodes.Remove(par.ObjectGUID); //remove the entire entry from _ChildNodes
 					if (!success)
-						throw new Exception($"Could not remove parent entry from _ChildNodes dictionary: name: {par.name ?? "(none)"}, ObjectGUID: {par.ObjectGUID}");
+						throw new InvalidOperationException($"Could not remove parent entry from _ChildNodes dictionary: name: {par.name ?? "(none)"}, ObjectGUID: {par.ObjectGUID}");
 				}
+				else {} //no _ChildNodes entries are present for this node
 			}
 		} //!not tested
-		private static void UnRegister(this BaseType btSource)
-		{
-			var topNode = (_ITopNode?)btSource.TopNode;
-			bool success = topNode?._Nodes.Remove(btSource.ObjectGUID) ?? false;
-			if (!success)
-				throw new Exception($"Could not remove object from _Nodes dictionary: name: {btSource.name ?? "(none)"}, ObjectGUID: {btSource.ObjectGUID}");
-			btSource.UnRegisterParent();
 
-			if (btSource is IdentifiedExtensionType iet)
-			{
-				var inb = topNode?._IETnodes;
-				success = inb?.Remove(iet) ?? false;
-				if (!success)
-					throw new Exception($"Could not remove object from IETnodesBase collection: name: {btSource.name ?? "(none)"}, ObjectGUID: {btSource.ObjectGUID}");
+		/// <summary>
+		/// Remove <b><paramref name="node"/></b> from _ParentNodes and _ChildNodes dictionaries.
+		/// </summary>
+		/// <param name="node"></param>
+		/// <exception cref="Exception"></exception>
+		private static void UnRegisterNode(this BaseType node)
+		{
+			var _topNode = (_ITopNode?)node.TopNode;
+			if (_topNode is null)
+				throw new NullReferenceException($"{nameof(node.TopNode)} cannot be null.");
+			UnRegister(_topNode);
+
+			if (node is _ITopNode _topTopNode && _topTopNode != _topNode) //if we did not already do this... 
+			{   //also register this ITopNode object in its own dictionaries.
+				UnRegister(_topTopNode);
 			}
 
-			if (btSource is ITopNode && topNode != (_ITopNode)btSource)
-			{//also UnRegister this ITopNode object in its own dictionaries.
-
-				topNode = (_ITopNode?)btSource;
-				success = topNode?._Nodes.Remove(btSource.ObjectGUID) ?? false;
+			void UnRegister(_ITopNode tn)
+			{
+				bool success = tn?._Nodes.Remove(node.ObjectGUID) ?? false;
 				if (!success)
-					throw new Exception($"Could not remove ITopNode object from _Nodes dictionary: name: {btSource.name ?? "(none)"}, ObjectGUID: {btSource.ObjectGUID}");
-				btSource.UnRegisterParent();
+					throw new Exception($"Could not remove object from _Nodes dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
+				node.UnRegisterParent();
 
-				if (btSource is IdentifiedExtensionType ietTop)
+				if (node is IdentifiedExtensionType iet)
 				{
-					var inb = topNode?._IETnodes;
-					success = inb?.Remove(ietTop) ?? false;
+					var inb = tn?._IETnodes;
+					success = inb?.Remove(iet) ?? false;
 					if (!success)
-						throw new Exception($"Could not remove ITopNode object from IETnodesBase collection: name: {btSource.name ?? "(none)"}, ObjectGUID: {btSource.ObjectGUID}");
+						throw new Exception($"Could not remove object from IETnodesBase collection: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
 				}
 			}
 		} //!not tested

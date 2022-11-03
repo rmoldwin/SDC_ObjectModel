@@ -1113,21 +1113,21 @@ namespace SDC.Schema
 			if (this is ITopNode tn)
 			{
 				if (parentNode is null) TopNode = tn;
-				else if (parentNode is not null)
+				else //if (parentNode is not null)
 				{
 					if (parentNode.TopNode is not null)
 					{
 						//parentNode's TopNode holds dictionaries we need to populate
 						_ITopNode par_ITopNode;
-						if (parentNode is ITopNode ptn)
-							par_ITopNode = (_ITopNode)parentNode;//only occurs in RetrieveFormPackage under RetrieveFormPackage
-						else par_ITopNode = (_ITopNode)parentNode.TopNode;
+						if (parentNode is _ITopNode ptn)
+							par_ITopNode = ptn;//only occurs in RetrieveFormPackage under RetrieveFormPackage
+						else par_ITopNode = (_ITopNode)parentNode.TopNode; //par_ITopNode could still be null here
 
 						//store the node (this) in the current node's parent ITopNode dictionaries
+						//par_ITopNode._Nodes.Add(this.ObjectGUID, this);
+						//if (this is IdentifiedExtensionType ietPar)
+						//	par_ITopNode._IETnodes.Add(ietPar);
 
-						par_ITopNode._Nodes.Add(this.ObjectGUID, this);
-						if (this is IdentifiedExtensionType ietPar)
-							par_ITopNode._IETnodes.Add(ietPar);
 						TopNode = par_ITopNode;
 					}
 					else { } //this node descends form a non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode
@@ -1144,25 +1144,23 @@ namespace SDC.Schema
 			}
 			else if (parentNode is null) { }//the caller is trying to instantiate a standalone root node that is not a proper ITopNode.  TopNode is thus null here
 
-
-
+			this.RegisterNodeAndParent(parentNode);
 			//+Register node in _Nodes and _IETnodes dictionaries:
-			if (TopNode is not null)
-			{ 
-				var _topNode = (_ITopNode)TopNode;
-				{
-					_topNode._Nodes.Add(this.ObjectGUID, this);
+			//if (TopNode is not null)
+			//{
+			//	var _topNode = (_ITopNode)TopNode;
+			//	{
+			//		_topNode._Nodes.Add(this.ObjectGUID, this);
 
-					//This is a connvenient place to update topNode.MaxObjectID; 
-					_topNode._MaxObjectIDint = LastObjectID;
-				}
-				if (this is IdentifiedExtensionType iet)
-					_topNode._IETnodes.Add(iet);
+			//		//This is a connvenient place to update topNode.MaxObjectID; 
+			//		_topNode._MaxObjectIDint = LastObjectID;
+			//	}
+			//	if (this is IdentifiedExtensionType iet)
+			//		_topNode._IETnodes.Add(iet);
 
-				//+Populate the _ChildNodes and _ParentNodes dictionaries:
-				if (parentNode is not null) this.RegisterParent(parentNode, childNodesSort: true);
-			}
-
+			//	//+Populate the _ChildNodes and _ParentNodes dictionaries:
+			//	if (parentNode is not null) this.RegisterParent(parentNode, childNodesSort: true);
+			//}
 		}
 
 		#region     Init Methods
@@ -1243,6 +1241,7 @@ namespace SDC.Schema
 		#endregion Local methods
 
 		#region  Local Members
+		internal static int LastObjectID { get => lastObjectID; private set => lastObjectID = value; }
 		internal void StoreError(string errorMsg) //TODO: Replace with event that logs each error
 		{
 			var exData = new Exception();
@@ -1574,7 +1573,7 @@ namespace SDC.Schema
 		private RetrieveFormPackageType _PackageNode;
 		private static ITopNode? LastTopNode;
 		//private static BaseType? LastAddedNode;
-		private static int LastObjectID = 0;
+		private static int lastObjectID = 0;
 
 		private List<Exception> ExceptionList = new();
 
@@ -1718,7 +1717,7 @@ namespace SDC.Schema
 		bool Remove(int NodeIndex)
 		{
 			var node = ChildItemsList[NodeIndex];
-			if (node != null) return node.Remove();
+			if (node != null) return node.RemoveRecursive();
 			return false;
 
 		}
