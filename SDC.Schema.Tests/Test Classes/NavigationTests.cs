@@ -349,7 +349,7 @@ namespace SDCObjectModelTests.TestClasses
 			BaseType? nextSib;
 
 			var sortedList = new List<BaseType>();
-			BaseType[] sortedArray = new BaseType[Setup.FD.Nodes.Count];
+			BaseType[] sortedArray = new BaseType[Setup.FD.Nodes.Count + 1];
 
 			MoveNext(n);
 

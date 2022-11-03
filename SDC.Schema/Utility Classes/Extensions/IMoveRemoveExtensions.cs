@@ -4,6 +4,7 @@ using System.Collections;
 using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection.Emit;
 using System.Xml.Linq;
 
@@ -54,14 +55,14 @@ namespace SDC.Schema.Extensions
 		public static bool IsParentNodeAllowed(this BaseType btSource, BaseType newParent)
 			=> SdcUtil.IsParentNodeAllowed(btSource, newParent, out _);
 
-		/// <summary>Remove <paramref name="btSource"/> and all its descendants from the SDC tree. 
+		/// <summary>Remove <b><paramref name="btSource"/></b> and all its descendants from the SDC tree. 
 		/// Checks recursively for descendants and removes them from all dictionaries.
 		/// </summary>
 		/// <param name="btSource">The node to remove</param>
 		/// <param name="cancelIfChildNodes">If true (default), abort node removal if child nodes (descendants) are present.
 		/// If false, btSource and all descendants will be permanently removed.</param>
-		/// <returns>True if node removal was successful, false if unsuccessful</returns>
-		internal static bool RemoveRecursive(this BaseType btSource, bool cancelIfChildNodes = true)
+		/// <returns>True if node removal was successful; false if unsuccessful</returns>
+		public static bool RemoveRecursive(this BaseType btSource, bool cancelIfChildNodes = true)
 		{
 			if (cancelIfChildNodes && !btSource.TryGetChildNodes(out _))
 				return false;
@@ -135,6 +136,7 @@ namespace SDC.Schema.Extensions
 				if (propIL.Contains(nodeToRemove))
 				{
 					propIL.Remove(nodeToRemove);
+					if (nodeToRemove is not null) Debugger.Break();
 					Debug.Print($"Remove SUCCESS IList.Remove: {nodeToRemove.name ?? nodeToRemove.GetType().Name}");
 					return true;
 				}
@@ -142,8 +144,9 @@ namespace SDC.Schema.Extensions
 					throw new InvalidOperationException($"{nameof(RemoveNodeObject)}: unable to locate {nameof(nodeToRemove)} in IList.");
 			}
 			else
-			{
+			{	
 				prop.SetValue(par, null);
+				if(propObj is NotNullAttribute) Debugger.Break();
 				Debug.Print($"Remove SUCCESS SetValue null: {nodeToRemove.name ?? nodeToRemove.GetType().Name}");
 				return true;
 			}
@@ -189,7 +192,7 @@ namespace SDC.Schema.Extensions
 					throw new NullReferenceException("The root node of newParent could not be determined.");
 
 				if (sourceRoot.Equals(newParentRoot)) sameRoot = true;
-				else //+Process btSource tree with different root node
+				else //!+Process btSource tree with different root node
 				{
 					BaseType? n;
 					BaseType? nextNode;
@@ -275,7 +278,7 @@ namespace SDC.Schema.Extensions
 					return true;
 				}
 				else 
-					throw new InvalidOperationException("Invalid targetObj");
+					throw new InvalidOperationException("Invalid targetObj: targetObj must be BaseType or IList");
 				
 			}
 			else return false; //invalid Move
@@ -298,8 +301,10 @@ namespace SDC.Schema.Extensions
 		/// If <b><paramref name="node"/></b> is ITopNode, it is also registered in it's own class's TopNode dictionaries
 		/// </summary>
 		/// <param name="node"/>
+		/// <param name="node"></param>
 		/// <param name="parentNode">If adding nodes manually, in the BaseType constructor, a parent Node should be provided</param>
-		internal static void RegisterNodeAndParent(this BaseType node, BaseType? parentNode = null)
+		/// <param name="childNodesSort"></param>
+		internal static void RegisterNodeAndParent(this BaseType node, BaseType? parentNode = null, bool childNodesSort = true)
 		{
 			if (node.TopNode is not null)
 			{
@@ -311,7 +316,7 @@ namespace SDC.Schema.Extensions
 
 				RegisterNode(_topNode);
 				//Populate the _ChildNodes and _ParentNodes dictionaries:
-				if (parentNode is not null) node.RegisterParent(parentNode, childNodesSort: true);
+				if (parentNode is not null) node.RegisterParent(parentNode, childNodesSort);
 
 
 				if (node is _ITopNode _topTopNode && _topTopNode != _topNode) //if we did not already do this... 
@@ -328,7 +333,11 @@ namespace SDC.Schema.Extensions
 					tn._MaxObjectIDint = BaseType.LastObjectID;
 
 					if (node is IdentifiedExtensionType iet)
+					{
 						tn._IETnodes.Add(iet);
+						//tn._IETnodes.OrderBy(n => n.order);
+					}
+					return;
 				}
 			}
 			else { } //There is no TopNode to hold our dictionaries, so we can't register the node

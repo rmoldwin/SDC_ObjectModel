@@ -324,7 +324,7 @@ namespace SDC.Schema
 			if (refreshTree)
 			{
 				Init_ITopNode(current_ITopNode);
-				Fill_NodesAnd_IETnodes(btNode, null);
+				sGuidSetup(btNode, null);
 				if (btNode.ParentNode is null) btNode.TopNode = current_ITopNode; //points to itself, indicating this is the root node
 				else btNode.TopNode = btNode.ParentNode.TopNode;
 			}
@@ -411,10 +411,11 @@ namespace SDC.Schema
 						current_ITopNode = Init_ITopNode(itn);				
 					
 					//Refill the node dictionaries with the current node
-					Fill_NodesAnd_IETnodes(btProp, parentNode);
-					btProp.RegisterParent(parentNode, childNodesSort: false);
+					sGuidSetup(btProp, parentNode);
+					btProp.RegisterNodeAndParent(parentNode, childNodesSort: false); //we are adding nodes in reflection-sorted order
+					//btProp.RegisterParent(parentNode, childNodesSort: false);
 					Debug.Print(btProp.sGuid + "; Obj ID: " + btProp.ObjectID);
-
+					
 					//Mark parentNode as having its child nodes already sorted
 					TreeSort_NodeIds.Add(parentNode.ObjectID);  //Change ObjectID to ObjectGUID?
 					AssignSdcProperties(parentNode, piChildProperty);
@@ -451,12 +452,14 @@ namespace SDC.Schema
 					}
 				}
 			}
+
 			_ITopNode Init_ITopNode(_ITopNode new_ITopNode)
 			{
 				new_ITopNode.ClearDictionaries();			
 				return new_ITopNode;
 			}
-			void Fill_NodesAnd_IETnodes(BaseType btNode, BaseType? parentNode)
+
+			void sGuidSetup(BaseType btNode, BaseType? parentNode)
 			{//current_ITopNode here points to the ITopNode ancestor of btNode
 
 				//First, check sGuid and ObjectGUID status:
@@ -472,8 +475,7 @@ namespace SDC.Schema
 					if (btNode.ObjectGUID != decodedShortGuid)
 						btNode.ObjectGUID = decodedShortGuid;
 				}
-
-				btNode.RegisterNodeAndParent();
+				
 				//current_ITopNode._Nodes.Add(btNode.ObjectGUID, btNode);
 				//if (btNode is IdentifiedExtensionType iet)
 				//	current_ITopNode._IETnodes.Add(iet);
