@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.ObjectModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using SDC.Schema;
 using SDC.Schema.Extensions;
 using System;
@@ -9,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml;
 using System.Xml.Serialization;
 
 //using SDC.Schema;
@@ -145,7 +147,57 @@ namespace SDCObjectModelTests.TestClasses
             Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
         }
 
-        [TestMethod]
+		[TestMethod]
+		public void MoveDEunderLItoLIandBack()
+		{
+			Setup.TimerStart("==>[] Started");
+			BaseType.ResetRootNode();
+
+			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
+
+			FormDesignType FD = TopNodeSerializer<FormDesignType>.DeserializeFromXmlPath(path);
+			var myXML = TopNodeSerializer<FormDesignType>.GetXml(FD);
+
+            var S_16182 = FD.GetSectionByName("S_16182");
+            var Q_58807 = FD.GetQuestionByName("Q_58807");
+            var LI_40307 = FD.GetListItemByName("LI_40307");
+            var LI_39079 = FD.GetListItemByName("LI_39079");
+            var LIR_16195 = FD.GetListItemByName("LI_16195");
+            var LI_16196 = FD.GetListItemByName("LI_16196");
+            var Q_16214 = FD.GetQuestionByName("Q_16214");
+            var Q_16250 = FD.GetQuestionByName("Q_16250");
+
+			Assert.IsTrue(LI_40307.ChildItemsNode is null);
+
+			//Move qLat under liExci
+			Move(Q_16214, LI_40307, DropPosition.Over);
+
+			Assert.IsTrue(LI_40307.GetChildNodes().Count == 1);
+			Assert.IsTrue(LI_40307.ChildItemsNode is not null);
+
+			//Move qLat under liMast
+			Move(Q_16214, LI_39079, DropPosition.Over);
+			Assert.IsTrue(LI_39079.GetChildNodes().Count == 2); //Has a Property and a ChildItems node
+			Assert.IsTrue(LI_40307.ChildItemsNode is null);
+
+			//Move qLat under liOth
+			Move(Q_16214, LIR_16195, DropPosition.Over);
+			Assert.IsTrue(LIR_16195.GetChildNodes().Count == 3);//Has Property, and a ChildItems node
+			Assert.IsTrue(LI_40307.ChildItemsNode is null);
+            Assert.IsTrue(LI_39079.ChildItemsNode is null);
+
+			//Move qLat under liExci - should cause error
+			Move(Q_16214, LI_40307, DropPosition.Over);
+			Assert.IsTrue(LI_40307.GetChildNodes().Count == 1);
+			Assert.IsTrue(LIR_16195.ChildItemsNode is null); 
+            Assert.IsTrue(LI_39079.ChildItemsNode is null);
+
+
+			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+			Setup.Reset(); //reset after moving nodes.
+		}
+
+		[TestMethod]
         public void MoveListDItoOtherList()
         {
             Setup.TimerStart("==>[] Started");
@@ -179,5 +231,227 @@ namespace SDCObjectModelTests.TestClasses
 
             Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
         }
-    }
+
+		public bool Move(BaseType sourceNode, BaseType targetNode, DropPosition position)//previously used List<***I***BaseType>
+		{
+			try
+			{
+				Console.WriteLine("-------------------------------------------");
+				Console.WriteLine($"{position.ToString().ToUpper()}: Source: {sourceNode.ElementName}: {sourceNode.As<DisplayedType>().title ?? "null"}, Target: {targetNode.ElementName}: {targetNode.As<DisplayedType>().title ?? "null"} ");
+
+				//!Handle some common illegal Move cases
+				if (sourceNode is null) return false;
+				if (sourceNode.ParentNode is null) return false;
+				if (targetNode is null) return false;
+
+				if (sourceNode is ListItemType && (targetNode is SectionItemType)) //can't drop LI on, before or after S
+					return false;
+				if (targetNode.IsDescendantOf(sourceNode))
+					return false;
+				if (targetNode.GetType() == typeof(DisplayedType) && position == DropPosition.Over)
+					return false;
+
+				//!Begin SETUP_______________________________________________________            
+
+				IChildItemsParent? targetAsCIP = null; //This will not be null if the targetNode can subsume a ChildItems node
+				BaseType? targetAttachementSite;  //The object where sourceNode should be attached.  It will be either a List.Items or ChildItems.Items object, which contain a "List<T> Items" attachment property
+
+				//!Test if target is QS or QM
+				QuestionItemType? qsqmTarget = null; //qsqmTarget will not be null if targetNode is QS or QM
+				if (targetNode is QuestionItemType q &&
+						(q.GetQuestionSubtype() & QuestionEnum.QuestionSingleOrMultiple) > 0) //"Bitwise And" test for QS or QM
+					qsqmTarget = q;
+
+				//!Test if source is LI or DI
+				DisplayedType? listItemNodeSource = null; //source is LI or DI
+				if (sourceNode is ListItemType || sourceNode.GetType() == typeof(DisplayedType))
+					listItemNodeSource = (DisplayedType)sourceNode;
+
+				int targetIndex = 0; //drop in first position of target (List or ChildItems node)
+				int sourceIndex = 0; //drop in first position of source (List or ChildItems node)
+				PropertyInfoMetadata pimTarget;
+				PropertyInfoMetadata pimSource;
+
+				ChildItemsType? sourceChildItemsNode = null;
+				ListType? sourceListNode = null;
+				sourceChildItemsNode = sourceNode.ParentNode.As<ChildItemsType>();
+				sourceListNode = sourceNode.ParentNode.As<ListType>();
+
+				//!End SETUP_______________________________________________________      
+
+				//Determine Drop Type:
+				if (position == DropPosition.Over) //Add as the first child item, at the top of the list (itemIndex = 0)
+				{
+					targetAsCIP = targetNode as IChildItemsParent; //childItemsParent is null only if targetNode is DI
+
+					if (targetNode is ListItemType li && sourceNode is ListItemType)
+						return false;
+
+					else if (qsqmTarget is not null && listItemNodeSource is not null) //If we drop LI/DI on QS/QM, add to Q LIST node
+					{
+						Console.WriteLine("(qsqmTarget is not null &&  listItemNodeSource is not null");
+						if (sourceNode is QuestionItemType || sourceNode is SectionItemType)
+							Debugger.Break(); //We should never get here
+
+						ListType? targetTest = qsqmTarget.ListField_Item?.List;
+						if (targetTest is null)
+						{
+							Debugger.Break(); //We should never get here
+							qsqmTarget.AddListFieldToQuestion().AddList();
+						}
+						//targetNode = qsqmTarget.ListField_Item.List;
+						targetAttachementSite = qsqmTarget.ListField_Item?.List;
+						if (targetAttachementSite is null) throw new NullReferenceException("targetAttachementSite (qsqmTarget.ListField_Item) cannot be null");
+					}
+					else if (targetAsCIP is not null) //i.e., targetNode != DI //includes all other IChildItemsParent drop targets,with any source type
+					{
+						Console.WriteLine("Over: childItemsParent is not null");
+						//Debugger.Break();
+						if (sourceNode is ListItemType) return false;
+
+						//targetNode =  GetChildItemsNode(); //move under target
+						targetAttachementSite = targetAsCIP.AddChildItemsNode(); //Create ChildItemsNode only when needed 
+
+					}
+					else //any other non-IChildItemsParent target nodes (only DI target nodes are left)
+					{
+						Console.WriteLine("nop");
+
+						if (targetNode.GetType() != typeof(DisplayedType))
+							Debugger.Break(); //we should never get here
+						return false;
+
+					} //use tried to drop on a DisplayedType node (not IChildItemsParent)
+				}
+				else if (position == DropPosition.After)
+				{
+					Console.WriteLine("if (position == DropPosition.After)");
+					pimTarget = targetNode.GetPropertyInfoMetaData(); //retrieve the IEnumerable object that contains targetNode
+					targetIndex = pimTarget.ItemIndex;
+					pimSource = sourceNode.GetPropertyInfoMetaData(); //retrieve the IEnumerable object that contains targetNode
+					sourceIndex = pimSource.ItemIndex;
+					if (targetIndex < sourceIndex) targetIndex++;
+
+					if (targetNode.ParentNode is ListType) //targetNode is LI or DI
+					{
+						if (listItemNodeSource is not null)
+						{
+							Console.WriteLine("A0");
+							//targetNode =  targetNode.ParentNode; //(the List node)
+							targetAttachementSite = targetNode.ParentNode;  //(the List node)
+						}
+						else
+						{
+							Console.WriteLine("A1");
+							return false; //The source node is not LI or DI
+						}
+					}
+					else if (sourceNode is ListItemType)
+					{
+						Console.WriteLine("A2");
+						return false; //Can't drop LI before or after a non-LI target
+					}
+					else
+					{
+						Console.WriteLine("A3");
+						//targetNode = targetNode.ParentNode; //(ChildItemsNode)
+						targetAttachementSite = targetNode.ParentNode; //(ChildItemsNode)
+					}
+				}
+				else if (position == DropPosition.Before)
+				{
+					Console.WriteLine("if (position == DropPosition.Before)");
+					pimTarget = targetNode.GetPropertyInfoMetaData(); //retrieve the IEnumerable object that contains targetNode
+					targetIndex = pimTarget.ItemIndex;
+					pimSource = sourceNode.GetPropertyInfoMetaData(); //retrieve the IEnumerable object that contains sourceNode
+					sourceIndex = pimSource.ItemIndex;
+					if (targetIndex > sourceIndex) targetIndex--;  //we removed the sourceNode before re-adding in the new position, so we decrement index by one
+
+					if (targetNode is ListItemType)
+					{
+						if (listItemNodeSource is not null)
+						{
+							Console.WriteLine("B0");
+							//targetNode = targetNode.ParentNode;  //(the List node)
+							targetAttachementSite = targetNode.ParentNode;  //(the List node)
+						}
+						else
+						{
+							Console.WriteLine("B1");
+							return false; //The source node is not LI or DI
+						}
+					}
+					else if (sourceNode is ListItemType)
+					{
+						Console.WriteLine("B2");
+						return false; //Can't drop LI before or after a non-LI target
+					}
+					else
+					{
+						Console.WriteLine("B3");
+						//targetNode = targetNode.ParentNode; //(ChildItemsNode)
+						targetAttachementSite = targetNode.ParentNode; //(ChildItemsNode)		
+					}
+				}
+				else { Console.WriteLine("No position"); return false; }
+
+				Console.WriteLine($"targetAsCIP: {targetAsCIP?.As<DisplayedType>()?.title ?? "null"}");
+				Console.WriteLine($"targetNode: {targetNode?.As<DisplayedType>()?.title ?? "null"}");
+				Console.WriteLine($"qsqmTarget: {(qsqmTarget?.As<DisplayedType>()?.title ?? "null")}; NewTarget: {targetNode?.ElementName ?? "null"}: {targetNode?.As<DisplayedType>()?.title ?? "null"}");
+				Console.WriteLine($"targetAttachementSite: {targetAttachementSite.ElementName ?? targetAttachementSite.GetType().Name}");
+				var targetIETParent = sourceNode.ParentIETypeNode;
+
+				Console.WriteLine("Before Move");
+				bool result = false;
+
+				try
+				{
+					result = sourceNode.Move(targetAttachementSite, targetIndex);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(ex.Message + "\r\n" + ex.Source + "\r\n" + ex.TargetSite + "\r\n" + ex.StackTrace);
+					return false;
+				}
+				Console.WriteLine("After Move");
+				//Remove ChildItems node if it's not null and empty (we don't want it in the XML output:
+				//sourceChildItemsNode still holds a ref to ChildItems, even though it is disconnected from its parent object
+				if (sourceChildItemsNode?.ChildItemsList?.Count == 0)
+				{
+					Console.WriteLine("Before sourceParentNode");
+					var idIET = targetIETParent.ID;
+					var titleIET = targetIETParent.As<DisplayedType>()?.title ?? targetIETParent.GetType().Name;
+					Console.WriteLine($"Target Parent IET==> ID: {idIET}, title: {titleIET}");
+
+					sourceChildItemsNode.ChildItemsList = null;
+
+					Console.WriteLine("After sourceParentNode");
+					idIET = targetIETParent.ID;
+					titleIET = targetIETParent.As<DisplayedType>()?.title ?? targetIETParent.GetType().Name;
+					Console.WriteLine($"Target Parent IET==> ID: {idIET}, title: {titleIET}");
+				}
+
+				Console.WriteLine("result: " + result);
+				var subTree = targetAttachementSite.GetSubtreeIETList();
+				if (subTree is null || subTree.Count == 0) Console.WriteLine("subTree.Count == 0");
+				Console.WriteLine(subTree?.Count);
+				foreach (IdentifiedExtensionType n in subTree) Console.WriteLine(n.ElementPrefix + ": " + n.As<DisplayedType>().title ?? "(null)" + "; ");
+				Console.WriteLine("END:--------------------------------------");
+				return result;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Ex: {ex.Message}\r\n Inner Ex:{ex.InnerException?.Message}\r\nStack:\r\n{ex.StackTrace}");
+				foreach (System.Collections.DictionaryEntry kv in ex?.InnerException?.Data)
+					Console.WriteLine($"Key: {kv.Key}, Value: {kv.Value}");
+				return false;
+			}
+		}
+		public enum DropPosition
+		{
+			Before,
+			Over,
+			After
+		}
+	}
 }

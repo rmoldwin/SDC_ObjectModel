@@ -330,6 +330,7 @@ namespace SDC.Schema
 			}
 
 			SortedNodes.Add(btNode);
+			btNode.RegisterNodeAndParent(null, childNodesSort: false);
 
 			if (print) sbTreeText.Append($"({btNode.DotLevel})#{counter}; OID: {btNode.ObjectID}; name: {btNode.name}{content(btNode)}");
 

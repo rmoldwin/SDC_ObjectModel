@@ -1,7 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="sdctemplate.xslt"?>
-<FormDesign xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ID="Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF" baseURI="www.cap.org/eCC" fullURI="_baseURI=www.cap.org/eCC&amp;_lineage=Breast.Invasive.Res.189&amp;_version=4.001.001.CTP4&amp;_docType=sdcFDF" formTitle="INVASIVE CARCINOMA OF THE BREAST: Resection" lineage="Breast.Invasive.Res.189" filename="Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml" version="4.001.001.CTP4" xmlns="urn:ihe:qrph:sdc:2016">
- <Property name="Copyright" type="CAPeCC_static_text" styleClass="copyright" order="1" propName="Copyright" val="(c) 2019 College of American Pathologists.  All rights reserved.  License required for use." />
+<FormDesign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xmlns="urn:ihe:qrph:sdc:2016"
+	        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+			ID="Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF" 
+			baseURI="www.cap.org/eCC" 
+			fullURI="_baseURI=www.cap.org/eCC&amp;_lineage=Breast.Invasive.Res.189&amp;_version=4.001.001.CTP4&amp;_docType=sdcFDF" 
+			formTitle="INVASIVE CARCINOMA OF THE BREAST: Resection" 
+			lineage="Breast.Invasive.Res.189" 
+			filename="Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml" 
+			version="4.001.001.CTP4" 
+			>
+ <Property name="Copyright" type="CAPeCC_static_text" 
+		   styleClass="copyright" order="1" 
+		   propName="Copyright" val="(c) 2019 College of American Pathologists.  All rights reserved.  License required for use." />
  <Property name="GenericHeaderText" type="CAPeCC_static_text" order="2" propName="GenericHeaderText" val="Surgical Pathology Cancer Case Summary" />
  <Property name="Category" type="CAPeCC_meta" order="3" propName="Category" val="Breast" />
  <Property name="OfficialName" type="CAPeCC_meta" order="4" propName="OfficialName" val="INVASIVE CARCINOMA OF THE BREAST: Resection" />

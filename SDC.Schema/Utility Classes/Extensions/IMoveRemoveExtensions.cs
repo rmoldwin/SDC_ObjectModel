@@ -100,6 +100,8 @@ namespace SDC.Schema.Extensions
 					while(kids.Count > 0)
 					{
 						RemoveNodesRecursively(kids.Last()); //recurse depth first 
+						var lastKidPar = kids.Last().ParentNode; //retrieve lastKidPar now, before we remove nodes from dictionaries
+
 						RemoveNodeObject(kids.Last()); //Remove from object tree
 						kids.Last().UnRegisterNode(); //Remove from dictionaries
 					}
@@ -135,19 +137,27 @@ namespace SDC.Schema.Extensions
 			{
 				if (propIL.Contains(nodeToRemove))
 				{
+					Debug.Print($"Before Remove: nodeToRemove is null? {nodeToRemove is null}");
+					Console.WriteLine($"Before Remove: nodeToRemove is null? {nodeToRemove is null}");
 					propIL.Remove(nodeToRemove);
+					Debug.Print($"After Remove: nodeToRemove is null? {nodeToRemove is null}");
+					Console.WriteLine($"After Remove: nodeToRemove is null? {nodeToRemove is null}");
+					//nodeToRemove may still hold a reference to our prop object, until nodeToRemove goes out of scope.
 					if (nodeToRemove is not null) Debugger.Break();
-					Debug.Print($"Remove SUCCESS IList.Remove: {nodeToRemove.name ?? nodeToRemove.GetType().Name}");
 					return true;
 				}
 				else
 					throw new InvalidOperationException($"{nameof(RemoveNodeObject)}: unable to locate {nameof(nodeToRemove)} in IList.");
 			}
 			else
-			{	
+			{
+				Debug.Print($"Before SetValue: propObj is null? {propObj is null}");
+				Console.WriteLine($"Before SetValue: propObj is null? {propObj is null}");
 				prop.SetValue(par, null);
-				if(propObj is NotNullAttribute) Debugger.Break();
-				Debug.Print($"Remove SUCCESS SetValue null: {nodeToRemove.name ?? nodeToRemove.GetType().Name}");
+				Debug.Print($"After SetValue: propObj is null? {propObj is null}");
+				Console.WriteLine($"After SetValue: propObj is null? {propObj is null}");
+				//propObj will still hold a reference to our prop object, until propObj goes out of scope.
+				//if (propObj is not null) Debugger.Break();
 				return true;
 			}
 			throw new InvalidOperationException($"{nameof(RemoveNodeObject)}: unable to remove node: {nameof(nodeToRemove)}.");
@@ -178,6 +188,8 @@ namespace SDC.Schema.Extensions
 				throw new NullReferenceException("newParent must not be null.");
 			//if (btSource.ParentNode is null) throw new NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved");
 			if (newParent.TopNode is null) throw new NullReferenceException("newParent.TopNode must not be null.");
+
+
 
 			if (btSource.IsParentNodeAllowed(newParent, out object? targetObj))
 			{
@@ -223,6 +235,7 @@ namespace SDC.Schema.Extensions
 
 				}//TODO: process donor node/branch: ObjectID, sGuid, ObjectID, @name, ID, baseURI?, Link?, events?, rule targets?
 
+				bool isSourceParentChildless = false;
 
 				if (targetObj is BaseType) //btSource can be attached directly to targetObj
 				{
@@ -255,7 +268,11 @@ namespace SDC.Schema.Extensions
 
 									if (objList.Count == 0)
 									{
-										RemoveNodeObject(sourceParent);
+										RemoveNodeObject(sourceParent); //requires _ParentNodes entry to work
+
+										//sourceParent was not previously removed in dictionaries, we only removed its last child node
+										//Since it's now "childless," we should remove this orphan node from both the dictionaries and the SDC OM
+										isSourceParentChildless = true;								
 									}
 								}
 							}
@@ -274,7 +291,11 @@ namespace SDC.Schema.Extensions
 						propList.Insert(newListIndex, btSource);
 
 					btSource.MoveInDictionaries(targetParent: newParent);
-
+					if (isSourceParentChildless)
+					{
+						//UnRegisterParent(sourceParent!);
+						UnRegisterNode(sourceParent!); //this calls UnRegisterParent also
+					}
 					return true;
 				}
 				else 
@@ -384,7 +405,7 @@ namespace SDC.Schema.Extensions
 					kids.Add(btSource);
 					if (kids.Count > 1 && childNodesSort)
 					{
-						kids.Sort(treeSibComparer); //sort by reflecting the object tree
+							kids.Sort(treeSibComparer); //sort by reflecting the object tree							
 					}
 				}
 			}
@@ -433,7 +454,8 @@ namespace SDC.Schema.Extensions
 		} //!not tested
 
 		/// <summary>
-		/// Remove <b><paramref name="node"/></b> from _ParentNodes and _ChildNodes dictionaries.
+		/// Remove <b><paramref name="node"/></b> from _Nodes (and, if applicable, _IETnodes) dictionaries.<br/>
+		/// It will also call <b><see cref="UnRegisterParent(BaseType)"/></b> to remove entries from _ChildNodes and _ParentNodes  
 		/// </summary>
 		/// <param name="node"></param>
 		/// <exception cref="Exception"></exception>

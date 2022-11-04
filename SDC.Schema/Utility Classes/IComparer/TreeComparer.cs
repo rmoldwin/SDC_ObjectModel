@@ -132,7 +132,8 @@ namespace SDC.Schema
 		{
 			nodeIndex = -1;
 			if (nodeA == nodeB) return 0;
-			IEnumerable<PropertyInfo>? piIE = null;			
+			IEnumerable<PropertyInfo>? piIE = null;
+			Type sType = null;
 
 			//Create a LIFO stack of the targetNode inheritance hierarchy.  The stack's top level type will always be BaseType
 			//For most non-datatype SDC objects, it could be a bit more efficient to use ExtensionBaseType - we can test this another time
@@ -146,11 +147,12 @@ namespace SDC.Schema
 				if (t.IsSubclassOf(typeof(BaseType))) s.Push(t);
 				else break; //quit when we hit a non-BaseType type
 			} while (true);
-
+			
 			//starting with the least-derived inherited type (BaseType), look for any non-null properties of targetNode
 			while (s.Count > 0)
 			{
-				piIE = s.Pop()
+				sType = s.Pop();
+				piIE = sType
 					.GetProperties() //(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
 					.Where(p => p.GetCustomAttributes<XmlElementAttribute>().Any());
 				foreach (var p in piIE)
@@ -175,7 +177,19 @@ namespace SDC.Schema
 					else {}
 				}
 			}
-			throw new InvalidOperationException("The supplied _Nodes do not share a common parent node");
+
+			InvalidOperationException ex = new("The supplied nodes cannot be sorted");
+			ex.Data.Add("nodeA.name", nodeA?.name);
+			ex.Data.Add("nodeA.type", nodeA?.GetType().Name);
+			ex.Data.Add("nodeB.name", nodeB?.name);			
+			ex.Data.Add("nodeB.type", nodeB?.GetType().Name);
+			ex.Data.Add("parentNode.name", parentNode?.name);
+			ex.Data.Add("ParentNode.type", parentNode?.GetType().Name);
+			ex.Data.Add("nodeIndex", nodeIndex.ToString());
+			ex.Data.Add("sType", sType?.Name??"null");
+
+
+			throw ex;
 		}
 	}
 

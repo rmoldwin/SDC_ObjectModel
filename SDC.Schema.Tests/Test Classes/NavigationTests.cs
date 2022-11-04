@@ -349,7 +349,7 @@ namespace SDCObjectModelTests.TestClasses
 			BaseType? nextSib;
 
 			var sortedList = new List<BaseType>();
-			BaseType[] sortedArray = new BaseType[Setup.FD.Nodes.Count + 1];
+			BaseType[] sortedArray = new BaseType[Setup.FD.Nodes.Count];
 
 			MoveNext(n);
 
@@ -360,6 +360,7 @@ namespace SDCObjectModelTests.TestClasses
 				//btPrint(n);
 				n.order = i;  //almost instananeous
 				sortedList.Add(n);
+				//if (i == 0 || i == Setup.FD.Nodes.Count ) Debugger.Break();
 				sortedArray[i] = n;
 				Assert.IsTrue(n.ObjectID == i);//very fast
 				i++;
@@ -383,7 +384,7 @@ namespace SDCObjectModelTests.TestClasses
 						{
 							nextSib = sibList[index + 1];
 							if (nextSib != null)
-								MoveNext(nextSib);
+								MoveNext(nextSib);	
 						}
 					}
 				}
