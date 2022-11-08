@@ -49,7 +49,7 @@ namespace SDCObjectModelTests.TestClasses
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 			
 			//Create new BaseType names
-			SdcUtil.CreateName? delCreateName = SdcUtil.CreateElementNameCAP;
+			SdcUtil.CreateName? delCreateName = SdcUtil.CreateCAPname;
 			//delCreateName = null;
 			
 			var sdcList = SdcUtil.ReflectRefreshTree(Setup.FD, out string? s, true, true, delCreateName);

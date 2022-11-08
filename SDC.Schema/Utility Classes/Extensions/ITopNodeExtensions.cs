@@ -249,6 +249,76 @@ namespace SDC.Schema.Extensions
 			}
 		}
 
+		private static ITopNode InitParentNodesFromXml(this ITopNode itn, string sdcXml)
+		{
+			//read as XMLDocument to walk tree
+			var x = new System.Xml.XmlDocument();
+			x.LoadXml(sdcXml);
+			XmlNodeList? xmlNodeList = x.SelectNodes("//*");
+			if (xmlNodeList is null) return null;
+			var dX_obj = new Dictionary<int, Guid>(); //the index is iXmlNode, value is FD ObjectGUID
+			int iXmlNode = 0;
+			XmlNode? xmlNode;
+
+			foreach (BaseType bt in itn.Nodes.Values)
+			{   //As we interate through the nodes, we will need code to skip over any non-element node, 
+				//and still stay in sync with FD (using iFD). For now, we assume that every nodeList node is an element.
+				//https://docs.microsoft.com/en-us/dotnet/api/system.xml.xmlnodetype?view=netframework-4.8
+				//https://docs.microsoft.com/en-us/dotnet/standard/data/xml/types-of-xml-nodes
+				xmlNode = xmlNodeList[iXmlNode];
+				while (xmlNode?.NodeType.ToString() != "Element")
+				{
+					iXmlNode++;
+					xmlNode = xmlNodeList[iXmlNode];
+				}
+				//Create a new attribute node to hold the node's index in xmlNodeList
+				XmlAttribute a = x.CreateAttribute("index");
+				a.Value = iXmlNode.ToString();
+				var e = (XmlElement)xmlNode;
+				e.SetAttributeNode(a);
+
+				//Set the correct Element Name, in case we have errors in the SDC object tree logic
+				bt.ElementName = e.LocalName;
+
+				//Create  dictionary to track the matched indexes of the XML and FD node collections
+				dX_obj[iXmlNode] = bt.ObjectGUID;
+				//Debug.Print("iXmlNode: " + iXmlNode + ", ObjectID: " + bt.ObjectID);
+
+				//Search for parents:
+				int parIndexXml = -1;
+				Guid parObjectGUID = default;
+				bool parExists = false;
+				BaseType btPar;
+				XmlNode? parNode;
+				btPar = null!;
+
+				parNode = xmlNode.ParentNode;
+				parExists = int.TryParse(parNode?.Attributes?.GetNamedItem("index")?.Value, out parIndexXml);//The index of the parent XML node
+				if (parExists)
+				{
+					parExists = dX_obj.TryGetValue(parIndexXml, out parObjectGUID);// find the matching parent SDC node Object ID
+					if (parExists) { parExists = itn.Nodes.TryGetValue(parObjectGUID, out btPar!); } //Find the parent node in FD
+					if (parExists)
+					{
+						//bt.IsLeafNode = true;
+						bt.RegisterParent(btPar!, childNodesSort: false);
+						//Debug.WriteLine($"The node with ObjectID: {bt.ObjectID} is leaving InitializeNodesFromSdcXml. Item type is {bt.GetType().Name}.  " +
+						//            $"Parent ObjectID is {bt?.ParentID}, ParentIETypeID: {bt?.ParentIETypeID}, ParentType: {btPar.GetType().Name}");
+					}
+					else { throw new KeyNotFoundException("No parent object was returned from the SDC tree"); }
+				}
+				else
+				{
+					//bt.IsLeafNode = false;
+					//Debug.WriteLine($"The node with ObjectID: {bt.ObjectID} is leaving InitializeNodesFromSdcXml. Item type is {bt.GetType()}.  " +
+					//                $", No Parent object exists");
+				}
+
+				iXmlNode++;
+			}
+			return itn;
+
+		}
 
 		#endregion
 

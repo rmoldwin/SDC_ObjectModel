@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.IO.IsolatedStorage;
@@ -43,6 +44,7 @@ namespace SDC.Schema
 		{ return Get_ITopNode(n)._ParentNodes; }
 		private static ObservableCollection<IdentifiedExtensionType> Get_IETnodes(BaseType n)
 		{ return Get_ITopNode(n)._IETnodes; }
+		private static HashSet<string> UniqueBaseNames = new(); //key is BaseName, value is sGuid; ensure that all BaseNames are unique
 
 
 		/// <summary>
@@ -216,7 +218,7 @@ namespace SDC.Schema
 		/// <typeparam name="T"></typeparam>
 		/// <param name="array"></param>
 		/// <returns></returns>
-		public static T[] RemoveArrayNullsNew<T>(T[] array) where T:class
+		public static T[] RemoveArrayNullsNew<T>(T[] array) where T : class
 		{
 			int i = 0;
 			var newarray = new T[array.Length - 1];
@@ -233,7 +235,7 @@ namespace SDC.Schema
 
 		#region SDC Helpers
 
-#region Delegates
+		#region Delegates
 
 
 		/// <summary>
@@ -251,7 +253,7 @@ namespace SDC.Schema
 		/// <returns></returns>
 		public delegate string NodeAnnotation(BaseType node, byte[] icon, string html);
 
-# endregion
+		#endregion
 
 		/// <summary>
 		/// If <paramref name="refreshTree"/> is true (default),
@@ -274,7 +276,13 @@ namespace SDC.Schema
 		/// The default is true.</param>
 		/// <param name="createNodeName">A delegate to represent a single function that will create a <see cref="BaseType.name"/> for each refreshed node in the ITopNode tree.</param>
 		/// <returns>List&lt;BaseType> containing all of the SDC tree nodes in sorted top-bottom order</returns>
-		public static List<BaseType> ReflectRefreshTree(ITopNode topNode, out string? treeText, bool print = false, bool refreshTree = true, CreateName? createNodeName = null)
+		/// <param name="orderGap">A multiplier for the @order atttribute. <b><paramref name="orderGap"/></b> controls the distance between sequential @order values. The default value is 10</param>
+		public static List<BaseType> ReflectRefreshTree(ITopNode topNode
+			, out string? treeText
+			, bool print = false
+			, bool refreshTree = true
+			, CreateName? createNodeName = null
+			, int orderGap = 10)
 		{
 			TreeSort_ClearNodeIds();
 			int counter = 0;
@@ -324,14 +332,15 @@ namespace SDC.Schema
 			if (refreshTree)
 			{
 				Init_ITopNode(current_ITopNode);
-				sGuidSetup(btNode, null);
+				//current_ITopNode.ClearDictionaries();
+				SdcUtil.AssignGuid_sGuid_BaseName(btNode);
+
 				if (btNode.ParentNode is null) btNode.TopNode = current_ITopNode; //points to itself, indicating this is the root node
 				else btNode.TopNode = btNode.ParentNode.TopNode;
+
+				btNode.RegisterNodeAndParent(btNode.ParentNode, childNodesSort: false);
 			}
-
 			SortedNodes.Add(btNode);
-			btNode.RegisterNodeAndParent(null, childNodesSort: false);
-
 			if (print) sbTreeText.Append($"({btNode.DotLevel})#{counter}; OID: {btNode.ObjectID}; name: {btNode.name}{content(btNode)}");
 
 			//DoTree(currentTopNode as BaseType);
@@ -409,14 +418,13 @@ namespace SDC.Schema
 					btProp.TopNode = current_ITopNode;
 
 					if (btProp is _ITopNode itn) //we have a subsumed ITopNode node
-						current_ITopNode = Init_ITopNode(itn);				
-					
+						current_ITopNode = Init_ITopNode(itn);
+					SdcUtil.AssignGuid_sGuid_BaseName(btProp);
+
 					//Refill the node dictionaries with the current node
-					sGuidSetup(btProp, parentNode);
 					btProp.RegisterNodeAndParent(parentNode, childNodesSort: false); //we are adding nodes in reflection-sorted order
-					//btProp.RegisterParent(parentNode, childNodesSort: false);
-					Debug.Print(btProp.sGuid + "; Obj ID: " + btProp.ObjectID);
-					
+																					 //Debug.Print(btProp.sGuid + "; Obj ID: " + btProp.ObjectID);
+
 					//Mark parentNode as having its child nodes already sorted
 					TreeSort_NodeIds.Add(parentNode.ObjectID);  //Change ObjectID to ObjectGUID?
 					AssignSdcProperties(parentNode, piChildProperty);
@@ -433,18 +441,14 @@ namespace SDC.Schema
 					if (elementName.IsNullOrWhitespace()) Debugger.Break();
 					btProp.ElementName = elementName;
 					btProp.ElementOrder = elementOrder;
-					btProp.order = ++order;
+					btProp.order = ++order * orderGap;
 
-					if (btProp.sGuid is null)
-					{
-						if (btProp.ObjectGUID == Guid.Empty) btProp.ObjectGUID = new Guid();
-						btProp.sGuid = new CSharpVitamins.ShortGuid(btProp.ObjectGUID).Value;
-					}
 					if (btProp is IdentifiedExtensionType iet)
 					{
-						if (iet.ID.IsNullOrEmpty()) iet.ID = iet.sGuid;
+						if (iet.ID.IsNullOrEmpty()) iet.ID = $"->{iet.sGuid}";
 					}
-					if (createNodeName is not null) btProp.name = createNodeName(btProp) ?? btProp.name;
+					if (createNodeName is not null)
+						btProp.name = createNodeName(btProp) ?? btProp.name;
 
 					if (print)
 					{
@@ -456,44 +460,8 @@ namespace SDC.Schema
 
 			_ITopNode Init_ITopNode(_ITopNode new_ITopNode)
 			{
-				new_ITopNode.ClearDictionaries();			
+				new_ITopNode.ClearDictionaries();
 				return new_ITopNode;
-			}
-
-			void sGuidSetup(BaseType btNode, BaseType? parentNode)
-			{//current_ITopNode here points to the ITopNode ancestor of btNode
-
-				//First, check sGuid and ObjectGUID status:
-				if (btNode.sGuid.IsNullOrWhitespace())
-				{
-					if (btNode.ObjectGUID == default(Guid)) //Empty ObjectGUID
-						btNode.ObjectGUID = Guid.NewGuid();
-					btNode.sGuid = ShortGuid.Encode(btNode.ObjectGUID);
-				}
-				else
-				{	//sGuid and ObjectGUID ideally should match before adding to dictionaries.
-					var decodedShortGuid = ShortGuid.Decode(btNode.sGuid);
-					if (btNode.ObjectGUID != decodedShortGuid)
-						btNode.ObjectGUID = decodedShortGuid;
-				}
-				
-				//current_ITopNode._Nodes.Add(btNode.ObjectGUID, btNode);
-				//if (btNode is IdentifiedExtensionType iet)
-				//	current_ITopNode._IETnodes.Add(iet);
-
-				//if (btNode is _ITopNode itn && parentNode is not null) 
-				//{   //also store the node in the current node's parent ITopNode dictionaries
-
-				//	//Find current node's parent ITopNode dictionaries
-				//	_ITopNode par_ITopNode;
-				//	if (parentNode is ITopNode ptn) 
-				//		par_ITopNode = (_ITopNode)parentNode;//only occurs in RetrieveFormPackage under RetrieveFormPackage
-				//	else par_ITopNode = (_ITopNode)parentNode.TopNode;
-
-				//	par_ITopNode._Nodes.Add(btNode.ObjectGUID, btNode);
-				//	if (btNode is IdentifiedExtensionType ietPar)
-				//		par_ITopNode._IETnodes.Add(ietPar);
-				//}
 			}
 
 			//The "content" function is a temporary kludge to generate printable output.  
@@ -506,7 +474,7 @@ namespace SDC.Schema
 				else s = $"; type: {n.GetType().Name}";
 				return s;
 			}
-			
+
 			//We should instead return SortedNodes, and provide the treeText as an out parameter
 			if (print) treeText = sbTreeText.ToString();
 			else treeText = null;
@@ -688,18 +656,24 @@ namespace SDC.Schema
 		/// Traverse an SDC tree by reflection to optionally reset @order and/or to refresh the TopNode dictionaries encounterd in the tree
 		/// More tree traversal changes can be added by proving delagates to nodeWorker functions.
 		/// </summary>
-		/// <param name="startNode"></param>
-		/// <param name="reOrder">Setting to true: refresh all @order properties in sequential order</param>
+		/// <param name="startNode">The root of the subtree to modify</param>
+		/// <param name="singleNode">Limit changes to the single startNode.  Do not process the subtree</param>
+		/// <param name="reOrder">Setting to true: refresh all subTree @order properties in sequential order.<br/>
+		/// Setting this to true may cause non-subTree parts of the whole tree to become incorrectly ordered relative to the subtree.
+		/// </param>
 		/// <param name="reRegisterNodes">Setting to true: Reregister all nodes in the TopNodes dictionaries</param>
-		/// <param name="startReorder">The starting number when reordering nodes with @order</param>
-		/// <param name="orderInterval">The interval between new @order properties</param>
-		/// <param name="resetObjectGUID">Setting to true: Create new ObjectGUID and matching sGuid.  Will always treat reRegisterNodes as true.</param>
-		/// <param name="resetObjectID">Setting to true: Create a new ObjectID from TopNode.MaxObjectIDint</param>
-		/// <param name="resetID">Setting to true: Create new ID for all nodes; Currently based on sGuid</param>
-		/// <param name="resetName">Setting to true: Create new ID for all nodes; Currently based on the createNodeName delegate parameter</param>
-		/// <param name="createNodeName">An Sdc.Util.CreateName delegate pointing to a function that can create a new @name property for each node</param>
+		/// <param name="startReorder">The starting number when reordering nodes with @order.  <br/>
+		/// In general, this should be set to startNode.order
+		/// </param>
+		/// <param name="orderInterval">The interval between new @order properties.</param>
+		/// <param name="resetNodeIdentity">Setting to true creates new vaues for ObjectGUID, sGuid (which matches ObjectGuid), BaseName, @name and ID<br/>
+		/// This is useful when the caller wants to reuse subtree with new identities, e.g., when cloning an SDC template
+		/// This option will also reregister all nodes in the TopNodes dictionaries</param>
+		/// <param name="createNodeName">An Sdc.Util.CreateName delegate pointing to a function that will refresh the @name property for each node.<br/>
+		/// The default value (null) will not chagne any @name values.
+		/// </param>
 		/// <param name="nodeWorkerFirst">A function pointer (delegate) to a method that can modify a BaseType node.<br/>  
-		/// It will run before any other work on the vistied nodes, e.g., or changing @order or refreshing dictionaries.<br/> 
+		/// It will run before any other work on the visited nodes, e.g., before changing @order or refreshing dictionaries.<br/> 
 		/// Returns true for success, false for failure.
 		/// </param>
 		/// <param name="nodeWorkerLast">A function pointer (delegate) to a method that can modify a BaseType node.<br/>  
@@ -707,28 +681,28 @@ namespace SDC.Schema
 		/// Returns true for success, false for failure.
 		/// </param>
 		/// <returns>null if the method fails at any point;</returns>
-		public static List<BaseType>? ReflectRefreshSubtreeList(BaseType startNode, 
-			bool reOrder = false, 
-			bool reRegisterNodes = false, 
-			int startReorder = 0, 
-			byte orderInterval = 1, 
-			bool resetObjectGUID = false,
-			bool resetObjectID = false,
-			bool resetID = false,
-			bool resetName = false,
+		public static List<BaseType>? ReflectRefreshSubtreeList(BaseType startNode,
+
+			bool singleNode = false,
+			bool reOrder = false,
+			bool reRegisterNodes = false,
+			int startReorder = 0,
+			byte orderInterval = 1,
+			bool resetNodeIdentity = false,
 			CreateName? createNodeName = null,
-			Func<BaseType, bool>? nodeWorkerFirst = null, 
+			Func<BaseType, bool>? nodeWorkerFirst = null,
 			Func<BaseType, bool>? nodeWorkerLast = null)
 		{
 			if (startNode is null) throw new InvalidOperationException("Parameter 'startNode' cannot be null");
-			if(resetName is true && createNodeName is null) throw new InvalidOperationException("If resetName is true, then createNodeName cannot be null");
-			
+			//if(resetNodeIdentity is true && createNodeName is null) throw new InvalidOperationException("If resetName is true, then createNodeName cannot be null");
+
 			var i = startReorder;
 			var nodeList = new List<BaseType>();
 			BaseType? par = startNode.ParentNode;
 
 			//Process the root of the subtree
 			NodeWorker(startNode, par);
+			if (singleNode) return nodeList;
 
 			ReflectSubtree(startNode);
 
@@ -739,7 +713,7 @@ namespace SDC.Schema
 				{
 					foreach (BaseType kid in kids)
 					{
-						NodeWorker(kid, par);						
+						NodeWorker(kid, par);
 						ReflectSubtree(kid);
 					}
 				}
@@ -750,28 +724,35 @@ namespace SDC.Schema
 
 			void NodeWorker(BaseType n, BaseType? parentNode)
 			{
-				if(parentNode is null && n != startNode) 
+				if (parentNode is null && n != startNode)
 					throw new InvalidOperationException("A null parentNode was passed to NodeWorker.  Only the startNode may have a null parentNode");
 
 				var tn = (_ITopNode)n.TopNode!;
 
 				if (nodeWorkerFirst is not null)
-					if (nodeWorkerFirst(n) is false) throw new InvalidOperationException($"Method failed at nodeWorkerFirst(n), at sGuid {n.sGuid}");				
+					if (nodeWorkerFirst(n) is false) throw new InvalidOperationException($"Method failed at nodeWorkerFirst(n), at sGuid {n.sGuid}");
 
 				//______________________________________________________________________________
-				if (reRegisterNodes || resetObjectGUID)
-					n.UnRegisterParent();
 
-				//!Special actions:
+				if (reRegisterNodes || resetNodeIdentity)
+					n.UnRegisterNode();
+
+				//!START Special actions-------------------------------:
 				{
-					if (resetObjectID) n.ObjectID = tn._MaxObjectIDint++;
-					if (resetObjectGUID)
+					//Reset node identity: ObjectGUID, sGuid, BaseName, @name and ID
+					if (resetNodeIdentity)
 					{
 						n.ObjectGUID = Guid.NewGuid();
 						n.sGuid = ShortGuid.Encode(n.ObjectGUID);
+						n.BaseName = CreateBaseNameFromsGuid(n.sGuid);
+
+						if (n is IdentifiedExtensionType iet)
+							iet.ID = $"->{n.sGuid}";
+
+						if (createNodeName is not null)
+							n.name = createNodeName(node: n);
+						else n.name = CreateCAPname(n);
 					}
-					if (n is IdentifiedExtensionType iet) iet.ID = n.sGuid;
-					if (resetName && createNodeName is not null) n.name = createNodeName(node: n);
 
 					if (reOrder)
 					{
@@ -779,8 +760,11 @@ namespace SDC.Schema
 						i += orderInterval;
 					}
 				}
-				if (reRegisterNodes || resetObjectGUID)
-					if(parentNode is not null) n.RegisterParent(parentNode);
+
+				if (reRegisterNodes || resetNodeIdentity)
+					n.RegisterNodeAndParent(parentNode);
+				//!END Special actions-------------------------------:
+
 				//______________________________________________________________________________
 
 				if (nodeWorkerLast is not null)
@@ -836,10 +820,12 @@ namespace SDC.Schema
 		/// Includes the input node n.  Creates new @order values for the subtree starting with node n.
 		/// </summary>
 		/// <param name="n">The root of the nodes to resort</param>
+		/// <param name="startReorder"></param>
+		/// <param name="orderInterval"></param>
 		/// <returns><see cref="List{BaseType}"/></returns>
-		public static List<BaseType> GetSubtreeReOrderNodesList(BaseType n)
+		public static List<BaseType> GetSubtreeReOrderNodesList(BaseType n, int startReorder = 0, int orderInterval = 1)
 		{
-			return GetSortedSubtreeList(n, 0, 1);
+			return GetSortedSubtreeList(n, startReorder, orderInterval);
 		}
 
 		public static BaseType? GetNextElement(BaseType item)
@@ -1752,7 +1738,7 @@ namespace SDC.Schema
 					throw new InvalidOperationException($"{nameof(ReflectSdcElement)} could not find a name for the n parameter.  This may occur if the n node has no parent object");
 				return xmlElementName;
 			}
-					
+
 			if (piItem is null) //piItem was not supplied, so let's try to find it.
 			{
 				parType = par.GetType();
@@ -1760,10 +1746,10 @@ namespace SDC.Schema
 				//Look for a direct item-to-property match, so we can assign propName from the par object		
 				piItemOut = parProps
 					.Where(pi => pi.GetCustomAttributes(typeof(XmlElementAttribute)).Any()  //all serialized properties must have the XmlElementAttribute attribute
-					&& ! typeof(IEnumerable<BaseType>).IsAssignableFrom(pi.PropertyType)     //the property is not an IEnumerable (i.e., an Array, List etc.)
+					&& !typeof(IEnumerable<BaseType>).IsAssignableFrom(pi.PropertyType)     //the property is not an IEnumerable (i.e., an Array, List etc.)
 					&& ReferenceEquals(pi?.GetValue(par), item))?.FirstOrDefault();          //There can be, at most, one match to our item object
 
-				if (piItemOut is not null) 
+				if (piItemOut is not null)
 					piItem = piItemOut; // piItem is not an IEnumerable here
 
 				else if (piItem is null) // piItem is still null; let's try again, in IEnumerable properties
@@ -2021,12 +2007,6 @@ namespace SDC.Schema
 
 		#endregion
 		#region TE Helpers
-		//!+There probably is no need for CreateNewId, since the SDC OM assigns new IDs upon object creation, using the sGuid property
-		public static string CreateNewId()
-		{
-			return Guid.NewGuid().ToString();
-		}
-
 		public static ItemTypeEnum GetItemType(IdentifiedExtensionType node)
 		{
 			//if (typeof(SectionItemType).IsInstanceOfType(node))
@@ -2046,7 +2026,7 @@ namespace SDC.Schema
 
 			//if (typeof(DisplayedType).IsInstanceOfType(node))
 			if (node is DisplayedType) return ItemTypeEnum.DisplayedItem;
-			if(node is InjectFormType) return ItemTypeEnum.InjectForm;
+			if (node is InjectFormType) return ItemTypeEnum.InjectForm;
 			if (node is ButtonItemType) return ItemTypeEnum.Button;
 
 			return ItemTypeEnum.None;
@@ -2065,17 +2045,17 @@ namespace SDC.Schema
 		/// If the input node name begins with "_", the method will bypass new name creation and just return teh existting node.name with no modifications
 		/// </summary>
 		/// <returns>The new name that was used to refresh <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
-		public static string CreateElementNameCAP(this BaseType node)
+		public static string CreateCAPname(this BaseType node)
 		{
 			string namePrefix;
 			string nameBody = "";
 			string nameSuffix;
 
 			if (node.name?.Length > 0 && node.name.AsSpan(0, 1) == "_") return node.name;  //Return the existing name
-			//+namePrefix
+																						   //+namePrefix
 			{
 				//+Question Prefix
-				if (node is QuestionItemType Q) 
+				if (node is QuestionItemType Q)
 				{
 					var st = Q.GetQuestionSubtype();
 					switch (st)
@@ -2111,61 +2091,40 @@ namespace SDC.Schema
 					}
 				}
 				else //+Property Prefix
-				if (node is PropertyType pt && pt.propName is not null) 
-					namePrefix = pt.ElementPrefix ?? "prop" + "_" + pt.propName.AsSpan(0, 6).ToString() + "_";				
+				if (node is PropertyType pt && pt.propName is not null)
+					namePrefix = pt.ElementPrefix ?? "prop" + "_" + pt.propName.AsSpan(0, 6).ToString() + "_";
 				else //+Other Prefix
 				{
 					namePrefix = node.ElementPrefix ??
 						node.ElementName.TakeWhile(c => Char.IsUpper(c)).ToString()?.ToLower() ?? ""; //backup method for ElementPrefix: use uppercase letters in ElementName
 				}
 			}
-			
+
 			//+nameBody
 			{
 				//Try using the closest IdentifiedExtensionType node's Ckey-formatted (decimal format) ID to generate nameBody
 				//Use special names for headr/body/footer nodes
 				//use an sGuid if the Ckey/ID approach does not work.
-				string nameSpace = ".100004300";
+				const string nameSpace = ".100004300";
 				string tempsGuid6;
 
 				if (node is IdentifiedExtensionType iet)
 				{
-					if (iet.ID.Contains(nameSpace) && iet.ID.Length < 10)
-						nameBody = "_" + Regex.Replace(iet.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
-					else nameBody = "_" + MakeNameBodyFromsGuid();
+					if (iet.ID.Contains(nameSpace)) //&& iet.ID.Length > 10)
+						nameBody = $"_{Regex.Replace(iet.ID.Replace(nameSpace, "") ?? "", @"\W+", "")}"; //remove namespace and special characters
+					else nameBody = $"_{node.BaseName ?? CreateBaseNameFromsGuid(node.sGuid)}";
 
-					if (iet.name?.ToLower() == "body") nameBody = "_body" + nameBody;
-					else if (iet.name?.ToLower() == "footer") nameBody = "_footer" + nameBody;
-					else if (iet.name?.ToLower() == "header") nameBody = "_header" + nameBody;
+					if (iet.name?.ToLower() == "body") nameBody = $"_body.{nameBody}";
+					else if (iet.name?.ToLower() == "footer") nameBody = $"_footer{nameBody}";
+					else if (iet.name?.ToLower() == "header") nameBody = $"_header.{nameBody}";
 				}
 				else //not IdentifiedExtensionType
 				{
 					IdentifiedExtensionType? ancestorIet = node.ParentIETypeNode;
 					if (ancestorIet is not null)
 						if (ancestorIet?.ID?.Contains(nameSpace) ?? false)
-							nameBody = "_" + Regex.Replace(
-								node.ParentIETypeNode?.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
-						else nameBody = "_" + MakeNameBodyFromsGuid();
-				}
-
-				string MakeNameBodyFromsGuid()
-				{
-					//+sGuid
-					{
-					//If we can't get a nicely formatted CAP Ckey ID from the closest IET node, we can process the sGuid, or a use new short guid instead.
-					//We will grab teh first six characters from the sGuid or new short guid to use in nameBody if needed.
-					//For nameBody; use sGuid from the ancestor IET node, it it exists
-					//In this way, all IET descendants (until another IET node is hit) will share the nameBody part of the name
-						BaseType sGuidNode;
-						if (node is IdentifiedExtensionType) sGuidNode = node;
-						else if (node.ParentIETypeNode is not null) sGuidNode = node.ParentIETypeNode;
-						else sGuidNode = node;
-
-						if (sGuidNode.sGuid.IsNullOrWhitespace())
-							tempsGuid6 = ShortGuid.Encode(new Guid()).AsSpan(0, 6).ToString();
-						else tempsGuid6 = sGuidNode.sGuid.AsSpan(0, 6).ToString();
-					}
-					return tempsGuid6;
+							nameBody = $"_{Regex.Replace(node.ParentIETypeNode?.ID.Replace(nameSpace, "") ?? "", @"\W+", "")}"; //remove namespace and special characters
+						else nameBody = $"_{node.BaseName ?? CreateBaseNameFromsGuid(node.sGuid)}";
 				}
 			}
 			//+nameSuffix
@@ -2185,7 +2144,7 @@ namespace SDC.Schema
 			(nameBody.Length > 0 || nameSuffix.Length > 0)) namePrefix += "_";
 
 			return namePrefix + nameBody + nameSuffix;
-			}
+		}
 
 		//TODO: names prefixed with "_" will be preserved.
 		//TODO: names and IDs will be added to internal dictionaries to ensure uniqueness within a template.
@@ -2197,7 +2156,7 @@ namespace SDC.Schema
 		/// Process the characters in a node's short Guid (sGuid) to create a alphanumeric string suiatable for use 
 		/// as a programming variable name, or for part of such a name, or for us as part/all of an <see cref="IdentifiedExtensionType.ID"/>.
 		/// </summary>
-		/// <param name="n"></param>
+		/// <param name="sGuid">Supply a shortGuid as a 22 character string</param>
 		/// <param name="nameBaseLength">The length of the alphanumeric string to return.
 		/// In some cases, the string may be shorter than this length, due to removal of illegal characters (0, -, and _), 
 		/// as well as any numbers at the first character of the string.</param>
@@ -2205,15 +2164,22 @@ namespace SDC.Schema
 		/// If false (the default), the method returns an alphanumeric string not converted to lower case</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static string CreateNameBaseFromsGuid(BaseType n, int nameBaseLength = 6, bool allLowerCase = false)
+		public static string CreateBaseNameFromsGuid(string sGuid, int nameBaseLength = 6, bool allLowerCase = false)
 		{
-			if (nameBaseLength > 20 || nameBaseLength < 1) throw new ArgumentException("nameBaseLength must be > 0 and < 21");
-			string sg = new(n.sGuid);
-			Regex pattern = new("^[a-zA-Z0-9-_]{22}");
+			//Basec check for sGuid validity
+			if (nameBaseLength > 22 || nameBaseLength < 1)
+				throw new ArgumentException("nameBaseLength must be > 0 and < 23");
 
-			if (!pattern.IsMatch(sg))
-				if (sg.IsNullOrWhitespace() || sg.Length != 22 || !pattern.IsMatch(sg)) throw new ArgumentException("The supplied n does not have a valid sGuid");
-			var sgl = sg.ToList();
+			//Regex pattern = new("^[a-zA-Z0-9-_]{22}");
+			//if (!pattern.IsMatch(sGuid))
+			//	if (sGuid.IsNullOrWhitespace() || sGuid.Length != 22 || !pattern.IsMatch(sGuid)) 
+			//		throw new ArgumentException("The supplied sGuid is not valid");
+
+			if (!ShortGuid.TryParse(sGuid, out ShortGuid _))
+				throw new ArgumentException("The supplied sGuid is not valid");
+
+
+			var sgl = sGuid.ToList();
 			int i = -1;
 			do
 			{ //remove any integer, -, or _ in the first position, as these are illegal for variable names
@@ -2242,6 +2208,103 @@ namespace SDC.Schema
 
 
 		}
+		/// <summary>
+		/// Create a GUID, ShortGuid and BaseName from a new Guid, without any external sGuid or Guid input.
+		/// </summary>
+		/// <param name="sGuid"></param>
+		/// <param name="newGuid"></param>
+		/// <param name="nameBaseLength"></param>
+		/// <param name="allLowerCase"></param>
+		/// <returns>BaseName</returns>
+		public static string CreateGuidAndBaseName(out string sGuid, out Guid newGuid, int nameBaseLength = 6, bool allLowerCase = false)
+		{
+			string baseName = "";
+			int i = 0;
+			newGuid = default(Guid);
+			do
+			{ //make sure ObjectGuid results is a nice tempName string; this should take only 1 iteration thru the loop
+				newGuid = Guid.NewGuid();
+				sGuid = ShortGuid.Encode(newGuid);
+				baseName = SdcUtil.CreateBaseNameFromsGuid(sGuid, 6);
+
+				if (baseName.Length == 6 && !UniqueBaseNames.TryGetValue(baseName, out _))
+				{//TODO: test for undesirable sGuid words and sequences here...
+					UniqueBaseNames.Add(baseName);
+					return baseName;
+					i++;
+				}
+			} while (i < 1000);
+			throw new InvalidOperationException("Could not generate acceptable GUID/sGuid");
+		}
+		//
+		/// <summary>
+		/// Assigns a consistent unique name to an SDC node. The name is formatted like:<br/>
+		/// ElementPrefix_BaseNameOfParentIETNode_SubIETcounter
+		/// Requires that ElementPrefix and either sGuid or BaseName have values.  <br/>
+		/// To work properly, SubIETcounter requires that ancestor nodes are registered in their TopNode Dictionaries.
+		/// </summary>
+		/// <param name="bt">The node to which the name will be assigned.</param>
+		/// <returns>A consistent value for the @name attribute.</returns>
+		internal static string AssignSimpleName(BaseType bt)
+		{
+			string baseName = "";
+			if (bt is not IdentifiedExtensionType)
+			{
+				var iet = bt.ParentIETypeNode;
+				if (iet is not null)
+					baseName = iet.BaseName;
+				else
+					if(bt.BaseName is not null) 
+						baseName = bt.BaseName;
+			}
+			else baseName = bt.BaseName;
+
+			if (baseName.IsNullOrWhitespace())
+				if (bt.sGuid is not null)
+				{
+					baseName = CreateBaseNameFromsGuid(bt.sGuid);
+					bt.BaseName = baseName;
+				}
+				else
+					throw new InvalidOperationException("supplied node did not have sGuid assigned."); 
+
+			bt.name = new StringBuilder(bt.ElementPrefix)
+						.Append('_')
+						.Append(baseName)
+						.Append('_')
+						.Append(bt.SubIETcounter).ToString();
+			return bt.name;
+		}
+		/// <summary>
+		/// Assign ObjectGUID and sGuid, and return a BaseName, based on an existing sGuid, if present. from a new Guid, without any external sGuid or Guid input.
+		/// </summary>
+		/// <param name="bt"></param>
+		/// <returns>BaseName</returns>
+		public static string AssignGuid_sGuid_BaseName(BaseType bt)
+		{
+			string tempName;
+
+			if (ShortGuid.TryParse(bt.sGuid, out Guid guid))
+			{
+				bt.ObjectGUID = guid;
+				bt.BaseName = CreateBaseNameFromsGuid(bt.sGuid);
+				return bt.BaseName;
+			}
+
+			Guid newGuid;
+			do
+			{ //make sure ObjectGuid results is a nice tempName string; this should take only 1 iteration thru the loop
+
+				newGuid = Guid.NewGuid();
+				bt.ObjectGUID = newGuid;
+				bt.sGuid = ShortGuid.Encode(newGuid);
+				//TODO: test for undesirable sGuid words and sequences here...
+				tempName = CreateBaseNameFromsGuid(bt.sGuid);
+			} while (tempName.Length < 6);
+			bt.BaseName = tempName;
+			return tempName;
+		}
+
 		/// <summary>
 		/// Given a parent SDC node, this method will sort the child nodes (kids)
 		/// This method is used to keep lists of sibling nodes in the same order as the SDC object tree

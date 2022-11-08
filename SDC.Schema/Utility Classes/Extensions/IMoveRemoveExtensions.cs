@@ -100,9 +100,7 @@ namespace SDC.Schema.Extensions
 					while(kids.Count > 0)
 					{
 						RemoveNodesRecursively(kids.Last()); //recurse depth first 
-						var lastKidPar = kids.Last().ParentNode; //retrieve lastKidPar now, before we remove nodes from dictionaries
-
-						RemoveNodeObject(kids.Last()); //Remove from object tree
+						kids.Last().RemoveNodeObject(); //Remove from object tree
 						kids.Last().UnRegisterNode(); //Remove from dictionaries
 					}
 					return true;
@@ -119,7 +117,7 @@ namespace SDC.Schema.Extensions
 		/// <param name="nodeToRemove"></param>
 		/// <returns>true if the node is successfuly removed</returns>
 		/// <exception cref="InvalidOperationException"></exception>
-		private static bool RemoveNodeObject(BaseType nodeToRemove)
+		private static bool RemoveNodeObject(this BaseType nodeToRemove)
 		{
 			var par = nodeToRemove.ParentNode;
 			if (par is null)
@@ -164,7 +162,7 @@ namespace SDC.Schema.Extensions
 		}
 		/// <summary>
 		/// Move an SDC node from one parent node to another. 
-		/// A check is performed for illegal moves using IsParentNodeAllowed.
+		/// A check is performed for illegal moves using <see cref="IsParentNodeAllowed(BaseType, BaseType)"/>. <br/>
 		/// Illegal moves are not performed, causing this method to return false
 		/// </summary>
 		/// <param name="btSource">THe node to move.</param>
@@ -173,13 +171,15 @@ namespace SDC.Schema.Extensions
 		/// All negative values will place btSource at the first IList position (index 0).
 		/// All values greater than the current last IList index will be added to the end of the list.
 		/// The default value is -1, which will place btSource at the start of the list</param>
+		/// <param name="deleteEmptyParentNode">If <b><paramref name="deleteEmptyParentNode"/></b> is true (default is false) 
+		/// then the method will check to see if the parent node of <b><paramref name="btSource"/></b> (the moved node) has no child nodes after
+		/// <b><paramref name="btSource"/></b> is moved.  If <b><paramref name="deleteEmptyParentNode"/></b> is true 
+		/// and also the parent node is childless, the parent node will be removed.<br/>
+		/// This is useful for removing a childless (empty) empty ChildItems, after moving its last child node  to a different parent node.</param>
 		/// <returns>true if the move was successful; false if the move was not allowed</returns>
-		/// <exception cref="NullReferenceException">NullReferenceException("btSource must not be null.");</exception>
-		/// <exception cref="NullReferenceException">NullReferenceException("newParent must not be null.");</exception>
-		/// <exception cref="NullReferenceException">NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved")</exception>
-		//		/// <exception cref="Exception">Exception("Could not reflect parent property object to remove node");</exception>
-		/// <exception cref="Exception">Exception("Invalid targetProperty");</exception>
-		public static bool Move(this BaseType btSource, BaseType newParent, int newListIndex = -1)
+		/// <exception cref="NullReferenceException"/>
+		///<exception cref="Exception"/>
+		public static bool Move(this BaseType btSource, BaseType newParent, int newListIndex = -1, bool deleteEmptyParentNode = false)
 		{
 			if (btSource is null) 
 				throw new NullReferenceException("btSource must not be null.");
@@ -188,8 +188,6 @@ namespace SDC.Schema.Extensions
 				throw new NullReferenceException("newParent must not be null.");
 			//if (btSource.ParentNode is null) throw new NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved");
 			if (newParent.TopNode is null) throw new NullReferenceException("newParent.TopNode must not be null.");
-
-
 
 			if (btSource.IsParentNodeAllowed(newParent, out object? targetObj))
 			{
@@ -206,6 +204,9 @@ namespace SDC.Schema.Extensions
 				if (sourceRoot.Equals(newParentRoot)) sameRoot = true;
 				else //!+Process btSource tree with different root node
 				{
+					//Set TopNode for the first nodes of the source branch (subtree)
+					//The TopNode of these items might derive from a completely different SDC tree,
+					//and thus must be reset to match the current target node's TopNode
 					BaseType? n;
 					BaseType? nextNode;
 					int i = 0;
@@ -229,18 +230,20 @@ namespace SDC.Schema.Extensions
 						}
 						n = nextNode;
 					}
-					//Re-create dictionaries, name, sGuid, etc for all btSource nodes.
-					//Order is not reset here, but maybe we'll add it later.
-					var sourceNodeList = SdcUtil.ReflectRefreshSubtreeList(btSource, false, true, 0, 1, true, true, true, true, SdcUtil.CreateElementNameCAP); 
-
+					//Re-create dictionaries, ID, BaseName, @name, sGuid/ObjectGUID, etc for all btSource nodes.
+					var sourceNodeList =
+						SdcUtil.ReflectRefreshSubtreeList(btSource,false,false,true,
+						0,1, true, SdcUtil.CreateCAPname);
 				}//TODO: process donor node/branch: ObjectID, sGuid, ObjectID, @name, ID, baseURI?, Link?, events?, rule targets?
 
 				bool isSourceParentChildless = false;
 
 				if (targetObj is BaseType) //btSource can be attached directly to targetObj
 				{
-					targetObj = btSource;
+					targetObj = btSource;					
 					btSource.MoveInDictionaries(targetParent: newParent);
+					btSource.AssignOrder(); //Required that dictionaries are first populated
+
 					return true;
 				}
 				else if (targetObj is IList propList) //btSource can be attached to a member of a List
@@ -266,12 +269,12 @@ namespace SDC.Schema.Extensions
 								{
 									objList.Remove(btSource);
 
-									if (objList.Count == 0)
+									if (deleteEmptyParentNode && objList.Count == 0)
 									{
 										RemoveNodeObject(sourceParent); //requires _ParentNodes entry to work
 
 										//sourceParent was not previously removed in dictionaries, we only removed its last child node
-										//Since it's now "childless," we should remove this orphan node from both the dictionaries and the SDC OM
+										//Since it's now "childless," we can remove this orphan node from both the dictionaries and the SDC OM
 										isSourceParentChildless = true;								
 									}
 								}
@@ -290,10 +293,13 @@ namespace SDC.Schema.Extensions
 					else 
 						propList.Insert(newListIndex, btSource);
 
+
+					//!Remove deleted nodes from Top Node dictionaries
 					btSource.MoveInDictionaries(targetParent: newParent);
-					if (isSourceParentChildless)
+					btSource.AssignOrder(); //Requires that dictionaries are first populated
+
+					if (isSourceParentChildless && deleteEmptyParentNode)
 					{
-						//UnRegisterParent(sourceParent!);
 						UnRegisterNode(sourceParent!); //this calls UnRegisterParent also
 					}
 					return true;
@@ -322,10 +328,9 @@ namespace SDC.Schema.Extensions
 		/// If <b><paramref name="node"/></b> is ITopNode, it is also registered in it's own class's TopNode dictionaries
 		/// </summary>
 		/// <param name="node"/>
-		/// <param name="node"></param>
 		/// <param name="parentNode">If adding nodes manually, in the BaseType constructor, a parent Node should be provided</param>
 		/// <param name="childNodesSort"></param>
-		internal static void RegisterNodeAndParent(this BaseType node, BaseType? parentNode = null, bool childNodesSort = true)
+		internal static BaseType RegisterNodeAndParent(this BaseType node, BaseType? parentNode = null, bool childNodesSort = true)
 		{
 			if (node.TopNode is not null)
 			{
@@ -351,7 +356,7 @@ namespace SDC.Schema.Extensions
 					tn._Nodes.Add(node.ObjectGUID, node);
 
 					//This is a convenient place to update regTopNode.MaxObjectID; 
-					tn._MaxObjectIDint = BaseType.LastObjectID;
+					//tn._MaxObjectIDint = BaseType.LastObjectID;
 
 					if (node is IdentifiedExtensionType iet)
 					{
@@ -362,6 +367,42 @@ namespace SDC.Schema.Extensions
 				}
 			}
 			else { } //There is no TopNode to hold our dictionaries, so we can't register the node
+			return node;
+		}
+
+		internal static decimal AssignOrder(this BaseType node, int orderGap = 1, bool reorderToEnd = false)
+
+		{
+			BaseType? curNode = node;
+
+			var prevNode = curNode.GetNodePrevious();
+			if (prevNode is null)
+			{
+				curNode.order = 0;
+				return 0;
+			}
+			else
+				curNode.order = prevNode.order + orderGap;
+
+			//make sure that lower nodes have sequentially-numbered IDs
+			int i = 0;
+			do
+			{
+				prevNode = curNode;
+				curNode = curNode.GetNodeNext();
+				if (curNode is null) 
+					return prevNode.order;
+				else if(!reorderToEnd && prevNode.order < curNode.order)
+					//all nodes are sequential now, so we can return now
+					return prevNode.order;
+				else
+					curNode.order = prevNode.order + orderGap;
+
+				i++; 
+				if (i > 100000) 
+					throw new IndexOutOfRangeException($"Too many cycles (100000) to walk down SDC object tree.  Run {nameof(SdcUtil.ReflectRefreshTree)} to fix.");
+			} while (true);
+			throw new InvalidOperationException("Could not assign @order to node.");
 		}
 
 		/// <summary>
@@ -459,7 +500,7 @@ namespace SDC.Schema.Extensions
 		/// </summary>
 		/// <param name="node"></param>
 		/// <exception cref="Exception"></exception>
-		private static void UnRegisterNode(this BaseType node)
+		internal static void UnRegisterNode(this BaseType node)
 		{
 			var _topNode = (_ITopNode?)node.TopNode;
 			if (_topNode is null)

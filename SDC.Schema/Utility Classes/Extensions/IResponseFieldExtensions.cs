@@ -3,6 +3,9 @@
 //using SDC;
 namespace SDC.Schema.Extensions
 {
+	/// <summary>
+	/// 
+	/// </summary>
 	public static class IResponseFieldExtensions
 	{
 		public static DataTypes_DEType AddDataType(this ResponseFieldType rf,
@@ -11,6 +14,12 @@ namespace SDC.Schema.Extensions
 			object? valDefault = null)
 			=> IDataHelpers.AddDataTypesDE(rf, dataType, dtQuant, valDefault);  //Convert to generic type for valDefault
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="rf"></param>
+		/// <param name="units"></param>
+		/// <returns></returns>
 		public static UnitsType? AddResponseUnits(this ResponseFieldType rf, string units)
 		{
 			if (rf != null && units != null)
@@ -23,6 +32,12 @@ namespace SDC.Schema.Extensions
 			return null;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="rf"></param>
+		/// <param name="asciiText"></param>
+		/// <returns></returns>
 		public static RichTextType? AddTextAfterResponse(this ResponseFieldType rf, string? asciiText)
 		{
 			if (rf != null && asciiText != null)
@@ -37,7 +52,7 @@ namespace SDC.Schema.Extensions
 
 		//public static CallFuncActionType AddCallSetValue_(this ResponseFieldType rf)
 		//{ throw new NotImplementedException(); }
-		public static ScriptCodeAnyType AddSetValue_(this ResponseFieldType rf)
+		private static ScriptCodeAnyType AddSetValue_(this ResponseFieldType rf)
 		{ throw new NotImplementedException(); }
 
 		private static T? GetVal<T>(this ResponseFieldType rf) where T : BaseType, IVal

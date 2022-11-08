@@ -177,6 +177,7 @@ namespace SDC.Schema
 					else {}
 				}
 			}
+			//If we get down here, the is a problem with teh TopNode dictionaries.  This data will help with debugging.
 
 			InvalidOperationException ex = new("The supplied nodes cannot be sorted");
 			ex.Data.Add("nodeA.name", nodeA?.name);
@@ -195,11 +196,39 @@ namespace SDC.Schema
 
 
 
+	public class TreeGuidComparer : Comparer<Guid>
+	{
+		private ITopNode topNode { get; set; }
+		static TreeComparer treeComparer = new TreeComparer();
+		TreeGuidComparer(ITopNode TopNode)
+		{
+			topNode = TopNode;
+		}
+		public override int Compare(Guid guidA, Guid guidB)
+		{		
+
+			BaseType? nodeA, nodeB;
+			_ITopNode _topNode = (_ITopNode)topNode;
+
+			_topNode._Nodes.TryGetValue(guidA, out nodeA);
+			_topNode._Nodes.TryGetValue(guidB, out nodeB);
+
+			//If a node cannot be located, find the RootNode, and then find all TopNodes, and from there, search each tree
+			//alternatively, create a global dictionary,
+			//or maintain @order with each add/move
+			//or use the dot notation to determine order
+			
+			if (nodeA is null || nodeB is null)
+				throw new ArgumentNullException("neither nodeA nor nodeB can be null");
+
+			
+			return treeComparer.Compare(nodeA, nodeB);
+		}
+	}
 
 
 
 
 
 
-
-}
+	}

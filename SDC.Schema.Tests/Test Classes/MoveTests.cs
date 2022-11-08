@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -148,7 +149,7 @@ namespace SDCObjectModelTests.TestClasses
         }
 
 		[TestMethod]
-		public void MoveDEunderLItoLIandBack()
+		public void ClearChildItemsAfterDropOver()
 		{
 			Setup.TimerStart("==>[] Started");
 			BaseType.ResetRootNode();
@@ -196,7 +197,86 @@ namespace SDCObjectModelTests.TestClasses
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 			Setup.Reset(); //reset after moving nodes.
 		}
+		[TestMethod]
+		public void CountNodesAfterDropAfter()
+		{
+			Setup.TimerStart("==>[] Started");
+			BaseType.ResetRootNode();
 
+			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
+
+			FormDesignType FD = TopNodeSerializer<FormDesignType>.DeserializeFromXmlPath(path);
+			var myXML = TopNodeSerializer<FormDesignType>.GetXml(FD);
+
+			SectionItemType? S_16182 = FD.GetSectionByName("S_16182"); //SPECIMEN
+				var Q_58807 = FD.GetQuestionByName("Q_58807"); //Procedure (Note A)
+					var LI_40307 = FD.GetListItemByName("LI_40307");
+					var LI_39079 = FD.GetListItemByName("LI_39079");
+					var LIR_16195 = FD.GetListItemByName("LI_16195");
+					var LI_16196 = FD.GetListItemByName("LI_16196");
+				var Q_16214 = FD.GetQuestionByName("Q_16214"); //QS: Specimen Laterality
+					var LI_16215 = FD.GetListItemByName(name: "LI_16215");
+					var LI_16216 = FD.GetListItemByName("LI_16216");
+					var LI_16218 = FD.GetListItemByName("LI_16218");
+			var S_16249 = FD.GetSectionByName("S_16249"); //S:TUMOR
+				var Q_16250 = FD.GetQuestionByName("Q_16250"); //QS: Tumor Site (Note B)
+				var p_rptTxt_16250_1 = FD.GetPropertyByName("p_rptTxt_16250_1"); //Report Text
+					var LI_16251 = FD.GetListItemByName("LI_16251");
+					var LI_16252 = FD.GetListItemByName(name: "LI_16252");
+					var LI_16253 = FD.GetListItemByName("LI_16253");
+					var LI_16254 = FD.GetListItemByName(name: "LI_16254");
+					var LI_16255 = FD.GetListItemByName("LI_16255");
+					var LI_16256 = FD.GetListItemByName("LI_16256");
+
+						var Q_52840 = FD.GetQuestionByName("Q_52840"); //QR: Specify Distance from Nipple in Centimeters (cm)
+						var p_rptTxt_52840_1 = FD.GetPropertyByName("p_rptTxt_52840_1"); //p: Distance from Nipple (Centimeters)
+						var rf_52840_2 = FD.GetNodeByName("rf_52840_2");
+						var rsp_52840_3 = FD.GetNodeByName(name: "rsp_52840_3");
+						var dec_52840_4 = FD.GetNodeByName(name: "dec_52840_4");
+
+					var LI_16257 = FD.GetListItemByName("LI_16257");//LIR: Other (specify)			
+					var p_rptTxt_16257_1 = FD.GetPropertyByName("p_rptTxt_16257_1"); //Distance from Nipple (Centimeters)
+					var lirf_16257_2 = FD.GetNodeByName("lirf_16257_2");
+					var rsp_16257_3 = FD.GetNodeByName(name: "rsp_16257_3");
+					var str_16257_4 = FD.GetNodeByName(name: "str_16257_4");
+
+
+
+
+			Assert.IsTrue(Q_58807?.GetListItems()?.Count == 4);
+			Assert.IsTrue(Q_16214?.GetListItems()?.Count == 3);
+
+			Move(LI_16215!, LI_40307, DropPosition.After);
+			Assert.IsTrue(Q_58807?.GetListItems()?.Count == 5);
+			Assert.IsTrue(Q_16214?.GetListItems()?.Count == 2);
+
+			Move(LI_16216, LI_40307, DropPosition.After);
+			Assert.IsTrue(Q_58807?.GetListItems()?.Count == 6);
+			Assert.IsTrue(Q_16214?.GetListItems()?.Count == 1);
+
+			Move(LI_16218, LI_40307, DropPosition.After);
+			Assert.IsTrue(Q_58807?.GetListItems()?.Count == 7);
+			Assert.IsTrue(Q_16214?.GetListItems() is null);
+
+			Move(LI_16218, Q_16214,  DropPosition.Over); //Move LI_16218 back home to Q_16214
+			Assert.IsTrue(Q_16214?.GetListItems()?.Count == 1);
+
+
+			
+
+			Assert.IsTrue(S_16182?.ChildItemsNode.ChildItemsList.Count == 2);
+			Move(S_16249, S_16182, DropPosition.Over);  //Drop Tumor onto Specimen node to make Tumor a child section
+			Assert.IsTrue(S_16182?.ChildItemsNode.ChildItemsList.Count == 3);
+
+			Move(S_16249, S_16182, DropPosition.After);  //Drop Tumor onto Specimen node to make Tumor a child section
+			Assert.IsTrue(S_16182?.ChildItemsNode.ChildItemsList.Count == 2);
+
+
+
+
+			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+			Setup.Reset(); //reset after moving nodes.
+		}
 		[TestMethod]
         public void MoveListDItoOtherList()
         {
@@ -232,8 +312,10 @@ namespace SDCObjectModelTests.TestClasses
             Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
         }
 
-		public bool Move(BaseType sourceNode, BaseType targetNode, DropPosition position)//previously used List<***I***BaseType>
+		public bool Move(BaseType sourceNode, BaseType targetNode, DropPosition position)
 		{
+			//TODO: Debug.WriteLine does not output to Blazor WASM ouput window.  Using Console.Writeline instead, until this is fixed.
+
 			try
 			{
 				Console.WriteLine("-------------------------------------------");
@@ -274,8 +356,10 @@ namespace SDCObjectModelTests.TestClasses
 
 				ChildItemsType? sourceChildItemsNode = null;
 				ListType? sourceListNode = null;
-				sourceChildItemsNode = sourceNode.ParentNode.As<ChildItemsType>();
-				sourceListNode = sourceNode.ParentNode.As<ListType>();
+				if(sourceNode.ParentNode is ChildItemsType cit)
+					sourceChildItemsNode = cit;
+				if (sourceNode.ParentNode is ListType lt)
+					sourceListNode = lt;
 
 				//!End SETUP_______________________________________________________      
 
@@ -299,17 +383,14 @@ namespace SDCObjectModelTests.TestClasses
 							Debugger.Break(); //We should never get here
 							qsqmTarget.AddListFieldToQuestion().AddList();
 						}
-						//targetNode = qsqmTarget.ListField_Item.List;
 						targetAttachementSite = qsqmTarget.ListField_Item?.List;
 						if (targetAttachementSite is null) throw new NullReferenceException("targetAttachementSite (qsqmTarget.ListField_Item) cannot be null");
 					}
 					else if (targetAsCIP is not null) //i.e., targetNode != DI //includes all other IChildItemsParent drop targets,with any source type
 					{
 						Console.WriteLine("Over: childItemsParent is not null");
-						//Debugger.Break();
 						if (sourceNode is ListItemType) return false;
 
-						//targetNode =  GetChildItemsNode(); //move under target
 						targetAttachementSite = targetAsCIP.AddChildItemsNode(); //Create ChildItemsNode only when needed 
 
 					}
@@ -321,7 +402,7 @@ namespace SDCObjectModelTests.TestClasses
 							Debugger.Break(); //we should never get here
 						return false;
 
-					} //use tried to drop on a DisplayedType node (not IChildItemsParent)
+					} // if we get here, user tried to drop on a DisplayedType node (not IChildItemsParent)
 				}
 				else if (position == DropPosition.After)
 				{
@@ -337,7 +418,6 @@ namespace SDCObjectModelTests.TestClasses
 						if (listItemNodeSource is not null)
 						{
 							Console.WriteLine("A0");
-							//targetNode =  targetNode.ParentNode; //(the List node)
 							targetAttachementSite = targetNode.ParentNode;  //(the List node)
 						}
 						else
@@ -354,7 +434,6 @@ namespace SDCObjectModelTests.TestClasses
 					else
 					{
 						Console.WriteLine("A3");
-						//targetNode = targetNode.ParentNode; //(ChildItemsNode)
 						targetAttachementSite = targetNode.ParentNode; //(ChildItemsNode)
 					}
 				}
@@ -372,7 +451,6 @@ namespace SDCObjectModelTests.TestClasses
 						if (listItemNodeSource is not null)
 						{
 							Console.WriteLine("B0");
-							//targetNode = targetNode.ParentNode;  //(the List node)
 							targetAttachementSite = targetNode.ParentNode;  //(the List node)
 						}
 						else
@@ -389,7 +467,6 @@ namespace SDCObjectModelTests.TestClasses
 					else
 					{
 						Console.WriteLine("B3");
-						//targetNode = targetNode.ParentNode; //(ChildItemsNode)
 						targetAttachementSite = targetNode.ParentNode; //(ChildItemsNode)		
 					}
 				}
@@ -398,52 +475,41 @@ namespace SDCObjectModelTests.TestClasses
 				Console.WriteLine($"targetAsCIP: {targetAsCIP?.As<DisplayedType>()?.title ?? "null"}");
 				Console.WriteLine($"targetNode: {targetNode?.As<DisplayedType>()?.title ?? "null"}");
 				Console.WriteLine($"qsqmTarget: {(qsqmTarget?.As<DisplayedType>()?.title ?? "null")}; NewTarget: {targetNode?.ElementName ?? "null"}: {targetNode?.As<DisplayedType>()?.title ?? "null"}");
-				Console.WriteLine($"targetAttachementSite: {targetAttachementSite.ElementName ?? targetAttachementSite.GetType().Name}");
-				var targetIETParent = sourceNode.ParentIETypeNode;
+				Console.WriteLine($"targetAttachementSite: {targetAttachementSite?.ElementName ?? targetAttachementSite?.GetType().Name?? "null"}");
+
+				if (targetAttachementSite is null) throw new InvalidOperationException("Could not determine targetAttachementSite");				
+				
+				bool result = false;
+				bool deleteEmptyParentNode = false;
+				if (targetAttachementSite is ChildItemsType) deleteEmptyParentNode = true; //delete the ChildItems node is it is "childless"
 
 				Console.WriteLine("Before Move");
-				bool result = false;
+				
+				result = sourceNode.Move(targetAttachementSite, targetIndex, deleteEmptyParentNode);					
 
-				try
-				{
-					result = sourceNode.Move(targetAttachementSite, targetIndex);
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine(ex.Message + "\r\n" + ex.Source + "\r\n" + ex.TargetSite + "\r\n" + ex.StackTrace);
-					return false;
-				}
 				Console.WriteLine("After Move");
-				//Remove ChildItems node if it's not null and empty (we don't want it in the XML output:
-				//sourceChildItemsNode still holds a ref to ChildItems, even though it is disconnected from its parent object
-				if (sourceChildItemsNode?.ChildItemsList?.Count == 0)
-				{
-					Console.WriteLine("Before sourceParentNode");
-					var idIET = targetIETParent.ID;
-					var titleIET = targetIETParent.As<DisplayedType>()?.title ?? targetIETParent.GetType().Name;
-					Console.WriteLine($"Target Parent IET==> ID: {idIET}, title: {titleIET}");
-
-					sourceChildItemsNode.ChildItemsList = null;
-
-					Console.WriteLine("After sourceParentNode");
-					idIET = targetIETParent.ID;
-					titleIET = targetIETParent.As<DisplayedType>()?.title ?? targetIETParent.GetType().Name;
-					Console.WriteLine($"Target Parent IET==> ID: {idIET}, title: {titleIET}");
-				}
-
 				Console.WriteLine("result: " + result);
+
 				var subTree = targetAttachementSite.GetSubtreeIETList();
-				if (subTree is null || subTree.Count == 0) Console.WriteLine("subTree.Count == 0");
-				Console.WriteLine(subTree?.Count);
-				foreach (IdentifiedExtensionType n in subTree) Console.WriteLine(n.ElementPrefix + ": " + n.As<DisplayedType>().title ?? "(null)" + "; ");
+				if (subTree is not null && subTree.Count > 0)
+				{
+					Console.WriteLine(subTree.Count);
+					foreach (IdentifiedExtensionType n in subTree)
+						Console.WriteLine(n.ElementPrefix + ": " + n.As<DisplayedType>().title ?? "(null)" + "; ");
+				} 
+				else Console.WriteLine("subTree.Count == 0");
+
 				Console.WriteLine("END:--------------------------------------");
 				return result;
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine($"Ex: {ex.Message}\r\n Inner Ex:{ex.InnerException?.Message}\r\nStack:\r\n{ex.StackTrace}");
-				foreach (System.Collections.DictionaryEntry kv in ex?.InnerException?.Data)
-					Console.WriteLine($"Key: {kv.Key}, Value: {kv.Value}");
+				if (ex.InnerException?.Data is not null)
+				{
+					foreach (DictionaryEntry kv in ex.InnerException.Data)
+						Console.WriteLine($"Key: {kv.Key}, Value: {kv.Value}");
+				}
 				return false;
 			}
 		}

@@ -30,12 +30,12 @@ namespace SDC.Schema
 		/// </summary>
 		ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes { get; }
 
-		[XmlIgnore]
-		[JsonIgnore]
-		///Holds the largest ObjectID that was most-recently assigned to a new node.  <br/>
-		///The MaxObjectID is incremented by 1 each time a new node is added to an SDC object tree. <br/>
-		///MaxObjectID can be reset to 0 by calling ITopNode.ResetRootNode()
-		int MaxObjectID { get; }
+		//[XmlIgnore]
+		//[JsonIgnore]
+		/////Holds the largest ObjectID that was most-recently assigned to a new node.  <br/>
+		/////The MaxObjectID is incremented by 1 each time a new node is added to an SDC object tree. <br/>
+		/////MaxObjectID can be reset to 0 by calling ITopNode.ResetRootNode()
+		//int MaxObjectID { get; }
 
 		//[XmlIgnore]
 		//[JsonIgnore]
@@ -102,10 +102,10 @@ namespace SDC.Schema
 		/// </summary>
 		internal ObservableCollection<IdentifiedExtensionType> _IETnodes { get;}
 
-		/// <summary>
-		/// Internal version of MaxObjectID, which has a setter; MaxObjectID only has a getter.
-		/// </summary> 
-		internal int _MaxObjectIDint { get; set; }
+		///// <summary>
+		///// Internal version of MaxObjectID, which has a setter; MaxObjectID only has a getter.
+		///// </summary> 
+		//internal int _MaxObjectIDint { get; set; }
 
 		/// <summary>
 		/// Dictionary.  Given an Node ObjectGUID, returns the node's object reference.

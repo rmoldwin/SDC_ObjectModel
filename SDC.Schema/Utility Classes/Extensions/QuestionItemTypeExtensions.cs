@@ -13,13 +13,18 @@ namespace SDC.Schema
 		{ throw new NotImplementedException(); }
 		private static QuestionItemType ConvertToQM_(this QuestionItemType q, int maxSelections = 0, bool testOnly = false)
 		{ throw new NotImplementedException(); }
-		//public static DisplayedType ConvertToDI_(this QuestionItemType q, bool testOnly = false)
+		//private static DisplayedType ConvertToDI_(this QuestionItemType q, bool testOnly = false)
 		//{ throw new NotImplementedException(); } //abort if LIs or children present
-		//public static QuestionItemType ConvertToSection_(this QuestionItemType q, bool testOnly = false)
+		//private static QuestionItemType ConvertToSection_(this QuestionItemType q, bool testOnly = false)
 		//{ throw new NotImplementedException(); }
-		//public static QuestionItemType ConvertToLookup_(this QuestionItemType q, bool testOnly = false)
+		//private static QuestionItemType ConvertToLookup_(this QuestionItemType q, bool testOnly = false)
 		//{ throw new NotImplementedException(); }//abort if LIs present
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="q"></param>
+		/// <returns></returns>
 		public static QuestionEnum GetQuestionSubtype(this QuestionItemType q)
 		{
 			if (q.ResponseField_Item != null) return QuestionEnum.QuestionFill;
@@ -32,6 +37,15 @@ namespace SDC.Schema
 
 			return QuestionEnum.QuestionGroup;
 		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="q"></param>
+		/// <param name="id"></param>
+		/// <param name="defTitle"></param>
+		/// <param name="insertPosition"></param>
+		/// <returns></returns>
+		/// <exception cref="InvalidOperationException"></exception>
 		public static ListItemType AddListItem(this QuestionItemType q, string id, string? defTitle = null, int insertPosition = -1)
 		{  //Check for QS/QM first!
 			if (q.GetQuestionSubtype() == QuestionEnum.QuestionMultiple ||
@@ -50,8 +64,24 @@ namespace SDC.Schema
 
 				return li;
 			}
-			else throw new InvalidOperationException("Can only add ListItem to QuestionSingle or QuestionMultiple");
+			else throw new InvalidOperationException("You can only add a ListItem to a QuestionSingle or QuestionMultiple");
 		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="q"></param>
+		/// <param name="id"></param>
+		/// <param name="deType"></param>
+		/// <param name="defTitle"></param>
+		/// <param name="insertPosition"></param>
+		/// <param name="dt"></param>
+		/// <param name="responseRequired"></param>
+		/// <param name="textAfterResponse"></param>
+		/// <param name="units"></param>
+		/// <param name="dtQuant"></param>
+		/// <param name="valDefault"></param>
+		/// <returns></returns>
+		/// <exception cref="InvalidOperationException"></exception>
 		public static ListItemType AddListItemResponse(this QuestionItemType q,
 			string id,
 			out DataTypes_DEType deType,
@@ -81,11 +111,11 @@ namespace SDC.Schema
 				return li;
 
 			}
-			else throw new InvalidOperationException("Can only add ListItem to QuestionSingle or QuestionMultiple");
+			else throw new InvalidOperationException("You can only add a ListItem to a QuestionSingle or QuestionMultiple");
 		}
 		public static DisplayedType AddDisplayedTypeToList(this QuestionItemType q,
 			string id,
-			string defTitle = null,
+			string? title = null,
 			int insertPosition = -1)
 		{
 			if (q.GetQuestionSubtype() == QuestionEnum.QuestionMultiple ||
@@ -93,19 +123,29 @@ namespace SDC.Schema
 				q.GetQuestionSubtype() == QuestionEnum.QuestionRaw)//TODO: handle the last case
 			{
 				if (q.ListField_Item is null) q.AddListFieldToQuestion();
-				ListType list = q.ListField_Item.List;
-				if (list is null) list = q.ListField_Item.AddList();
+				ListType? list = q.ListField_Item!.List;
+				list ??= q.ListField_Item.AddList();
 
-				return list.AddDisplayedType(id, defTitle, insertPosition);
+				return list.AddDisplayedType(id, title, insertPosition);
 			}
-			else throw new InvalidOperationException("Can only add DisplayedItem to QuestionSingle or QuestionMultiple");
+			else throw new InvalidOperationException("You can only add a DisplayedItem to a QuestionSingle or QuestionMultiple");
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="q"></param>
+		/// <param name="deType"></param>
+		/// <param name="dataType"></param>
+		/// <param name="dtQuant"></param>
+		/// <param name="valDefault"></param>
+		/// <returns></returns>
+		/// <exception cref="Exception"></exception>
 		public static ResponseFieldType AddQuestionResponseField(this QuestionItemType q,
 			out DataTypes_DEType deType,
 			ItemChoiceType dataType = ItemChoiceType.@string,
 			dtQuantEnum dtQuant = dtQuantEnum.EQ,
-			object valDefault = null)
+			object? valDefault = null)
 		{
 			if (q.GetQuestionSubtype() == QuestionEnum.QuestionRaw)
 			{
@@ -118,6 +158,11 @@ namespace SDC.Schema
 			else throw new Exception("A Question subtype has already been assigned to the Question.");
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="q"></param>
+		/// <returns></returns>
 		public static ListFieldType AddListFieldToQuestion(this QuestionItemType q)
 		{
 			if (q.ListField_Item == null)
@@ -141,7 +186,7 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="q"></param>
 		/// <returns>I a QR node, returns DataTypeDE_Item.  Otherwise returns null </returns>
-		public static BaseType? ResponseDataTypeNode(this QuestionItemType q) =>
+		public static BaseType? GetResponseDataTypeNode(this QuestionItemType q) =>
 			q?.ResponseField_Item?.Response?.DataTypeDE_Item;
 
 		/// <summary>
@@ -150,7 +195,7 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="q"></param>
 		/// <returns> List&lt;IdentifiedExtensionType> containing all nodes, or null if no nodes are present. </returns>
-		public static List<IdentifiedExtensionType>? GetListAndChildIETCNodes(this QuestionItemType q)
+		public static List<IdentifiedExtensionType>? GetListAndChildIETNodes(this QuestionItemType q)
 		{
 			List<IdentifiedExtensionType> lst = new();
 
@@ -174,7 +219,7 @@ namespace SDC.Schema
 		/// </returns>
 		public static bool TryGetListAndChildIETNodes(this QuestionItemType q, out List<IdentifiedExtensionType>? nodeList)
 		{
-			nodeList = GetListAndChildIETCNodes(q);
+			nodeList = GetListAndChildIETNodes(q);
 			return nodeList?.Any()??false;
 
 		}

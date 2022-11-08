@@ -63,14 +63,14 @@ namespace SDC.Schema
 
 		#region ITopNode 
 		#region ITopNode Main
-		[JsonIgnore]
-		int _ITopNode._MaxObjectIDint { get; set; } = 0; //internal
+		//[JsonIgnore]
+		//int _ITopNode._MaxObjectIDint { get; set; } = 0; //internal
 		[XmlIgnore]
 		[JsonIgnore]
 		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		public int MaxObjectID { get => ((_ITopNode)this)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public int MaxObjectID { get => ((_ITopNode)this)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
 		[XmlIgnore]
@@ -135,7 +135,7 @@ namespace SDC.Schema
 		{
 			BaseType.ResetRootNode();
 			((_ITopNode)this).ClearDictionaries();
-			((_ITopNode)this)._MaxObjectIDint = 0;
+			//((_ITopNode)this)._MaxObjectIDint = 0;
 			Property = null;
 			Extension = null;
 			Comment = null;
@@ -226,14 +226,14 @@ namespace SDC.Schema
 
 		#region ITopNode
 		#region ITopNodeMain
-		[JsonIgnore]
-		int _ITopNode._MaxObjectIDint { get; set; } //internal
+		//[JsonIgnore]
+		//int _ITopNode._MaxObjectIDint { get; set; } //internal
 		[XmlIgnore]
 		[JsonIgnore]
 		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
 		[XmlIgnore]
@@ -297,7 +297,7 @@ namespace SDC.Schema
 		{
 			BaseType.ResetRootNode();
 			((_ITopNode)this).ClearDictionaries();
-			((_ITopNode)this)._MaxObjectIDint = 0;
+			//((_ITopNode)this)._MaxObjectIDint = 0;
 			Property = null;
 			Extension = null;
 			Comment = null;
@@ -347,14 +347,14 @@ namespace SDC.Schema
 
 		#region ITopNode
 		#region ITopNodeMain
-		[JsonIgnore]
-		int _ITopNode._MaxObjectIDint { get; set; } //internal
+		//[JsonIgnore]
+		//int _ITopNode._MaxObjectIDint { get; set; } //internal
 		[XmlIgnore]
 		[JsonIgnore]
 		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
 		[XmlIgnore]
@@ -414,7 +414,7 @@ namespace SDC.Schema
 		{
 			BaseType.ResetRootNode();
 			((_ITopNode)this).ClearDictionaries();
-			((_ITopNode)this)._MaxObjectIDint = 0;
+			//((_ITopNode)this)._MaxObjectIDint = 0;
 			Property = null;
 			Extension = null;
 			Comment = null;
@@ -472,14 +472,14 @@ namespace SDC.Schema
 		}
 		#region ITopNode
 		#region ITopNodeMain
-		[JsonIgnore]
-		int _ITopNode._MaxObjectIDint { get; set; } //internal
+		//[JsonIgnore]
+		//int _ITopNode._MaxObjectIDint { get; set; } //internal
 		[XmlIgnore]
 		[JsonIgnore]
 		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
 		[XmlIgnore]
@@ -543,7 +543,7 @@ namespace SDC.Schema
 		{
 			BaseType.ResetRootNode();
 			((_ITopNode)this).ClearDictionaries();
-			((_ITopNode)this)._MaxObjectIDint = 0;
+			//((_ITopNode)this)._MaxObjectIDint = 0;
 			Property = null;
 			Extension = null;
 			Comment = null;
@@ -593,14 +593,14 @@ namespace SDC.Schema
 		}
 		#region ITopNode
 		#region ITopNodeMain
-		[JsonIgnore]
-		int _ITopNode._MaxObjectIDint { get; set; } //internal
+		//[JsonIgnore]
+		//int _ITopNode._MaxObjectIDint { get; set; } //internal
 		[XmlIgnore]
 		[JsonIgnore]
 		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
 		[XmlIgnore]
@@ -663,7 +663,7 @@ namespace SDC.Schema
 		{
 			BaseType.ResetRootNode();
 			((_ITopNode)this).ClearDictionaries();
-			((_ITopNode)this)._MaxObjectIDint = 0;
+			//((_ITopNode)this)._MaxObjectIDint = 0;
 			Property = null;
 			Extension = null;
 			Comment = null;
@@ -1073,21 +1073,13 @@ namespace SDC.Schema
 					TopNode = LastTopNode; //Point to LastTopNode as the TopNode
 					LastTopNode = tn;
 				}
-				((_ITopNode)LastTopNode)._MaxObjectIDint = LastObjectID;
 			}//not ITopNode below here
 			else if (LastTopNode is not null)
 			{
 				TopNode = LastTopNode;
-				((_ITopNode)LastTopNode)._MaxObjectIDint = LastObjectID;
 			}
 			else if (LastTopNode is null) 
 			{ }//the caller is instantiating a new node that is not descended from an ITopNode node.
-
-			//+Register node in _Nodes and _IETnodes dictionaries:
-			//This would miss all nodes added without a TopNode, but might still be useful
-			//alternatively, we can reflect, on demand, the entire list to an external List, Dict, Collection, Array etc...
-			//This would require using SdcUtil.ReflectTreeList, but we would then need a place to store that list
-			//in the absence of a TopNode  root.  It could be a static internal property on BaseType..., but that is brittle.
 
 		}
 
@@ -1098,17 +1090,7 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="parentNode"></param>
 		protected BaseType(BaseType? parentNode)
-		{
-			//+Assign this.sGuid
-			//Since this is a brand new node, it has no previous sGuid, so we create it here.
-			Guid newGuid = Guid.NewGuid();
-			//TODO: test for undesirable sGuid words and sequences here...
-			sGuid = ShortGuid.Encode(newGuid);
-
-			//+Assign this.ObjectGUID & this.ObjectID
-			ObjectGUID = newGuid; //newGuid matches sGuid here
-			ObjectID = BaseType.LastObjectID++; //Can't use TopNode.MaxObjectID because root nodes sometimes are not ITopNode;
-
+		{ 
 			//+Assign this.TopNode
 			if (this is ITopNode tn)
 			{
@@ -1123,11 +1105,6 @@ namespace SDC.Schema
 							par_ITopNode = ptn;//only occurs in RetrieveFormPackage under RetrieveFormPackage
 						else par_ITopNode = (_ITopNode)parentNode.TopNode; //par_ITopNode could still be null here
 
-						//store the node (this) in the current node's parent ITopNode dictionaries
-						//par_ITopNode._Nodes.Add(this.ObjectGUID, this);
-						//if (this is IdentifiedExtensionType ietPar)
-						//	par_ITopNode._IETnodes.Add(ietPar);
-
 						TopNode = par_ITopNode;
 					}
 					else { } //this node descends form a non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode
@@ -1140,103 +1117,30 @@ namespace SDC.Schema
 					TopNode = (_ITopNode)parentNode;
 				else if (parentNode.TopNode is not null)
 					TopNode = (_ITopNode)parentNode.TopNode;
-				else { } //this node descends form a non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode
+				else { } //this node descends form an "illegal" non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode,
+						 //but we can still process it, as long as we check for null TopNode everywhere we need it (mainly in Dictionaries).
+						 //later, this "illegal" tree will need to be grafted onto a legal tree and TopNodes will need to be assigned during
+						 //the grafting/moving process, based on the target tree's TopNodes.
 			}
 			else if (parentNode is null) { }//the caller is trying to instantiate a standalone root node that is not a proper ITopNode.  TopNode is thus null here
 
+			//!________Assign default sGuid, BaseName, ObjectGUID, ObjectID, @order, @name & populate dictionaries___________________
+
+			SdcUtil.AssignGuid_sGuid_BaseName(this);			
+
+			this.ObjectID = BaseType.LastObjectID++; //Can we retire ObjectID?
+
 			this.RegisterNodeAndParent(parentNode);
-			//+Register node in _Nodes and _IETnodes dictionaries:
-			//if (TopNode is not null)
-			//{
-			//	var _topNode = (_ITopNode)TopNode;
-			//	{
-			//		_topNode._Nodes.Add(this.ObjectGUID, this);
 
-			//		//This is a connvenient place to update topNode.MaxObjectID; 
-			//		_topNode._MaxObjectIDint = LastObjectID;
-			//	}
-			//	if (this is IdentifiedExtensionType iet)
-			//		_topNode._IETnodes.Add(iet);
-
-			//	//+Populate the _ChildNodes and _ParentNodes dictionaries:
-			//	if (parentNode is not null) this.RegisterParent(parentNode, childNodesSort: true);
-			//}
+			//The following code requires that the current node is first added
+			//to the ParentNodes dictionary.  Thus, these statements must come
+			//*after* the dictionaries are populated (in RegisterNodeAndParent)
+			
+			this.AssignOrder(orderGap: 10);
+			this.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
 		}
 
 		#region     Init Methods
-
-		//!+TODO: InitParentNodesFromXml should be moved out of BaseType, probably into ITopNode or ISdcUtil
-		private static T InitParentNodesFromXml<T>(string sdcXml, T obj) where T : class, ITopNode
-		{
-			//read as XMLDocument to walk tree
-			var x = new System.Xml.XmlDocument();
-			x.LoadXml(sdcXml);
-			XmlNodeList? xmlNodeList = x.SelectNodes("//*");
-			if (xmlNodeList is null) return null;
-			var dX_obj = new Dictionary<int, Guid>(); //the index is iXmlNode, value is FD ObjectGUID
-			int iXmlNode = 0;
-			XmlNode? xmlNode;
-
-			foreach (BaseType bt in obj.Nodes.Values)
-			{   //As we interate through the nodes, we will need code to skip over any non-element node, 
-				//and still stay in sync with FD (using iFD). For now, we assume that every nodeList node is an element.
-				//https://docs.microsoft.com/en-us/dotnet/api/system.xml.xmlnodetype?view=netframework-4.8
-				//https://docs.microsoft.com/en-us/dotnet/standard/data/xml/types-of-xml-nodes
-				xmlNode = xmlNodeList[iXmlNode];
-				while (xmlNode?.NodeType.ToString() != "Element")
-				{
-					iXmlNode++;
-					xmlNode = xmlNodeList[iXmlNode];
-				}
-				//Create a new attribute node to hold the node's index in xmlNodeList
-				XmlAttribute a = x.CreateAttribute("index");
-				a.Value = iXmlNode.ToString();
-				var e = (XmlElement)xmlNode;
-				e.SetAttributeNode(a);
-
-				//Set the correct Element Name, in case we have errors in the SDC object tree logic
-				bt.ElementName = e.LocalName;
-
-				//Create  dictionary to track the matched indexes of the XML and FD node collections
-				dX_obj[iXmlNode] = bt.ObjectGUID;
-				//Debug.Print("iXmlNode: " + iXmlNode + ", ObjectID: " + bt.ObjectID);
-
-				//Search for parents:
-				int parIndexXml = -1;
-				Guid parObjectGUID = default;
-				bool parExists = false;
-				BaseType btPar;
-				XmlNode? parNode;
-				btPar = null!;
-
-				parNode = xmlNode.ParentNode;
-				parExists = int.TryParse(parNode?.Attributes?.GetNamedItem("index")?.Value, out parIndexXml);//The index of the parent XML node
-				if (parExists)
-				{
-					parExists = dX_obj.TryGetValue(parIndexXml, out parObjectGUID);// find the matching parent SDC node Object ID
-					if (parExists) { parExists = obj.Nodes.TryGetValue(parObjectGUID, out btPar!); } //Find the parent node in FD
-					if (parExists)
-					{
-						//bt.IsLeafNode = true;
-						bt.RegisterParent(btPar!, childNodesSort: false);
-						//Debug.WriteLine($"The node with ObjectID: {bt.ObjectID} is leaving InitializeNodesFromSdcXml. Item type is {bt.GetType().Name}.  " +
-						//            $"Parent ObjectID is {bt?.ParentID}, ParentIETypeID: {bt?.ParentIETypeID}, ParentType: {btPar.GetType().Name}");
-					}
-					else { throw new KeyNotFoundException("No parent object was returned from the SDC tree"); }
-				}
-				else
-				{
-					//bt.IsLeafNode = false;
-					//Debug.WriteLine($"The node with ObjectID: {bt.ObjectID} is leaving InitializeNodesFromSdcXml. Item type is {bt.GetType()}.  " +
-					//                $", No Parent object exists");
-				}
-
-				iXmlNode++;
-			}
-			return obj;
-
-		}
-
 
 		#endregion Local methods
 
@@ -1252,7 +1156,8 @@ namespace SDC.Schema
 
 		/// <summary>
 		/// Find the ordinal position of an object (XML element) under an IdentifiedExtensionType (IET)-derived object.
-		/// This number is used for creating the name attribute suffix.
+		/// This number is used for creating the name attribute suffix. <br/>
+		/// Returns -1 if an error occurs, e.g., if TopNode or its dictionaroes are not populated in the SDC tree.
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
@@ -1261,7 +1166,7 @@ namespace SDC.Schema
 			get
 			{
 				if (this is IdentifiedExtensionType || this is ITopNode) return 0;
-				if (TopNode.Nodes is null)
+				if (TopNode?.Nodes is null)
 					throw new Exception("Could not find SubIETcounter because T.Get_Nodes is null");
 				if (ParentNode is null)
 					throw new Exception("Could not find SubIETcounter because ParentNode is null");
@@ -1295,14 +1200,16 @@ namespace SDC.Schema
 
 
 		/// <summary>
-		///  Hierarchical level using nested dot notation
+		///  Hierarchical level using nested dot notation.
 		/// </summary>
+		/// <exception cref="NullReferenceException"/>
 		[XmlIgnore]
 		[JsonIgnore]
 		public string DotLevel
 		{
 			get
 			{
+				if (TopNode is null) throw new NullReferenceException("To determine DotLevel, TopNode must not be null");
 				//Walk up parent node tree and place each parent in a stack.
 				//pop each node off the stack and determine its position (seq) in its parent object
 				BaseType? par = ParentNode;
@@ -1322,7 +1229,7 @@ namespace SDC.Schema
 				{
 					var n = s.Pop();
 
-					if (topNode._ChildNodes.TryGetValue(n.ParentNode.ObjectGUID, out List<BaseType>? lst))
+					if (topNode._ChildNodes.TryGetValue(n.ParentNode!.ObjectGUID, out List<BaseType>? lst))
 					{ seq = lst.IndexOf(n) + 1; }
 					else { seq = 0; }
 					sb.Append('.').Append(seq); ;
@@ -1548,6 +1455,11 @@ namespace SDC.Schema
 			LastTopNode = null;
 			LastObjectID = 0;
 		}
+
+		[XmlIgnore]
+		[JsonIgnore]
+		/// <inheritdoc/>
+		public string BaseName { get; set; }
 		#endregion
 
 		#region ChangeTracking
@@ -1662,7 +1574,7 @@ namespace SDC.Schema
 		protected IdentifiedExtensionType(BaseType? parentNode, string id = "") : base(parentNode)
 		{
 			if (id.IsNullOrWhitespace())
-				ID = sGuid; //sGuid was assigned or created in the BaseType constructor Init() method
+				ID = $"->{BaseName}"; //BaseName was based on the sGuid and assigned in the BaseType ctor
 			else ID = id;
 			Init();
 		}

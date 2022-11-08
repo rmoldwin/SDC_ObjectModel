@@ -5,6 +5,12 @@ namespace SDC.Schema.Extensions
 {
 	public static class ListFieldTypeExtensions
 	{
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="lf"></param>
+		/// <returns></returns>
+		/// <exception cref="InvalidOperationException"></exception>
 		public static LookupEndPointType AddEndpoint(this ListFieldType lf)
 		{
 			if (lf.List == null)
@@ -13,10 +19,20 @@ namespace SDC.Schema.Extensions
 				lf.LookupEndpoint = lep;
 				return lep;
 			}
-			else throw new InvalidOperationException("Can only add LookupEndpoint to ListField if List object is not present");
+			else throw new InvalidOperationException
+					("You can only add a LookupEndpoint to ListField if a List object is not present on ListField");
 		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="lf"></param>
+		/// <returns></returns>
+		/// <exception cref="InvalidOperationException"></exception>
 		public static ListType AddList(this ListFieldType lf)
 		{
+			if(lf.LookupEndpoint is not null)
+				throw new InvalidOperationException
+					("You can only add a List to a ListField if a LookupEndpoint object is not present on the ListField");
 			ListType list;  //this is not the .NET List class; It's an answer list
 			if (lf.List is null)
 			{

@@ -270,7 +270,10 @@ namespace SDC.Schema.Extensions
 			return null;
 		}
 
-
+		internal static string AssignSimpleName(this BaseType bt)
+		{
+			return SdcUtil.AssignSimpleName(bt);
+		}
 
 
 
