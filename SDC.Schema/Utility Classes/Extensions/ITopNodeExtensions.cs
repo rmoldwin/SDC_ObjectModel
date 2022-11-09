@@ -70,48 +70,6 @@ namespace SDC.Schema.Extensions
 		}
 
 		/// <summary>
-		/// Assign the ElementName (the name of the serialized XML element) property for each node, <br/>
-		/// by comparison with the source XML document that was used to hydrate the SDC object tree
-		/// </summary>
-		/// <param name="itn"></param>
-		/// <param name="sdcXml"></param>
-		private static void X_AssignElementNamesFromXmlDoc(this ITopNode itn, string sdcXml)
-		{
-			//read as XMLDocument to walk tree
-			var x = new XmlDocument();
-			x.LoadXml(sdcXml);
-			XmlNodeList? xmlNodeList = x.SelectNodes("//*");
-			int iXmlNode = 0;
-			XmlNode? xmlNode;
-
-			foreach (BaseType bt in _Nodes(itn).Values)
-			{   //As we iterate through the nodes, we will need code to skip over any non-element node, 
-				//and still stay in sync with FD (using iFD). For now, we assume that every nodeList node is an element.
-				//https://docs.microsoft.com/en-us/dotnet/api/system.xml.xmlnodetype?view=netframework-4.8
-				//https://docs.microsoft.com/en-us/dotnet/standard/data/xml/types-of-xml-nodes
-				xmlNode = xmlNodeList?[iXmlNode];
-				while (xmlNode?.NodeType.ToString() != "Element")
-				{
-					iXmlNode++;
-					xmlNode = xmlNodeList?[iXmlNode];
-				}
-
-				var e = (XmlElement)xmlNode;
-				bt.ElementName = e.LocalName;
-				iXmlNode++;
-			}
-		}
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="itn"></param>
-		/// <returns></returns>
-		public static List<BaseType> GetSortedNodes(this ITopNode itn)
-		{
-			return SdcUtil.GetSortedTreeList(itn);
-		}
-
-		/// <summary>
 		/// Returns a sorted <see cref="ObservableCollection&lt;BaseType>" /> of type <see cref="BaseType"/> containing <br/>
 		/// all nodes with a root node at the current ITopNode node.
 		/// </summary>
@@ -127,7 +85,7 @@ namespace SDC.Schema.Extensions
 		/// <param name="id">The SDC @ID attribute value for which we are attempting to retrieve the node</param>
 		/// <param name="iet">An out parameter containing the retrieved <see cref="IdentifiedExtensionType"/> node, if the retrieval was successful</param>
 		/// <returns>true if successful; false if not the <see cref="IdentifiedExtensionType"/> node was not found by @ID</returns>
-		public static bool TryGetIetNodeByID(this ITopNode itn, string id, out IdentifiedExtensionType? iet)
+		public static bool TryGetIETnodeByID(this ITopNode itn, string id, out IdentifiedExtensionType? iet)
 		{
 			iet = topNode(itn).GetIETnodeByID(id);
 			if (iet is null) return false;
@@ -182,6 +140,48 @@ namespace SDC.Schema.Extensions
 			topNode(itn)?.GetSortedNodes()[index];
 		public static BaseType? GetNodeByObjectID(this ITopNode itn, int ObjectID)=>	
 			topNode(itn)?._Nodes.Values.Where(n => n.ObjectID == ObjectID).FirstOrDefault();
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="itn"></param>
+		/// <returns></returns>
+		public static List<BaseType> GetSortedNodes(this ITopNode itn)
+		{
+			return SdcUtil.GetSortedTreeList(itn);
+		}
+
+		/// <summary>
+		/// Assign the ElementName (the name of the serialized XML element) property for each node, <br/>
+		/// by comparison with the source XML document that was used to hydrate the SDC object tree
+		/// </summary>
+		/// <param name="itn"></param>
+		/// <param name="sdcXml"></param>
+		private static void X_AssignElementNamesFromXmlDoc(this ITopNode itn, string sdcXml)
+		{
+			//read as XMLDocument to walk tree
+			var x = new XmlDocument();
+			x.LoadXml(sdcXml);
+			XmlNodeList? xmlNodeList = x.SelectNodes("//*");
+			int iXmlNode = 0;
+			XmlNode? xmlNode;
+
+			foreach (BaseType bt in _Nodes(itn).Values)
+			{   //As we iterate through the nodes, we will need code to skip over any non-element node, 
+				//and still stay in sync with FD (using iFD). For now, we assume that every nodeList node is an element.
+				//https://docs.microsoft.com/en-us/dotnet/api/system.xml.xmlnodetype?view=netframework-4.8
+				//https://docs.microsoft.com/en-us/dotnet/standard/data/xml/types-of-xml-nodes
+				xmlNode = xmlNodeList?[iXmlNode];
+				while (xmlNode?.NodeType.ToString() != "Element")
+				{
+					iXmlNode++;
+					xmlNode = xmlNodeList?[iXmlNode];
+				}
+
+				var e = (XmlElement)xmlNode;
+				bt.ElementName = e.LocalName;
+				iXmlNode++;
+			}
+		}
 
 		#region Utilities        
 		/// <summary>

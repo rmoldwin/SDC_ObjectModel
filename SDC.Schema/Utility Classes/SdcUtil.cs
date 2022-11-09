@@ -36,6 +36,7 @@ namespace SDC.Schema
 	/// </summary>
 	public static class SdcUtil
 	{
+		#region Local
 		private static Dictionary<Guid, BaseType> Get_Nodes(BaseType n)
 		{ return Get_ITopNode(n)._Nodes; }
 		private static Dictionary<Guid, List<BaseType>> Get_ChildNodes(BaseType n)
@@ -53,7 +54,7 @@ namespace SDC.Schema
 		/// Checking for a parent node in this SortedSet is used to bypass the resorting of child nodes during a tree sorting operation.  
 		/// The SortedList is cleared after the conclusion of the sorting operation, using TreeSort_ClearNodeIds().
 		/// </summary>
-		static readonly SortedSet<int> TreeSort_NodeIds = new();
+		private static readonly SortedSet<int> TreeSort_NodeIds = new();
 
 		/// <summary>
 		/// List-sorting code can test for the presence of a flagged parent node in TreeSort_NodeIds with TreeSort_IsSorted. 
@@ -63,12 +64,11 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="ObjectID"></param>
 		/// <returns></returns>
-		static bool TreeSort_IsSorted(int ObjectID)
+		private static bool TreeSort_IsSorted(int ObjectID)
 		{
 			if (TreeSort_NodeIds.Contains(ObjectID)) return true;
 			return false;
 		}
-
 		/// <summary>
 		/// TreeSort_ClearNodeIds is used when starting a node traversal by reflection using the reflection-based ITreeSibComparer.  
 		/// Calling this method will cause the node comparison method to use ITreeSibComparer to sort sets of sibling nodes, 
@@ -84,156 +84,9 @@ namespace SDC.Schema
 		{
 			TreeSort_NodeIds.Clear();
 		}
-
-		#region ArrayHelpers 
-		/// <summary>
-		/// Determines if the object o parameter is a List&lt;T>
-		/// </summary>
-		/// <param name="o"></param>
-		/// <returns></returns>
-		public static bool IsGenericList(object o)
-		{
-			if (o == null) return false;
-			return o is IList &&
-				o.GetType().IsGenericType &&
-				o.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>));
-		}
-		/// <summary>
-		/// Given an array of type T, this method finds the first null entry and returns its index in the array.
-		/// If it does not find a null entry before reaching the end of the array, 
-		/// it increases the size of the array by copying copying the array into a larger array, 
-		/// with its larger size determined by the supplied growthIncrement (default = 3).
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="array"></param>
-		/// <param name="growthIncrement"></param>
-		/// <returns></returns>
-		public static int GetFirstNullArrayIndex<T>(T[] array, int growthIncrement = 3)
-		{
-			int i = 0;
-			array ??= new T[growthIncrement];
-			foreach (T n in array)
-			{
-				if (n is null) return i;
-				i++;
-			}
-			Array.Resize(ref array, array.Length + growthIncrement);
-			return i;
-		}
-		/// <summary>
-		/// Given an object o, this methood returns its location as the index position in of the IEnumerable.
-		/// </summary>
-		/// <param name="ie">The IEnumerable to search</param>
-		/// <param name="obj">The object to find in the IEnumerable</param>
-		/// <returns></returns>
-		public static int GetIndexFromIEnumerableObject(IEnumerable ie, object obj)
-		{
-			int i = 0;
-			foreach (object o in ie)
-			{
-				if (ReferenceEquals(o, obj)) return i;
-				i++;
-				if (i == int.MaxValue) return -1;
-			}
-			return -1;
-		}
-		/// <summary>
-		/// Given an index i in an IEnumerable ie, return the object o at that position
-		/// </summary>
-		/// <param name="ie">The IEnumerable to search</param>
-		/// <param name="index">The index of the object to return</param>
-		/// <returns>The object in IEnumerable ie, at index i</returns>
-		public static object GetObjectFromIEnumerableIndex(IEnumerable ie, int index)
-		{
-			int i = -1;
-			foreach (object o in ie)
-			{
-				i++;
-				if (index == i) return o;
-			}
-			return null;
-		}
-		//public static int GetListIndex<T>(List<T> list, T node) where T : notnull //TODO: could make this an interface feature of all list children
-		//{
-		//	int i = 0;
-		//	foreach (T n in list.)
-		//	{
-		//		if ((object)n == (object)node) return i;
-		//		i++;
-		//	}
-		//	return -1; //object was not found in list
-		//}
-		public static int IndexOf(IEnumerable? array, object? item)
-		{
-			int i = 0;
-			if (array is null || item is null) return -1;
-			foreach (object n in array)
-			{
-				if (ReferenceEquals(n, item)) return i;
-				i++;
-			}
-			return -1;
-		}
-		public static object? ObjectAtIndex(IEnumerable ie, int index)
-		{
-			//get Dictionary and similar object by index.  
-			//This is not a reliable or effficient algorithm, since there is no defined sort order.  
-			//Need to use an indexed Dictionary/Collection
-			if (index < 0) return null;
-			int i = 0;
-			foreach (var n in ie)
-			{
-				if (i == index) return n;
-				i++;
-			}
-			return null;
-		}
-		public static T IEnumerableCopy<T>(T source, out T copy)
-			where T : IEnumerable<T>, new()
-		{
-			copy = new T();
-
-			foreach (var n in source)
-			{
-				_ = copy.Append(n);
-			}
-			return copy;
-		}
-		public static T[] ArrayAddItemReturnArray<T>(T[] array, T itemToAdd, int growthIncrement = 3)
-		{
-			int i = GetFirstNullArrayIndex(array, growthIncrement);
-			array[i] = itemToAdd;
-			return array;
-
-		}
-		public static T ArrayAddReturnItem<T>(T[] array, T itemToAdd, int growthIncrement = 3)
-		{
-			ArrayAddItemReturnArray(array, itemToAdd, growthIncrement);
-			return itemToAdd;
-
-		}
-		/// <summary>
-		/// Create new array with nulls removed
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="array"></param>
-		/// <returns></returns>
-		public static T[] RemoveArrayNullsNew<T>(T[] array) where T : class
-		{
-			int i = 0;
-			var newarray = new T[array.Length - 1];
-
-			foreach (var n in array)
-			{
-				if (n != null) newarray[i] = n;
-				i++;
-			}
-			return newarray;
-		}
-
 		#endregion
 
-		#region SDC Helpers
+
 
 		#region Delegates
 
@@ -241,8 +94,8 @@ namespace SDC.Schema
 		/// <summary>
 		/// Delegate that points to a single method for creating a new <see cref="BaseType.name"/> value for the designated <paramref name="node"/>.
 		/// </summary>
-		/// <returns>The new name that was used to refresh <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
-		public delegate string CreateName(BaseType node);
+		/// <returns>The new name that used to refresh <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
+		public delegate string CreateName(BaseType node, char initialCharToSkip = '_');
 
 		/// <summary>
 		/// Reserved for future use. <paramref name=""/>
@@ -254,6 +107,9 @@ namespace SDC.Schema
 		public delegate string NodeAnnotation(BaseType node, byte[] icon, string html);
 
 		#endregion
+
+		#region Navigation
+
 
 		/// <summary>
 		/// If <paramref name="refreshTree"/> is true (default),
@@ -276,18 +132,24 @@ namespace SDC.Schema
 		/// The default is true.</param>
 		/// <param name="createNodeName">A delegate to represent a single function that will create a <see cref="BaseType.name"/> for each refreshed node in the ITopNode tree.</param>
 		/// <returns>List&lt;BaseType> containing all of the SDC tree nodes in sorted top-bottom order</returns>
-		/// <param name="orderGap">A multiplier for the @order atttribute. <b><paramref name="orderGap"/></b> controls the distance between sequential @order values. The default value is 10</param>
+		/// <param name="orderStart">The starting number for the @order attribute</param>
+		/// <param name="orderGap">A multiplier for the @order atttribute. <br/>
+		/// <b><paramref name="orderGap"/></b> controls the distance between sequential @order values.<br/>
+		/// The default value is 10.<br/>
+		/// A value of 0 will supress @order from being serialized.</param>		
 		public static List<BaseType> ReflectRefreshTree(ITopNode topNode
-			, out string? treeText
-			, bool print = false
-			, bool refreshTree = true
-			, CreateName? createNodeName = null
-			, int orderGap = 10)
+		, out string? treeText
+		, bool print = false
+		, bool refreshTree = true
+		, CreateName? createNodeName = null
+		, int orderStart = 0
+		, int orderGap = 10)
+
 		{
 			TreeSort_ClearNodeIds();
 			int counter = 0;
 			int indent = 0;
-			int order = 0;
+			int order = orderStart;
 			List<BaseType> SortedNodes = new();  //this will be the returned object from this method
 
 			var sbTreeText = new StringBuilder();
@@ -296,41 +158,49 @@ namespace SDC.Schema
 			//currentTopNode will track the current subtree ITopNode 
 			var current_ITopNode = (_ITopNode)topNode;
 			BaseType btNode = (BaseType)topNode;
-			btNode.order = 0;
 
-			{
-				if (current_ITopNode is DemogFormDesignType dfd)  //DemogForm is also a FormDesignType, so it must come first 
-				{
-					dfd.ElementName = "DemogFormDesign";
-					dfd.name = Regex.Replace(dfd.ID, @"\W+", ""); //replaces any characters that are not numbers, letters or "_"
-				}
-				else if (current_ITopNode is FormDesignType fd)
-				{
-					fd.ElementName = "FormDesign";
-					fd.name = Regex.Replace(fd.ID, @"\W+", "");
-				}
-
-				else if (current_ITopNode is DataElementType de)
-				{
-					de.ElementName = "DataElement";
-					de.name = Regex.Replace(de.ID, @"\W+", "");
-				}
-				else if (current_ITopNode is RetrieveFormPackageType rfp)
-				{
-					rfp.ElementName = "RetrieveFormPackage";
-					if (!rfp.instanceID.IsNullOrWhitespace()) rfp.name = Regex.Replace(rfp.instanceID, @"\W+", "");
-					else rfp.name = Regex.Replace(rfp.packageID, @"\W+", "");
-				}
-				else if (current_ITopNode is MappingType mp)
-				{
-					mp.ElementName = "MappingType";
-					if (!mp.templateID.IsNullOrWhitespace()) mp.name = Regex.Replace(mp.templateID, @"\W+", "");
-					else mp.name = Regex.Replace(mp.templateID, @"\W+", "");
-				}
-			}
-			//Set _currentTopNode; If other ITopNode nodes are subsumed in this tree, current_ITopNode will be adjusted to the subsumed node(s)
 			if (refreshTree)
 			{
+				if (orderGap == 0)
+				{
+					btNode.order = default;
+					btNode._shouldSerializeorder = false;
+				}
+				else btNode.order = 0;
+				{//Braces here only for grouping, not for scope
+					if (current_ITopNode is DemogFormDesignType dfd)  //DemogForm is also a FormDesignType, so it must come first 
+					{
+						dfd.ElementName = "DemogFormDesign";
+						dfd.name = Regex.Replace(dfd.ID, @"\W+", ""); //replaces any characters that are not numbers, letters or "_"
+					}
+					else if (current_ITopNode is FormDesignType fd)
+					{
+						fd.ElementName = "FormDesign";
+						fd.name = Regex.Replace(fd.ID, @"\W+", "");
+					}
+
+					else if (current_ITopNode is DataElementType de)
+					{
+						de.ElementName = "DataElement";
+						de.name = Regex.Replace(de.ID, @"\W+", "");
+					}
+					else if (current_ITopNode is RetrieveFormPackageType rfp)
+					{
+						rfp.ElementName = "RetrieveFormPackage";
+						if (!rfp.instanceID.IsNullOrWhitespace()) rfp.name = Regex.Replace(rfp.instanceID, @"\W+", "");
+						else rfp.name = Regex.Replace(rfp.packageID, @"\W+", "");
+					}
+					else if (current_ITopNode is MappingType mp)
+					{
+						mp.ElementName = "MappingType";
+						if (!mp.templateID.IsNullOrWhitespace()) mp.name = Regex.Replace(mp.templateID, @"\W+", "");
+						else mp.name = Regex.Replace(mp.templateID, @"\W+", "");
+					}
+				}
+			//}
+			//Set _currentTopNode; If other ITopNode nodes are subsumed in this tree, current_ITopNode will be adjusted to the subsumed node(s)
+			//if (refreshTree)
+			//{
 				Init_ITopNode(current_ITopNode);
 				//current_ITopNode.ClearDictionaries();
 				SdcUtil.AssignGuid_sGuid_BaseName(btNode);
@@ -419,6 +289,7 @@ namespace SDC.Schema
 
 					if (btProp is _ITopNode itn) //we have a subsumed ITopNode node
 						current_ITopNode = Init_ITopNode(itn);
+
 					SdcUtil.AssignGuid_sGuid_BaseName(btProp);
 
 					//Refill the node dictionaries with the current node
@@ -441,7 +312,13 @@ namespace SDC.Schema
 					if (elementName.IsNullOrWhitespace()) Debugger.Break();
 					btProp.ElementName = elementName;
 					btProp.ElementOrder = elementOrder;
-					btProp.order = ++order * orderGap;
+
+					if (orderGap == 0)
+					{
+						btProp.order = default;
+						btProp._shouldSerializeorder = false;
+					}
+					else btProp.order = ++order * orderGap;
 
 					if (btProp is IdentifiedExtensionType iet)
 					{
@@ -1460,6 +1337,13 @@ namespace SDC.Schema
 		public static object? GetTypeDefaultValue(Type type) =>
 			type.IsValueType ? Activator.CreateInstance(type) : null;
 
+		/// <summary>
+		/// Returns true if child nodes are present.  <br/>
+		/// The <b><paramref name="kids"/></b> out parameter will be populated if child nodes are present, and will be null if no nodes are found.
+		/// </summary>
+		/// <param name="n"></param>
+		/// <param name="kids"></param>
+		/// <returns></returns>
 		public static bool TryGetChildElements(BaseType n, out ReadOnlyCollection<BaseType>? kids)
 		{
 			var topNode = Get_ITopNode(n);
@@ -2006,6 +1890,155 @@ namespace SDC.Schema
 		}
 
 		#endregion
+		#region ArrayHelpers 
+		/// <summary>
+		/// Determines if the object o parameter is a List&lt;T>
+		/// </summary>
+		/// <param name="o"></param>
+		/// <returns></returns>
+		public static bool IsGenericList(object o)
+		{
+			if (o == null) return false;
+			return o is IList &&
+				o.GetType().IsGenericType &&
+				o.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>));
+		}
+		/// <summary>
+		/// Given an array of type T, this method finds the first null entry and returns its index in the array.
+		/// If it does not find a null entry before reaching the end of the array, 
+		/// it increases the size of the array by copying copying the array into a larger array, 
+		/// with its larger size determined by the supplied growthIncrement (default = 3).
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="array"></param>
+		/// <param name="growthIncrement"></param>
+		/// <returns></returns>
+		public static int GetFirstNullArrayIndex<T>(T[] array, int growthIncrement = 3)
+		{
+			int i = 0;
+			array ??= new T[growthIncrement];
+			foreach (T n in array)
+			{
+				if (n is null) return i;
+				i++;
+			}
+			Array.Resize(ref array, array.Length + growthIncrement);
+			return i;
+		}
+		/// <summary>
+		/// Given an object o, this methood returns its location as the index position in of the IEnumerable.
+		/// </summary>
+		/// <param name="ie">The IEnumerable to search</param>
+		/// <param name="obj">The object to find in the IEnumerable</param>
+		/// <returns></returns>
+		public static int GetIndexFromIEnumerableObject(IEnumerable ie, object obj)
+		{
+			int i = 0;
+			foreach (object o in ie)
+			{
+				if (ReferenceEquals(o, obj)) return i;
+				i++;
+				if (i == int.MaxValue) return -1;
+			}
+			return -1;
+		}
+		/// <summary>
+		/// Given an index i in an IEnumerable ie, return the object o at that position
+		/// </summary>
+		/// <param name="ie">The IEnumerable to search</param>
+		/// <param name="index">The index of the object to return</param>
+		/// <returns>The object in IEnumerable ie, at index i</returns>
+		public static object GetObjectFromIEnumerableIndex(IEnumerable ie, int index)
+		{
+			int i = -1;
+			foreach (object o in ie)
+			{
+				i++;
+				if (index == i) return o;
+			}
+			return null;
+		}
+		//public static int GetListIndex<T>(List<T> list, T node) where T : notnull //TODO: could make this an interface feature of all list children
+		//{
+		//	int i = 0;
+		//	foreach (T n in list.)
+		//	{
+		//		if ((object)n == (object)node) return i;
+		//		i++;
+		//	}
+		//	return -1; //object was not found in list
+		//}
+		public static int IndexOf(IEnumerable? array, object? item)
+		{
+			int i = 0;
+			if (array is null || item is null) return -1;
+			foreach (object n in array)
+			{
+				if (ReferenceEquals(n, item)) return i;
+				i++;
+			}
+			return -1;
+		}
+		public static object? ObjectAtIndex(IEnumerable ie, int index)
+		{
+			//get Dictionary and similar object by index.  
+			//This is not a reliable or effficient algorithm, since there is no defined sort order.  
+			//Need to use an indexed Dictionary/Collection
+			if (index < 0) return null;
+			int i = 0;
+			foreach (var n in ie)
+			{
+				if (i == index) return n;
+				i++;
+			}
+			return null;
+		}
+		public static T IEnumerableCopy<T>(T source, out T copy)
+			where T : IEnumerable<T>, new()
+		{
+			copy = new T();
+
+			foreach (var n in source)
+			{
+				_ = copy.Append(n);
+			}
+			return copy;
+		}
+		public static T[] ArrayAddItemReturnArray<T>(T[] array, T itemToAdd, int growthIncrement = 3)
+		{
+			int i = GetFirstNullArrayIndex(array, growthIncrement);
+			array[i] = itemToAdd;
+			return array;
+
+		}
+		public static T ArrayAddReturnItem<T>(T[] array, T itemToAdd, int growthIncrement = 3)
+		{
+			ArrayAddItemReturnArray(array, itemToAdd, growthIncrement);
+			return itemToAdd;
+
+		}
+		/// <summary>
+		/// Create new array with nulls removed
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="array"></param>
+		/// <returns></returns>
+		public static T[] RemoveArrayNullsNew<T>(T[] array) where T : class
+		{
+			int i = 0;
+			var newarray = new T[array.Length - 1];
+
+			foreach (var n in array)
+			{
+				if (n != null) newarray[i] = n;
+				i++;
+			}
+			return newarray;
+		}
+
+		#endregion
+
+		#region Helpers
 		#region TE Helpers
 		public static ItemTypeEnum GetItemType(IdentifiedExtensionType node)
 		{
@@ -2032,7 +2065,6 @@ namespace SDC.Schema
 			return ItemTypeEnum.None;
 		}
 		#endregion
-		#region Helpers
 
 		/// <summary>
 		/// This is a method for creating a new <see cref="BaseType.name"/> value for the designated <paramref name="node"/>.<br/>
@@ -2045,14 +2077,14 @@ namespace SDC.Schema
 		/// If the input node name begins with "_", the method will bypass new name creation and just return teh existting node.name with no modifications
 		/// </summary>
 		/// <returns>The new name that was used to refresh <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
-		public static string CreateCAPname(this BaseType node)
+		public static string CreateCAPname(this BaseType node, char initialCharToSkip = '_')
 		{
-			string namePrefix;
+			string namePrefix = "";
 			string nameBody = "";
-			string nameSuffix;
+			string nameSuffix = "";
 
-			if (node.name?.Length > 0 && node.name.AsSpan(0, 1) == "_") return node.name;  //Return the existing name
-																						   //+namePrefix
+			if (node.name?.Length > 0 && node.name.AsSpan(0, 1) == initialCharToSkip.ToString()) return node.name;  //Return the existing name, if it starts with "_"
+			//+namePrefix
 			{
 				//+Question Prefix
 				if (node is QuestionItemType Q)
@@ -2085,18 +2117,18 @@ namespace SDC.Schema
 							namePrefix = "QLM";
 							break;
 						case QuestionEnum.QuestionGroup:
-							throw new NotImplementedException("Could not determine Question Subtype (QuestionEnum.QuestionGroup)");
+							throw new InvalidOperationException("Could not determine Question Subtype (QuestionEnum.QuestionGroup)");
 						default:
-							throw new NotImplementedException("Could not determine Question Subtype");
+							throw new InvalidOperationException("Could not determine Question Subtype");
 					}
 				}
 				else //+Property Prefix
-				if (node is PropertyType pt && pt.propName is not null)
-					namePrefix = pt.ElementPrefix ?? "prop" + "_" + pt.propName.AsSpan(0, 6).ToString() + "_";
+				if (node is PropertyType pt )
+						namePrefix = $"{pt.ElementPrefix}_{pt.propName.AsSpan(0, Math.Min(8, pt.propName.Length)).ToString()}";
 				else //+Other Prefix
 				{
 					namePrefix = node.ElementPrefix ??
-						node.ElementName.TakeWhile(c => Char.IsUpper(c)).ToString()?.ToLower() ?? ""; //backup method for ElementPrefix: use uppercase letters in ElementName
+						$"{node.ElementName.TakeWhile(c => Char.IsUpper(c)).ToString()?.ToLower()}"; //backup method for ElementPrefix: use uppercase letters in ElementName
 				}
 			}
 
@@ -2106,13 +2138,12 @@ namespace SDC.Schema
 				//Use special names for headr/body/footer nodes
 				//use an sGuid if the Ckey/ID approach does not work.
 				const string nameSpace = ".100004300";
-				string tempsGuid6;
 
 				if (node is IdentifiedExtensionType iet)
 				{
 					if (iet.ID.Contains(nameSpace)) //&& iet.ID.Length > 10)
-						nameBody = $"_{Regex.Replace(iet.ID.Replace(nameSpace, "") ?? "", @"\W+", "")}"; //remove namespace and special characters
-					else nameBody = $"_{node.BaseName ?? CreateBaseNameFromsGuid(node.sGuid)}";
+						nameBody = Regex.Replace(iet.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
+					else nameBody = node.BaseName ?? CreateBaseNameFromsGuid(node.sGuid);
 
 					if (iet.name?.ToLower() == "body") nameBody = $"_body.{nameBody}";
 					else if (iet.name?.ToLower() == "footer") nameBody = $"_footer{nameBody}";
@@ -2122,28 +2153,20 @@ namespace SDC.Schema
 				{
 					IdentifiedExtensionType? ancestorIet = node.ParentIETypeNode;
 					if (ancestorIet is not null)
-						if (ancestorIet?.ID?.Contains(nameSpace) ?? false)
-							nameBody = $"_{Regex.Replace(node.ParentIETypeNode?.ID.Replace(nameSpace, "") ?? "", @"\W+", "")}"; //remove namespace and special characters
-						else nameBody = $"_{node.BaseName ?? CreateBaseNameFromsGuid(node.sGuid)}";
+					{
+						if (ancestorIet.ID?.Contains(nameSpace) ?? false)
+							nameBody = Regex.Replace(node.ParentIETypeNode?.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
+						else if(ancestorIet.BaseName is not null) nameBody = ancestorIet.BaseName ?? CreateBaseNameFromsGuid(node.sGuid);
+						else nameBody = node.BaseName ?? CreateBaseNameFromsGuid(node.sGuid);
+					}
+					else //ancestorIet is null
+						nameBody = node.BaseName ?? CreateBaseNameFromsGuid(node.sGuid);
 				}
 			}
-			//+nameSuffix
-			{
-				if (node is IdentifiedExtensionType)
-					nameSuffix = "";
-				else
-				{
-					try
-					{ nameSuffix = "_" + node.SubIETcounter.ToString(); }
-					catch
-					{ nameSuffix = ""; }
-				}
-			}
-			//+Append "_" to namePrefix, if needed
-			if (namePrefix.Length > 0 &&
-			(nameBody.Length > 0 || nameSuffix.Length > 0)) namePrefix += "_";
+			
+			nameSuffix = node.SubIETcounter.ToString(); 
 
-			return namePrefix + nameBody + nameSuffix;
+			return $"{namePrefix}_{nameBody}_{nameSuffix}";
 		}
 
 		//TODO: names prefixed with "_" will be preserved.
@@ -2238,14 +2261,14 @@ namespace SDC.Schema
 		}
 		//
 		/// <summary>
-		/// Assigns a consistent unique name to an SDC node. The name is formatted like:<br/>
-		/// ElementPrefix_BaseNameOfParentIETNode_SubIETcounter
+		/// Create a consistent unique name for the passed SDC node. The name is formatted like:<code><br/>
+		///	ElementPrefix_BaseNameOfParentIETNode_SubIETcounter</code><br/>
 		/// Requires that ElementPrefix and either sGuid or BaseName have values.  <br/>
 		/// To work properly, SubIETcounter requires that ancestor nodes are registered in their TopNode Dictionaries.
 		/// </summary>
-		/// <param name="bt">The node to which the name will be assigned.</param>
+		/// <param name="bt">The node for which the name will be created.</param>
 		/// <returns>A consistent value for the @name attribute.</returns>
-		internal static string AssignSimpleName(BaseType bt)
+		public static string CreateSimpleName(BaseType bt)
 		{
 			string baseName = "";
 			if (bt is not IdentifiedExtensionType)
@@ -2266,14 +2289,14 @@ namespace SDC.Schema
 					bt.BaseName = baseName;
 				}
 				else
-					throw new InvalidOperationException("supplied node did not have sGuid assigned."); 
-
-			bt.name = new StringBuilder(bt.ElementPrefix)
+					throw new InvalidOperationException("supplied node did not have sGuid assigned.");
+			
+			string name = new StringBuilder(bt.ElementPrefix)
 						.Append('_')
 						.Append(baseName)
 						.Append('_')
 						.Append(bt.SubIETcounter).ToString();
-			return bt.name;
+			return name;
 		}
 		/// <summary>
 		/// Assign ObjectGUID and sGuid, and return a BaseName, based on an existing sGuid, if present. from a new Guid, without any external sGuid or Guid input.
@@ -2341,7 +2364,7 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="Xml">The input XML to be formatted</param>
 		/// <returns></returns>
-		public static string XmlFormat(string Xml)
+		public static string FormatXml(string Xml)
 		{
 			return System.Xml.Linq.XDocument.Parse(Xml).ToString();  //prettify the minified doc XML 
 		}
@@ -2353,7 +2376,7 @@ namespace SDC.Schema
 		/// <param name="orderMultiplier">if an order interval greater than 1 is desired, enter the interval</param>
 		/// <returns>XMl with populated @order attributes</returns>
 		/// <exception cref="InvalidOperationException"></exception>
-		public static string XmlReorder(string Xml, int orderMultiplier = 1)
+		public static string ReorderXml(string Xml, int orderMultiplier = 1)
 		{
 			var doc = new XmlDocument();
 			doc.LoadXml(Xml);
@@ -2384,10 +2407,10 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="n">The node for which we need to retrieve _ITopNode dictionaries</param>
 		/// <returns>A reference to an _ITopNode object</returns>
-		internal static _ITopNode Get_ITopNode(BaseType n)
+		internal static _ITopNode? Get_ITopNode(BaseType n)
 		{
 			if (n is _ITopNode itn) return itn;
-			return (_ITopNode)n.TopNode;
+			return n.TopNode as _ITopNode;
 		}
 
 		#endregion

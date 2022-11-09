@@ -269,13 +269,26 @@ namespace SDC.Schema.Extensions
 			}
 			return null;
 		}
-
-		internal static string AssignSimpleName(this BaseType bt)
+		/// <summary>
+		/// Assigns a name to the SDC node.<br/>
+		/// <inheritdoc cref="SdcUtil.CreateSimpleName(BaseType)"/>
+		/// </summary>
+		/// <param name="bt"></param>
+		/// <returns>The name assigned to the node</returns>
+		public static string AssignSimpleName(this BaseType bt)
 		{
-			return SdcUtil.AssignSimpleName(bt);
+			bt.name = SdcUtil.CreateSimpleName(bt);
+			return bt.name;
 		}
 
-
+		/// <summary>
+		/// <inheritdoc cref="SdcUtil.TryGetChildElements(BaseType, out ReadOnlyCollection{BaseType}?)"/>
+		/// </summary>
+		/// <param name="n"></param>
+		/// <param name="kids"></param>
+		/// <returns></returns>
+		public static bool TryGetChildElements(this BaseType n, out ReadOnlyCollection<BaseType>? kids)
+		=> SdcUtil.TryGetChildElements(n, out kids);
 
 		/// <summary>
 		/// Not implemented.

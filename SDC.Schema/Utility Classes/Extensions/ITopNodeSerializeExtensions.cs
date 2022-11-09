@@ -15,19 +15,20 @@ namespace SDC.Schema.Extensions
 		/// <typeparam name="T">The node type</typeparam>
 		/// <param name="node">The node to serialize</param>
 		/// <param name="refreshSdc">Refresh basic metadata like order, name, sGuid, ElementName, and refill ITopNode dictionaries.<br/>
-		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int)"/> </param>
+		/// see: <seealso cref="SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int, int)"/> </param>
 		/// <param name="createNameDelegate">A delegate that returns a string value for the creating a node's @name value.<br/>
 		/// The default delegate can process Ckey-formattted (decimal) IDs on <see cref="IdentifiedExtensionType"/> nodes.</param>
 		/// <returns></returns>
 		public static string GetXml<T>(this T node, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null) where T: ITopNode
 		=> TopNodeSerializer<T>.GetXml(node, refreshSdc, createNameDelegate);
+
 		/// <summary>
 		/// Retrieve SDC JSON from the current node
 		/// </summary>
 		/// <typeparam name="T">The node type</typeparam>
 		/// <param name="node">The node to serialize</param>
 		/// <param name="refreshSdc">Refresh basic metadata like order, name, sGuid, ElementName, and refill ITopNode dictionaries.<br/>
-		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int)"/> </param>
+		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int, int)"/> </param>
 		/// <param name="createNameDelegate">A delegate that returns a string value for the creating a node's @name value.<br/>
 		/// The default delegate can process Ckey-formattted (decimal) IDs on <see cref="IdentifiedExtensionType"/> nodes.</param>
 		/// <returns></returns>
@@ -39,7 +40,7 @@ namespace SDC.Schema.Extensions
 		/// <typeparam name="T">The node type</typeparam>
 		/// <param name="node">The node to serialize</param>
 		/// <param name="refreshSdc">Refresh basic metadata like order, name, sGuid, ElementName, and refill ITopNode dictionaries.<br/>
-		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int)"/> </param>
+		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int, int)"/> </param>
 		/// <param name="createNameDelegate">A delegate that returns a string value for the creating a node's @name value.<br/>
 		/// The default delegate can process Ckey-formattted (decimal) IDs on <see cref="IdentifiedExtensionType"/> nodes.</param>
 		/// <returns></returns>
@@ -51,7 +52,7 @@ namespace SDC.Schema.Extensions
 		/// <typeparam name="T">The node type</typeparam>
 		/// <param name="node">The node to serialize</param>
 		/// <param name="refreshSdc">Refresh basic metadata like order, name, sGuid, ElementName, and refill ITopNode dictionaries.<br/>
-		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int)"/> </param>
+		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int, int)"/> </param>
 		/// <param name="createNameDelegate">A delegate that returns a string value for the creating a node's @name value.<br/>
 		/// The default delegate can process Ckey-formattted (decimal) IDs on <see cref="IdentifiedExtensionType"/> nodes.</param>
 		/// <returns></returns>
@@ -63,7 +64,7 @@ namespace SDC.Schema.Extensions
 		/// <param name="node">The node to serialize</param>
 		/// <param name="path">Path to save the file</param>
 		/// <param name="refreshSdc">Refresh basic metadata like order, name, sGuid, ElementName, and refill ITopNode dictionaries.<br/>
-		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int)"/> </param>
+		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int, int)"/> </param>
 		/// <param name="createNameDelegate">A delegate that returns a string value for the creating a node's @name value.<br/>
 		/// The default delegate can process Ckey-formatted (decimal) IDs on <see cref="IdentifiedExtensionType"/> nodes.</param>
 		public static void SaveXmlToFile<T>(this T node, string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null) where T : ITopNode
@@ -77,7 +78,7 @@ namespace SDC.Schema.Extensions
 		/// <param name="node">The node to serialize</param>
 		/// <param name="path">Path to save the file</param>
 		/// <param name="refreshSdc">Refresh basic metadata like order, name, sGuid, ElementName, and refill ITopNode dictionaries.<br/>
-		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int)"/> </param>
+		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int, int)"/> </param>
 		/// <param name="createNameDelegate">A delegate that returns a string value for the creating a node's @name value.<br/>
 		/// The default delegate can process Ckey-formatted (decimal) IDs on <see cref="IdentifiedExtensionType"/> nodes.</param>
 		public static void SaveJsonToFile<T>(this T node, string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null) where T : ITopNode
@@ -91,7 +92,7 @@ namespace SDC.Schema.Extensions
 		/// <param name="node">The node to serialize</param>
 		/// <param name="path">Path to save the file</param>
 		/// <param name="refreshSdc">Refresh basic metadata like order, name, sGuid, ElementName, and refill ITopNode dictionaries.<br/>
-		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int)"/> </param>
+		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int, int)"/> </param>
 		/// <param name="createNameDelegate">A delegate that returns a string value for the creating a node's @name value.<br/>
 		/// The default delegate can process Ckey-formatted (decimal) IDs on <see cref="IdentifiedExtensionType"/> nodes.</param>
 		public static void SaveBsonToFile<T>(this T node, string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null) where T : ITopNode
@@ -105,7 +106,7 @@ namespace SDC.Schema.Extensions
 		/// <param name="node">The node to serialize</param>
 		/// <param name="path">Path to save the file</param>
 		/// <param name="refreshSdc">Refresh basic metadata like order, name, sGuid, ElementName, and refill ITopNode dictionaries.<br/>
-		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int)"/> </param>
+		/// see: <seealso cref="SDC.Schema.SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int, int)"/> </param>
 		/// <param name="createNameDelegate">A delegate that returns a string value for the creating a node's @name value.<br/>
 		/// The default delegate can process Ckey-formatted (decimal) IDs on <see cref="IdentifiedExtensionType"/> nodes.</param>
 		public static void SaveMsgPackToFile<T>(this T node, string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null) where T : ITopNode

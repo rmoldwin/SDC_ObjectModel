@@ -51,7 +51,7 @@ namespace SDC.Schema
         [JsonIgnore]
         public int ObjectID { get; }
 		/// <summary>
-		/// A unique identifier added to each SDC node as it is constructed in teh object tree. <br/>
+		/// A unique identifier added to each SDC node as it is constructed in the object tree. <br/>
         /// If sGuid (a short GUID) is used, it is derived automatically from the ObjectGUID
 		/// </summary>
 		[XmlIgnore]

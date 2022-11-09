@@ -1304,7 +1304,7 @@ namespace SDC.Schema
 		// TODO: Add ElementIndex to IBaseType
 		/// <summary>
 		/// For the SDC property's XML element, if the property is found inside a List object.
-		/// Return -1 if this object is not found inside a List object.
+		/// Return -1 if this object is not found inside a List object, or if TopNode is null.
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
@@ -1314,6 +1314,7 @@ namespace SDC.Schema
 			{
 				var par = this.ParentNode;
 				if (par is null) return -1;
+				if (TopNode is null) return -1;
 				var topNode = (_ITopNode)TopNode;
 				topNode._ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? kids);
 				if (kids is null || kids.Count == 0) return -1;
@@ -1450,7 +1451,7 @@ namespace SDC.Schema
 		/// Reset TopNodeTemp to null, so that nodes newly added to a top node<br/>
 		/// use the correct node for the top (root) of the object tree
 		/// </summary>
-		public static void ResetRootNode()
+		public static void ResetRootNode()  //Rename to ResetStatic
 		{
 			LastTopNode = null;
 			LastObjectID = 0;

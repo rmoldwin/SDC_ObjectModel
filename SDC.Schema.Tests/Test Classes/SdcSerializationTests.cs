@@ -188,8 +188,8 @@ namespace SDCObjectModelTests.TestClasses
             DisplayedType DI1 = (DisplayedType)FD.Nodes.Values.Where(n => n.name == DI.ID)?.First();
             DisplayedType DI2 = (DisplayedType)Q.ChildItemsNode.Items[0];
             QuestionItemType Q1 = (QuestionItemType)DI2.ParentNode.ParentNode;
-            myXML = SdcUtil.XmlReorder(FD.GetXml());
-            myXML = SdcUtil.XmlFormat(myXML);
+            myXML = SdcUtil.ReorderXml(FD.GetXml());
+            myXML = SdcUtil.FormatXml(myXML);
 
             //var S1 = Q.AddOnEnter().Actions.AddActInject().Item = new SectionItemType(   //Need to add AddActionsNode to numerous classes via IHasActionsNode
             //    parentNode: Q,
