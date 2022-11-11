@@ -22,7 +22,7 @@ namespace SDC.Schema.Extensions
 			var count = dtParent.Link.Count;
 			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
 			dtParent.Link.Insert(insertPosition, link);
-			link.order = link.ObjectID;
+			//link.order = link.ObjectID;
 
 			var rtf = new RichTextType(link);
 			link.LinkText = rtf;

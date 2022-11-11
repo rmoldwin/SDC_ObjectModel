@@ -27,7 +27,7 @@ namespace SDCObjectModelTests
         public static string DataElementXml { get; set; }
         public static string DemogFormDesignXml { get; set; }
         public static string RetrieveFormXml { get; set; }
-        public static string MessageXml { get; set; }
+        public static string MappingXml { get; set; }
         public static string RetrieveFormComplexXml { get; set; }
         public static string IdrXml { get; set; }
         public static string FormDesignWithHtmlXml { get; set; }

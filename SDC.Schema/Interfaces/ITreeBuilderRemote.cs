@@ -37,7 +37,7 @@ namespace SDC.Schema
         void RemoveLink(string parentID, int removePosition, out string result, out bool success);
         void RemoveBlob(string parentID, int removePosition, out string result, out bool success);
         //allow move to new parents?  Moving allowed from ebt to ebt
-        void MoveAllowedEBT(string movingItemObjectID, string targetItemObjectID, int insertPosition);
+        void MoveAllowedEBT(string movingItemsGuid, string targetItemsGuid, int insertPosition);
         #endregion
 
         #region FormDesign Main Items

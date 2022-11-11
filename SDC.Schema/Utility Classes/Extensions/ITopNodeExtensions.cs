@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Diagnostics;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml;
@@ -69,48 +70,6 @@ namespace SDC.Schema.Extensions
 		}
 
 		/// <summary>
-		/// Assign the ElementName (the name of the serialized XML element) property for each node, <br/>
-		/// by comparison with the source XML document that was used to hydrate the SDC object tree
-		/// </summary>
-		/// <param name="itn"></param>
-		/// <param name="sdcXml"></param>
-		private static void X_AssignElementNamesFromXmlDoc(this ITopNode itn, string sdcXml)
-		{
-			//read as XMLDocument to walk tree
-			var x = new XmlDocument();
-			x.LoadXml(sdcXml);
-			XmlNodeList? xmlNodeList = x.SelectNodes("//*");
-			int iXmlNode = 0;
-			XmlNode? xmlNode;
-
-			foreach (BaseType bt in _Nodes(itn).Values)
-			{   //As we iterate through the nodes, we will need code to skip over any non-element node, 
-				//and still stay in sync with FD (using iFD). For now, we assume that every nodeList node is an element.
-				//https://docs.microsoft.com/en-us/dotnet/api/system.xml.xmlnodetype?view=netframework-4.8
-				//https://docs.microsoft.com/en-us/dotnet/standard/data/xml/types-of-xml-nodes
-				xmlNode = xmlNodeList?[iXmlNode];
-				while (xmlNode?.NodeType.ToString() != "Element")
-				{
-					iXmlNode++;
-					xmlNode = xmlNodeList?[iXmlNode];
-				}
-
-				var e = (XmlElement)xmlNode;
-				bt.ElementName = e.LocalName;
-				iXmlNode++;
-			}
-		}
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="itn"></param>
-		/// <returns></returns>
-		public static List<BaseType> GetSortedNodes(this ITopNode itn)
-		{
-			return SdcUtil.GetSortedTreeList(itn);
-		}
-
-		/// <summary>
 		/// Returns a sorted <see cref="ObservableCollection&lt;BaseType>" /> of type <see cref="BaseType"/> containing <br/>
 		/// all nodes with a root node at the current ITopNode node.
 		/// </summary>
@@ -126,9 +85,9 @@ namespace SDC.Schema.Extensions
 		/// <param name="id">The SDC @ID attribute value for which we are attempting to retrieve the node</param>
 		/// <param name="iet">An out parameter containing the retrieved <see cref="IdentifiedExtensionType"/> node, if the retrieval was successful</param>
 		/// <returns>true if successful; false if not the <see cref="IdentifiedExtensionType"/> node was not found by @ID</returns>
-		public static bool TryGetIetNodeByID(this ITopNode itn, string id, out IdentifiedExtensionType? iet)
+		public static bool TryGetIETnodeByID(this ITopNode itn, string id, out IdentifiedExtensionType? iet)
 		{
-			iet = topNode(itn).GetIetNodeByID(id);
+			iet = topNode(itn).GetIETnodeByID(id);
 			if (iet is null) return false;
 			return true;
 		}
@@ -162,7 +121,7 @@ namespace SDC.Schema.Extensions
 			if (node is null) return false;
 			return true;
 		}
-		public static IdentifiedExtensionType? GetIetNodeByID(this ITopNode itn, string id)=>
+		public static IdentifiedExtensionType? GetIETnodeByID(this ITopNode itn, string id)=>
 			topNode(itn)._IETnodes
 				.Where(n => n.ID.Trim() == id.Trim()).FirstOrDefault();
 		public static BaseType? GetNodeByName(this ITopNode itn, string name)=>
@@ -181,6 +140,48 @@ namespace SDC.Schema.Extensions
 			topNode(itn)?.GetSortedNodes()[index];
 		public static BaseType? GetNodeByObjectID(this ITopNode itn, int ObjectID)=>	
 			topNode(itn)?._Nodes.Values.Where(n => n.ObjectID == ObjectID).FirstOrDefault();
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="itn"></param>
+		/// <returns></returns>
+		public static List<BaseType> GetSortedNodes(this ITopNode itn)
+		{
+			return SdcUtil.GetSortedTreeList(itn);
+		}
+
+		/// <summary>
+		/// Assign the ElementName (the name of the serialized XML element) property for each node, <br/>
+		/// by comparison with the source XML document that was used to hydrate the SDC object tree
+		/// </summary>
+		/// <param name="itn"></param>
+		/// <param name="sdcXml"></param>
+		private static void X_AssignElementNamesFromXmlDoc(this ITopNode itn, string sdcXml)
+		{
+			//read as XMLDocument to walk tree
+			var x = new XmlDocument();
+			x.LoadXml(sdcXml);
+			XmlNodeList? xmlNodeList = x.SelectNodes("//*");
+			int iXmlNode = 0;
+			XmlNode? xmlNode;
+
+			foreach (BaseType bt in _Nodes(itn).Values)
+			{   //As we iterate through the nodes, we will need code to skip over any non-element node, 
+				//and still stay in sync with FD (using iFD). For now, we assume that every nodeList node is an element.
+				//https://docs.microsoft.com/en-us/dotnet/api/system.xml.xmlnodetype?view=netframework-4.8
+				//https://docs.microsoft.com/en-us/dotnet/standard/data/xml/types-of-xml-nodes
+				xmlNode = xmlNodeList?[iXmlNode];
+				while (xmlNode?.NodeType.ToString() != "Element")
+				{
+					iXmlNode++;
+					xmlNode = xmlNodeList?[iXmlNode];
+				}
+
+				var e = (XmlElement)xmlNode;
+				bt.ElementName = e.LocalName;
+				iXmlNode++;
+			}
+		}
 
 		#region Utilities        
 		/// <summary>
@@ -206,7 +207,7 @@ namespace SDC.Schema.Extensions
 
 			char gt = ">"[0];
 			//  ------------------------------------------------------------------------------------
-			foreach (IdentifiedExtensionType n in itn.IETNodes)
+			foreach (IdentifiedExtensionType n in itn.IETnodes)
 			{
 				var en = n.ElementName;
 				int enLen = 36 - en.Length;
@@ -214,7 +215,7 @@ namespace SDC.Schema.Extensions
 
 				if(doLog) sb.Append ($"<<<<<<<<<<<<<<<<<<<<<<<  IET Node: {en}   {"".PadRight(pad, gt)}\r\n");
 				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  IET Node: {en}   {"".PadRight(pad, gt)}");
-				var sublist = n.GetSortedSubtreeIETList();
+				var sublist = n.GetSubtreeIETList();
 
 				Dictionary<string, List<AttributeInfo>> dlai = new();
 
@@ -248,6 +249,76 @@ namespace SDC.Schema.Extensions
 			}
 		}
 
+		private static ITopNode InitParentNodesFromXml(this ITopNode itn, string sdcXml)
+		{
+			//read as XMLDocument to walk tree
+			var x = new System.Xml.XmlDocument();
+			x.LoadXml(sdcXml);
+			XmlNodeList? xmlNodeList = x.SelectNodes("//*");
+			if (xmlNodeList is null) return null;
+			var dX_obj = new Dictionary<int, Guid>(); //the index is iXmlNode, value is FD ObjectGUID
+			int iXmlNode = 0;
+			XmlNode? xmlNode;
+
+			foreach (BaseType bt in itn.Nodes.Values)
+			{   //As we interate through the nodes, we will need code to skip over any non-element node, 
+				//and still stay in sync with FD (using iFD). For now, we assume that every nodeList node is an element.
+				//https://docs.microsoft.com/en-us/dotnet/api/system.xml.xmlnodetype?view=netframework-4.8
+				//https://docs.microsoft.com/en-us/dotnet/standard/data/xml/types-of-xml-nodes
+				xmlNode = xmlNodeList[iXmlNode];
+				while (xmlNode?.NodeType.ToString() != "Element")
+				{
+					iXmlNode++;
+					xmlNode = xmlNodeList[iXmlNode];
+				}
+				//Create a new attribute node to hold the node's index in xmlNodeList
+				XmlAttribute a = x.CreateAttribute("index");
+				a.Value = iXmlNode.ToString();
+				var e = (XmlElement)xmlNode;
+				e.SetAttributeNode(a);
+
+				//Set the correct Element Name, in case we have errors in the SDC object tree logic
+				bt.ElementName = e.LocalName;
+
+				//Create  dictionary to track the matched indexes of the XML and FD node collections
+				dX_obj[iXmlNode] = bt.ObjectGUID;
+				//Debug.Print("iXmlNode: " + iXmlNode + ", ObjectID: " + bt.ObjectID);
+
+				//Search for parents:
+				int parIndexXml = -1;
+				Guid parObjectGUID = default;
+				bool parExists = false;
+				BaseType btPar;
+				XmlNode? parNode;
+				btPar = null!;
+
+				parNode = xmlNode.ParentNode;
+				parExists = int.TryParse(parNode?.Attributes?.GetNamedItem("index")?.Value, out parIndexXml);//The index of the parent XML node
+				if (parExists)
+				{
+					parExists = dX_obj.TryGetValue(parIndexXml, out parObjectGUID);// find the matching parent SDC node Object ID
+					if (parExists) { parExists = itn.Nodes.TryGetValue(parObjectGUID, out btPar!); } //Find the parent node in FD
+					if (parExists)
+					{
+						//bt.IsLeafNode = true;
+						bt.RegisterNodeAndParent(btPar!, childNodesSort: false);
+						//Debug.WriteLine($"The node with ObjectID: {bt.ObjectID} is leaving InitializeNodesFromSdcXml. Item type is {bt.GetType().Name}.  " +
+						//            $"Parent ObjectID is {bt?.ParentID}, ParentIETypeID: {bt?.ParentIETypeID}, ParentType: {btPar.GetType().Name}");
+					}
+					else { throw new KeyNotFoundException("No parent object was returned from the SDC tree"); }
+				}
+				else
+				{
+					//bt.IsLeafNode = false;
+					//Debug.WriteLine($"The node with ObjectID: {bt.ObjectID} is leaving InitializeNodesFromSdcXml. Item type is {bt.GetType()}.  " +
+					//                $", No Parent object exists");
+				}
+
+				iXmlNode++;
+			}
+			return itn;
+
+		}
 
 		#endregion
 
@@ -307,63 +378,56 @@ namespace SDC.Schema.Extensions
 		{
 			QuestionItemType? q;
 			q = (QuestionItemType?)_Nodes(itn).Values.Where(
-					n => (n as QuestionItemType)?.ID == id).FirstOrDefault();
+					t => t is QuestionItemType q && q.ID == id).FirstOrDefault();
 			return q;
 		}
 		public static QuestionItemType? GetQuestionByName(this ITopNode itn, string name)
 		{
 			QuestionItemType? q;
 			q = (QuestionItemType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(QuestionItemType)).Where(
-					t => ((QuestionItemType)t).name == name).FirstOrDefault();
+				t => t is QuestionItemType q && q.name == name).FirstOrDefault();
 			return q;
 		}
 		public static DisplayedType? GetDisplayedTypeByID(this ITopNode itn, string id)
 		{
 			DisplayedType? d;
 			d = (DisplayedType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(DisplayedType)).Where(
-					t => ((DisplayedType)t).ID == id).FirstOrDefault();
+				t => t is DisplayedType d && d.ID == id).FirstOrDefault();
 			return d;
 		}
 		public static DisplayedType? GetDisplayedTypeByName(this ITopNode itn, string name)
 		{
 			DisplayedType? d;
 			d = (DisplayedType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(DisplayedType)).Where(
-					t => ((DisplayedType)t).name == name).FirstOrDefault();
+				t => t is DisplayedType d && d.name == name).FirstOrDefault();
 			return d;
 		}
 		public static SectionItemType? GetSectionByID(this ITopNode itn, string id)
 		{
 			SectionItemType? s;
 			s = (SectionItemType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(SectionItemType)).Where(
-					t => ((SectionItemType)t).ID == id).FirstOrDefault();
+				t => t is SectionItemType s && s.ID == id).FirstOrDefault();
 			return s;
 		}
 		public static SectionItemType? GetSectionByName(this ITopNode itn, string name)
 		{
 			SectionItemType? s;
 			s = (SectionItemType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(SectionItemType)).Where(
-					t => ((SectionItemType)t).name == name).FirstOrDefault();
+				t => t is SectionItemType s && s.name == name).FirstOrDefault();
 			return s;
 		}
 		public static ListItemType? GetListItemByID(this ITopNode itn, string id)
 		{
 			ListItemType? li;
 			li = (ListItemType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(ListItemType)).Where(
-					t => ((ListItemType)t).ID == id).FirstOrDefault();
+				t => t is ListItemType li && li.ID == id).FirstOrDefault();
 			return li;
 		}
 		public static ListItemType? GetListItemByName(this ITopNode itn, string name)
 		{
 			ListItemType? li;
 			li = (ListItemType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(ListItemType)).Where(
-					t => ((ListItemType)t).name == name).FirstOrDefault();
+				t => t is ListItemType li && li.name == name).FirstOrDefault();
 			return li;
 		}
 
@@ -371,43 +435,38 @@ namespace SDC.Schema.Extensions
 		{
 			ButtonItemType? b;
 			b = (ButtonItemType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(ButtonItemType)).Where(
-					t => ((ButtonItemType)t).ID == id).FirstOrDefault();
+				t => t is ButtonItemType b && b.ID == id).FirstOrDefault();
 			return b;
 		}
 		public static ButtonItemType? GetButtonByName(this ITopNode itn, string name)
 		{
 			ButtonItemType? b;
 			b = (ButtonItemType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(ButtonItemType)).Where(
-					t => ((ButtonItemType)t).name == name).FirstOrDefault();
+				t => t is ButtonItemType b && b.name == name).FirstOrDefault();
 			return b;
 		}
 		public static InjectFormType? GetInjectFormByID(this ITopNode itn, string id)
 		{
 			InjectFormType? inj;
 			inj = (InjectFormType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(InjectFormType)).Where(
-					t => ((InjectFormType)t).ID == id).FirstOrDefault();
+				t => t is InjectFormType inj && inj.ID == id).FirstOrDefault();
 			return inj;
 		}
 		public static InjectFormType? GetInjectFormByName(this ITopNode itn, string name)
 		{
 			InjectFormType? inj;
 			inj = (InjectFormType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(InjectFormType)).Where(
-					t => ((InjectFormType)t).name == name).FirstOrDefault();
+				t => t is InjectFormType inj && inj.name == name).FirstOrDefault();
 			return inj;
 		}
 		public static ResponseFieldType? GetResponseFieldByName(this ITopNode itn, string name)
 		{
 			ResponseFieldType? rf;
 			rf = (ResponseFieldType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(ResponseFieldType)).Where(
-					t => ((ResponseFieldType)t).name == name).FirstOrDefault();
-			//rf.Response.Item.GetType().GetProperty("val").ToString();
+				t => t is ResponseFieldType rf && rf.name == name).FirstOrDefault();
 			return rf;
 		}
+
 		//BaseType GetResponseValByQuestionID(string id)
 		//{
 
@@ -419,56 +478,49 @@ namespace SDC.Schema.Extensions
 		{
 			PropertyType? p;
 			p = (PropertyType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(PropertyType)).Where(
-					t => ((PropertyType)t).name == name).FirstOrDefault();
+				t => t is PropertyType p && p.name == name).FirstOrDefault();
 			return p;
 		}
 		public static ExtensionType? GetExtensionByName(this ITopNode itn, string name)
 		{
 			ExtensionType? e;
 			e = (ExtensionType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(ExtensionType)).Where(
-					t => ((ExtensionType)t).name == name).FirstOrDefault();
+				t => t is ExtensionType e && e.name == name).FirstOrDefault();
 			return e;
 		}
 		public static CommentType? GetCommentByName(this ITopNode itn, string name)
 		{
 			CommentType? c;
 			c = (CommentType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(CommentType)).Where(
-					t => ((CommentType)t).name == name).FirstOrDefault();
+				t => t is CommentType c && c.name == name).FirstOrDefault();
 			return c;
 		}
 		public static ContactType? GetContactByName(this ITopNode itn, string name)
 		{
 			ContactType? c;
 			c = (ContactType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(CommentType)).Where(
-					t => ((ContactType)t).name == name).FirstOrDefault();
+				t => t is ContactType c && c.name == name).FirstOrDefault();
 			return c;
 		}
 		public static LinkType? GetLinkByName(this ITopNode itn, string name)
 		{
 			LinkType? l;
 			l = (LinkType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(LinkType)).Where(
-					t => ((LinkType)t).name == name).FirstOrDefault();
+				t => t is LinkType l && l.name == name).FirstOrDefault();
 			return l;
 		}
 		public static BlobType? GetBlobByName(this ITopNode itn, string name)
 		{
 			BlobType? b;
 			b = (BlobType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(BlobType)).Where(
-					t => ((BlobType)t).name == name).FirstOrDefault();
+				t => t is BlobType b && b.name == name).FirstOrDefault();
 			return b;
 		}
 		public static CodingType? GetCodedValueByName(this ITopNode itn, string name)
 		{
 			CodingType? c;
 			c = (CodingType?)_Nodes(itn).Values.Where(
-				t => t.GetType() == typeof(CodingType)).Where(
-					t => ((CodingType)t).name == name).FirstOrDefault();
+				t => t is CodingType c && c.name == name).FirstOrDefault();
 			return c;
 		}
 

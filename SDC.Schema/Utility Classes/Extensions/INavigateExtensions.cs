@@ -21,8 +21,10 @@ namespace SDC.Schema.Extensions
 		{ if (n is not null && n is BaseType) return SdcUtil.GetNextSibElement((BaseType)n); else return null; }
 		public static BaseType? GetNodePrevious(this INavigate n)
 		{ if (n is not null && n is BaseType) return SdcUtil.GetPrevElement((BaseType)n); else return null; }
-		public static BaseType? GetNodeNext(this INavigate n)
+		public static BaseType? GetNodeReflectNext(this INavigate n)
 		{ if (n is not null && n is BaseType) return SdcUtil.ReflectNextElement((BaseType)n); else return null; }
+		public static BaseType? GetNodeNext(this INavigate n)
+		{ if (n is not null && n is BaseType) return SdcUtil.GetNextElement((BaseType)n); else return null; }
 		public static BaseType? GetNodeFirstChild(this INavigate n)
 		{ if (n is not null && n is BaseType) return SdcUtil.GetFirstChildElement((BaseType)n); else return null; }
 		public static BaseType? GetNodeLastChild(this INavigate n)
@@ -46,39 +48,70 @@ namespace SDC.Schema.Extensions
 		{ if (n is not null && n is BaseType) return SdcUtil.GetElementPropertyInfoMeta((BaseType)n); else return null; }
 
 
-		public static List<IdentifiedExtensionType>? GetIETChildren(this INavigate n)
-		{
-			var chList = (n as IChildItemsParent)?.ChildItemsNode?.ChildItemsList;
-			if (chList is null) return null;
+		//public static List<IdentifiedExtensionType>? GetIETChildren(this INavigate n)
+		//{
+		//	var chList = (n as IChildItemsParent)?.ChildItemsNode?.ChildItemsList;
+		//	if (chList is null) return null;
 
-			List<IdentifiedExtensionType> newList = new();
+		//	List<IdentifiedExtensionType> newList = new();
 
-			var IETChildren = new List<IdentifiedExtensionType>();
-			return FindIETChildren((BaseType)n);
+		//	var IETChildren = new List<IdentifiedExtensionType>();
+		//	return FindIETChildren((BaseType)n);
 
-			List<IdentifiedExtensionType>? FindIETChildren(BaseType node)
-			{
-				var children = node.GetChildNodes()?.ToList();
-				foreach (var child in children ?? new List<BaseType>())
-				{
-					if (child is IdentifiedExtensionType iet)
-					{
-						IETChildren.Add(iet);
-					}
-					FindIETChildren(child);
-					//else
-					//{
-					//	var ietChildren = FindIETChildren(child);
-					//	if(ietChildren is not null)
-					//		IETChildren.AddRange(ietChildren);
-					//}
-				}
-				return IETChildren;
-			}
-		}
+		//	List<IdentifiedExtensionType>? FindIETChildren(BaseType node)
+		//	{
+		//		var children = node.GetChildNodes()?.ToList();
+		//		foreach (var child in children ?? new List<BaseType>())
+		//		{
+		//			if (child is IdentifiedExtensionType iet)
+		//			{
+		//				IETChildren.Add(iet);
+		//			}
+		//			FindIETChildren(child);
+		//			//else
+		//			//{
+		//			//	var ietChildren = FindIETChildren(child);
+		//			//	if(ietChildren is not null)
+		//			//		IETChildren.AddRange(ietChildren);
+		//			//}
+		//		}
+		//		return IETChildren;
+		//	}
+		//}
 
-		private static List<IdentifiedExtensionType>? GetIETDescendants_(this INavigate n, bool includeCurrentIETNode)
-		{ throw new NotImplementedException(); }
+		//private static List<IdentifiedExtensionType>? GetIETDescendants_(this INavigate n, bool includeCurrentIETNode)
+		//{ throw new NotImplementedException();
+		//	var chList = (n as IChildItemsParent)?.ChildItemsNode?.ChildItemsList;
+		//	if (chList is null) return null;
+
+		//	List<IdentifiedExtensionType> newList = new();
+
+		//	var IETChildren = new List<IdentifiedExtensionType>();
+		//	return FindIETChildren((BaseType)n);
+
+		//	List<IdentifiedExtensionType>? FindIETChildren(BaseType node)
+		//	{
+		//		var children = node.GetChildNodes()?.ToList();
+		//		foreach (var child in children ?? new List<BaseType>())
+		//		{
+		//			if (child is IdentifiedExtensionType iet)
+		//			{
+		//				IETChildren.Add(iet);
+		//			}
+		//			FindIETChildren(child);
+		//			//else
+		//			//{
+		//			//	var ietChildren = FindIETChildren(child);
+		//			//	if(ietChildren is not null)
+		//			//		IETChildren.AddRange(ietChildren);
+		//			//}
+		//		}
+		//		return IETChildren;
+		//	}
+
+
+
+		//}
 		private static List<ITopNode>? GetITopNodeDescendants_(this INavigate n, bool includeCurrentITopNode)
 		{ throw new NotImplementedException(); }
 		public static List<BaseType>? GetFullTree(this INavigate n)

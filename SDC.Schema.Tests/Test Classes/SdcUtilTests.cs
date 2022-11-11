@@ -2,6 +2,7 @@
 using SDC.Schema;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace SDCObjectModelTests.TestClasses
@@ -242,5 +243,14 @@ namespace SDCObjectModelTests.TestClasses
         {
 
         }
+        [TestMethod()]
+        public void sGuidShortNameTest()
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                var q = new QuestionItemType(null);
+				Debug.WriteLine($"sGuid: {SdcUtil.CreateBaseNameFromsGuid(q.sGuid, 6)}, sGuid: {q.sGuid}, Guid: {q.ObjectGUID}");
+            }
+		}
     }
 }

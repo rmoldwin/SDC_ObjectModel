@@ -25,20 +25,32 @@ using SDC.Schema.Extensions;
 namespace SDC.Schema
 {
 
-	#region   ..Top SDC Elements
+	#region   ITopNode SDC Elements
 	public partial class FormDesignType : _ITopNode, ITopNodeDeserialize<FormDesignType>
 	{
 		#region ctor
 
 		protected FormDesignType() : base()
-		{ Init();  }
-		public FormDesignType(BaseType? parentNode, string id) : base(parentNode, id)
 		{ Init(); }
+		public FormDesignType(BaseType? parentNode, string id) : base(parentNode, id)
+		{
+			if (this is DemogFormDesignType)
+			{
+				if (parentNode is null || parentNode is XMLPackageType parXP)
+					Init();
+			}
+			else if (this is FormDesignType)
+			{
+				if (parentNode is null || parentNode is XMLPackageType parRFP || parentNode is InjectFormType parIF)
+					Init();
+			}
+			else throw new InvalidOperationException("parentNode must be either null or RetrieveFormPackageType or InjectFormType");
+		}
 
 		private void Init()
 		{
 			ElementName = "FormDesign";
-			ElementPrefix = "fd";
+			ElementPrefix = "FD";
 		}
 
 		/// <summary>
@@ -50,15 +62,15 @@ namespace SDC.Schema
 		#endregion
 
 		#region ITopNode 
-		#region ITopNodeMain
-		[JsonIgnore]
-		int _ITopNode._MaxObjectIDint { get; set; } //internal
+		#region ITopNode Main
+		//[JsonIgnore]
+		//int _ITopNode._MaxObjectIDint { get; set; } = 0; //internal
 		[XmlIgnore]
 		[JsonIgnore]
 		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public int MaxObjectID { get => ((_ITopNode)this)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
 		[XmlIgnore]
@@ -82,16 +94,19 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _ietNodesRO;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
 		{
 			get
-			{
-				if (_ietNodesRO is null)
-					_ietNodesRO = new(((_ITopNode)TopNode)._IETnodes);
-				return _ietNodesRO;
+			{				
+				if (_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
+				}
+				return _IETnodesRO;
 			}
 		}
 
@@ -110,7 +125,7 @@ namespace SDC.Schema
 			topNode._ParentNodes.Clear();
 			topNode._ChildNodes.Clear();
 			topNode._IETnodes.Clear();
-			_ietNodesRO = null;
+			_IETnodesRO = null;
 			_nodesRO = null;
 			topNode._IETnodes.Clear();
 		}
@@ -119,11 +134,11 @@ namespace SDC.Schema
 		/// Clears all dictionaries, sets topNodeTemp (which is a static property) to null, sets top level objects to null. <br/>
 		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
 		/// </summary>
-		public void ResetSdcInstance()
+		public void ResetRootNode()
 		{
-			ResetRootNode();
-			((_ITopNode)TopNode).ClearDictionaries();
-			((_ITopNode)TopNode)._MaxObjectIDint = 0;
+			BaseType.ResetRootNode();
+			((_ITopNode)this).ClearDictionaries();
+			//((_ITopNode)this)._MaxObjectIDint = 0;
 			Property = null;
 			Extension = null;
 			Comment = null;
@@ -137,23 +152,37 @@ namespace SDC.Schema
 		#endregion
 
 		#region Deserialization
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
 
-		public static FormDesignType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static FormDesignType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public static FormDesignType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static FormDesignType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public static FormDesignType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static FormDesignType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromBson(sdcBson);
-		public static FormDesignType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static FormDesignType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromMsgPack(sdcMsgPack);
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXml(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromBson(sdcBson, refreshSdc, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPackPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPack(byte[], bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
 
 		#endregion
 
@@ -162,33 +191,59 @@ namespace SDC.Schema
 	public partial class DemogFormDesignType : FormDesignType
 	{
 		protected DemogFormDesignType() : base()
-		{ }
+		{ Init(); }
 		//public DemogFormDesignType(ITreeBuilder treeBuilder, BaseType parentNode = null, string id = "")
 		//    : base(treeBuilder, parentNode, id)
 		//{ }
-		public DemogFormDesignType(BaseType parentNode = null!, string id = "")
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"/>
+		/// <param name="id"></param>
+		public DemogFormDesignType(XMLPackageType? parentNode = null!, string id = "")
 			: base(parentNode, id)
-		{ }
+		{ Init(); }//use the FormDesignType constructor (base(parentNode, id))
+
+		private void Init()
+		{
+			ElementName = "DemogFormDesign";
+			ElementPrefix = "DFD";
+		}
 
 		#region ITopNode
 		#region Deserialization
 
-		public static DemogFormDesignType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DemogFormDesignType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public static DemogFormDesignType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DemogFormDesignType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public static DemogFormDesignType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DemogFormDesignType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromBson(sdcBson);
-		public static DemogFormDesignType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DemogFormDesignType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromMsgPack(sdcMsgPack);
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXml(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromBson(sdcBson, refreshSdc, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPackPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPack(byte[], bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
 
 		#endregion
 
@@ -198,27 +253,26 @@ namespace SDC.Schema
 	{
 		protected DataElementType() : base()
 		{ Init(); }
-		public DataElementType(string id = "") : base(null)
+		public DataElementType(XMLPackageType? parentNode, string id = "") : base(parentNode, id)
 		{
 			Init();
-			//TODO:Add dictionaries for nodes etc
-			//TODO:Make sure BaseType constructor functions work
 		}
 		private void Init()
 		{
+			ElementName = "DataElement";
 			ElementPrefix = "DE";
 		}
 
 		#region ITopNode
 		#region ITopNodeMain
-		[JsonIgnore]
-		int _ITopNode._MaxObjectIDint { get; set; } //internal
+		//[JsonIgnore]
+		//int _ITopNode._MaxObjectIDint { get; set; } //internal
 		[XmlIgnore]
 		[JsonIgnore]
 		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
 		[XmlIgnore]
@@ -242,16 +296,19 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETNodes;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
 		{
 			get
 			{
-				if (_IETNodes is null)
-					_IETNodes = new(((_ITopNode)TopNode)._IETnodes);
-				return _IETNodes;
+				if (_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
+				}
+				return _IETnodesRO;
 			}
 		}
 
@@ -278,11 +335,11 @@ namespace SDC.Schema
 		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
 		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
 		/// </summary>
-		public void ResetSdcInstance()
+		public void ResetRootNode()
 		{
-			ResetRootNode();
-			((_ITopNode)TopNode).ClearDictionaries();
-			((_ITopNode)TopNode)._MaxObjectIDint = 0;
+			BaseType.ResetRootNode();
+			((_ITopNode)this).ClearDictionaries();
+			//((_ITopNode)this)._MaxObjectIDint = 0;
 			Property = null;
 			Extension = null;
 			Comment = null;
@@ -294,22 +351,37 @@ namespace SDC.Schema
 
 		#region Deserialization
 
-		public static DataElementType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DataElementType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public static DataElementType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DataElementType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public static DataElementType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DataElementType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromBson(sdcBson);
-		public static DataElementType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DataElementType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromMsgPack(sdcMsgPack);
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXml(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromBson(sdcBson, refreshSdc, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPackPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPack(byte[], bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
 
 		#endregion
 
@@ -320,25 +392,27 @@ namespace SDC.Schema
 	{
 		protected RetrieveFormPackageType() : base()
 		{ Init(); }
-		public RetrieveFormPackageType(string id = "") //: base(null, false)
+		public RetrieveFormPackageType(RetrieveFormPackageType? parentNode, string id = "") : base(parentNode)
 		{
-			Init();//TODO:Make sure BaseType constructor functions work
+			this.packageID = id;
+			Init();
 		}
 		private void Init()
 		{
-			ElementPrefix = "RFP";
+			ElementName = "SDCPackage";
+			ElementPrefix = "PKG";
 		}
 
 		#region ITopNode
 		#region ITopNodeMain
-		[JsonIgnore]
-		int _ITopNode._MaxObjectIDint { get; set; } //internal
+		//[JsonIgnore]
+		//int _ITopNode._MaxObjectIDint { get; set; } //internal
 		[XmlIgnore]
 		[JsonIgnore]
 		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
 		[XmlIgnore]
@@ -362,16 +436,19 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETNodes;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
 		{
 			get
 			{
-				if (_IETNodes is null)
-					_IETNodes = new(((_ITopNode)TopNode)._IETnodes);
-				return _IETNodes;
+				if (_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
+				}
+				return _IETnodesRO;
 			}
 		}
 
@@ -394,11 +471,11 @@ namespace SDC.Schema
 		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
 		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
 		/// </summary>
-		public void ResetSdcInstance()
+		public void ResetRootNode()
 		{
-			ResetRootNode();
-			((_ITopNode)TopNode).ClearDictionaries();
-			((_ITopNode)TopNode)._MaxObjectIDint = 0;
+			BaseType.ResetRootNode();
+			((_ITopNode)this).ClearDictionaries();
+			//((_ITopNode)this)._MaxObjectIDint = 0;
 			Property = null;
 			Extension = null;
 			Comment = null;
@@ -413,50 +490,73 @@ namespace SDC.Schema
 
 		#region Deserialization
 
-		public static RetrieveFormPackageType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static RetrieveFormPackageType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public static RetrieveFormPackageType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static RetrieveFormPackageType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public static RetrieveFormPackageType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static RetrieveFormPackageType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromBson(sdcBson);
-		public static RetrieveFormPackageType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static RetrieveFormPackageType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromMsgPack(sdcMsgPack);
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXml(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromBson(sdcBson, refreshSdc, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPackPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPack(byte[], bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
 		#endregion
 
 		#endregion
 
 
 	}
+	public partial class BasePackageType : ExtensionBaseType
+	{
+		protected BasePackageType()
+		{ }
+		public BasePackageType(RetrieveFormPackageType? parentNode) : base(parentNode)
+		{ }
+	}
 	public partial class PackageListType : _ITopNode, ITopNodeDeserialize<PackageListType>
 	{
 		protected PackageListType() : base()
 		{ Init(); }
-		public PackageListType(string id = "") //: base( null, false)
+		public PackageListType(PackageListType? parentNode) : base(parentNode)
 		{
-			Init();//TODO:Make sure BaseType constructor functions work
+			Init();
 		}
 		private void Init()
 		{
-
+			ElementName = "SDCPackageList";
+			ElementPrefix = "PL";
 		}
 		#region ITopNode
 		#region ITopNodeMain
-		[JsonIgnore]
-		int _ITopNode._MaxObjectIDint { get; set; } //internal
+		//[JsonIgnore]
+		//int _ITopNode._MaxObjectIDint { get; set; } //internal
 		[XmlIgnore]
 		[JsonIgnore]
 		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
 		[XmlIgnore]
@@ -480,16 +580,19 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETNodes;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
 		{
 			get
 			{
-				if (_IETNodes is null)
-					_IETNodes = new(((_ITopNode)TopNode)._IETnodes);
-				return _IETNodes;
+				if (_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
+				}
+				return _IETnodesRO;
 			}
 		}
 
@@ -516,11 +619,11 @@ namespace SDC.Schema
 		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
 		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
 		/// </summary>
-		public void ResetSdcInstance()
+		public void ResetRootNode()
 		{
-			ResetRootNode();
-			((_ITopNode)TopNode).ClearDictionaries();
-			((_ITopNode)TopNode)._MaxObjectIDint = 0;
+			BaseType.ResetRootNode();
+			((_ITopNode)this).ClearDictionaries();
+			//((_ITopNode)this)._MaxObjectIDint = 0;
 			Property = null;
 			Extension = null;
 			Comment = null;
@@ -535,38 +638,65 @@ namespace SDC.Schema
 
 		#region Deserialization
 
-		public static PackageListType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static PackageListType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public static PackageListType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static PackageListType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public static PackageListType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static PackageListType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromBson(sdcBson);
-		public static PackageListType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static PackageListType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromMsgPack(sdcMsgPack);
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXml(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromBson(sdcBson, refreshSdc, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPackPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPack(byte[], bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
 		#endregion		#endregion
 		#endregion
 
 	}
 	public partial class MappingType : _ITopNode, ITopNodeDeserialize<MappingType>
 	{
+		protected MappingType() : base()
+		{ Init(); }
+		public MappingType(XMLPackageType? parentNode, string templateID = "") : base(parentNode)
+		{
+			this.templateID = templateID;
+			Init();
+		}
+		private void Init()
+		{
+			ElementName = "MapTemplate";
+			ElementPrefix = "MAP";
+		}
 		#region ITopNode
 		#region ITopNodeMain
-		[JsonIgnore]
-		int _ITopNode._MaxObjectIDint { get; set; } //internal
+		//[JsonIgnore]
+		//int _ITopNode._MaxObjectIDint { get; set; } //internal
 		[XmlIgnore]
 		[JsonIgnore]
 		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
+		//[XmlIgnore]
+		//[JsonIgnore]
+		//public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
 		[XmlIgnore]
 		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
 		[XmlIgnore]
@@ -590,16 +720,19 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETNodes;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
 		{
 			get
 			{
-				if (_IETNodes is null)
-					_IETNodes = new(((_ITopNode)TopNode)._IETnodes);
-				return _IETNodes;
+				if (_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
+				}
+				return _IETnodesRO;
 			}
 		}
 
@@ -625,11 +758,11 @@ namespace SDC.Schema
 		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
 		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
 		/// </summary>
-		public void ResetSdcInstance()
+		public void ResetRootNode()
 		{
-			ResetRootNode();
-			((_ITopNode)TopNode).ClearDictionaries();
-			((_ITopNode)TopNode)._MaxObjectIDint = 0;
+			BaseType.ResetRootNode();
+			((_ITopNode)this).ClearDictionaries();
+			//((_ITopNode)this)._MaxObjectIDint = 0;
 			Property = null;
 			Extension = null;
 			Comment = null;
@@ -642,30 +775,45 @@ namespace SDC.Schema
 
 		#region Deserialization
 
-		public static MappingType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static MappingType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public static MappingType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static MappingType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public static MappingType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static MappingType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromBson(sdcBson);
-		public static MappingType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static MappingType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromMsgPack(sdcMsgPack);
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXml(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromBson(sdcBson, refreshSdc, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPackPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPack(byte[], bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
 
 		#endregion		#endregion
 		#endregion
 
 
 	}
-	#endregion
 
+	#endregion
 
 	#region ..Main Types
 	public partial class ButtonItemType
@@ -897,6 +1045,7 @@ namespace SDC.Schema
 		private void Init()
 		{
 			ElementPrefix = "LI";
+			ElementName = "ListItem";
 		}
 
 		#region IChildItemsParent
@@ -1013,189 +1162,116 @@ namespace SDC.Schema
 	#endregion
 
 	#region Base Types
+
 	public partial class BaseType : IBaseType //IBaseType inherits IMoveRemove and INavigate
 	{
+		/// <summary>
+		/// This constructor is used only to deserialize SDC classes with the SDC.Schema serializers.
+		///		Parent Nodes cannot be assigned through this constructor.  
+		///		Node dictionaries cannot be populated here either.
+		///		After the SDC object tree is created, parent nodes and other metadata can be assigned using <see cref="SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?)"/>
+		/// </summary>
 		protected BaseType()
 		{
-			Init();
-			//Parent Nodes cannot be assigned through this constructor.  
-			//After the object tree is created, Parent Nodes and other metadata can be assigned by SdcUtil.RefreshReflectNodes
+			ObjectID = BaseType.LastObjectID++;
+
+			if (this is ITopNode tn)
+			{
+				if (LastTopNode is null)
+				{
+					LastTopNode = tn; //Point to myself as the TopNode
+					TopNode = tn;
+				}
+				else
+				{
+					TopNode = LastTopNode; //Point to LastTopNode as the TopNode
+					LastTopNode = tn;
+				}
+			}//not ITopNode below here
+			else if (LastTopNode is not null)
+			{
+				TopNode = LastTopNode;
+			}
+			else if (LastTopNode is null) 
+			{ }//the caller is instantiating a new node that is not descended from an ITopNode node.
+
 		}
 
-		protected BaseType(BaseType parentNode) //: this()
-		{
-			Init();
-			this.RegisterParent(parentNode, true);
+		/// <summary>
+		/// This parameterized constructor is NOT used to Deserialize SDC classes.
+		/// LastTopNode is not needed here to find the previous TopNode.
+		/// Instead, TopNode should be retrieved from the parent node, if it exists, and used to set the current TopNode.
+		/// </summary>
+		/// <param name="parentNode"></param>
+		protected BaseType(BaseType? parentNode)
+		{ 
+			//+Assign this.TopNode
+			if (this is ITopNode tn)
+			{
+				if (parentNode is null) TopNode = tn;
+				else //if (parentNode is not null)
+				{
+					if (parentNode.TopNode is not null)
+					{
+						//parentNode's TopNode holds dictionaries we need to populate
+						_ITopNode par_ITopNode;
+						if (parentNode is _ITopNode ptn)
+							par_ITopNode = ptn;//only occurs in RetrieveFormPackage under RetrieveFormPackage
+						else par_ITopNode = (_ITopNode)parentNode.TopNode; //par_ITopNode could still be null here
+
+						TopNode = par_ITopNode;
+					}
+					else { } //this node descends form a non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode
+							 //throw new InvalidOperationException("ParentNode is not null, but ParentNode.TopNode is null");
+				}
+			}//not ITopNode here
+			else if (parentNode is not null)
+			{
+				if (parentNode is ITopNode ptn)
+					TopNode = (_ITopNode)parentNode;
+				else if (parentNode.TopNode is not null)
+					TopNode = (_ITopNode)parentNode.TopNode;
+				else { } //this node descends form an "illegal" non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode,
+						 //but we can still process it, as long as we check for null TopNode everywhere we need it (mainly in Dictionaries).
+						 //later, this "illegal" tree will need to be grafted onto a legal tree and TopNodes will need to be assigned during
+						 //the grafting/moving process, based on the target tree's TopNodes.
+			}
+			else if (parentNode is null) { }//the caller is trying to instantiate a standalone root node that is not a proper ITopNode.  TopNode is thus null here
+
+			//!________Assign default sGuid, BaseName, ObjectGUID, ObjectID, @order, @name & populate dictionaries___________________
+
+			SdcUtil.AssignGuid_sGuid_BaseName(this);			
+
+			this.ObjectID = BaseType.LastObjectID++; //Can we retire ObjectID?
+
+			this.RegisterNodeAndParent(parentNode);
+
+			//The following code requires that the current node is first added
+			//to the ParentNodes dictionary.  Thus, these statements must come
+			//*after* the dictionaries are populated (in RegisterNodeAndParent)
+			
+			this.AssignOrder(orderGap: 10);
+			this.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
 		}
 
 		#region     Init Methods
 
-		private void Init()
-		{
-			if (sGuid.IsNullOrWhitespace() || !ShortGuid.TryDecode(sGuid, out Guid newGuid))
-			{
-				newGuid = ShortGuid.NewGuid();
-				sGuid = ShortGuid.Encode(newGuid);
-			}
-			ObjectGUID = newGuid; //newGuid matches sGuid here
-
-			if (this is ITopNode tn)
-			{
-				var _tn = ((_ITopNode)tn);
-				var par = this.ParentNode;
-
-				if (par?.TopNode is not null) //used only by the parameterized constructor
-					//par is a child of a higher ITopNode object,
-					//	and that ITopNode also subsumes this current node.
-					// this node will be present in the current node's dictionaries only
-				{
-					//Find current node's parent ITopNode dictionaries
-					_ITopNode par_ITopNode;
-					if (par is ITopNode ptn) 
-						par_ITopNode = (_ITopNode)par;//only occurs in RetrieveFormPackage under RetrieveFormPackage
-					else par_ITopNode = (_ITopNode)par.TopNode;
-
-					//store the node (this) in the current node's parent ITopNode dictionaries
-					//stoage in the current node's dictionaries is done at the end of this method
-					par_ITopNode._Nodes.Add(this.ObjectGUID, this);
-					if (this is IdentifiedExtensionType ietPar)
-						par_ITopNode._IETnodes.Add(ietPar);
-					TopNode = par_ITopNode;
-					_topNodeTemp = tn; //resets TopNode for subsequent nodes
-				}
-				//TopNodeTemp is static, and thus may be affected by loading of other SDC trees, if running in parallel with this one
-				//We therefore only use it when we are coming from a default constructor (i.e., with no parent node parameter)
-				//Or when ParentNode is truly null and the root of a new SDC tree;
-				//	-- in the latter case, TopNodeTemp should have been set to null via ResetTopNodeTemp (the next if clause)
-				else if (par is null && TopNodeTemp is not null)
-				//this is not the root node; this used the parameterless ctor; parent node is unknown here.
-				{   
-					//our new top node (this) is contained inside a parent top node (TopNodeTemp).
-					TopNode = TopNodeTemp; 
-					_topNodeTemp = tn; //resets TopNode for subsequent nodes
-				}
-				else if (par is null && TopNodeTemp is null)  //TopNodeTemp is null here, so this is the root node, with no ancestor nodes.
-				{  //Our current node (this) is the new top node for all subsequent nodes, until we hit another top node.
-				   //this could have entered via either parameterized or parameterless ctor
-
-					_topNodeTemp = tn;
-					TopNode = tn;
-				}
-				else //if(par is null || (par is not null && par.TopNode is null))
-				{	//may cause an exception, but it's an anomalous case, and probably deserves to throw an exception 
-					_topNodeTemp = FindTopNode();
-					TopNode = _topNodeTemp;
-				}
-			}
-			//not ITopNode here:
-			else if (TopNodeTemp is not null)
-			{//this is not the root node; this used the parameterless ctor; parent node is unkown at this point.
-				TopNode = TopNodeTemp;
-			}
-			else if(TopNodeTemp is null) throw new InvalidOperationException("TopNodeTemp was null and/or the current node did not implement ITopNode.");
-
-
-			ObjectID = ((_ITopNode)TopNode)._MaxObjectIDint++;
-			order = ObjectID;
-
-			var current_ITopNode = ((_ITopNode)TopNode);
-
-			current_ITopNode._Nodes.Add(ObjectGUID, this); //Register This Node
-
-			if (this is IdentifiedExtensionType iet) //Register this Node, if it's an IET
-				current_ITopNode._IETnodes.Add(iet);
-			
-			//Debug.WriteLine($"The node with ObjectID: {this.ObjectID} has entered the BaseType ctor. Item type is {this.GetType()}.  "
-			//    + $"The parent ObjectID is {this.ParentObjID.ToString()}");
-		}
-
-		//!+TODO: InitParentNodesFromXml should be moved out of BaseType, probably into ITopNode or ISdcUtil
-		private static T InitParentNodesFromXml<T>(string sdcXml, T obj) where T : class, ITopNode
-		{
-			//read as XMLDocument to walk tree
-			var x = new System.Xml.XmlDocument();
-			x.LoadXml(sdcXml);
-			XmlNodeList? xmlNodeList = x.SelectNodes("//*");
-			if (xmlNodeList is null) return null;
-			var dX_obj = new Dictionary<int, Guid>(); //the index is iXmlNode, value is FD ObjectGUID
-			int iXmlNode = 0;
-			XmlNode? xmlNode;
-
-			foreach (BaseType bt in obj.Nodes.Values)
-			{   //As we interate through the nodes, we will need code to skip over any non-element node, 
-				//and still stay in sync with FD (using iFD). For now, we assume that every nodeList node is an element.
-				//https://docs.microsoft.com/en-us/dotnet/api/system.xml.xmlnodetype?view=netframework-4.8
-				//https://docs.microsoft.com/en-us/dotnet/standard/data/xml/types-of-xml-nodes
-				xmlNode = xmlNodeList[iXmlNode];
-				while (xmlNode?.NodeType.ToString() != "Element")
-				{
-					iXmlNode++;
-					xmlNode = xmlNodeList[iXmlNode];
-				}
-				//Create a new attribute node to hold the node's index in xmlNodeList
-				XmlAttribute a = x.CreateAttribute("index");
-				a.Value = iXmlNode.ToString();
-				var e = (XmlElement)xmlNode;
-				e.SetAttributeNode(a);
-
-				//Set the correct Element Name, in case we have errors in the SDC object tree logic
-				bt.ElementName = e.LocalName;
-
-				//Create  dictionary to track the matched indexes of the XML and FD node collections
-				dX_obj[iXmlNode] = bt.ObjectGUID;
-				//Debug.Print("iXmlNode: " + iXmlNode + ", ObjectID: " + bt.ObjectID);
-
-				//Search for parents:
-				int parIndexXml = -1;
-				Guid parObjectGUID = default;
-				bool parExists = false;
-				BaseType btPar;
-				XmlNode? parNode;
-				btPar = null!;
-
-				parNode = xmlNode.ParentNode;
-				parExists = int.TryParse(parNode?.Attributes?.GetNamedItem("index")?.Value, out parIndexXml);//The index of the parent XML node
-				if (parExists)
-				{
-					parExists = dX_obj.TryGetValue(parIndexXml, out parObjectGUID);// find the matching parent SDC node Object ID
-					if (parExists) { parExists = obj.Nodes.TryGetValue(parObjectGUID, out btPar!); } //Find the parent node in FD
-					if (parExists)
-					{
-						//bt.IsLeafNode = true;
-						bt.RegisterParent(btPar!);
-						//Debug.WriteLine($"The node with ObjectID: {bt.ObjectID} is leaving InitializeNodesFromSdcXml. Item type is {bt.GetType().Name}.  " +
-						//            $"Parent ObjectID is {bt?.ParentID}, ParentIETypeID: {bt?.ParentIETypeID}, ParentType: {btPar.GetType().Name}");
-					}
-					else { throw new KeyNotFoundException("No parent object was returned from the SDC tree"); }
-				}
-				else
-				{
-					//bt.IsLeafNode = false;
-					//Debug.WriteLine($"The node with ObjectID: {bt.ObjectID} is leaving InitializeNodesFromSdcXml. Item type is {bt.GetType()}.  " +
-					//                $", No Parent object exists");
-				}
-
-				iXmlNode++;
-			}
-			return obj;
-
-		}
-
-
 		#endregion Local methods
 
 		#region  Local Members
-		internal void StoreError(string errorMsg) //ToDo: Replace with even that logs each error
+		internal static int LastObjectID { get => lastObjectID; private set => lastObjectID = value; }
+		internal void StoreError(string errorMsg) //TODO: Replace with event that logs each error
 		{
 			var exData = new Exception();
 			exData.Data.Add("QuestionID: ", ParentIETypeNode?.ID.ToString() ?? "null");
 			exData.Data.Add("Error: ", errorMsg);
-			exList.Add(exData);
+			ExceptionList.Add(exData);
 		}
 
 		/// <summary>
-		/// Field to hold the ordinal position of an object (XML element) under an IdentifiedExtensionType (IET)-derived object.
-		/// This number is used for creating the name attribute suffix.
+		/// Find the ordinal position of an object (XML element) under an IdentifiedExtensionType (IET)-derived object.
+		/// This number is used for creating the name attribute suffix. <br/>
+		/// Returns -1 if an error occurs, e.g., if TopNode or its dictionaroes are not populated in the SDC tree.
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
@@ -1204,7 +1280,7 @@ namespace SDC.Schema
 			get
 			{
 				if (this is IdentifiedExtensionType || this is ITopNode) return 0;
-				if (TopNode.Nodes is null)
+				if (TopNode?.Nodes is null)
 					throw new Exception("Could not find SubIETcounter because T.Get_Nodes is null");
 				if (ParentNode is null)
 					throw new Exception("Could not find SubIETcounter because ParentNode is null");
@@ -1223,57 +1299,6 @@ namespace SDC.Schema
 				throw new Exception("Could not determine SubIETcounter because an ancestor node of type IdentifiedExtensionType could not be found");
 			}
 		}
-		/// <summary>
-		/// Return the root node of the SDC object tree.  <br/>
-		/// Requires that all nodes have their ParentNode property assigned correctly. <br/>
-		/// If the current node has no parent, returns the current node
-		/// </summary>
-		/// <returns></returns>
-		/// <exception cref="InvalidOperationException"></exception>
-		public BaseType FindRootNode()
-		{
-			int i = 0;
-			BaseType n = this;
-			BaseType? p = this.ParentNode;			
-
-			if (p is null) return this;
-
-			while (p is not null)
-			{
-				i++;
-				if (i > 1000000) throw new InvalidOperationException
-						("The root node was not found after climbing 1000000 parent nodes");
-				n = p;
-				p = p.ParentNode;
-			}
-			return n;
-		}
-
-		/// <summary>
-		/// Walk up the SDC object tree to find the first ITopNode ancestor of the current node.<br/>
-		/// Requires that all nodes have their ParentNode property assigned correctly.
-		/// If the current node implements ITopNode and has no ancestors, returns the current node.
-		/// </summary>
-		/// <returns></returns>
-		/// <exception cref="InvalidOperationException"></exception>
-		public ITopNode FindTopNode()
-		{ BaseType? n = this.ParentNode;
-			if (n is null)
-			{
-				if (this is ITopNode itn ) return itn;
-				else throw new InvalidOperationException
-						("The current node has no parent node, and does not implement ITopNode");
-			}
-			while(n is not null)
-			{				
-				if (n is ITopNode itn) return itn ;
-				n = n.ParentNode;
-			}
-			throw new InvalidOperationException
-						("The current node has no parent node that implements ITopNode");
-		}
-		/// <inheritdoc/>
-		//private BaseType _ParentNode;
 
 		#endregion
 
@@ -1282,21 +1307,23 @@ namespace SDC.Schema
 
 		[XmlIgnore]
 		[JsonIgnore]
-		public ITopNode TopNode
+		public ITopNode? TopNode
 		{
 			get; protected internal set;
 		}
 
 
 		/// <summary>
-		///  Hierarchical level using nested dot notation
+		///  Hierarchical level using nested dot notation.
 		/// </summary>
+		/// <exception cref="NullReferenceException"/>
 		[XmlIgnore]
 		[JsonIgnore]
 		public string DotLevel
 		{
 			get
 			{
+				if (TopNode is null) throw new NullReferenceException("To determine DotLevel, TopNode must not be null");
 				//Walk up parent node tree and place each parent in a stack.
 				//pop each node off the stack and determine its position (seq) in its parent object
 				BaseType? par = ParentNode;
@@ -1316,7 +1343,7 @@ namespace SDC.Schema
 				{
 					var n = s.Pop();
 
-					if (topNode._ChildNodes.TryGetValue(n.ParentNode.ObjectGUID, out List<BaseType>? lst))
+					if (topNode._ChildNodes.TryGetValue(n.ParentNode!.ObjectGUID, out List<BaseType>? lst))
 					{ seq = lst.IndexOf(n) + 1; }
 					else { seq = 0; }
 					sb.Append('.').Append(seq); ;
@@ -1325,18 +1352,10 @@ namespace SDC.Schema
 				return sb.ToString();
 			}
 		}
-
+		//TODO: Use or remove AutoNameFlag
 		[XmlIgnore]
 		[JsonIgnore]
 		public bool AutoNameFlag { get; set; } = false;
-
-		//private bool cycleGuarded = false;
-		/// <summary>
-		/// The root text ("shortName") used to construct the name property.  The code may add a prefix and/or suffix to BaseName
-		/// </summary>
-		[XmlIgnore]
-		[JsonIgnore]
-		public string X_BaseName { get; set; } = "";
 
 		/// <summary>
 		/// The name of XML element that is output from this class instance.
@@ -1396,12 +1415,10 @@ namespace SDC.Schema
 				elementOrder = value;
 			}
 		}
-
+		// TODO: Add ElementIndex to IBaseType
 		/// <summary>
-		/// NEW
 		/// For the SDC property's XML element, if the property is found inside a List object.
-		/// Return -1 if this object is not found inside a List object.
-		/// TODO: Add to IBaseType
+		/// Return -1 if this object is not found inside a List object, or if TopNode is null.
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
@@ -1411,6 +1428,7 @@ namespace SDC.Schema
 			{
 				var par = this.ParentNode;
 				if (par is null) return -1;
+				if (TopNode is null) return -1;
 				var topNode = (_ITopNode)TopNode;
 				topNode._ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? kids);
 				if (kids is null || kids.Count == 0) return -1;
@@ -1443,14 +1461,13 @@ namespace SDC.Schema
 			}
 			set
 			{
-
 				//if (this is QuestionItemType && _elementPrefix != "Q") Debugger.Break();
 				_elementPrefix = value;
 			}
 		}
 		[XmlIgnore]
 		[JsonIgnore]
-		public int ObjectID { get; private set; }
+		public int ObjectID { get; internal set; }
 		/// <inheritdoc/>
 		[XmlIgnore]
 		[JsonIgnore]
@@ -1503,7 +1520,7 @@ namespace SDC.Schema
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		public RetrieveFormPackageType PackageNode
+		public RetrieveFormPackageType? PackageNode
 		{
 			get => _PackageNode;  //this works for objects that were created with the parentNode constructor
 			internal set => _PackageNode = value;
@@ -1548,7 +1565,16 @@ namespace SDC.Schema
 		/// Reset TopNodeTemp to null, so that nodes newly added to a top node<br/>
 		/// use the correct node for the top (root) of the object tree
 		/// </summary>
-		public static void ResetRootNode() => _topNodeTemp = null;
+		public static void ResetRootNode()  //Rename to ResetStatic
+		{
+			LastTopNode = null;
+			LastObjectID = 0;
+		}
+
+		[XmlIgnore]
+		[JsonIgnore]
+		/// <inheritdoc/>
+		public string BaseName { get; set; }
 		#endregion
 
 		#region ChangeTracking
@@ -1572,94 +1598,21 @@ namespace SDC.Schema
 		private string _elementName = "";
 		private string _elementPrefix = "";
 		private RetrieveFormPackageType _PackageNode;
-		private static ITopNode? _topNodeTemp;
-		private static ITopNode? TopNodeTemp
-		{
-			get { return _topNodeTemp; }
-			set
-			{
-				if (_topNodeTemp is null & value is not null)
-				{ _topNodeTemp = value; }
-				else if (value is not null) throw new Exception("T has already been assigned.  A call to ResetSdcImport() is required before this object can be set for importing a new SDC template;");
-				else if (value is null) throw new Exception("The setter value for TopNodeTemp was null.");
-			}
-		}
-		private List<Exception> exList;
+		private static ITopNode? LastTopNode;
+		//private static BaseType? LastAddedNode;
+		private static int lastObjectID = 0;
+
+		private List<Exception> ExceptionList = new();
 
 		#endregion
-
-		//TODO: why are these internal static methods in BaseType?  Should they be in SdcUtil or another helper class?
-		//Answer: Because they operate on the SDC Type itself, not on an object instance.  
-		//If they are in the BaseType class, they don't need to be copied into all the ITopNode classes.
-		#region Serialization
-
-		////!+XML
-		//internal static T GetSdcObjectFromXmlPath<T>(string path) where T : ITopNode
-		//{
-		//	string sdcXml = System.IO.File.ReadAllText(path);  // System.Text.Encoding.UTF8);
-		//	return GetSdcObjectFromXml<T>(sdcXml);
-		//}
-		//internal static T GetSdcObjectFromXml<T>(string sdcXml) where T : ITopNode
-		//{
-		//	T obj = SdcSerializer<T>.Deserialize(sdcXml);
-		//	//return InitParentNodesFromXml<T>(sdcXml, obj);
-		//	SdcUtil.ReflectRefreshTree(obj, out _);
-		//	return obj;
-		//}
-		////!+JSON
-		//internal static T GetSdcObjectFromJsonPath<T>(string path) where T : ITopNode
-		//{
-		//	string sdcJson = System.IO.File.ReadAllText(path);
-		//	return GetSdcObjectFromJson<T>(sdcJson);
-		//}
-		//internal static T GetSdcObjectFromJson<T>(string sdcJson) where T : ITopNode
-		//{
-		//	T obj = SdcSerializerJson<T>.DeserializeJson<T>(sdcJson);
-		//	//return InitParentNodesFromXml<T>(sdcXml, obj);
-		//	SdcUtil.ReflectRefreshTree(obj, out _);
-		//	return obj;
-		//}
-		////!+MsgPack
-		//internal static T GetSdcObjectFromMsgPackPath<T>(string path) where T : ITopNode
-		//{
-		//	byte[] sdcMsgPack = System.IO.File.ReadAllBytes(path);
-		//	return GetSdcObjectFromMsgPack<T>(sdcMsgPack);
-		//}
-		//internal static T GetSdcObjectFromMsgPack<T>(byte[] sdcMsgPack) where T : ITopNode
-		//{
-		//	T obj = SdcSerializerMsgPack<T>.DeserializeMsgPack(sdcMsgPack);
-		//	//return InitParentNodesFromXml<T>(sdcXml, obj);
-		//	SdcUtil.ReflectRefreshTree(obj, out _);
-		//	return obj;
-		//}
-
-		////!+BSON
-		//internal static T GetSdcObjectFromBsonPath<T>(string path) where T : ITopNode
-		//{
-		//	string sdcBson = System.IO.File.ReadAllText(path);
-		//	return GetSdcObjectFromBson<T>(sdcBson);
-		//}
-		//internal static T GetSdcObjectFromBson<T>(string sdcBson) where T : ITopNode
-		//{
-		//	T obj = SdcSerializerBson<T>.DeserializeBson(sdcBson);
-		//	//return InitParentNodesFromXml<T>(sdcXml, obj);
-		//	SdcUtil.ReflectRefreshTree(obj, out _);
-		//	return obj;
-		//}
-		#endregion
-
 
 	}
 
 	public partial class ExtensionBaseType : IExtensionBase
 	{
-		protected ExtensionBaseType() { Init(); }
-		public ExtensionBaseType(BaseType parentNode) : base(parentNode)
-		{ Init(); }
-		private void Init()
-		{
-
-		}
+		protected ExtensionBaseType() { }
+		public ExtensionBaseType(BaseType? parentNode) : base(parentNode)
+		{ }
 	}
 
 	#region IExtensionBaseTypeMember
@@ -1733,10 +1686,10 @@ namespace SDC.Schema
 	public partial class IdentifiedExtensionType : IIdentifiedExtensionType
 	{
 		protected IdentifiedExtensionType() { Init(); }
-		protected IdentifiedExtensionType(BaseType parentNode, string id = "") : base(parentNode)
+		protected IdentifiedExtensionType(BaseType? parentNode, string id = "") : base(parentNode)
 		{
 			if (id.IsNullOrWhitespace())
-				ID = sGuid; //sGuid was assigned or created in the BaseType constructor Init() method
+				ID = $"->{BaseName}"; //BaseName was based on the sGuid and assigned in the BaseType ctor
 			else ID = id;
 			Init();
 		}
@@ -1791,7 +1744,7 @@ namespace SDC.Schema
 		bool Remove(int NodeIndex)
 		{
 			var node = ChildItemsList[NodeIndex];
-			if (node != null) return node.Remove();
+			if (node != null) return node.RemoveRecursive();
 			return false;
 
 		}

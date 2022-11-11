@@ -6,17 +6,19 @@ using System.Xml.Serialization;
 namespace SDC.Schema
 {
 	/// <summary>
-	/// A public/internal interface inherited by all types that sit at the top of the SDC class hierarchy
-	/// Used by FormDesignType, DemogFormDesignType, DataElementType, RetrieveFormPackageType, and PackageListType
-	/// The interface provides a common way to fill the above object trees using a single set of shared code.
+	/// A public/internal interface inherited by all types that sit at the top of the SDC class hierarchy.<br/>
+	/// Used by FormDesignType, DemogFormDesignType, DataElementType, RetrieveFormPackageType, PackageListType and MappingType.<br/>
+	/// The interface provides a common way to fill the above object trees using a single set of shared code.<br/>
 	/// It also provides a set of consistent, type-specific, public utilities for working with SDC objects.
 	/// </summary>
 
 	public interface ITopNode : IBaseType
-	//All ITopNode annotated classes must descend from BaseType 
-	//We can't inherit a class (BaseType), but we can inherit from a common interface (IBaseType) inherited by the BaseType class .
-	//This allows us to serialize ITopNode objects whenever T: IBaseType, as we use in SdcSerializer<T>
-	//If SdcSerializer<T> used T: BaseType, its methods would not accept ITopNode, since an interface cannot inherit a class
+	//Note about inheriting from IBaseType:
+	//All ITopNode annotated classes must descend from BaseType, and BaseType implements IBaseType.
+	//An interface can't inherit a class (BaseType), but we can inherit from a common interface (IBaseType), which is also inherited by the BaseType class .
+	//This allows us to use ITopNode objects to close generic functions whenever the generic T is restricted to IBaseType (T: IBaseType).
+	//In particular, SdcSerializer<T> uses "where T:IBaseType" as its generic restricion, enabling the SdcSerializer methods to use ITopNode as a parameter type.
+	//If SdcSerializer<T> used T: BaseType, its methods would not accept ITopNode, since an interface cannot inherit a class (BaseType)
 	{
 		/// <summary>
 		/// ReadOnlyObservableCollection of all SDC nodes.
@@ -26,11 +28,14 @@ namespace SDC.Schema
 		/// <summary>
 		/// ReadOnlyObservableCollection of IET nodes.
 		/// </summary>
-		ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes { get; }
+		ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes { get; }
 
-		[XmlIgnore]
-		[JsonIgnore]
-		int MaxObjectID { get; }
+		//[XmlIgnore]
+		//[JsonIgnore]
+		/////Holds the largest ObjectID that was most-recently assigned to a new node.  <br/>
+		/////The MaxObjectID is incremented by 1 each time a new node is added to an SDC object tree. <br/>
+		/////MaxObjectID can be reset to 0 by calling ITopNode.ResetRootNode()
+		//int MaxObjectID { get; }
 
 		//[XmlIgnore]
 		//[JsonIgnore]
@@ -45,7 +50,7 @@ namespace SDC.Schema
 		/// Runs method BaseType.ResetSdcImport(), which resets TopNodeTemp, allowing the addition of a new TopNode for newly added BaseType objects.
 		/// </summary>
 		/// <param name="itn">The itn.</param>
-		public void ResetSdcInstance(); //=> BaseType.ResetSdcImport();
+		public void ResetRootNode(); //=> BaseType.ResetSdcImport();
 
 		#region Serialization
 		/// <summary>
@@ -95,12 +100,13 @@ namespace SDC.Schema
 		/// <summary>
 		/// Internal base object for initializing IETnodesRO.
 		/// </summary>
-		internal ObservableCollection<IdentifiedExtensionType> _IETnodes { get;}
+		internal ObservableCollection<IdentifiedExtensionType> _IETnodes { get; }
+		//internal SortedList<int, BaseType> _slIETndes { get; } = new()
 
-		/// <summary>
-		/// Internal version of MaxObjectID, which has a setter; MaxObjectID only has a getter
-		/// </summary> 
-		internal int _MaxObjectIDint { get; set; }
+		///// <summary>
+		///// Internal version of MaxObjectID, which has a setter; MaxObjectID only has a getter.
+		///// </summary> 
+		//internal int _MaxObjectIDint { get; set; }
 
 		/// <summary>
 		/// Dictionary.  Given an Node ObjectGUID, returns the node's object reference.

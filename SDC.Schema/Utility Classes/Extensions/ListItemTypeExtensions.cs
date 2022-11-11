@@ -7,6 +7,10 @@ namespace SDC.Schema.Extensions
 	{
 		public static ListItemResponseFieldType AddListItemResponseField(this ListItemType li)
 		{
+			if (li.ListItemResponseField is not null) 
+				throw new InvalidOperationException
+					("A ListItemResponseField object (lirf) already exists.  " +
+					"Run the Remove() method on that ListItemResponseField object before replacing it");
 			var liRF = new ListItemResponseFieldType(li);
 			li.ListItemResponseField = liRF;
 
@@ -41,7 +45,7 @@ namespace SDC.Schema.Extensions
 		/// After retrieval, the node should be cast to an appropriate SDC data type, e.g. string_DEtype, int_DEtype.
 		/// </summary>
 		/// <returns>A DataTypeDE_Item node or null if the node does not exist.</returns>
-		public static BaseType? ResponseDataTypeNode(this ListItemType li)
+		public static BaseType? GetResponseDataTypeNode(this ListItemType li)
 		{
 			return li.ListItemResponseField?.Response?.DataTypeDE_Item;
 		}

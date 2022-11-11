@@ -63,7 +63,7 @@
 														<ListItemResponseField type="---TEST--- responseRequired.false.def"
 															responseRequired="false">
 															<Response>
-																<string type="---TEST--- xsi:nil.true" xsi:nil="true"/>
+																<string type="---TEST--- xsi:nil.true"/>
 															</Response>
 															<CallSetValue type="---TEST--- allowNull.true.def listDelimiter.bar.def dataType.string.def returnVal.1"
 																		  allowNull="true" listDelimiter="|" dataType="string" returnVal="1" >

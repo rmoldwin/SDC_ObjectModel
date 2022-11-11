@@ -36,7 +36,6 @@ namespace SDC.Schema.Extensions
 					return true;
 				par = par.ParentNode;
 			}
-
 			return false;
 		}
 		/// <summary>
@@ -51,7 +50,7 @@ namespace SDC.Schema.Extensions
 			return false;
 		}
 		/// <summary>
-		/// Determine if the current node is a direct child node <paramref name="parentNode"/>.
+		/// Determine if the current node is a direct child node of <paramref name="parentNode"/>.
 		/// </summary>
 		/// <param name="childNode"></param>
 		/// <param name="parentNode"></param>
@@ -59,6 +58,17 @@ namespace SDC.Schema.Extensions
 		public static bool IsChildOf(this BaseType childNode, BaseType parentNode)
 		{
 			if (childNode.ParentNode == parentNode) return true;
+			return false;
+		}
+		/// <summary>
+		/// Determine if the current node is a sibling node of <paramref name="siblingNode"/>
+		/// </summary>
+		/// <param name="node"></param>
+		/// <param name="siblingNode"></param>
+		/// <returns>true if the current node is a sibling of parameter <paramref name="siblingNode"/>.</returns>
+		public static bool IsSiblingOf(this BaseType node, BaseType siblingNode)
+		{
+			if (node.ParentNode == siblingNode.ParentNode) return true;
 			return false;
 		}
 
@@ -115,7 +125,7 @@ namespace SDC.Schema.Extensions
 			return SdcUtil.GetElementPropertyInfoMeta(bt);
 		}
 		/// <summary>
-		/// Starting with the current node, retrieve all descendant nodes in List&lt;BaseType>
+		/// Starting with the current node, retrieve all descendant nodes in List&lt;BaseType. The list is sorted in node order.>
 		/// </summary>
 		/// <param name="bt"></param>
 		/// <returns></returns>
@@ -124,11 +134,11 @@ namespace SDC.Schema.Extensions
 			return SdcUtil.GetSortedSubtreeList(bt);
 		}
 		/// <summary>
-		/// Get a sorted list containing the current node, plus of all of its sub-elements, up to but not including the next <see cref="IdentifiedExtensionType"/> node.
+		/// Get a sorted list containing the current node, plus of all of its sub-elements.
 		/// </summary>
 		/// <param name="bt">The node whose subtree we are retrieving </param>
 		/// <returns></returns>
-		public static List<IdentifiedExtensionType> GetSortedSubtreeIETList(this BaseType bt)
+		public static List<IdentifiedExtensionType> GetSubtreeIETList(this BaseType bt)
 		{
 			return SdcUtil.GetSortedSubtreeIET(bt);
 		}
@@ -214,6 +224,71 @@ namespace SDC.Schema.Extensions
 		/// </summary>
 		public static int GetListIndex(this BaseType bt)
 		=> SdcUtil.GetElementPropertyInfoMeta(bt, false).ItemIndex;
+
+		/// <summary>
+		/// Walk up the SDC object tree to find the first ITopNode ancestor of the current node.<br/>
+		/// Requires that all nodes have their ParentNode property assigned correctly.
+		/// If the current node implements ITopNode and has no ancestors, returns the current node.
+		/// </summary>
+		/// <returns></returns>
+		/// <exception cref="InvalidOperationException"></exception>
+		public static ITopNode? FindTopNode(this BaseType bt)
+		{
+			BaseType? n = bt.ParentNode;
+			int i = 0;
+			if (n is null)
+			{
+				if (bt is ITopNode itn) return itn;
+				else return null;
+				//throw new InvalidOperationException ("The current node has no parent node, and does not implement ITopNode");
+			}
+			while (n is not null)
+			{
+				i++; if (i == 1000000) throw new InvalidOperationException("Lookup exceeded 1000000 loops, possibly due to circular parent node references");
+				if (n is ITopNode itn) return itn;
+				n = n.ParentNode;
+			}
+			return null;
+			//throw new InvalidOperationException ("The current node has no parent node that implements ITopNode");
+		}
+		/// <summary>
+		/// Walk up the SDC object tree to find the root BaseType ancestor of the current node.<br/>
+		/// Requires that all nodes have their ParentNode property assigned correctly.
+		/// </summary>
+		/// <returns></returns>
+		/// <exception cref="InvalidOperationException"></exception>
+		public static BaseType? FindRootNode(this BaseType bt)
+		{
+			BaseType? n = bt;
+			int i = 0;
+			while (n is not null)
+			{
+				i++; if (i == 1000000) throw new InvalidOperationException("Lookup exceeded 1000000 loops, possibly due to circular parent node references");
+				if (n.ParentNode is null) return n;
+				n = n.ParentNode;
+			}
+			return null;
+		}
+		/// <summary>
+		/// Assigns a name to the SDC node.<br/>
+		/// <inheritdoc cref="SdcUtil.CreateSimpleName(BaseType)"/>
+		/// </summary>
+		/// <param name="bt"></param>
+		/// <returns>The name assigned to the node</returns>
+		public static string AssignSimpleName(this BaseType bt)
+		{
+			bt.name = SdcUtil.CreateSimpleName(bt);
+			return bt.name;
+		}
+
+		/// <summary>
+		/// <inheritdoc cref="SdcUtil.TryGetChildElements(BaseType, out ReadOnlyCollection{BaseType}?)"/>
+		/// </summary>
+		/// <param name="n"></param>
+		/// <param name="kids"></param>
+		/// <returns></returns>
+		public static bool TryGetChildElements(this BaseType n, out ReadOnlyCollection<BaseType>? kids)
+		=> SdcUtil.TryGetChildElements(n, out kids);
 
 		/// <summary>
 		/// Not implemented.

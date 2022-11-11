@@ -18,6 +18,7 @@ namespace SDC.Schema
     using System.Text;
     using System.Xml;
     using System.Collections.Generic;
+    using System.Data.SqlTypes;
 
     #region Base entity class
     public static partial class SdcSerializerMsgPack<T> where T: ITopNode
@@ -74,8 +75,10 @@ namespace SDC.Schema
             obj = default(T);
             try
             {
-                obj = DeserializeMsgPack(input);
-                return true;
+				BaseType.ResetRootNode();
+				obj = DeserializeMsgPack(input);
+				BaseType.ResetRootNode();
+				return true;
             }
             catch (System.Exception ex)
             {
@@ -87,7 +90,10 @@ namespace SDC.Schema
         public static bool DeserializeMsgPack(byte[] input, out T obj)
         {
             System.Exception exception = null;
-            return DeserializeMsgPack(input, out obj, out exception);
+			BaseType.ResetRootNode();
+			bool result = DeserializeMsgPack(input, out obj, out exception);
+			BaseType.ResetRootNode();
+            return result;
         }
 
         /// <summary>
@@ -97,10 +103,13 @@ namespace SDC.Schema
         {
             System.IO.MemoryStream byteStream = null;
             try
-            {
-                byteStream = new System.IO.MemoryStream(input);
-                return ((T)(SerializerMsgPack.Unpack(byteStream)));
-            }
+			{
+				byteStream = new System.IO.MemoryStream(input);
+				BaseType.ResetRootNode();
+				T obj = ((T)(SerializerMsgPack.Unpack(byteStream)));
+				BaseType.ResetRootNode();
+				return obj;
+			}
             finally
             {
                 if ((byteStream != null))
@@ -139,7 +148,12 @@ namespace SDC.Schema
                 file = new System.IO.FileStream(fileName, FileMode.Open, FileAccess.Read);
                 buffer = new byte[file.Length];
                 file.Read(buffer, 0, ((int)(file.Length)));
-                return DeserializeMsgPack(buffer);
+
+                BaseType.ResetRootNode();
+				T obj = DeserializeMsgPack(buffer);
+				BaseType.ResetRootNode();
+
+				return obj;
             }
             finally
             {

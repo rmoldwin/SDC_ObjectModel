@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SDC.Schema.Extensions;
 using System.Xml;
 using System.Xml.Schema;
 
@@ -11,7 +12,13 @@ namespace SDC.Schema
 	{
 
 		/// <summary>
-		/// Not yet implemented
+		/// List of all errors and warnings encounterd during XML validation.
+		/// Callers are responsible for clearing the list after validation
+		/// </summary>
+		public static List<ValidationEventArgs> valEventList = new();
+
+		/// <summary>
+		/// Not yet implemented;
 		/// </summary>
 		/// <param name="itn"></param>
 		/// <returns></returns>
@@ -24,10 +31,11 @@ namespace SDC.Schema
 			//references to element names inside of rules
 			//uniqueness of BaseURI/ID pairs in FormDesign, DemogFormDesign, DataElement etc.
 			//content consistency inside of SDCPackages
+			//return ValidateSdcXml(itn.GetXml(true, SdcUtil.CreateCAPname));
 
 			throw new NotImplementedException();
 		}
-		public static string ValidateSdcXml(string xml, string sdcSchemaUri = null)
+		public static List<ValidationEventArgs> ValidateSdcXml(string xml, string sdcSchemaUri = null)
 		{
 			//https://docs.microsoft.com/en-us/dotnet/standard/data/xml/xmlschemaset-for-schema-compilation
 			try
@@ -38,7 +46,7 @@ namespace SDC.Schema
 				{
 					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCRetrieveForm.xsd"));
 
-					//unclear if the following Schemas will be automatically discovered by the validator
+					//the following sub-Schemas are NOT automatically discovered by the validator; they are required here:
 					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCFormDesign.xsd"));
 					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCMapping.xsd"));
 					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCBase.xsd"));
@@ -48,10 +56,10 @@ namespace SDC.Schema
 					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCTemplateAdmin.xsd"));
 					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "xhtml.xsd"));
 					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "xml.xsd"));
-					//Extras, not currently used.
-					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDC_IDR.xsd"));
-					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCRetrieveFormComplex.xsd"));
-					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCOverrides.xsd"));
+					//Extras, not currently used.  Adding them may duplicate some type definitions (defined above) and thus cause errors
+					//sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDC_IDR.xsd"));
+					//sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCRetrieveFormComplex.xsd"));
+					//sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCOverrides.xsd"));
 					sdcSchemas.Compile();
 				}
 				ValidationLastMessage = "no error";
@@ -65,13 +73,16 @@ namespace SDC.Schema
 			{
 				Console.WriteLine(ex.Message);
 				ValidationLastMessage = ex.Message;
-				//TODO: Should create error list to deliver all messages to ValidationLastMessage
+				Console.WriteLine("Exception: " + ValidationLastMessage);
+				//Validation will terminate after the exception
 			}
-			return ValidationLastMessage;
+			var copy = valEventList.ToList();
+			valEventList.Clear();
+			return copy;
 
 		}
 		public static string ValidationLastMessage { get; private set; }
-		public static string ValidateSdcJson(string json)
+		public static List<ValidationEventArgs> ValidateSdcJson(string json)
 		{
 			return ValidateSdcXml(GetXmlFromJson(json));
 		}
@@ -81,20 +92,22 @@ namespace SDC.Schema
 			switch (e.Severity)
 			{
 				case XmlSeverityType.Error:
-					Console.WriteLine("Error: {0}", e.Message);
+					Console.WriteLine($"Error: {e.Message}");
+					Console.WriteLine(e.Exception.Data.ToString()+"\r\n");
 					break;
 				case XmlSeverityType.Warning:
-					Console.WriteLine("Warning {0}", e.Message);
+					Console.WriteLine($"Warning {e.Message}");
+					Console.WriteLine(e.Exception.Data.ToString() + "\r\n");
 					break;
 			}
+			valEventList.Add(e);
 			ValidationLastMessage = e.Message;
-			//Should create error list to deliver all messages to ValidationLastMessage
 		}
 
 		public static string GetXmlFromJson(string json)
 		{
 			var doc = JsonConvert.DeserializeXmlNode(json);
-			return doc.OuterXml;
+			return doc?.OuterXml??"";
 		}
 
 	}

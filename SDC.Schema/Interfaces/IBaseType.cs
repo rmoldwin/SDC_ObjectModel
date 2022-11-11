@@ -51,7 +51,7 @@ namespace SDC.Schema
         [JsonIgnore]
         public int ObjectID { get; }
 		/// <summary>
-		/// A unique identifier added to each SDC node as it is constructed in teh object tree. <br/>
+		/// A unique identifier added to each SDC node as it is constructed in the object tree. <br/>
         /// If sGuid (a short GUID) is used, it is derived automatically from the ObjectGUID
 		/// </summary>
 		[XmlIgnore]
@@ -118,7 +118,7 @@ namespace SDC.Schema
 		/// </summary>
 		[XmlIgnore]
         [JsonIgnore]
-		public ITopNode TopNode { get; }
+		public ITopNode? TopNode { get; }
 
 		/// <summary>
 		/// 
@@ -126,8 +126,16 @@ namespace SDC.Schema
 		[XmlIgnore]
         [JsonIgnore]
         public RetrieveFormPackageType PackageNode { get; }
-		//public abstract void SetNames(string elementName = "", string elementPrefix = "", string baseName = "");
 
+		//public abstract void SetNames(string elementName = "", string elementPrefix = "", string baseName = "");
+		
+        /// <summary>
+		/// Used as an optional component for generating the @name SDC BaseType attribute. <br/>
+		/// By default, this name is generated from the sGuid in the constructor, but may be changed as needed.
+		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		public string BaseName { get; set; }
 
 
 		//!+Added to support TE Blazor module.

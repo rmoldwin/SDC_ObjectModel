@@ -49,7 +49,7 @@ namespace SDCObjectModelTests.TestClasses
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 			
 			//Create new BaseType names
-			SdcUtil.CreateName? delCreateName = SdcUtil.CreateElementNameCAP;
+			SdcUtil.CreateName? delCreateName = SdcUtil.CreateCAPname;
 			//delCreateName = null;
 			
 			var sdcList = SdcUtil.ReflectRefreshTree(Setup.FD, out string? s, true, true, delCreateName);
@@ -360,6 +360,7 @@ namespace SDCObjectModelTests.TestClasses
 				//btPrint(n);
 				n.order = i;  //almost instananeous
 				sortedList.Add(n);
+				//if (i == 0 || i == Setup.FD.Nodes.Count ) Debugger.Break();
 				sortedArray[i] = n;
 				Assert.IsTrue(n.ObjectID == i);//very fast
 				i++;
@@ -383,7 +384,7 @@ namespace SDCObjectModelTests.TestClasses
 						{
 							nextSib = sibList[index + 1];
 							if (nextSib != null)
-								MoveNext(nextSib);
+								MoveNext(nextSib);	
 						}
 					}
 				}
@@ -662,13 +663,13 @@ namespace SDCObjectModelTests.TestClasses
 			SortedList<string, Dictionary<string, List<AttributeInfo>>> dictAttr = new();
 			char gt = ">"[0];
 			//  ------------------------------------------------------------------------------------
-			foreach (IdentifiedExtensionType n in Setup.FD.IETNodes)
+			foreach (IdentifiedExtensionType n in Setup.FD.IETnodes)
 			{
 				var en = n.ElementName;
 				int enLen = 36 - en.Length;
 				int pad = (enLen > 0) ? enLen : 0;
 				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  IET Node: {en}   {"".PadRight(pad, gt)}");
-				var sublist = n.GetSortedSubtreeIETList();
+				var sublist = n.GetSubtreeIETList();
 
 				Dictionary<string, List<AttributeInfo>> dlai = new();
 				

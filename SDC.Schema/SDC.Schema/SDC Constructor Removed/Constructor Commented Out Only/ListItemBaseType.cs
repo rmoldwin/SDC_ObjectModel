@@ -254,7 +254,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     /// items in this attribute's content. Prefixing any named with a hyphen (-)
     /// will reverse the above behaviour (i.e., the named items will be
     /// disabled). Unselecting the ListItem will reverse this behaviour.
-    /// Prefixing the name with a tilde (~) will supress this reversal behavior.
+    /// Prefixing the name with a tilde (~) will suppress this reversal behavior.
     /// </summary>
     [XmlAttribute(DataType="NMTOKENS")]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]

@@ -21,9 +21,9 @@ namespace SDCObjectModelTests.TestClasses
         [TestMethod]
         public void DeserializeDEFromPath()
         {
-			BaseType.ResetRootNode();
-			//string path = @".\Test files\DE sample.xml";
-			string path = Path.Combine("..", "..", "..", "Test files", "DE sample.xml");
+            BaseType.ResetRootNode();
+            //string path = @".\Test files\DE sample.xml";
+            string path = Path.Combine("..", "..", "..", "Test files", "DE sample.xml");
             //string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
             DataElementType DE = TopNodeSerializer<DataElementType>.DeserializeFromXmlPath(path);
             var myXML = DE.GetXml();
@@ -35,9 +35,9 @@ namespace SDCObjectModelTests.TestClasses
         [TestMethod]
         public void DeserializeDEFromXml()
         {
-			BaseType.ResetRootNode();
-			//string path = @".\Test files\DE sample.xml";
-			string path = Path.Combine("..", "..", "..", "Test files", "DE sample.xml");
+            BaseType.ResetRootNode();
+            //string path = @".\Test files\DE sample.xml";
+            string path = Path.Combine("..", "..", "..", "Test files", "DE sample.xml");
             string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
             DataElementType DE = TopNodeSerializer<DataElementType>.DeserializeFromXml(sdcFile);
             var myXML = DE.GetXml();
@@ -50,10 +50,10 @@ namespace SDCObjectModelTests.TestClasses
             Setup.TimerStart("==>[] Started");
 
 
-			BaseType.ResetRootNode();
-			//string path = @".\Test files\Demog CCO Lung Surgery.xml";
+            BaseType.ResetRootNode();
+            //string path = @".\Test files\Demog CCO Lung Surgery.xml";
 
-			string path = Path.Combine("..", "..", "..", "Test files", "Demog CCO Lung Surgery.xml");
+            string path = Path.Combine("..", "..", "..", "Test files", "Demog CCO Lung Surgery.xml");
             //if (!File.Exists(path)) path = @"/Test files/Demog CCO Lung Surgery.xml";
             //string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
             DemogFormDesignType FD = TopNodeSerializer<DemogFormDesignType>.DeserializeFromXmlPath(path);
@@ -71,8 +71,8 @@ namespace SDCObjectModelTests.TestClasses
         [TestMethod]
         public void DeserializeFormDesignFromPathSimple()
         {
-			BaseType.ResetRootNode();
-			string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
+            BaseType.ResetRootNode();
+            string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
             string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
             var FD = FormDesignType.DeserializeFromXmlPath(path);
             var myXml = SdcSerializer<FormDesignType>.Serialize(FD);
@@ -81,6 +81,7 @@ namespace SDCObjectModelTests.TestClasses
             Debug.Print(myJson);
         }
         [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
         public void DeserializeFormDesignFromPath()
         {
 			BaseType.ResetRootNode();
@@ -123,12 +124,13 @@ namespace SDCObjectModelTests.TestClasses
             var qrInteger = response.DataTypeDE_Item as integer_DEtype;
             var qrResponseField = qr2.ResponseField_Item;
             QuestionEnum qType = qr2.GetQuestionSubtype();
-            qrResponseField.TextAfterResponse.val = "";     
-            
-            //decimal_DEtype d = qrResponseField.AddDataType(ItemChoiceType.@decimal, dtQuantEnum.EQ, 1.1102).DataTypeDE_Item as decimal_DEtype;
+            qrResponseField.TextAfterResponse.val = "";
 
-           
-            Q.ResponseField_Item?.AddDataType(ItemChoiceType.@string, dtQuantEnum.EQ, "myVal");
+			//decimal_DEtype d = qrResponseField.AddDataType(ItemChoiceType.@decimal, dtQuantEnum.EQ, 1.1102).DataTypeDE_Item as decimal_DEtype;
+
+			//We need to remove items from dictionaries whenever reassigning (Adding) objects to a different reference, as indicated below with li.AddListItemResponseField()
+
+			Q.ResponseField_Item?.AddDataType(ItemChoiceType.@string, dtQuantEnum.EQ, "myVal");
             //li.ListItemResponseField.responseRequired = true;
             if (li.ListItemResponseField != null)
             {
@@ -186,8 +188,8 @@ namespace SDCObjectModelTests.TestClasses
             DisplayedType DI1 = (DisplayedType)FD.Nodes.Values.Where(n => n.name == DI.ID)?.First();
             DisplayedType DI2 = (DisplayedType)Q.ChildItemsNode.Items[0];
             QuestionItemType Q1 = (QuestionItemType)DI2.ParentNode.ParentNode;
-            myXML = SdcUtil.XmlReorder(FD.GetXml());
-            myXML = SdcUtil.XmlFormat(myXML);
+            myXML = SdcUtil.ReorderXml(FD.GetXml());
+            myXML = SdcUtil.FormatXml(myXML);
 
             //var S1 = Q.AddOnEnter().Actions.AddActInject().Item = new SectionItemType(   //Need to add AddActionsNode to numerous classes via IHasActionsNode
             //    parentNode: Q,
@@ -196,7 +198,7 @@ namespace SDCObjectModelTests.TestClasses
             //    elementPrefix: "s");
 
             Debug.Print(myXML);
-            FD.ResetSdcInstance();
+            FD.ResetRootNode();
             //var myMP = FD.GetMsgPack();
             //FD.SaveMsgPackToFile("C:\\MPfile");  //also support REST transactions, like sending packages to SDC endpoints; consider FHIR support
             var myJson = FD.GetJson();
@@ -211,7 +213,9 @@ namespace SDCObjectModelTests.TestClasses
             //string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
             var Pkg = RetrieveFormPackageType.DeserializeFromXmlPath(path);
 			//XMLPackageType XPT = (XMLPackageType)Pkg.Nodes.Values.Where(n => n is XMLPackageType).FirstOrDefault();
+
 			FormDesignType FD = (FormDesignType)Pkg.Nodes.Values.Where(n => n is FormDesignType).FirstOrDefault()!;
+            
 
             var Q = (QuestionItemType?)FD.Nodes.Values.Where(
                 t => t.GetType() == typeof(QuestionItemType)).Where(
@@ -219,7 +223,7 @@ namespace SDCObjectModelTests.TestClasses
             var DI = Q.AddChildDisplayedItem("DDDDD");//should add to end of the <List>
             DI.name = "my added DI";
 
-            DisplayedType? DI1 = (DisplayedType)Pkg.Nodes.Values.Where(n => n.name == "my added DI").FirstOrDefault();
+            DisplayedType? DI1 = (DisplayedType)FD.Nodes.Values.Where(n => n.name == "my added DI").FirstOrDefault();
             DisplayedType? DI2 = (DisplayedType)Q.ChildItemsNode.Items[0];
             QuestionItemType? Q1 = (QuestionItemType)DI2.ParentNode.ParentNode;
             string diName = Q.Item1.Items[0].name;  
