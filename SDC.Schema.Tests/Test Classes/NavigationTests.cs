@@ -663,7 +663,7 @@ namespace SDCObjectModelTests.TestClasses
 			SortedList<string, Dictionary<string, List<AttributeInfo>>> dictAttr = new();
 			char gt = ">"[0];
 			//  ------------------------------------------------------------------------------------
-			foreach (IdentifiedExtensionType n in Setup.FD.IETNodes)
+			foreach (IdentifiedExtensionType n in Setup.FD.IETnodes)
 			{
 				var en = n.ElementName;
 				int enLen = 36 - en.Length;

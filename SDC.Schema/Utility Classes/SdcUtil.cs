@@ -84,6 +84,26 @@ namespace SDC.Schema
 		{
 			TreeSort_NodeIds.Clear();
 		}
+
+		/// <summary>
+		/// Walk up parent nodes to find the first ITopNode node.
+		/// Returns the current node if it is ITopNode.
+		/// Returns null if an ITopNode node is not found.
+		/// </summary>
+		/// <param name="node"></param>
+		/// <returns>ITopNode? node</returns>
+		public static ITopNode? FindTopNode(BaseType node)
+		{
+			do
+			{
+				var par = node.ParentNode;
+				if (par is null) return null;
+				node = par;
+				if (node is ITopNode itn) return itn;
+
+			} while (true);
+
+		}
 		#endregion
 
 
@@ -92,10 +112,22 @@ namespace SDC.Schema
 
 
 		/// <summary>
-		/// Delegate that points to a single method for creating a new <see cref="BaseType.name"/> value for the designated <paramref name="node"/>.
+		/// Delegate that points to a single method for creating a new <see cref="BaseType.name"/> value for the designated <paramref name="node"/>.<br/>
+		/// The caller can supply a method for generating the @name property of each SDC node.  <br/>
+		/// The following methods are available:
+		/// <br/>
+		/// <br/><see cref="SdcUtil.CreateCAPname(BaseType, string)"/><br/>
+		/// A method that generates a CKey/ID aware name for CAP use.  Names reference a parent <see cref="IdentifiedExtensionType"/> (IET) node when applicable.<br/>
+		/// <br/>
+		/// <see cref="SdcUtil.CreateSimpleName(BaseType)"/><br/>
+		/// A generic name generation method that uses the sGuid of each node.<br/><br/>
+		/// Users may create their own method that returns a name value and matches the <see cref="SdcUtil.CreateName"/> delegate.
 		/// </summary>
-		/// <returns>The new name that used to refresh <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
-		public delegate string CreateName(BaseType node, char initialCharToSkip = '_');
+		/// <param name="node">The SDC node for which a name will be generated. </param>
+		/// <param name="initialStringToSkip">If an existing name value starts with this string, the existing name will be reused, and will not be replaced with a new value.</param>
+		/// <returns>The new name that will be used to refresh <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
+
+		public delegate string CreateName(BaseType node, string initialStringToSkip = "_");
 
 		/// <summary>
 		/// Reserved for future use. <paramref name=""/>
@@ -130,13 +162,13 @@ namespace SDC.Schema
 		/// The default is false.</param>
 		/// <param name="refreshTree">Determines whether to refresh the Dictionaries and BaseType properties, as described in the summary.
 		/// The default is true.</param>
-		/// <param name="createNodeName">A delegate to represent a single function that will create a <see cref="BaseType.name"/> for each refreshed node in the ITopNode tree.</param>
+		/// <param name="createNodeName">A method that will create a <see cref="BaseType.name"/> for each refreshed node in the ITopNode tree.</param>
 		/// <returns>List&lt;BaseType> containing all of the SDC tree nodes in sorted top-bottom order</returns>
 		/// <param name="orderStart">The starting number for the @order attribute</param>
 		/// <param name="orderGap">A multiplier for the @order atttribute. <br/>
 		/// <b><paramref name="orderGap"/></b> controls the distance between sequential @order values.<br/>
 		/// The default value is 10.<br/>
-		/// A value of 0 will supress @order from being serialized.</param>		
+		/// A value of 0 will suppress @order from being serialized.</param>		
 		public static List<BaseType> ReflectRefreshTree(ITopNode topNode
 		, out string? treeText
 		, bool print = false
@@ -176,7 +208,9 @@ namespace SDC.Schema
 					else if (current_ITopNode is FormDesignType fd)
 					{
 						fd.ElementName = "FormDesign";
-						fd.name = Regex.Replace(fd.ID, @"\W+", "");
+						//fd.name = Regex.Replace(fd.ID, @"\W+", "");
+						if (createNodeName is not null)
+							fd.name = createNodeName(fd) ?? Regex.Replace(fd.ID, @"\W+", "");
 					}
 
 					else if (current_ITopNode is DataElementType de)
@@ -612,7 +646,7 @@ namespace SDC.Schema
 				//______________________________________________________________________________
 
 				if (reRegisterNodes || resetNodeIdentity)
-					n.UnRegisterNode();
+					n.UnRegisterNodeAndParent();
 
 				//!START Special actions-------------------------------:
 				{
@@ -1451,6 +1485,22 @@ namespace SDC.Schema
 			return lastKid;
 		}
 
+		public static PropertyInfoMetadata GetElementPropertyInfoMeta(BaseType item, bool getNames = true)
+		{
+			PropertyInfo? pi = GetElementPropertyInfo(
+				item,
+				out string? propName,
+				out int itemIndex,
+				out IEnumerable<BaseType>? ieItems,
+				out int xmlOrder,
+				out int maxXmlOrder,
+				out string? xmlElementName,
+				getNames);
+
+			return new PropertyInfoMetadata(pi, propName, itemIndex, ieItems, xmlOrder, maxXmlOrder, xmlElementName);
+
+		}
+
 		private static int GetMaxOrderFromXmlElementAttributes(BaseType item)
 		{
 			var props = item.GetType().GetProperties();
@@ -1467,22 +1517,6 @@ namespace SDC.Schema
 				}
 			}
 			return maxOrder;
-
-		}
-
-		public static PropertyInfoMetadata GetElementPropertyInfoMeta(BaseType item, bool getNames = true)
-		{
-			PropertyInfo? pi = GetElementPropertyInfo(
-				item,
-				out string? propName,
-				out int itemIndex,
-				out IEnumerable<BaseType>? ieItems,
-				out int xmlOrder,
-				out int maxXmlOrder,
-				out string? xmlElementName,
-				getNames);
-
-			return new PropertyInfoMetadata(pi, propName, itemIndex, ieItems, xmlOrder, maxXmlOrder, xmlElementName);
 
 		}
 		/// <summary>
@@ -2076,17 +2110,17 @@ namespace SDC.Schema
 		/// If a Ckey-formatted ID is not present, the sGuid or a new short Guid for the <see cref="IdentifiedExtensionType"/> ancestor is truncated and used instead.
 		/// If the input node name begins with "_", the method will bypass new name creation and just return teh existting node.name with no modifications
 		/// </summary>
-		/// <returns>The new name that was used to refresh <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
-		public static string CreateCAPname(this BaseType node, char initialCharToSkip = '_')
+		/// <returns>A consistent, CKey-aware value, for <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
+		public static string CreateCAPname(this BaseType node, string initialTextToSkip = "_")
 		{
 			string namePrefix = "";
 			string nameBody = "";
 			string nameSuffix = "";
 
-			if (node.name?.Length > 0 && node.name.AsSpan(0, 1) == initialCharToSkip.ToString()) return node.name;  //Return the existing name, if it starts with "_"
-			//+namePrefix
+			if (node.name?.Length > 0 && node.name.AsSpan(0, 1) == initialTextToSkip) return node.name;  //Return the existing name, if it starts with "_"
+			//!namePrefix
 			{
-				//+Question Prefix
+				//!Question Prefix
 				if (node is QuestionItemType Q)
 				{
 					var st = Q.GetQuestionSubtype();
@@ -2122,17 +2156,17 @@ namespace SDC.Schema
 							throw new InvalidOperationException("Could not determine Question Subtype");
 					}
 				}
-				else //+Property Prefix
+				else //!Property Prefix
 				if (node is PropertyType pt )
 						namePrefix = $"{pt.ElementPrefix}_{pt.propName.AsSpan(0, Math.Min(8, pt.propName.Length)).ToString()}";
-				else //+Other Prefix
+				else //!Other Prefix
 				{
 					namePrefix = node.ElementPrefix ??
 						$"{node.ElementName.TakeWhile(c => Char.IsUpper(c)).ToString()?.ToLower()}"; //backup method for ElementPrefix: use uppercase letters in ElementName
 				}
 			}
 
-			//+nameBody
+			//!nameBody
 			{
 				//Try using the closest IdentifiedExtensionType node's Ckey-formatted (decimal format) ID to generate nameBody
 				//Use special names for headr/body/footer nodes
@@ -2145,9 +2179,9 @@ namespace SDC.Schema
 						nameBody = Regex.Replace(iet.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
 					else nameBody = node.BaseName ?? CreateBaseNameFromsGuid(node.sGuid);
 
-					if (iet.name?.ToLower() == "body") nameBody = $"_body.{nameBody}";
-					else if (iet.name?.ToLower() == "footer") nameBody = $"_footer{nameBody}";
-					else if (iet.name?.ToLower() == "header") nameBody = $"_header.{nameBody}";
+					if (iet.name?.ToLower() == "body") nameBody = $"body.{nameBody}";
+					else if (iet.name?.ToLower() == "footer") nameBody = $"footer{nameBody}";
+					else if (iet.name?.ToLower() == "header") nameBody = $"header.{nameBody}";
 				}
 				else //not IdentifiedExtensionType
 				{
@@ -2167,6 +2201,45 @@ namespace SDC.Schema
 			nameSuffix = node.SubIETcounter.ToString(); 
 
 			return $"{namePrefix}_{nameBody}_{nameSuffix}";
+		}
+		//
+		/// <summary>
+		/// Create a consistent unique name for the passed SDC node. The name is formatted like:<code><br/>
+		///	ElementPrefix_BaseNameOfParentIETNode_SubIETcounter</code><br/>
+		/// Requires that ElementPrefix and either sGuid or BaseName have values.  <br/>
+		/// To work properly, SubIETcounter requires that ancestor nodes are registered in their TopNode Dictionaries.
+		/// </summary>
+		/// <param name="bt">The node for which the name will be created.</param>
+		/// <returns>A consistent value for the @name attribute.</returns>
+		public static string CreateSimpleName(BaseType bt)
+		{
+			string baseName = "";
+			if (bt is not IdentifiedExtensionType)
+			{
+				var iet = bt.ParentIETypeNode;
+				if (iet is not null)
+					baseName = iet.BaseName;
+				else
+					if(bt.BaseName is not null) 
+						baseName = bt.BaseName;
+			}
+			else baseName = bt.BaseName;
+
+			if (baseName.IsNullOrWhitespace())
+				if (bt.sGuid is not null)
+				{
+					baseName = CreateBaseNameFromsGuid(bt.sGuid);
+					bt.BaseName = baseName;
+				}
+				else
+					throw new InvalidOperationException("supplied node did not have sGuid assigned.");
+			
+			string name = new StringBuilder(bt.ElementPrefix)
+						.Append('_')
+						.Append(baseName)
+						.Append('_')
+						.Append(bt.SubIETcounter).ToString();
+			return name;
 		}
 
 		//TODO: names prefixed with "_" will be preserved.
@@ -2258,45 +2331,6 @@ namespace SDC.Schema
 				}
 			} while (i < 1000);
 			throw new InvalidOperationException("Could not generate acceptable GUID/sGuid");
-		}
-		//
-		/// <summary>
-		/// Create a consistent unique name for the passed SDC node. The name is formatted like:<code><br/>
-		///	ElementPrefix_BaseNameOfParentIETNode_SubIETcounter</code><br/>
-		/// Requires that ElementPrefix and either sGuid or BaseName have values.  <br/>
-		/// To work properly, SubIETcounter requires that ancestor nodes are registered in their TopNode Dictionaries.
-		/// </summary>
-		/// <param name="bt">The node for which the name will be created.</param>
-		/// <returns>A consistent value for the @name attribute.</returns>
-		public static string CreateSimpleName(BaseType bt)
-		{
-			string baseName = "";
-			if (bt is not IdentifiedExtensionType)
-			{
-				var iet = bt.ParentIETypeNode;
-				if (iet is not null)
-					baseName = iet.BaseName;
-				else
-					if(bt.BaseName is not null) 
-						baseName = bt.BaseName;
-			}
-			else baseName = bt.BaseName;
-
-			if (baseName.IsNullOrWhitespace())
-				if (bt.sGuid is not null)
-				{
-					baseName = CreateBaseNameFromsGuid(bt.sGuid);
-					bt.BaseName = baseName;
-				}
-				else
-					throw new InvalidOperationException("supplied node did not have sGuid assigned.");
-			
-			string name = new StringBuilder(bt.ElementPrefix)
-						.Append('_')
-						.Append(baseName)
-						.Append('_')
-						.Append(bt.SubIETcounter).ToString();
-			return name;
 		}
 		/// <summary>
 		/// Assign ObjectGUID and sGuid, and return a BaseName, based on an existing sGuid, if present. from a new Guid, without any external sGuid or Guid input.

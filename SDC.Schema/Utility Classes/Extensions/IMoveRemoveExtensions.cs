@@ -42,7 +42,7 @@ namespace SDC.Schema.Extensions
 		/// <param name="pObj">The property object on <paramref name="newParent"/> that would attach to <paramref name="btSource"/> (hold its object reference).
 		/// pObj may be a List&lt;> or a non-List object.</param>
 		/// <returns>True for allowed parent nodes, false for disallowed not allowed</returns>
-		internal static bool IsParentNodeAllowed(this BaseType btSource, BaseType newParent, out object? pObj)
+		private static bool IsParentNodeAllowed(this BaseType btSource, BaseType newParent, out object? pObj)
 			=> SdcUtil.IsParentNodeAllowed(btSource, newParent, out pObj);
 
 		/// <summary>
@@ -101,7 +101,7 @@ namespace SDC.Schema.Extensions
 					{
 						RemoveNodesRecursively(kids.Last()); //recurse depth first 
 						kids.Last().RemoveNodeObject(); //Remove from object tree
-						kids.Last().UnRegisterNode(); //Remove from dictionaries
+						kids.Last().UnRegisterNodeAndParent(); //Remove from dictionaries
 					}
 					return true;
 				}
@@ -191,7 +191,7 @@ namespace SDC.Schema.Extensions
 
 			if (btSource.IsParentNodeAllowed(newParent, out object? targetObj))
 			{
-				//+Set SameRoot
+				//!Set SameRoot
 				//Do btSource and newParent share the same root node? (Are they from the same SDC tree?)
 				bool sameRoot = false;  //Do source and target share the same root node?
 				var sourceRoot = btSource.FindRootNode();
@@ -300,7 +300,7 @@ namespace SDC.Schema.Extensions
 
 					if (isSourceParentChildless && deleteEmptyParentNode)
 					{
-						UnRegisterNode(sourceParent!); //this calls UnRegisterParent also
+						UnRegisterNodeAndParent(sourceParent!); //this calls UnRegisterParent also
 					}
 					return true;
 				}
@@ -413,7 +413,7 @@ namespace SDC.Schema.Extensions
 		/// <param name="inParentNode"></param>
 		/// <param name="childNodesSort"></param>
 		/// <exception cref="NullReferenceException"></exception>
-		internal static void RegisterParent(this BaseType node, BaseType inParentNode, bool childNodesSort = true)
+		private static void RegisterParent(this BaseType node, BaseType inParentNode, bool childNodesSort = true)
 		{
 			if (inParentNode != null)
 			{
@@ -459,7 +459,7 @@ namespace SDC.Schema.Extensions
 		/// <param name="node"></param>
 		/// <exception cref="InvalidOperationException"></exception>
 		/// <exception cref="NullReferenceException"></exception>
-		internal static void UnRegisterParent(this BaseType node)
+		private static void UnRegisterParent(this BaseType node)
 		{
 			var par = node.ParentNode;
 			bool success;
@@ -500,7 +500,7 @@ namespace SDC.Schema.Extensions
 		/// </summary>
 		/// <param name="node"></param>
 		/// <exception cref="Exception"></exception>
-		internal static void UnRegisterNode(this BaseType node)
+		internal static void UnRegisterNodeAndParent(this BaseType node)
 		{
 			var _topNode = (_ITopNode?)node.TopNode;
 			if (_topNode is null)

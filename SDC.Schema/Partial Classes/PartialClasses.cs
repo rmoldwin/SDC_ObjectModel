@@ -25,7 +25,7 @@ using SDC.Schema.Extensions;
 namespace SDC.Schema
 {
 
-	#region   ..ITopNode SDC Elements
+	#region   ITopNode SDC Elements
 	public partial class FormDesignType : _ITopNode, ITopNodeDeserialize<FormDesignType>
 	{
 		#region ctor
@@ -50,7 +50,7 @@ namespace SDC.Schema
 		private void Init()
 		{
 			ElementName = "FormDesign";
-			ElementPrefix = "fd";
+			ElementPrefix = "FD";
 		}
 
 		/// <summary>
@@ -94,16 +94,19 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _ietNodesRO;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
 		{
 			get
-			{
-				if (_ietNodesRO is null)
-					_ietNodesRO = new(((_ITopNode)TopNode)._IETnodes);
-				return _ietNodesRO;
+			{				
+				if (_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
+				}
+				return _IETnodesRO;
 			}
 		}
 
@@ -122,7 +125,7 @@ namespace SDC.Schema
 			topNode._ParentNodes.Clear();
 			topNode._ChildNodes.Clear();
 			topNode._IETnodes.Clear();
-			_ietNodesRO = null;
+			_IETnodesRO = null;
 			_nodesRO = null;
 			topNode._IETnodes.Clear();
 		}
@@ -149,23 +152,37 @@ namespace SDC.Schema
 		#endregion
 
 		#region Deserialization
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
 
-		public static FormDesignType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static FormDesignType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public static FormDesignType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static FormDesignType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public static FormDesignType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static FormDesignType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromBson(sdcBson);
-		public static FormDesignType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static FormDesignType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<FormDesignType>.DeserializeFromMsgPack(sdcMsgPack);
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXml(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromBson(sdcBson, refreshSdc, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPackPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPack(byte[], bool, SdcUtil.CreateName?, int, int)"/>
+		public static FormDesignType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<FormDesignType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
 
 		#endregion
 
@@ -174,7 +191,7 @@ namespace SDC.Schema
 	public partial class DemogFormDesignType : FormDesignType
 	{
 		protected DemogFormDesignType() : base()
-		{ }
+		{ Init(); }
 		//public DemogFormDesignType(ITreeBuilder treeBuilder, BaseType parentNode = null, string id = "")
 		//    : base(treeBuilder, parentNode, id)
 		//{ }
@@ -185,27 +202,48 @@ namespace SDC.Schema
 		/// <param name="id"></param>
 		public DemogFormDesignType(XMLPackageType? parentNode = null!, string id = "")
 			: base(parentNode, id)
-		{ }//use the FormDesignType constructor (base(parentNode, id))
+		{ Init(); }//use the FormDesignType constructor (base(parentNode, id))
+
+		private void Init()
+		{
+			ElementName = "DemogFormDesign";
+			ElementPrefix = "DFD";
+		}
 
 		#region ITopNode
 		#region Deserialization
 
-		public static DemogFormDesignType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-		=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DemogFormDesignType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public static DemogFormDesignType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DemogFormDesignType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public static DemogFormDesignType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DemogFormDesignType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromBson(sdcBson);
-		public static DemogFormDesignType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DemogFormDesignType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromMsgPack(sdcMsgPack);
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXml(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromBson(sdcBson, refreshSdc, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPackPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPack(byte[], bool, SdcUtil.CreateName?, int, int)"/>
+		public static DemogFormDesignType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DemogFormDesignType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
 
 		#endregion
 
@@ -221,6 +259,7 @@ namespace SDC.Schema
 		}
 		private void Init()
 		{
+			ElementName = "DataElement";
 			ElementPrefix = "DE";
 		}
 
@@ -257,16 +296,19 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETNodes;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
 		{
 			get
 			{
-				if (_IETNodes is null)
-					_IETNodes = new(((_ITopNode)TopNode)._IETnodes);
-				return _IETNodes;
+				if (_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
+				}
+				return _IETnodesRO;
 			}
 		}
 
@@ -309,22 +351,37 @@ namespace SDC.Schema
 
 		#region Deserialization
 
-		public static DataElementType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DataElementType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public static DataElementType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DataElementType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public static DataElementType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DataElementType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromBson(sdcBson);
-		public static DataElementType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static DataElementType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<DataElementType>.DeserializeFromMsgPack(sdcMsgPack);
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXml(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromBson(sdcBson, refreshSdc, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPackPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPack(byte[], bool, SdcUtil.CreateName?, int, int)"/>
+		public static DataElementType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<DataElementType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
 
 		#endregion
 
@@ -342,7 +399,8 @@ namespace SDC.Schema
 		}
 		private void Init()
 		{
-			ElementPrefix = "RFP";
+			ElementName = "SDCPackage";
+			ElementPrefix = "PKG";
 		}
 
 		#region ITopNode
@@ -378,16 +436,19 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETNodes;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
 		{
 			get
 			{
-				if (_IETNodes is null)
-					_IETNodes = new(((_ITopNode)TopNode)._IETnodes);
-				return _IETNodes;
+				if (_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
+				}
+				return _IETnodesRO;
 			}
 		}
 
@@ -429,22 +490,37 @@ namespace SDC.Schema
 
 		#region Deserialization
 
-		public static RetrieveFormPackageType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static RetrieveFormPackageType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public static RetrieveFormPackageType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static RetrieveFormPackageType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public static RetrieveFormPackageType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static RetrieveFormPackageType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromBson(sdcBson);
-		public static RetrieveFormPackageType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static RetrieveFormPackageType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromMsgPack(sdcMsgPack);
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXml(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromBson(sdcBson, refreshSdc, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPackPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPack(byte[], bool, SdcUtil.CreateName?, int, int)"/>
+		public static RetrieveFormPackageType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
 		#endregion
 
 		#endregion
@@ -468,6 +544,7 @@ namespace SDC.Schema
 		}
 		private void Init()
 		{
+			ElementName = "SDCPackageList";
 			ElementPrefix = "PL";
 		}
 		#region ITopNode
@@ -503,16 +580,19 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETNodes;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
 		{
 			get
 			{
-				if (_IETNodes is null)
-					_IETNodes = new(((_ITopNode)TopNode)._IETnodes);
-				return _IETNodes;
+				if (_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
+				}
+				return _IETnodesRO;
 			}
 		}
 
@@ -558,22 +638,37 @@ namespace SDC.Schema
 
 		#region Deserialization
 
-		public static PackageListType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static PackageListType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public static PackageListType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static PackageListType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public static PackageListType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static PackageListType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromBson(sdcBson);
-		public static PackageListType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static PackageListType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<PackageListType>.DeserializeFromMsgPack(sdcMsgPack);
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXml(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromBson(sdcBson, refreshSdc, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPackPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPack(byte[], bool, SdcUtil.CreateName?, int, int)"/>
+		public static PackageListType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<PackageListType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
 		#endregion		#endregion
 		#endregion
 
@@ -589,6 +684,7 @@ namespace SDC.Schema
 		}
 		private void Init()
 		{
+			ElementName = "MapTemplate";
 			ElementPrefix = "MAP";
 		}
 		#region ITopNode
@@ -624,16 +720,19 @@ namespace SDC.Schema
 		[XmlIgnore]
 		[JsonIgnore]
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETNodes;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
 		{
 			get
 			{
-				if (_IETNodes is null)
-					_IETNodes = new(((_ITopNode)TopNode)._IETnodes);
-				return _IETNodes;
+				if (_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
+				}
+				return _IETnodesRO;
 			}
 		}
 
@@ -676,22 +775,37 @@ namespace SDC.Schema
 
 		#region Deserialization
 
-		public static MappingType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static MappingType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate);
-		public static MappingType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static MappingType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate);
-		public static MappingType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static MappingType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromBson(sdcBson);
-		public static MappingType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate);
-		public static MappingType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null)
-			=> TopNodeSerializer<MappingType>.DeserializeFromMsgPack(sdcMsgPack);
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXml(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromXml(string sdcXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromXml(sdcXml, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromJsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromJsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromJson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromJson(sdcJson, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBsonPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromBsonPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromBsonPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromBson(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromBson(string sdcBson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromBson(sdcBson, refreshSdc, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPackPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromMsgPackPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromMsgPackPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
+
+		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPack(byte[], bool, SdcUtil.CreateName?, int, int)"/>
+		public static MappingType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+			=> TopNodeSerializer<MappingType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
 
 		#endregion		#endregion
 		#endregion

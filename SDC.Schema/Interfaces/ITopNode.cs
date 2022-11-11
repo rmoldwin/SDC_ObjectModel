@@ -6,9 +6,9 @@ using System.Xml.Serialization;
 namespace SDC.Schema
 {
 	/// <summary>
-	/// A public/internal interface inherited by all types that sit at the top of the SDC class hierarchy
-	/// Used by FormDesignType, DemogFormDesignType, DataElementType, RetrieveFormPackageType, and PackageListType
-	/// The interface provides a common way to fill the above object trees using a single set of shared code.
+	/// A public/internal interface inherited by all types that sit at the top of the SDC class hierarchy.<br/>
+	/// Used by FormDesignType, DemogFormDesignType, DataElementType, RetrieveFormPackageType, PackageListType and MappingType.<br/>
+	/// The interface provides a common way to fill the above object trees using a single set of shared code.<br/>
 	/// It also provides a set of consistent, type-specific, public utilities for working with SDC objects.
 	/// </summary>
 
@@ -28,7 +28,7 @@ namespace SDC.Schema
 		/// <summary>
 		/// ReadOnlyObservableCollection of IET nodes.
 		/// </summary>
-		ReadOnlyObservableCollection<IdentifiedExtensionType> IETNodes { get; }
+		ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes { get; }
 
 		//[XmlIgnore]
 		//[JsonIgnore]
@@ -100,7 +100,8 @@ namespace SDC.Schema
 		/// <summary>
 		/// Internal base object for initializing IETnodesRO.
 		/// </summary>
-		internal ObservableCollection<IdentifiedExtensionType> _IETnodes { get;}
+		internal ObservableCollection<IdentifiedExtensionType> _IETnodes { get; }
+		//internal SortedList<int, BaseType> _slIETndes { get; } = new()
 
 		///// <summary>
 		///// Internal version of MaxObjectID, which has a setter; MaxObjectID only has a getter.

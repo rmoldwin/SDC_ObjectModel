@@ -192,15 +192,30 @@ namespace SDC.Schema
 
 			throw ex;
 		}
+		
 	}
 
+	public class TreeOrderComparer : Comparer<BaseType>
+	{
+		public override int Compare(BaseType? nodeA, BaseType? nodeB)
+		{
+			if (nodeA is null && nodeB is null) throw new InvalidOperationException("The supplied nodes cannot be sorted: Both nodes are null");
+			if (nodeA == nodeB) return 0; //node reference comparison rather than using order
+			if (nodeA is not null && nodeB is null) throw new InvalidOperationException("The supplied nodes cannot be sorted: NodeB is null");
+			if (nodeA is null && nodeB is not null) throw new InvalidOperationException("The supplied nodes cannot be sorted: NodeA is null");
+
+			if (nodeA!.order < nodeB!.order) return -1;
+			return 1;
+		}
 
 
-	public class TreeGuidComparer : Comparer<Guid>
+	}
+
+		public class TreeGuidComparer : Comparer<Guid>
 	{
 		private ITopNode topNode { get; set; }
 		static TreeComparer treeComparer = new TreeComparer();
-		TreeGuidComparer(ITopNode TopNode)
+		TreeGuidComparer(ITopNode TopNode) //this only works if both nodes share the same TopNode
 		{
 			topNode = TopNode;
 		}
@@ -208,7 +223,7 @@ namespace SDC.Schema
 		{		
 
 			BaseType? nodeA, nodeB;
-			_ITopNode _topNode = (_ITopNode)topNode;
+			_ITopNode _topNode = (_ITopNode)topNode; //this only works if both nodes share the same TopNode
 
 			_topNode._Nodes.TryGetValue(guidA, out nodeA);
 			_topNode._Nodes.TryGetValue(guidB, out nodeB);
@@ -225,7 +240,6 @@ namespace SDC.Schema
 			return treeComparer.Compare(nodeA, nodeB);
 		}
 	}
-
 
 
 

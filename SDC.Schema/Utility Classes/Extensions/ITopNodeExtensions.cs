@@ -207,7 +207,7 @@ namespace SDC.Schema.Extensions
 
 			char gt = ">"[0];
 			//  ------------------------------------------------------------------------------------
-			foreach (IdentifiedExtensionType n in itn.IETNodes)
+			foreach (IdentifiedExtensionType n in itn.IETnodes)
 			{
 				var en = n.ElementName;
 				int enLen = 36 - en.Length;
@@ -301,7 +301,7 @@ namespace SDC.Schema.Extensions
 					if (parExists)
 					{
 						//bt.IsLeafNode = true;
-						bt.RegisterParent(btPar!, childNodesSort: false);
+						bt.RegisterNodeAndParent(btPar!, childNodesSort: false);
 						//Debug.WriteLine($"The node with ObjectID: {bt.ObjectID} is leaving InitializeNodesFromSdcXml. Item type is {bt.GetType().Name}.  " +
 						//            $"Parent ObjectID is {bt?.ParentID}, ParentIETypeID: {bt?.ParentIETypeID}, ParentType: {btPar.GetType().Name}");
 					}

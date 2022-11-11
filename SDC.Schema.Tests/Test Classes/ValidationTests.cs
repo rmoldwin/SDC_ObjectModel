@@ -13,6 +13,7 @@ using System.Security.Claims;
 using Microsoft.VisualStudio.TestPlatform.CoreUtilities.Extensions;
 using Newtonsoft.Json;
 using Microsoft.VisualBasic;
+using SDC.Schema.Extensions;
 //using SDC.Schema;
 
 namespace SDCObjectModelTests.TestClasses
@@ -61,6 +62,10 @@ namespace SDCObjectModelTests.TestClasses
         [TestMethod]
         public void ValidateXmlFormDesign()
         {
+            var xml = fd.GetXml();
+            var result = SdcValidate.ValidateSdcXml(xml);
+
+			Console.WriteLine("***" + result??"");
 
         }
 
