@@ -81,13 +81,15 @@ namespace SDC.Schema
 			return copy;
 
 		}
-		public static string ValidationLastMessage { get; private set; }
-		public static List<ValidationEventArgs> ValidateSdcJson(string json)
+		internal static string ValidationLastMessage { get; private set; }
+
+
+		public static List<ValidationEventArgs> ValidateSdcJson(this string json)
 		{
 			return ValidateSdcXml(GetXmlFromJson(json));
 		}
 
-		public static void ValidationEventHandler(object sender, ValidationEventArgs e)
+		private static void ValidationEventHandler(object sender, ValidationEventArgs e)
 		{
 			switch (e.Severity)
 			{
