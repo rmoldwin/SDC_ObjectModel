@@ -18,14 +18,19 @@ namespace SDC.Schema
 		public static List<ValidationEventArgs> valEventList = new();
 
 		/// <summary>
-		/// Not yet implemented;
+		/// Convert the SDC object tree to xml and validate the xml;
+		/// <inheritdoc cref="SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?, int, int)"/>
 		/// </summary>
 		/// <param name="itn"></param>
+		/// <param name="refreshSdc"></param>
+		/// <param name="createNameDelegate"></param>
+		/// <param name="orderStart"></param>
+		/// <param name="orderGap"></param>
 		/// <returns></returns>
 		/// <exception cref="NotImplementedException"></exception>
-		public static string ValidateSdcObjectTree(this ITopNode itn)
+		public static List<ValidationEventArgs> ValidateSdcObjectTree(this ITopNode itn, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
 		{
-			//custom statements to enforce some things that the object model and/or XML Schema can't enforce by themselves.
+			//TODO:custom statements to enforce some things that the object model and/or XML Schema can't enforce by themselves.
 			//complex nestings of choice and sequence
 			//datatype metadata encoded in XML (i.e., no in the Schema per se)
 			//references to element names inside of rules
@@ -33,8 +38,36 @@ namespace SDC.Schema
 			//content consistency inside of SDCPackages
 			//return ValidateSdcXml(itn.GetXml(true, SdcUtil.CreateCAPname));
 
-			throw new NotImplementedException();
+			string xml;
+			switch (itn)
+			{
+				case DemogFormDesignType df:
+					xml = df.GetXml();
+					break;
+				case FormDesignType fd:
+					xml = fd.GetXml();
+					break;
+				case RetrieveFormPackageType rfp:
+					xml = rfp.GetXml();
+					break;
+				case DataElementType de:
+					xml = de.GetXml();
+					break;
+				case PackageListType pl:
+					xml = pl.GetXml();
+					break;
+				default:
+					throw new InvalidOperationException("Unknown object type supplied for ITopNode itn");
+			}
+
+			return ValidateSdcXml(xml);
+
 		}
+		/// <summary>
+		/// </summary>
+		/// <param name="xml"></param>
+		/// <param name="sdcSchemaUri"></param>
+		/// <returns></returns>
 		public static List<ValidationEventArgs> ValidateSdcXml(string xml, string sdcSchemaUri = null)
 		{
 			//https://docs.microsoft.com/en-us/dotnet/standard/data/xml/xmlschemaset-for-schema-compilation
@@ -83,7 +116,15 @@ namespace SDC.Schema
 		}
 		internal static string ValidationLastMessage { get; private set; }
 
+		private static void XmlValidater(string xml)
+		{
 
+
+
+
+
+
+		}
 		public static List<ValidationEventArgs> ValidateSdcJson(this string json)
 		{
 			return ValidateSdcXml(GetXmlFromJson(json));
