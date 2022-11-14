@@ -963,7 +963,7 @@ namespace SDC.Schema
 			return lst?.Last();
 		}
 		/// <summary>
-		/// Retrieve the previous <see cref="BaseType"/> SDC element node using _TopNode dictionaries.<br/>
+		/// Retrieve the previous <see cref="BaseType"/> SDC element node using _ITopNode dictionaries.<br/>
 		/// This node may be a previous sibling, or a non-sibling node higher up in the SDC tree (closer to the SDC root node), under a different parent node.		/// </summary>
 		/// <param name="n"></param>
 		/// <returns></returns>
@@ -985,6 +985,45 @@ namespace SDC.Schema
 
 			return par;
 		}
+
+		/// <summary>
+		/// Retrieve the previous <see cref="IdentifiedExtensionType"/> SDC element node using _ITopNode dictionaries.<br/>
+		/// This node may be a previous sibling, or a non-sibling node higher up in the SDC tree (closer to the SDC root node), under a different parent node.		
+		/// /// </summary>
+		/// <param name="n"></param>
+		/// <returns></returns>
+		public static IdentifiedExtensionType? GetPrevElementIET(BaseType n)
+		{ 
+			BaseType? bt = n;
+			do
+			{
+				bt = bt.GetNodePrevious();
+				if (bt is IdentifiedExtensionType iet) return iet;
+
+			} while(bt is not null);
+
+			return null;
+		}
+
+		/// <summary>
+		/// Retrieve the previous <see cref="IdentifiedExtensionType"/> SDC element node by reflections.<br/>
+		/// This node may be a previous sibling, or a non-sibling node higher up in the SDC tree (closer to the SDC root node), under a different parent node.		
+		/// /// </summary>
+		/// <param name="n"></param>
+		/// <returns></returns>
+		public static IdentifiedExtensionType? ReflectPrevElementIET(BaseType n)
+		{
+			BaseType? bt = n;
+			do
+			{
+				bt = ReflectPrevElement(n);
+				if (bt is IdentifiedExtensionType iet) return iet;
+
+			} while (bt is not null);
+
+			return null;
+		}
+
 		/// <summary>
 		/// Retrieve the previous <see cref="BaseType"/> SDC element node by reflection.<br/>
 		/// This node may be a previous sibling, or a non-sibling node higher up in the SDC tree (closer to the SDC root node), under a different parent node.

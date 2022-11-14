@@ -294,7 +294,7 @@ namespace SDC.Schema.Extensions
 						propList.Insert(newListIndex, btSource);
 
 
-					//!Remove deleted nodes from Top Node dictionaries
+					//!Remove deleted nodes from _TTop Node dictionaries
 					btSource.MoveInDictionaries(targetParent: newParent);
 					btSource.AssignOrder(); //Requires that dictionaries are first populated
 
@@ -360,8 +360,12 @@ namespace SDC.Schema.Extensions
 
 					if (node is IdentifiedExtensionType iet)
 					{
-						tn._IETnodes.Add(iet);
-						//tn._IETnodes.OrderBy(n => n.order);
+						var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our moved node
+						int ietPrevPosition = -1;
+						if(ietPrev is not null) tn._IETnodes.IndexOf(ietPrev);  //this may be inefficient; may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) instead (using sGuid as Key).
+
+						foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
+							tn._IETnodes.Insert(++ietPrevPosition, n);
 					}
 					return;
 				}
@@ -521,10 +525,16 @@ namespace SDC.Schema.Extensions
 
 				if (node is IdentifiedExtensionType iet)
 				{
-					var inb = tn?._IETnodes;
-					success = inb?.Remove(iet) ?? false;
-					if (!success)
-						throw new Exception($"Could not remove object from IETnodesBase collection: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
+					var inb = tn!._IETnodes;
+					if(inb is null) 
+						throw new InvalidOperationException($"TopNode._IETnodes was null; Node name: {iet.name ?? "(none)"}, Short Guid: {node.sGuid}");
+
+					foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
+					{
+						success = inb.Remove(n);
+						if (!success)
+						throw new Exception($"Could not remove object from _IETnodes collection. Node name: {node.name ?? "(none)"}, Short Guid: {node.sGuid}");
+					}
 				}
 			}
 		} //!not tested

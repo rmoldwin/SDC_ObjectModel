@@ -101,7 +101,7 @@ namespace SDC.Schema
 		/// Internal base object for initializing IETnodesRO.
 		/// </summary>
 		internal ObservableCollection<IdentifiedExtensionType> _IETnodes { get; }
-		//internal SortedList<int, BaseType> _slIETndes { get; } = new()
+
 
 		///// <summary>
 		///// Internal version of MaxObjectID, which has a setter; MaxObjectID only has a getter.
