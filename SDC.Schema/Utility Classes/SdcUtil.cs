@@ -145,12 +145,12 @@ namespace SDC.Schema
 
 		/// <summary>
 		/// If <paramref name="refreshTree"/> is true (default),
-		///	this method uses reflection to refresh: <br/>
+		///	this method uses reflection to refresh: <br/><br/>
 		///		_TTopNode._Nodes, _ITopNode_ParentNodes and _ITopNode_ChildNodes dictionaries, with all nodes in the proper order.<br/>
 		///		Some BaseType properties are updated: <br/>
 		///		SGuid properties are created if missing, and name and order properties are created/updated as needed.  <br/>
-		///		@name properties will be overwritten with new @name values that may not match the original.<br/>
-		/// If <paramref name="refreshTree"/> is false, this method returns an ordered List&lt;BaseType>, <br/>
+		///		@name properties will be overwritten with new @name values that may not match the original.<br/><br/>
+		/// If <paramref name="refreshTree"/> is false, this method returns an ordered List&lt;BaseType>, <br/><br/>
 		/// but none of the above refresh actions are performed.
 		/// </summary>
 		/// <param name="topNode">The ITopNode SDC node that will have its tree refreshed<br/>
@@ -168,7 +168,7 @@ namespace SDC.Schema
 		/// <param name="orderGap">A multiplier for the @order atttribute. <br/>
 		/// <b><paramref name="orderGap"/></b> controls the distance between sequential @order values.<br/>
 		/// The default value is 10.<br/>
-		/// A value of 0 will suppress @order from being serialized.</param>		
+		/// A value of 0 will prevent @order from being generated and serialized.</param>		
 		public static List<BaseType> ReflectRefreshTree(ITopNode topNode
 		, out string? treeText
 		, bool print = false
@@ -339,7 +339,6 @@ namespace SDC.Schema
 				{
 					string elementName;
 					int elementOrder = -1;
-					string suffix = "";
 					//Fill some useful properties, while it's efficient to do so, 
 					//because we have the PropertyInfo object (pi) and the actual property object (btProp) already available.
 					elementName = SdcUtil.ReflectSdcElement(pi, btProp, out _, out elementOrder, out _, out _, out _, out string? errorMsg);
@@ -964,7 +963,7 @@ namespace SDC.Schema
 			return lst?.Last();
 		}
 		/// <summary>
-		/// Retrieve the previous <see cref="BaseType"/> SDC element node using _TopNode dictionaries.<br/>
+		/// Retrieve the previous <see cref="BaseType"/> SDC element node using _ITopNode dictionaries.<br/>
 		/// This node may be a previous sibling, or a non-sibling node higher up in the SDC tree (closer to the SDC root node), under a different parent node.		/// </summary>
 		/// <param name="n"></param>
 		/// <returns></returns>
@@ -986,6 +985,45 @@ namespace SDC.Schema
 
 			return par;
 		}
+
+		/// <summary>
+		/// Retrieve the previous <see cref="IdentifiedExtensionType"/> SDC element node using _ITopNode dictionaries.<br/>
+		/// This node may be a previous sibling, or a non-sibling node higher up in the SDC tree (closer to the SDC root node), under a different parent node.		
+		/// /// </summary>
+		/// <param name="n"></param>
+		/// <returns></returns>
+		public static IdentifiedExtensionType? GetPrevElementIET(BaseType n)
+		{ 
+			BaseType? bt = n;
+			do
+			{
+				bt = bt.GetNodePrevious();
+				if (bt is IdentifiedExtensionType iet) return iet;
+
+			} while(bt is not null);
+
+			return null;
+		}
+
+		/// <summary>
+		/// Retrieve the previous <see cref="IdentifiedExtensionType"/> SDC element node by reflections.<br/>
+		/// This node may be a previous sibling, or a non-sibling node higher up in the SDC tree (closer to the SDC root node), under a different parent node.		
+		/// /// </summary>
+		/// <param name="n"></param>
+		/// <returns></returns>
+		public static IdentifiedExtensionType? ReflectPrevElementIET(BaseType n)
+		{
+			BaseType? bt = n;
+			do
+			{
+				bt = ReflectPrevElement(n);
+				if (bt is IdentifiedExtensionType iet) return iet;
+
+			} while (bt is not null);
+
+			return null;
+		}
+
 		/// <summary>
 		/// Retrieve the previous <see cref="BaseType"/> SDC element node by reflection.<br/>
 		/// This node may be a previous sibling, or a non-sibling node higher up in the SDC tree (closer to the SDC root node), under a different parent node.
