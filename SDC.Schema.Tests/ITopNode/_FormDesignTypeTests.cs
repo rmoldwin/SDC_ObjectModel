@@ -10,10 +10,10 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 
-namespace SDCObjectModelTests
+namespace SDC.Schema.Tests.ITopNode
 {
     [TestClass()]
-    public class FormDesignTypeTests
+    public class _FormDesignTypeTests
     {
         [TestMethod()]
         public void FormDesignTypeTest()

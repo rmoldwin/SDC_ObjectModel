@@ -1,15 +1,15 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema;
 using SDC.Schema.Extensions;
-using SDCObjectModelTests;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SDC.Schema.Tests;
 
-namespace SDC.Schema.Tests
+namespace SDC.Schema.Tests.Utils.Extensions
 {
 	[TestClass()]
 	public class ITopNodeExtensionsTests

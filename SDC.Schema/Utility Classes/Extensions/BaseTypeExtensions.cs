@@ -96,7 +96,7 @@ namespace SDC.Schema.Extensions
 		/// <summary>
 		/// For the current node, retrieves a <see cref="List&lt;AttributeInfo>"/> containing <see cref="AttributeInfo"/> (AI) definitions for all XML attributes of the current node that will be serialized to XML. <br/>
 		/// Each AI struct can be used to obtain the type, name and other features of each attribute.<br/>
-		/// Also, each AI can be used to create an instance of the object by calling the underlying PropertyInfo object:<br/>
+		/// Also, each AI can be used to create a reference to the object by calling the underlying PropertyInfo object:<br/>
 		/// AI.AttributePropInfo.GetValue(parentObject)
 		/// </summary>
 		/// <param name="bt"></param>

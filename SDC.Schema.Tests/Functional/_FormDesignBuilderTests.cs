@@ -5,12 +5,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using SDC.Schema.Tests.Utils.Extensions;
 using SDC.Schema.Extensions;
 
-namespace SDCObjectModelTests.TestClasses
+namespace SDC.Schema.Tests.Functional
 {
     [TestClass]
-    public class FormDesignBuilderTests
+    public class _FormDesignBuilderTests
     {
         [TestMethod]
         public void AssignXmlNames()

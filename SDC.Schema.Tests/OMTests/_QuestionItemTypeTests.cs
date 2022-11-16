@@ -10,129 +10,112 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 
-namespace SDCObjectModelTests
+namespace SDC.Schema.Tests.OMTests
 {
     [TestClass()]
-    public class ActionsTypeTests
+    public class _QuestionItemTypeTests
     {
         [TestMethod()]
-        public void ActionsTypeTest()
+        public void QuestionItemTypeTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActActionTest()
+        public void AddChildSectionTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActSelectMatchingListItemsTest()
+        public void AddChildQuestionTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActAddCodeTest()
+        public void AddChildInjectedFormTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActInjectTest()
+        public void AddChildButtonActionTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActShowURLTest()
+        public void AddChildDisplayedItemTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActSaveResponsesTest()
+        public void HasChildItemsTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActSendReportTest()
+        public void GetQuestionSubtypeTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActSendMessageTest()
+        public void AddListItemTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActSetAttributeValueTest()
+        public void AddListItemResponseTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActSetAttributeValueScriptTest()
+        public void AddDisplayedTypeToListTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActSetBoolAttributeValueCodeTest()
+        public void ConvertToQRTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActShowFormTest()
+        public void ConvertToQSTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActShowMessageTest()
+        public void ConvertToQMTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActShowReportTest()
+        public void ConvertToDITest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActPreviewReportTest()
+        public void ConvertToSectionTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActValidateFormTest()
-        {
-
-        }
-
-        [TestMethod()]
-        public void AddActRunCodeTest()
-        {
-
-        }
-
-        [TestMethod()]
-        public void AddActCallFunctionTest()
-        {
-
-        }
-
-        [TestMethod()]
-        public void AddActConditionalGroupTest()
+        public void ConvertToLookupTest()
         {
 
         }
     }
+
 }

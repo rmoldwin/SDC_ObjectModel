@@ -12,7 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 
-namespace SDCObjectModelTests
+namespace SDC.Schema.Tests
 {
     public static class Setup
     {
@@ -28,8 +28,8 @@ namespace SDCObjectModelTests
         public static string DemogFormDesignXml { get; set; }
         public static string RetrieveFormXml { get; set; }
         public static string MappingXml { get; set; }
-        public static string RetrieveFormComplexXml { get; set; }
-        public static string IdrXml { get; set; }
+        public static string X_RetrieveFormComplexXml { get; set; }
+        public static string X_IdrXml { get; set; }
         public static string FormDesignWithHtmlXml { get; set; }
 
         static Setup()

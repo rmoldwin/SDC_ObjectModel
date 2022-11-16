@@ -10,10 +10,10 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 
-namespace SDCObjectModelTests
+namespace SDC.Schema.Tests.OMTests
 {
     [TestClass()]
-    public class SectionItemTypeTests
+    public class _SectionItemTypeTests
     {
         [TestMethod()]
         public void SectionItemTypeTest()

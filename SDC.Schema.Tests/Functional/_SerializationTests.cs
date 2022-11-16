@@ -3,15 +3,15 @@ using System;
 using System.Linq;
 //using SDC.Schema;
 
-namespace SDCObjectModelTests.TestClasses
+namespace SDC.Schema.Tests.Functional
 {
     [TestClass]
-    public class SerializationTests
+    public class _SerializationTests
     {
 
  
 
-        public SerializationTests()
+        public _SerializationTests()
         {
         }
 

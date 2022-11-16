@@ -355,7 +355,8 @@ namespace SDC.Schema
 
 					if (btProp is IdentifiedExtensionType iet)
 					{
-						if (iet.ID.IsNullOrEmpty()) iet.ID = $"->{iet.sGuid}";
+						if (iet.ID.IsNullOrEmpty()) 
+							iet.ID = $"->{iet.sGuid}";
 					}
 					if (createNodeName is not null)
 						btProp.name = createNodeName(btProp) ?? btProp.name;
@@ -903,7 +904,7 @@ namespace SDC.Schema
 			return null;
 		}
 
-		public static BaseType? X_ReflectNextSibElement(BaseType n)
+		private static BaseType? X_ReflectNextSibElement(BaseType n)
 		{
 			var par = n.ParentNode;
 			if (par is null) return null;
@@ -1204,7 +1205,8 @@ namespace SDC.Schema
 		public static ReadOnlyCollection<BaseType>? GetChildElements(BaseType n)
 		{
 			var topNode = Get_ITopNode(n);
-			topNode._ChildNodes.TryGetValue(n.ObjectGUID, out List<BaseType>? kids);
+			List<BaseType>? kids = null;
+			topNode?._ChildNodes.TryGetValue(n.ObjectGUID, out kids);
 			if (kids is not null && kids.Count > 0) SortElementKids(n, kids);
 			return kids?.AsReadOnly();
 		}
@@ -2237,8 +2239,10 @@ namespace SDC.Schema
 			}
 			
 			nameSuffix = node.SubIETcounter.ToString(); 
-
-			return $"{namePrefix}_{nameBody}_{nameSuffix}";
+			if(nameSuffix == "0")
+				return $"{namePrefix}_{nameBody}";
+			else 
+				return $"{namePrefix}_{nameBody}_{nameSuffix}";
 		}
 		//
 		/// <summary>
@@ -2248,9 +2252,11 @@ namespace SDC.Schema
 		/// To work properly, SubIETcounter requires that ancestor nodes are registered in their TopNode Dictionaries.
 		/// </summary>
 		/// <param name="bt">The node for which the name will be created.</param>
+		/// <param name="initialTextToSkip">If an existing name value starts with this string, the existing name will be reused, and will not be replaced with a new value. </param>
 		/// <returns>A consistent value for the @name attribute.</returns>
-		public static string CreateSimpleName(BaseType bt)
+		public static string CreateSimpleName(BaseType bt, string initialTextToSkip = "")
 		{
+			if (bt.name?.Length > 0 && bt.name.AsSpan(0, 1) == initialTextToSkip) return bt.name;  //Return the existing name, if it starts with "_"
 			string baseName = "";
 			if (bt is not IdentifiedExtensionType)
 			{
@@ -2364,9 +2370,10 @@ namespace SDC.Schema
 				if (baseName.Length == 6 && !UniqueBaseNames.TryGetValue(baseName, out _))
 				{//TODO: test for undesirable sGuid words and sequences here...
 					UniqueBaseNames.Add(baseName);
-					return baseName;
-					i++;
+					if(allLowerCase) baseName = baseName.ToLower();
+					return baseName;					
 				}
+				i++;
 			} while (i < 1000);
 			throw new InvalidOperationException("Could not generate acceptable GUID/sGuid");
 		}

@@ -9,11 +9,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
+using SDC.Schema.Tests;
 
-namespace SDCObjectModelTests
+namespace SDC.Schema.Tests.Utils
 {
     [TestClass()]
-    public class PropertyInfoOrderedComparerTests
+    public class _AttributeComparerTests
     {
         [TestMethod()]
         public void CompareTest()

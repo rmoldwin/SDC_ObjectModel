@@ -10,10 +10,10 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 
-namespace SDCObjectModelTests
+namespace SDC.Schema.Tests.Utils
 {
     [TestClass()]
-    public class TreeComparerTests
+    public class _TreeComparerTests
     {
         [TestMethod()]
         public void CompareTest()

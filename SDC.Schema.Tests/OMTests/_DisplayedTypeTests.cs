@@ -10,56 +10,73 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 
-namespace SDCObjectModelTests
+namespace SDC.Schema.Tests.OMTests
 {
     [TestClass()]
-    public class BaseTypeExtensionsTests
+    public class _DisplayedTypeTests
     {
-
         [TestMethod()]
-        public void GetChildrenTest()
-        {
-            
-        }
-
-        [TestMethod()]
-        public void GetXmlAttributesFilledTest()
+        public void DisplayedTypeTest()
         {
 
         }
 
         [TestMethod()]
-        public void GetXmlAttributeAllTest()
+        public void AddLinkTest()
         {
 
         }
 
         [TestMethod()]
-        public void GetPropertyInfoListTest()
+        public void AddBlobTest()
         {
 
         }
 
         [TestMethod()]
-        public void GetPropertyInfoMetaDataTest()
+        public void AddContactTest()
         {
 
         }
 
         [TestMethod()]
-        public void GetSubtreeTest()
+        public void AddCodedValueTest()
         {
 
         }
 
         [TestMethod()]
-        public void GetSibsTest()
+        public void AddOnEventTest()
         {
 
         }
 
         [TestMethod()]
-        public void IsItemChangeAllowedTest()
+        public void AddOnEnterTest()
+        {
+
+        }
+
+        [TestMethod()]
+        public void AddOnExitTest()
+        {
+
+        }
+
+        [TestMethod()]
+        public void AddActivateIfTest()
+        {
+
+        }
+
+        [TestMethod()]
+        public void AddDeActivateIfTest()
+        {
+
+        }
+
+        [TestMethod()]
+        public void MoveEventTest()
         {
 
         }

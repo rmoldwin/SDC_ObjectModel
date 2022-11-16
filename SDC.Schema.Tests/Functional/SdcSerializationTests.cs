@@ -13,7 +13,7 @@ using System.Xml;
 
 //using SDC.Schema;
 
-namespace SDCObjectModelTests.TestClasses
+namespace SDC.Schema.Tests.Functional
 {
     [TestClass]
     public class SdcSerializationTests
@@ -238,6 +238,19 @@ namespace SDCObjectModelTests.TestClasses
 
         }
         [TestMethod]
+        public void DeserializePkgFromPath_AddName()
+        {
+			string path = Path.Combine("..", "..", "..", "Test files", "..Sample SDCPackage.xml");
+			SdcUtil.CreateName nameMethod = SdcUtil.CreateSimpleName;
+            //var nameMethod = SdcUtil.CreateCAPname;
+            var Pkg = RetrieveFormPackageType.DeserializeFromXmlPath(path, true, nameMethod, 0, 1);
+			var myXML = Pkg.GetXml();
+			Debug.Print(myXML);
+
+
+
+		}
+			[TestMethod]
         public void JsonToXML()
         {
             Setup.TimerStart($"==>{Setup.CallerName()} Started");

@@ -7,7 +7,7 @@ using System.Xml.Serialization;
 using System.Diagnostics;
 //using SDC.Schema;
 
-namespace SDCObjectModelTests.TestClasses
+namespace SDC.Schema.Tests.Functional
 {
     [TestClass]
     public class MiscTests

@@ -16,7 +16,7 @@ using System.Xml.Serialization;
 
 //using SDC.Schema;
 
-namespace SDCObjectModelTests.TestClasses
+namespace SDC.Schema.Tests.Functional
 {
     [TestClass]
     public class MoveTests

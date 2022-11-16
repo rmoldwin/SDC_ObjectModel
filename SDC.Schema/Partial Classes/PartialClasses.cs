@@ -3158,13 +3158,9 @@ namespace SDC.Schema
 		public string_DEtype(BaseType parentNode) : base(parentNode)
 		{
 			Init();
-			//ElementPrefix = "str";
-			//SetNames(elementName, elementPrefix);
-		} //{if (elementName.Length > 0) ElementName = elementName; }
+		} 
 		private void Init()
-		{
-			ElementPrefix = "strDE";
-		}
+		{ }
 	}
 
 	public partial class string_Stype
