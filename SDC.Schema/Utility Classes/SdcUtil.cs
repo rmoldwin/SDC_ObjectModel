@@ -510,6 +510,53 @@ namespace SDC.Schema
 			}
 			return sortedList;
 		}
+		/// <summary>
+		/// Retruns the input node n and all non-IET subnodes. Subnode search breaks at all IET nodes, <br/>
+		/// so that IET subnodes and their descendants are not included.
+		/// </summary>
+		/// <param name="n"></param>
+		/// <param name="startReorder"><br/>If less than 0, no reordering will be performed.<br/></param>
+		/// <param name="orderInterval"></param>
+		/// <param name="ResetSortFlags"></param>
+		/// <returns><see cref="List{BaseType}"/> where T = <see href="BaseType"/></returns>
+		public static List<BaseType> GetSortedNonIETsubtreeList(BaseType n, int startReorder = 0, int orderInterval = 1, bool ResetSortFlags = true)
+		{
+			//var nodes = n.TopNode.Nodes;
+			//var topNode = Get_ITopNode(n);
+			var cn = Get_ChildNodes(n);// topNode._ChildNodes;
+			int i = 0;
+			var sortedList = new List<BaseType>();
+			if (ResetSortFlags) TreeSort_ClearNodeIds();
+
+			MoveNext(n);
+
+			void MoveNext(BaseType n)
+			{
+				sortedList.Add(n);
+				if (startReorder >= 0)
+				{
+					n.order = i;
+					i += orderInterval;
+				}
+
+				//shorter code option:
+				//List<BaseType>? childList = SortElementKids(n);
+				//if (childList != null)
+				//	foreach (var child in childList)
+				//		MoveNext(child);
+
+				if (cn.TryGetValue(n.ObjectGUID, out List<BaseType>? childList))
+				{
+					if (childList != null)
+					{
+						SortElementKids(n, childList);
+						foreach (var child in childList)
+							if(child is not IdentifiedExtensionType) MoveNext(child);
+					}
+				}
+			}
+			return sortedList;
+		}
 
 
 		/// <summary>
@@ -1735,10 +1782,10 @@ namespace SDC.Schema
 			//which is a special property in the same class (named, e.g., "ItemsElementName"),
 			//and with a type of an enum subclass, or an Ienumerable<enumSubclass>
 			//This is handled in the next method call:
-			xmlElementName = GetElementNameFromEnum(piItem, item, itemIndex, out errorMsg);
+			xmlElementName = GetElementNameFromEnum(piItem, item, ref itemIndex, out errorMsg);
 			if (xmlElementName?.Length > 0) return xmlElementName;
 
-			//If there is only one XmlElementAttribute, try to get elementName directly from the attribute.
+			//If there is only one XmlElementAttribute, try to get elementName directly from the XmlElementAttribute.
 			if (xeAtts?.Length == 1)
 			{
 				xmlElementName = xeAtts.ToArray()[0].ElementName;
@@ -1756,6 +1803,7 @@ namespace SDC.Schema
 			}
 
 			//Perhaps the item is inside an IEnumerable<BaseTypeSubClass>, and does not use an ItemChoiceType enum or IEnumerable<EnumSubclass>
+			//THis case was probably handled already inside GetElementNameFromEnum
 			if (xeAtts?.Length > 1 && itemIndex > -1)
 			{
 				//int index = GetItemIndex(piItem, item, out errorMsg);
@@ -1766,6 +1814,7 @@ namespace SDC.Schema
 
 			//There was no ElementName to extract from an XmlElementAttribute or enum, so we get it directly from the propName.
 			if (piItem.Name == "Item") Debugger.Break();
+			if (piItem.Name == "Items") Debugger.Break();
 			return piItem.Name;
 
 			throw new InvalidOperationException("Could not find a name for the n parameter.");
@@ -1773,7 +1822,7 @@ namespace SDC.Schema
 		}
 
 
-		private static string? GetElementNameFromEnum(PropertyInfo piItem, BaseType item, int itemIndex, out string? errorMsg)
+		private static string? GetElementNameFromEnum(PropertyInfo piItem, BaseType item, ref int itemIndex, out string? errorMsg)
 		{
 			itemIndex = -1;
 			errorMsg = null;
@@ -1781,6 +1830,9 @@ namespace SDC.Schema
 			object? choiceIdentifierObject = GetItemChoiceEnumProperty(piItem, item);
 			if (choiceIdentifierObject is null)
 				return null; //An enum is not used to determine the XML Element name			
+
+			if(itemIndex == -1)
+				itemIndex = GetElementItemIndex(item, out _, out _, out errorMsg);
 
 			//If itemIndex == -1, then item is not contained in an IEnumerable List or Array, so
 			//it should be in an enum subclass:

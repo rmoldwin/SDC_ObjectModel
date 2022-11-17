@@ -408,10 +408,11 @@ namespace SDC.Schema.Tests.Functional
 				{
 					Console.WriteLine("if (position == DropPosition.After)");
 					pimTarget = targetNode.GetPropertyInfoMetaData(); //retrieve the IEnumerable object that contains targetNode
-					targetIndex = pimTarget.ItemIndex;
+					targetIndex = pimTarget.ItemIndex + 1;
 					pimSource = sourceNode.GetPropertyInfoMetaData(); //retrieve the IEnumerable object that contains targetNode
 					sourceIndex = pimSource.ItemIndex;
-					if (targetIndex < sourceIndex) targetIndex++;
+					if (sourceNode.ParentNode == targetNode.ParentNode
+						&& targetIndex > sourceIndex) targetIndex--;
 
 					if (targetNode.ParentNode is ListType) //targetNode is LI or DI
 					{
@@ -444,7 +445,8 @@ namespace SDC.Schema.Tests.Functional
 					targetIndex = pimTarget.ItemIndex;
 					pimSource = sourceNode.GetPropertyInfoMetaData(); //retrieve the IEnumerable object that contains sourceNode
 					sourceIndex = pimSource.ItemIndex;
-					if (targetIndex > sourceIndex) targetIndex--;  //we removed the sourceNode before re-adding in the new position, so we decrement index by one
+					if (sourceNode.ParentNode == targetNode.ParentNode
+						&& targetIndex > sourceIndex) targetIndex--;  //we removed the sourceNode before re-adding in the new position, so we decrement index by one
 
 					if (targetNode is ListItemType)
 					{
