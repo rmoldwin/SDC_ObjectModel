@@ -148,6 +148,7 @@ namespace SDC.Schema.Extensions
 		/// <returns>ImmutableList&lt;IdentifiedExtensionType> or null if the ChildItems node is null or has no descendants </returns>
 		public static ReadOnlyObservableCollection<IdentifiedExtensionType>? GetChildItemsList(this IChildItemsParent parent) 
 		{
+			if (parent is null || parent.ChildItemsNode is null || parent.ChildItemsNode.ChildItemsList is null) return null;
 			var oc = new ObservableCollection<IdentifiedExtensionType>(parent.ChildItemsNode.ChildItemsList);
 			if (oc is null || !oc.Any()) return null;
 			return new ReadOnlyObservableCollection<IdentifiedExtensionType>(oc);

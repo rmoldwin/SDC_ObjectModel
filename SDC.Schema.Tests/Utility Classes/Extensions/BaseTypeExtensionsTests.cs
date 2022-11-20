@@ -168,7 +168,7 @@ namespace SDC.Schema.Tests.Utils.Extensions
 
 			//Then iterate matching nodes and look for changed attributes of interest
 			//This can be done without creating new dictionaries, but it may be easier (but slower) to process each tree separately, an dumping results into dictionaries.
-			foreach (var ietNew in fdNew.IETnodes)
+			foreach (var ietNew in fdNew?.IETnodes)
 			{
 				//find matching iet node, in new fdOld tree
 				if(fdOld.Nodes.TryGetValue(ietNew.ObjectGUID, out btOld ))

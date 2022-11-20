@@ -1830,7 +1830,7 @@ namespace SDC.Schema
 
 		private static string? GetElementNameFromEnum(PropertyInfo piItem, BaseType item, ref int itemIndex, out string? errorMsg)
 		{
-			itemIndex = -1;
+			//itemIndex = -1;
 			errorMsg = null;
 			//itemIndex = GetItemIndex(piItem, item, out errorMsg, out ieItems);
 			object? choiceIdentifierObject = GetItemChoiceEnumProperty(piItem, item);

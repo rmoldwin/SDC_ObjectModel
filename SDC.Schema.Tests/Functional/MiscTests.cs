@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using CSharpVitamins;
 using SDC.Schema.Extensions;
+using SDC.Schema.UtilityClasses.Extensions;
 //using SDC.Schema;
 
 namespace SDC.Schema.Tests.Functional
@@ -74,8 +75,9 @@ namespace SDC.Schema.Tests.Functional
                 
                 IdentifiedExtensionType? parIet = null;
                 List<IdentifiedExtensionType>? childIetList = new();
-				string sGuid = "";
-				BaseType? n = fd.Nodes[ShortGuid.Decode(sGuid)];
+				var sGuid = ShortGuid.NewGuid();
+                sGuid = fd.GetQuestionByID("53309.100004300")?.sGuid;
+				BaseType? n = fd.Nodes[sGuid.ToGuid()];
 
 
                 switch (iet)
@@ -92,7 +94,7 @@ namespace SDC.Schema.Tests.Functional
                             parIet = q.ParentIETypeNode;
                             childIetList = q.GetListItems()?.Cast<IdentifiedExtensionType>().ToList();
                             childIetList = q.ListField_Item?.List?.Items?.Cast<IdentifiedExtensionType>().ToList(); ;
-							childIetList = q.ChildItemsNode.ChildItemsList;
+							childIetList = q.ChildItemsNode?.ChildItemsList;
 							childIetList = q.GetListAndChildItemsList();
                             units = q.ResponseField_Item?.ResponseUnits?.val;
 							var childIetListRO = q.GetChildItemsList();
