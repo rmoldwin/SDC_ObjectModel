@@ -10,6 +10,7 @@ using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
@@ -1249,13 +1250,18 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="n">The node from which we want to retrieve its child nodes</param>
 		/// <returns><see cref="ReadOnlyCollection&lt;BaseType>"/></returns>
-		public static ReadOnlyCollection<BaseType>? GetChildElements(BaseType n)
+		public static ImmutableList<BaseType>? GetChildElements(BaseType n)
 		{
 			var topNode = Get_ITopNode(n);
 			List<BaseType>? kids = null;
 			topNode?._ChildNodes.TryGetValue(n.ObjectGUID, out kids);
-			if (kids is not null && kids.Count > 0) SortElementKids(n, kids);
-			return kids?.AsReadOnly();
+			if (kids is not null && kids.Count > 0)
+			{
+				SortElementKids(n, kids);
+				return kids.ToImmutableList<BaseType>();
+			}
+			return null;
+			//return kids?.AsReadOnly();
 		}
 
 		/// <summary>

@@ -5,6 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
 using System.Diagnostics;
+using System.Collections.Generic;
+using CSharpVitamins;
+using SDC.Schema.Extensions;
 //using SDC.Schema;
 
 namespace SDC.Schema.Tests.Functional
@@ -57,6 +60,69 @@ namespace SDC.Schema.Tests.Functional
             Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 
         }
+        [TestMethod]
+        public void GetHtmlItems()
+        {
+			var fd = Setup.FD;
+            foreach(var iet in fd.IETnodes)
+            {
+                string? title;
+                string itemType;
+                string? pubOption = null; //0 = eCP only; 1 = ;  2 = print only; 3 = print/eCP
+                string? units;
+                bool mustImp;
+                
+                IdentifiedExtensionType? parIet = null;
+                List<IdentifiedExtensionType>? childIetList = new();
+				string sGuid = "";
+				BaseType? n = fd.Nodes[ShortGuid.Decode(sGuid)];
 
-    }
+
+                switch (iet)
+                {
+                    case QuestionItemType q:
+                        var qType = q.GetQuestionSubtype();
+
+                        if(qType == QuestionEnum.QuestionSingle)
+                        {
+                            itemType = "Q";
+                            title = q.title;
+                            pubOption = q.Property?.Find(p => p.propName == "pubOption")?.val;
+                            mustImp = q.mustImplement;
+                            parIet = q.ParentIETypeNode;
+                            childIetList = q.GetListItems()?.Cast<IdentifiedExtensionType>().ToList();
+                            childIetList = q.ListField_Item?.List?.Items?.Cast<IdentifiedExtensionType>().ToList(); ;
+							childIetList = q.ChildItemsNode.ChildItemsList;
+							childIetList = q.GetListAndChildItemsList();
+                            units = q.ResponseField_Item?.ResponseUnits?.val;
+							var childIetListRO = q.GetChildItemsList();
+
+
+
+						}
+                        break;
+                    case SectionItemType s:
+
+                         break;
+                    case ListItemType li:
+
+                        break;
+                    case DisplayedType d:
+
+                        break;
+
+                }            
+            }
+	}
+		public enum PreviewItemTypes
+		{
+			SectionHeader = 24,
+			Notes = 12,
+			QuestionSingleSelect = 4,
+			QuestionMultiSelect = 23,
+			QuestionFillin = 17,
+			Answer = 6,
+			AnswerFillin = 20
+		}
+	}
 }

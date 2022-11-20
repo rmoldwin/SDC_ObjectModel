@@ -11,15 +11,15 @@ namespace SDC.Schema.Extensions
 	public static class BaseTypeExtensions
 	{
 
-		/// <summary>
-		/// Retrieve a List&lt;BaseType>? containing all child element nodes of the current SDC node 
-		/// </summary>
-		/// <param name="bt"></param>
-		/// <returns></returns>
-		public static ReadOnlyCollection<BaseType>? GetChildNodes(this BaseType bt)
-		{
-			return SdcUtil.GetChildElements(bt);
-		}
+		///// <summary>
+		///// Retrieve a List&lt;BaseType>? containing all child element nodes of the current SDC node 
+		///// </summary>
+		///// <param name="bt"></param>
+		///// <returns></returns>
+		//public static ReadOnlyCollection<BaseType>? GetChildNodes(this BaseType bt)
+		//{
+		//	return SdcUtil.GetChildElements(bt);
+		//}
 		/// <summary>
 		/// Determine if the current node is an ancestor (i.e., a node closer to the root node) of parameter <paramref name="descendantNode"/>.
 		/// </summary>

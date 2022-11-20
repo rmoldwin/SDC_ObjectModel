@@ -1,6 +1,7 @@
 ﻿
 
 //using SDC;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Security.Cryptography.X509Certificates;
@@ -46,7 +47,12 @@ namespace SDC.Schema.Extensions
 			else return false;
 		}
 
-		public static ReadOnlyCollection<BaseType>? GetChildList(this INavigate n)
+		/// <summary>
+		/// Retrieve a ImmutableList&lt;BaseType>? containing all child element nodes of the current SDC node 
+		/// </summary>
+		/// <param name="n"></param>
+		/// <returns></returns>
+		public static ImmutableList<BaseType>? GetChildNodes(this INavigate n)
 		{ if (n is not null && n is BaseType) return SdcUtil.GetChildElements((BaseType)n); else return null; }
 		public static List<BaseType>? GetSubtreeList(this INavigate n)
 		{ if (n is not null && n is BaseType) return SdcUtil.GetSortedSubtreeList((BaseType)n); else return null; }

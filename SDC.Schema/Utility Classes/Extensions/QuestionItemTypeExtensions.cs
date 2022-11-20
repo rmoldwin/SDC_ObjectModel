@@ -195,14 +195,14 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="q"></param>
 		/// <returns> List&lt;IdentifiedExtensionType> containing all nodes, or null if no nodes are present. </returns>
-		public static List<IdentifiedExtensionType>? GetListAndChildIETNodes(this QuestionItemType q)
+		public static List<IdentifiedExtensionType>? GetListAndChildItemsList(this QuestionItemType q)
 		{
 			List<IdentifiedExtensionType> lst = new();
 
 			var liLst = q.GetListItems()?.Cast<IdentifiedExtensionType>();
 			if(liLst is not null) lst.AddRange(liLst);
 
-			var ciLst = q.GetChildIETNodes();
+			var ciLst = q.GetChildItemsList();
 			if (ciLst is not null) lst?.AddRange(ciLst);
 			return lst;
 		}
@@ -219,7 +219,7 @@ namespace SDC.Schema
 		/// </returns>
 		public static bool TryGetListAndChildIETNodes(this QuestionItemType q, out List<IdentifiedExtensionType>? nodeList)
 		{
-			nodeList = GetListAndChildIETNodes(q);
+			nodeList = GetListAndChildItemsList(q);
 			return nodeList?.Any()??false;
 
 		}
