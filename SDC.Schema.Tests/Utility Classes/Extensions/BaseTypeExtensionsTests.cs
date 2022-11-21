@@ -126,9 +126,30 @@ namespace SDC.Schema.Tests.Utils.Extensions
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 			var FD = Setup.FD;
 			//Dictionary<iet_sGuid, Dictionary<parent_sGuid, child_List<AttributeInfo>>>
+
+
+			var pathOrig = Path.Combine("..", "..", "..", "Test files", "DefaultValsTest2.xml");
+			var pathNew = Path.Combine("..", "..", "..", "Test files", "DefaultValsTest2.xmlv2");
+			var pathOld = Path.Combine("..", "..", "..", "Test files", "DefaultValsTest2.xmlv1");
+
+			var origFile = File.ReadAllText(pathOrig);
+			File.WriteAllText(pathNew, origFile); //write file with @order & sGuid
+			File.WriteAllText(pathOld, origFile);
+
+			var fNew = File.OpenWrite(pathNew);
+			FormDesignType? fdNew = FormDesignType.DeserializeFromXmlPath(Path.Combine("..", "..", "..", "Test files", "BreastStagingTest2v2.xml"));
+			FormDesignType? fdOld = FormDesignType.DeserializeFromXmlPath(Path.Combine("..", "..", "..", "Test files", "BreastStagingTest2v1.xml"));
+			//System.IO.File.AppendAllText(pathOld, fdNew.GetXml());
+
+			fdNew.SaveXmlToFile(pathNew);
+			fdOld.SaveXmlToFile(pathOld);
+
 			SortedList<string, Dictionary<string, List<AttributeInfo>>> slAttNew = new();
 			SortedList<string, Dictionary<string, List<AttributeInfo>>> slAttOld = new();
-			char gt = ">"[0];
+			//slAttNew.AsParallel().
+
+			//char gt = ">"[0];
+			char gt = '>';
 			//  ------------------------------------------------------------------------------------
 
 			foreach (IdentifiedExtensionType iet in Setup.FD.IETnodes)
@@ -137,12 +158,16 @@ namespace SDC.Schema.Tests.Utils.Extensions
 				int enLen = 36 - en.Length;
 				int pad = (enLen > 0) ? enLen : 0;
 				//Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  IET Node: {en}   {"".PadRight(pad, gt)}");
+
 				//Dictionary<parent_sGuid, child_List<AttributeInfo>>
 				Dictionary<string, List<AttributeInfo>> dlai = new();
+
 				//Process iet node's attributes
 				var lai = iet.GetXmlAttributesSerialized();
+
 				//process iet's child nodes and thier attributes
 				var sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1, 0);
+
 				if (sublist is not null)
 				{
 					foreach (var subNode in sublist)
@@ -155,8 +180,7 @@ namespace SDC.Schema.Tests.Utils.Extensions
 				}
 			}
 
-			FormDesignType? fdNew = null;
-			FormDesignType? fdOld = null;
+			
 			BaseType? btOld = null;
 			Dictionary<string, List<AttributeInfo>>? dlaiNew = null;
 			Dictionary<string, List<AttributeInfo>>? dlaiOld = null;
@@ -192,7 +216,9 @@ namespace SDC.Schema.Tests.Utils.Extensions
 										if(attOld.Name is not null)
 										{ 
 											if(attOld.AttributeValue != attNew.AttributeValue)
-											{ }//save the old and new values in a data structure array, with one array per iet node.
+											{ }//save the old and new values in separate data structure array (HashSet of SortedList), with one array per iet node.
+												//We can then compute an non-matching set operation to return the differences.
+												//Differences must also account for added and removed nodes on the new side, and possibly on th old sidee
 											   //Each array element is a struct like ~ {subnodeElementName, AttrName, AttrVal} for both the old and new values, but only if they differ
 											   //iet sGuid and a node ref, sub-node type, sub-node elementName, sub-node's parentNode sGuid, subnode index in IEnumerable sib list
 										}
@@ -212,8 +238,8 @@ namespace SDC.Schema.Tests.Utils.Extensions
 			}
 
 
-			//  ------------------------------------------------------------------------------------
-			void Log(BaseType subNode, List<AttributeInfo> lai)
+		//  ------------------------------------------------------------------------------------
+		void Log(BaseType subNode, List<AttributeInfo> lai)
 			{
 				var en = subNode.ElementName;
 				int enLen = 36 - en.Length;
@@ -259,5 +285,22 @@ namespace SDC.Schema.Tests.Utils.Extensions
         {
 
         }
-    }
+
+		public readonly record struct Attribute(BaseType node, string sGuid, string attName, string? attVal);
+		public readonly record struct AttributeDiff(BaseType oldNode, BaseType newNode, string sGuidOld, string sGuidNew, string attName, string? attValOld, string? attValNe);
+		public bool AddedNode(BaseType nodeNew, Dictionary<Guid, BaseType> dictOld, out BaseType? oldNode)
+		=> dictOld.TryGetValue(nodeNew.ObjectGUID, out oldNode);
+		public bool RemovedNode(BaseType nodeOld, Dictionary<Guid, BaseType> dictNew, out BaseType? newNode)
+		=> dictNew.TryGetValue(nodeOld.ObjectGUID, out newNode);
+
+
+
+
+
+	}
+
+
 }
+
+
+public readonly record struct RemovedNode(BaseType node, BaseType newNode, string sGuidOld, string sGuidNew);
