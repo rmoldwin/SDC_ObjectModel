@@ -3,12 +3,12 @@ using SDC.Schema;
 using System;
 using System.IO;
 using System.Linq;
-//using SDC.Schema;
+using SDC.Schema.Tests;
 
-namespace SDCObjectModelTests.TestClasses
+namespace SDC.Schema.Tests.Functional
 {
     [TestClass]
-    public class ChangeTypeTests
+    public class _ChangeTypeTests
     {
 
         [TestMethod]

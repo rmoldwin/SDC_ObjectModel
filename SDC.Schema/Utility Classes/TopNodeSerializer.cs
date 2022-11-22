@@ -248,7 +248,7 @@ namespace SDC.Schema
 		public static void SaveXmlToFile(T tn, string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
         {
             if (refreshSdc) SdcUtil.ReflectRefreshTree(tn, out _, false, refreshSdc, createNameDelegate, orderStart, orderGap);
-            SdcSerializer<T>.SaveToFile(path, tn);
+            SdcSerializer<T>.SaveToFile(tn, path);
         }
 		/// <summary>
 		/// Save the current SDC object tree to an SDC Json file at a known location (path)

@@ -294,7 +294,7 @@ namespace SDC.Schema.Extensions
 						propList.Insert(newListIndex, btSource);
 
 
-					//!Remove deleted nodes from _TTop Node dictionaries
+					//!Remove deleted nodes from _ITop Node dictionaries
 					btSource.MoveInDictionaries(targetParent: newParent);
 					btSource.AssignOrder(); //Requires that dictionaries are first populated
 
@@ -330,7 +330,10 @@ namespace SDC.Schema.Extensions
 		/// <param name="node"/>
 		/// <param name="parentNode">If adding nodes manually, in the BaseType constructor, a parent Node should be provided</param>
 		/// <param name="childNodesSort"></param>
-		internal static BaseType RegisterNodeAndParent(this BaseType node, BaseType? parentNode = null, bool childNodesSort = true)
+		/// <param name="isMoving">False if a node should be added to the end of the _IETnodes collection. <br/>
+		/// True if a node (and its subnodes, if present) are being moved and inserted into a specific ordered location in the collection. <br/>
+		/// The default is false - add to the end of the collection.</param>
+		internal static BaseType RegisterNodeAndParent(this BaseType node, BaseType? parentNode = null, bool childNodesSort = true, bool isMoving = false)
 		{
 			if (node.TopNode is not null)
 			{
@@ -340,7 +343,7 @@ namespace SDC.Schema.Extensions
 				if (_topNode is null)
 					throw new NullReferenceException($"{nameof(node.TopNode)} cannot be null.");
 
-				RegisterNode(_topNode);
+				RegisterNode(_topNode, isMoving);
 				//Populate the _ChildNodes and _ParentNodes dictionaries:
 				if (parentNode is not null) node.RegisterParent(parentNode, childNodesSort);
 
@@ -348,10 +351,10 @@ namespace SDC.Schema.Extensions
 				if (node is _ITopNode _topTopNode && _topTopNode != _topNode) //if we did not already do this... 
 				{   //also register this ITopNode object in its own dictionaries.
 					_topTopNode = (_ITopNode)node;
-					RegisterNode(_topTopNode);
+					RegisterNode(_topTopNode, isMoving);
 				}
 
-				void RegisterNode(_ITopNode tn)
+				void RegisterNode(_ITopNode tn, bool isMoving = false)
 				{
 					tn._Nodes.Add(node.ObjectGUID, node);
 
@@ -359,14 +362,17 @@ namespace SDC.Schema.Extensions
 					//tn._MaxObjectIDint = BaseType.LastObjectID;
 
 					if (node is IdentifiedExtensionType iet)
-					{
-						var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our moved node
-						int ietPrevPosition = -1;
-						if(ietPrev is not null) tn._IETnodes.IndexOf(ietPrev);  //this may be inefficient; may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) instead (using sGuid as Key).
+						if (isMoving)
+						{
+							var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our moved node
+							int ietPrevPosition = -1;
+							if (ietPrev is not null) tn._IETnodes.IndexOf(ietPrev);  //this may be inefficient; may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) instead (using sGuid as Key).
 
-						foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
-							tn._IETnodes.Insert(++ietPrevPosition, n);
-					}
+							foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
+								tn._IETnodes.Insert(++ietPrevPosition, n);
+						}
+						else
+							tn._IETnodes.Add(iet); //add to end of collection
 					return;
 				}
 			}
@@ -374,6 +380,16 @@ namespace SDC.Schema.Extensions
 			return node;
 		}
 
+		/// <summary>
+		/// Create a new @order value for the current node, and all its distal nodes in the same tree
+		/// </summary>
+		/// <param name="node"></param>
+		/// <param name="orderGap"></param>
+		/// <param name="reorderToEnd">If false, reorders nodes until the method encounters an order value larger than the previous node's order value<br/>
+		/// If true, reorders all nodes until the end of the object tree.</param>
+		/// <returns></returns>
+		/// <exception cref="IndexOutOfRangeException"></exception>
+		/// <exception cref="InvalidOperationException"></exception>
 		internal static decimal AssignOrder(this BaseType node, int orderGap = 1, bool reorderToEnd = false)
 
 		{

@@ -2,6 +2,7 @@
 
 //using SDC;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 
 namespace SDC.Schema.Extensions
 {
@@ -123,10 +124,14 @@ namespace SDC.Schema.Extensions
 
 			return injForm;
 		}
-		public static bool TryGetChildIETNodes(this IChildItemsParent parent, out List<IdentifiedExtensionType>? childNodes) 
+		public static bool TryGetChildItemsList(this IChildItemsParent parent, out ReadOnlyObservableCollection<IdentifiedExtensionType>? childNodes) 
 			//where T : BaseType, IChildItemsParent<T>
 		{
-			childNodes = parent?.ChildItemsNode?.ChildItemsList;
+			childNodes = null;
+			if (parent is null) return false;
+			var oc = new ObservableCollection<IdentifiedExtensionType>(parent.ChildItemsNode.ChildItemsList);
+			if (oc is null || !oc.Any()) return false;
+			childNodes = new ReadOnlyObservableCollection<IdentifiedExtensionType>(oc);
 			{
 				if (childNodes != null)
 				{
@@ -141,9 +146,12 @@ namespace SDC.Schema.Extensions
 		/// This does not include ListItems and DisplayedType nodes under a Question's List node
 		/// </summary>
 		/// <returns>ImmutableList&lt;IdentifiedExtensionType> or null if the ChildItems node is null or has no descendants </returns>
-		public static ImmutableList<IdentifiedExtensionType>? GetChildIETNodes(this IChildItemsParent parent) 
+		public static ReadOnlyObservableCollection<IdentifiedExtensionType>? GetChildItemsList(this IChildItemsParent parent) 
 		{
-			return parent.ChildItemsNode?.ChildItemsList?.Cast<IdentifiedExtensionType>()?.ToImmutableList();
+			if (parent is null || parent.ChildItemsNode is null || parent.ChildItemsNode.ChildItemsList is null) return null;
+			var oc = new ObservableCollection<IdentifiedExtensionType>(parent.ChildItemsNode.ChildItemsList);
+			if (oc is null || !oc.Any()) return null;
+			return new ReadOnlyObservableCollection<IdentifiedExtensionType>(oc);
 		}
 		public static ChildItemsType AddChildItemsNode(this IChildItemsParent parent) 
 		{

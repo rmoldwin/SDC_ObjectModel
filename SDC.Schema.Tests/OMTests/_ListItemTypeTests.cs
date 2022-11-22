@@ -10,73 +10,79 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 
-namespace SDCObjectModelTests
+namespace SDC.Schema.Tests.OMTests
 {
     [TestClass()]
-    public class DisplayedTypeTests
+    public class _ListItemTypeTests
     {
         [TestMethod()]
-        public void DisplayedTypeTest()
+        public void ListItemTypeTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddLinkTest()
+        public void AddListItemResponseFieldTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddBlobTest()
+        public void AddOnDeselectTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddContactTest()
+        public void AddOnSelectTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddCodedValueTest()
+        public void AddSelectIfTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddOnEventTest()
+        public void AddDeSelectIfTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddOnEnterTest()
+        public void AddChildSectionTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddOnExitTest()
+        public void AddChildQuestionTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddActivateIfTest()
+        public void AddChildInjectedFormTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddDeActivateIfTest()
+        public void AddChildButtonActionTest()
         {
 
         }
 
         [TestMethod()]
-        public void MoveEventTest()
+        public void AddChildDisplayedItemTest()
+        {
+
+        }
+
+        [TestMethod()]
+        public void HasChildItemsTest()
         {
 
         }

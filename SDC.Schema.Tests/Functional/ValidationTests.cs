@@ -16,7 +16,7 @@ using Microsoft.VisualBasic;
 using SDC.Schema.Extensions;
 //using SDC.Schema;
 
-namespace SDCObjectModelTests.TestClasses
+namespace SDC.Schema.Tests.Functional
 {
     [TestClass]
     public class ValidationTests

@@ -11,15 +11,15 @@ namespace SDC.Schema.Extensions
 	public static class BaseTypeExtensions
 	{
 
-		/// <summary>
-		/// Retrieve a List&lt;BaseType>? containing all child element nodes of the current SDC node 
-		/// </summary>
-		/// <param name="bt"></param>
-		/// <returns></returns>
-		public static ReadOnlyCollection<BaseType>? GetChildNodes(this BaseType bt)
-		{
-			return SdcUtil.GetChildElements(bt);
-		}
+		///// <summary>
+		///// Retrieve a List&lt;BaseType>? containing all child element nodes of the current SDC node 
+		///// </summary>
+		///// <param name="bt"></param>
+		///// <returns></returns>
+		//public static ReadOnlyCollection<BaseType>? GetChildNodes(this BaseType bt)
+		//{
+		//	return SdcUtil.GetChildElements(bt);
+		//}
 		/// <summary>
 		/// Determine if the current node is an ancestor (i.e., a node closer to the root node) of parameter <paramref name="descendantNode"/>.
 		/// </summary>
@@ -96,7 +96,7 @@ namespace SDC.Schema.Extensions
 		/// <summary>
 		/// For the current node, retrieves a <see cref="List&lt;AttributeInfo>"/> containing <see cref="AttributeInfo"/> (AI) definitions for all XML attributes of the current node that will be serialized to XML. <br/>
 		/// Each AI struct can be used to obtain the type, name and other features of each attribute.<br/>
-		/// Also, each AI can be used to create an instance of the object by calling the underlying PropertyInfo object:<br/>
+		/// Also, each AI can be used to create a reference to the object by calling the underlying PropertyInfo object:<br/>
 		/// AI.AttributePropInfo.GetValue(parentObject)
 		/// </summary>
 		/// <param name="bt"></param>

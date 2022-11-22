@@ -13,7 +13,7 @@ using System.Reflection.Metadata;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace SDCObjectModelTests.TestClasses
+namespace SDC.Schema.Tests.Functional
 {
 	[TestClass]
 	public class NavigationTests
@@ -631,74 +631,7 @@ namespace SDCObjectModelTests.TestClasses
 				Debug.Print($"{n.order}: \t Name: {n.name}");
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
-		[TestMethod]
-		public void GetXmlAttributeAll()
-		{
-			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-
-			var FD = Setup.FD;
-			var lst = FD.TopNode.GetNodeByName("S_57219")
-				.GetXmlAttributesAll();			
-			foreach (var n in lst) Debug.Print($"{n.Name}");
-
-			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-		}
-		[TestMethod]
-		public void GetXmlAttributesFilled()
-		{
-			SdcUtil.ReflectRefreshTree(Setup.FD, out _);
-			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var FD = Setup.FD;
-
-			//var lst = FD.TopNode.GetItemByName("S_57219")
-			//	.GetXmlAttributesSerialized();			
-
-			//foreach (var n in lst) Debug.Print($"{n.Name}");
-			//foreach (var n in lst) Debug.Print($"{n.Name}: \tval:{n.AttributeValue?.ToString()}, " +
-			//	$"\tsGuid: {n.ParentNodesGuid}, " +
-			//	$"\torder: {n.Order}, " +
-			//	$"\ttype: {n.AttributePropInfo.PropertyType}");
-
-
-			SortedList<string, Dictionary<string, List<AttributeInfo>>> dictAttr = new();
-			char gt = ">"[0];
-			//  ------------------------------------------------------------------------------------
-			foreach (IdentifiedExtensionType n in Setup.FD.IETnodes)
-			{
-				var en = n.ElementName;
-				int enLen = 36 - en.Length;
-				int pad = (enLen > 0) ? enLen : 0;
-				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  IET Node: {en}   {"".PadRight(pad, gt)}");
-				var sublist = n.GetSubtreeIETList();
-
-				Dictionary<string, List<AttributeInfo>> dlai = new();
-				
-				foreach (var subNode in sublist)
-				{
-					var lai = subNode.GetXmlAttributesSerialized();
-					Log(subNode, lai);
-					dlai.Add(subNode.sGuid, lai);					
-					
-				}
-				dictAttr.Add(n.sGuid, dlai);
-			}
-			//  ------------------------------------------------------------------------------------
-			void Log(BaseType subNode, List<AttributeInfo> lai)
-			{
-				var en = subNode.ElementName;
-				int enLen = 36 - en.Length;
-				int pad = (enLen > 0) ? enLen : 0;
-				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  SubNode: {en}    {"".PadRight(pad, gt)}");
-				Debug.Print("<==<==<== Attr ==>==>==>| Default Val |<==<==<==<==<== Val ==>==>==>==>==>");
-				foreach (AttributeInfo ai in lai)					
-					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString()??"").PadRight(13)}| {ai.AttributeValue?.ToString()}");
-			}
-			//  ------------------------------------------------------------------------------------
-			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-			Debug.Print(FD.GetXml());
-
-
-		}
+		
 		[TestMethod]
 		public void Misc()
 		{

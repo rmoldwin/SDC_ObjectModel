@@ -909,7 +909,7 @@ namespace SDC.Schema
 		IChildItemsParent ci { get => (IChildItemsParent)this; }
 		[XmlIgnore]
 		[JsonIgnore]
-		public ChildItemsType ChildItemsNode
+		public ChildItemsType? ChildItemsNode
 		{
 			get { return this.Item1; }
 			set { this.Item1 = value; }
@@ -1735,7 +1735,7 @@ namespace SDC.Schema
 
 		[XmlIgnore]
 		[JsonIgnore]
-		public List<IdentifiedExtensionType> ChildItemsList
+		public List<IdentifiedExtensionType>? ChildItemsList
 		{
 			get { return this.Items; }
 			set { this.Items = value; }
@@ -3158,13 +3158,9 @@ namespace SDC.Schema
 		public string_DEtype(BaseType parentNode) : base(parentNode)
 		{
 			Init();
-			//ElementPrefix = "str";
-			//SetNames(elementName, elementPrefix);
-		} //{if (elementName.Length > 0) ElementName = elementName; }
+		} 
 		private void Init()
-		{
-			ElementPrefix = "strDE";
-		}
+		{ }
 	}
 
 	public partial class string_Stype

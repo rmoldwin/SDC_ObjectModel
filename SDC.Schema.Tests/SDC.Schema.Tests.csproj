@@ -71,10 +71,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Partial Classes\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\SDC.Schema\SDC.Schema.csproj" />
   </ItemGroup>
 

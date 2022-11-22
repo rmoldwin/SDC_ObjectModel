@@ -144,30 +144,75 @@ namespace SDC.Schema
 		}
 		#endregion
 
-		/// <summary>
-		/// Serializes current T object into file
-		/// </summary>
-		/// <param name="fileName">full path of outupt xml file</param>
-		/// <param name="exception">output Exception value if failed</param>
-		/// <returns>true if can serialize and save into file; otherwise, false</returns>
-		public static bool SaveToFile(string fileName, T obj, System.Text.Encoding encoding)
+		///// <summary>
+		///// Serializes current T object into file
+		///// </summary>
+		///// <param name="fileName">full path of outupt xml file</param>
+		///// <param name="exception">output Exception value if failed</param>
+		///// <returns>true if can serialize and save into file; otherwise, false</returns>
+		//public static bool SaveToFile(string fileName, T obj, System.Text.Encoding encoding)
+		//{
+		//	//exception = null;
+		//	try
+		//	{
+		//		SaveToFile(fileName, obj, encoding);
+		//		return true;
+		//	}
+		//	catch (System.Exception e)
+		//	{
+		//		//exception = e;
+		//		return false;
+		//	}
+		//}
+
+		//public static bool SaveToFile(string fileName, T obj)
+		//{
+		//	return SaveToFile(fileName, obj, System.Text.Encoding.UTF8);
+		//}
+
+
+		public static bool SaveToFile(T obj, string fileName, System.Text.Encoding encoding, out System.Exception exception)
 		{
-			//exception = null;
+			exception = null;
 			try
 			{
-				SaveToFile(fileName, obj, encoding);
+				SaveToFile(obj, fileName, encoding);
 				return true;
 			}
 			catch (System.Exception e)
 			{
-				//exception = e;
+				exception = e;
 				return false;
 			}
 		}
 
-		public static bool SaveToFile(string fileName, T obj)
+		public static bool SaveToFile(T obj, string fileName, out System.Exception exception)
 		{
-			return SaveToFile(fileName, obj, System.Text.Encoding.UTF8);
+			return SaveToFile(obj, fileName, System.Text.Encoding.UTF8, out exception);
+		}
+
+		public static void SaveToFile(T obj, string fileName)
+		{
+			SaveToFile(obj, fileName, System.Text.Encoding.UTF8);
+		}
+
+		public static void SaveToFile(T obj, string fileName, System.Text.Encoding encoding)
+		{
+			System.IO.StreamWriter streamWriter = null;
+			try
+			{
+				string xmlString = Serialize(obj, encoding);
+				streamWriter = new System.IO.StreamWriter(fileName, false, encoding);
+				streamWriter.WriteLine(xmlString);
+				streamWriter.Close();
+			}
+			finally
+			{
+				if ((streamWriter != null))
+				{
+					streamWriter.Dispose();
+				}
+			}
 		}
 
 		/// <summary>

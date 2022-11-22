@@ -10,79 +10,97 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 
-namespace SDCObjectModelTests
+namespace SDC.Schema.Tests.OMTests
 {
     [TestClass()]
-    public class ListItemTypeTests
+    public class _BaseTypeTests
     {
         [TestMethod()]
-        public void ListItemTypeTest()
+        public void IsMoveAllowedTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddListItemResponseFieldTest()
+        public void RemoveTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddOnDeselectTest()
+        public void MoveTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddOnSelectTest()
+        public void GetNodeFirstSibTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddSelectIfTest()
+        public void GetNodeLastSibTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddDeSelectIfTest()
+        public void GetNodePreviousSibTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddChildSectionTest()
+        public void GetNodeNextSibTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddChildQuestionTest()
+        public void GetNodePreviousTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddChildInjectedFormTest()
+        public void GetNodeNextTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddChildButtonActionTest()
+        public void GetNodeFirstChildTest()
         {
 
         }
 
         [TestMethod()]
-        public void AddChildDisplayedItemTest()
+        public void GetNodeLastChildTest()
         {
 
         }
 
         [TestMethod()]
-        public void HasChildItemsTest()
+        public void GetNodeLastDescendantTest()
+        {
+
+        }
+
+        [TestMethod()]
+        public void GetPropertyInfoTest()
+        {
+
+        }
+
+        [TestMethod()]
+        public void SetNamesTest()
+        {
+
+        }
+
+        [TestMethod()]
+        public void ResetSdcImportTest()
         {
 
         }
