@@ -358,15 +358,12 @@ namespace SDC.Schema.Extensions
 				{
 					tn._Nodes.Add(node.ObjectGUID, node);
 
-					//This is a convenient place to update regTopNode.MaxObjectID; 
-					//tn._MaxObjectIDint = BaseType.LastObjectID;
-
 					if (node is IdentifiedExtensionType iet)
 						if (isMoving)
 						{
 							var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our moved node
 							int ietPrevPosition = -1;
-							if (ietPrev is not null) tn._IETnodes.IndexOf(ietPrev);  //this may be inefficient; may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) instead (using sGuid as Key).
+							if (ietPrev is not null) ietPrevPosition = tn._IETnodes.IndexOf(ietPrev);  //TODO: this collection scan may be inefficient; we may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) or ConditionalWeakTable instead (using sGuid or the object ref as Key).
 
 							foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
 								tn._IETnodes.Insert(++ietPrevPosition, n);

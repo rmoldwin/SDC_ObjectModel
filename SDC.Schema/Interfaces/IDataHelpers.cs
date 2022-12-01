@@ -771,7 +771,7 @@ namespace SDC.Schema
             void StoreError(string errorMsg)
             {
                 var exData = new Exception();
-                exData.Data.Add("QuestionID: ", rfParent.ParentIETypeNode.ID.ToString() ?? "null");
+                exData.Data.Add("QuestionID: ", rfParent.ParentIETnode.ID.ToString() ?? "null");
                 exData.Data.Add("Error: ", errorMsg);
                 exList.Add(exData);
             }

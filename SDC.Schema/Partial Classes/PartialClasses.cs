@@ -1263,7 +1263,7 @@ namespace SDC.Schema
 		internal void StoreError(string errorMsg) //TODO: Replace with event that logs each error
 		{
 			var exData = new Exception();
-			exData.Data.Add("QuestionID: ", ParentIETypeNode?.ID.ToString() ?? "null");
+			exData.Data.Add("QuestionID: ", ParentIETnode?.ID.ToString() ?? "null");
 			exData.Data.Add("Error: ", errorMsg);
 			ExceptionList.Add(exData);
 		}
@@ -1352,6 +1352,8 @@ namespace SDC.Schema
 				return sb.ToString();
 			}
 		}
+
+		
 		//TODO: Use or remove AutoNameFlag
 		[XmlIgnore]
 		[JsonIgnore]
@@ -1528,7 +1530,7 @@ namespace SDC.Schema
 
 		[XmlIgnore]
 		[JsonIgnore]
-		public IdentifiedExtensionType? ParentIETypeNode
+		public IdentifiedExtensionType? ParentIETnode
 		{
 			get
 			{
@@ -1548,8 +1550,8 @@ namespace SDC.Schema
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		public string ParentIETypeID
-		{ get => ParentIETypeNode?.ID; }
+		public string ParentIETnodeID
+		{ get => ParentIETnode?.ID; }
 
 		[XmlIgnore]
 		[JsonIgnore]
@@ -1697,6 +1699,77 @@ namespace SDC.Schema
 		{   //The ID may be assigned later by a deserializer after this runs, but that should be OK
 			if (string.IsNullOrWhiteSpace(ID))
 				this.ID = this.ObjectGUID.ToString();// #IsThisCorrect 
+		}
+
+		//!TODO: Move to IET class
+		/// <summary>
+		///  Hierarchical level using nested dot notation.<br/>
+		///  Only includes <see cref="IdentifiedExtensionType"/> nodes in the hierarchy.
+		/// </summary>
+		/// <exception cref="NullReferenceException"/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public string DotLevelIET
+		{
+			get
+			{
+				if (TopNode is null) throw new NullReferenceException("To determine DotLevel, TopNode must not be null");
+				//Walk up parent node tree and place each parent in a stack.
+				//pop each node off the stack and determine its position (seq) in its parent object
+
+				Stack<IdentifiedExtensionType>? s = new();
+				IdentifiedExtensionType? parIET = ParentIETnode;
+
+				if (this is IdentifiedExtensionType iet) s.Push(iet);
+				while (parIET != null)
+				{
+					s.Push(parIET);
+					parIET = parIET.ParentIETnode;
+				}
+				int level = 0;
+				var sb = new StringBuilder("0");
+				var topNode = (_ITopNode)TopNode;
+				int seq;
+
+				s.Pop();  //pop off the top node, which has no parent.
+				while (s.Count > 0)
+				{
+					seq = -1;
+					var n = s.Pop();
+					parIET = n.ParentIETnode;
+					if (parIET is not null) // parIET should never be null, since we popped the top IET node off of the stack
+					{
+						List<IdentifiedExtensionType>? lst;
+
+						if (parIET is QuestionItemType q && q.ListField_Item is not null)
+						{
+							lst = q.GetListAndChildItemsList();
+						}
+						else//Otherwise, use n.ChildItemsNode.GetChildNodes() to find the index of n
+						{
+							if (parIET is IChildItemsParent cip)
+								lst = cip.ChildItemsNode?.ChildItemsList;
+							else //if(parIET is FormDesignType)
+								lst = parIET.GetChildNodes()?.Where(n => n is IdentifiedExtensionType).Cast<IdentifiedExtensionType>().ToList();
+							//else if (parIET is InjectFormType)
+							//	lst = parIET.GetChildNodes()?.Where(n => n is IdentifiedExtensionType).Cast<IdentifiedExtensionType>().ToList();
+							//else throw new InvalidOperationException
+							//		("The IdentifiedExtensionType parent node contained neither a List object nor a ChildItems object");
+						}
+						if (lst is null) throw new InvalidOperationException
+								("The IdentifiedExtensionType parent node did not contain a child node matching the current node");
+
+						seq = lst.IndexOf(n);
+						if (seq == -1) throw new InvalidOperationException
+								("The IdentifiedExtensionType parent node did not contain a child node matching the current node");
+						seq++;
+
+						sb.Append('.').Append(seq); ;
+						level++;
+					}
+				}
+				return sb.ToString();
+			}
 		}
 	}
 

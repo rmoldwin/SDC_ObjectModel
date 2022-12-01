@@ -91,7 +91,7 @@ namespace SDC.Schema
         ///// </summary>
         //[System.Xml.Serialization.XmlIgnore]
         //[JsonIgnore]
-        //public IdentifiedExtensionType ParentIETypeNode { get; }
+        //public IdentifiedExtensionType ParentIETnode { get; }
 
         /// <summary>
         /// Retrieve the BaseType object that is the immediate parent of the current object in the object tree
@@ -105,13 +105,13 @@ namespace SDC.Schema
 		/// </summary>
 		[XmlIgnore]
         [JsonIgnore]
-        public IdentifiedExtensionType? ParentIETypeNode { get; }
+        public IdentifiedExtensionType? ParentIETnode { get; }
         /// <summary>
         /// Returns the ID property of the closest ancestor of type IdentifiedExtensionType.  
         /// </summary>
         [XmlIgnore]
         [JsonIgnore]
-        public string? ParentIETypeID { get; }
+        public string? ParentIETnodeID { get; }
 
 		/// <summary>
 		/// 

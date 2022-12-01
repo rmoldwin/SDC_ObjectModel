@@ -303,7 +303,7 @@ namespace SDC.Schema.Extensions
 						//bt.IsLeafNode = true;
 						bt.RegisterNodeAndParent(btPar!, childNodesSort: false);
 						//Debug.WriteLine($"The node with ObjectID: {bt.ObjectID} is leaving InitializeNodesFromSdcXml. Item type is {bt.GetType().Name}.  " +
-						//            $"Parent ObjectID is {bt?.ParentID}, ParentIETypeID: {bt?.ParentIETypeID}, ParentType: {btPar.GetType().Name}");
+						//            $"Parent ObjectID is {bt?.ParentID}, ParentIETnodeID: {bt?.ParentIETnodeID}, ParentType: {btPar.GetType().Name}");
 					}
 					else { throw new KeyNotFoundException("No parent object was returned from the SDC tree"); }
 				}

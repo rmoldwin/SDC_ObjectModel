@@ -18,6 +18,7 @@ using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.IO.IsolatedStorage;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -512,7 +513,7 @@ namespace SDC.Schema
 			return sortedList;
 		}
 		/// <summary>
-		/// Retruns the input node n and all non-IET subnodes. Subnode search breaks at all IET nodes, <br/>
+		/// Returns the input node n and all non-IET subnodes. Subnode search breaks at all IET nodes, <br/>
 		/// so that IET subnodes and their descendants are not included.
 		/// </summary>
 		/// <param name="n"></param>
@@ -1330,13 +1331,13 @@ namespace SDC.Schema
 		/// setting <b><paramref name="omitDefaultValues"/></b> to <b>false</b> will include those XmlAttribute properties that are set to their 
 		/// default values, as designated in a <see cref="DefaultValueAttribute"/> attribute decorating the property accessor.
 		/// </param>
-		/// <param name="attributesToOmit">string array containing the names of SDC XML attributes to omit from the returned List</param>
+		/// <param name="attributesToExclude">string array containing the names of SDC XML attributes to omit from the returned List</param>
 		/// <param name="attributesToInclude">string array containing the names of SDC XML attributes to include in the returned List</param>
 		/// <returns> <see cref="List{AttributeInfo}"/> containing the child nodes</returns>
 		public static List<AttributeInfo> ReflectChildXmlAttributes(BaseType n
 			, bool getAllXmlAttributes = true
 			, bool omitDefaultValues = true
-			, string[]? attributesToOmit = null
+			, string[]? attributesToExclude = null
 			, string[]? attributesToInclude = null)
 		{
 			if (n is null) throw new NullReferenceException("n cannot be null"); //You can't have sibs without a parent
@@ -1370,49 +1371,84 @@ namespace SDC.Schema
 					if (getAllXmlAttributes) AddAttribute();
 					else
 					{
-						var sspn = t.GetMethod("ShouldSerialize" + p.Name)?.Invoke(n, null);
-						//if (sspn is null) Debugger.Break();
+						var sspn = t.GetMethod("ShouldSerialize" + p.Name)?.Invoke(n, null); //sspn == ShouldSerialize*PropertyName*
+
 						var pVal = p.GetValue(n);
 						var attDefVal = GetAttributeDefaultValue(p);
 
-						//if (p.Name == "minCard") Debugger.Break();  //&& (pVal?.Equals(0)??false)
 						if (pVal is not null) //if pVal is null, there is nothing to serialize
 						{
-							if (attributesToOmit is not null && attributesToOmit.Contains(p.Name)) continue;
+							if (attributesToExclude is not null && attributesToExclude.Contains(p.Name)) continue;
 							if (attributesToInclude is not null && !attributesToInclude.Contains(p.Name)) continue;
-							bool pValIsAttributeDefault = false;
 
-							if (omitDefaultValues)  //The XML serializer emits all properties set to the Value of the DefaultValueAttribute, assuming DefaultValueAttribute decorates the property
+							//if (p.Name == "showInReport") Debugger.Break();
+							bool IsAttDefValMatch = attDefVal?.Equals(pVal) ?? false; //Does pVal match its DefaultValueAttribute (i.e., attDefVal); false if DefaultValueAttribute not present (null)
+
+							if (sspn is bool shouldSerialize && shouldSerialize) //if(_shouldSerializePropertyName is true);	and pVal does not match its DefaultValueAttribute (i.e., attDefVal)
 							{
-								if (attDefVal is not null)
-									if (attDefVal.Equals(pVal))
-										pValIsAttributeDefault = true;  //true prevents serialization of this property
-							}
+								//Make sure the property does not hold a default value (based on DefaultValueAttribute's Value property)
+								//sspn does NOT overide DefaultValueAttribute setting, the serializer will not produce output if DefaultValueAttribute matches the current value.
+								//The only easy way to overide it (force XML output) is to remove the DefaultValueAttribute, or create the serializer with an XmlAttributeOverrides instruction in its constructor
+								//see https://stackoverflow.com/questions/28054335/force-xml-serialization-of-xmldefaultvalue-values, and
+								//https://learn.microsoft.com/en-us/dotnet/api/system.xml.serialization.xmlattributes.xmldefaultvalue?view=net-7.0
 
-							if (sspn is bool shouldSerialize && shouldSerialize) //if(_shouldSerializePropertyName is true);	
-							{
-
-								if (!pValIsAttributeDefault)  //Make sure the property does not hold a default value (based on DefaultValueAttribute's Value property)
-									AddAttribute();
-							}
-							else if (sspn is null)  // ShouldSerializePropertyName idoes not exist for property p.  This can occur for properties like byte[], HTML/XML types, etc.
-							{
-
-								if (attDefVal is not null) //Test if the property's DefaultValueAttribute (it's unlikely if this is present) value does not match the current property value,
+								if (!IsAttDefValMatch)
 								{
-									if (!pValIsAttributeDefault)
-										AddAttribute();
+									//if (p.Name == "showInReport") Debugger.Break();
+									AddAttribute();
 								}
-								else //There was no DefaultValueAttribute found (i.e., attDefVal is null and thus pValIsAttributeDefault is false),
-									 //so now we see if we have a non-default (e.g., non-null for reference types) property value (obtained from GetTypeDefaultValue) for its datatype.
+							}
+							else if (omitDefaultValues)  //The XML serializer omits all properties set to the Value of the DefaultValueAttribute, assuming DefaultValueAttribute decorates the property
+							{
+								if (attDefVal is not null) //Check the DefaultValueAttribute
+								{
+									if (!IsAttDefValMatch)
+									{
+										//if (p.Name == "showInReport") Debugger.Break();
+										AddAttribute();
+									}
+								}
+								else //Check the data type's intrinsic default value set by .NET
 								{
 									var typeDefaultVal = GetTypeDefaultValue(pVal.GetType());
-									if (!pVal.Equals(typeDefaultVal))
+									if (! pVal.Equals(typeDefaultVal))
 										AddAttribute();
 								}
+								//else if (pVal.IsNumeric() && (double)pVal == 0)  //pVal is a numeric type
+								//	pValIsAttributeDefault = true;
+								//else if (pVal is string str && str == "") 
+								//	pValIsAttributeDefault = true;
+								//else if (pVal is DateTime dtm && dtm == default)
+								//	pValIsAttributeDefault = true;
+								//else if (pVal is DateOnly dt && dt == default)
+								//	pValIsAttributeDefault = true;
+								//else if (pVal is TimeOnly tm && tm == default)
+								//	pValIsAttributeDefault = true;
+								//else if (pVal is TimeSpan ts && ts == default)
+								//	pValIsAttributeDefault = true;
+								//else if (pVal is bool b && b == default)
+								//	pValIsAttributeDefault = true;
+								//?TODO: Add default tests for other SDC data types
 							}
+							else AddAttribute();
+							//else if (sspn is null)  // ShouldSerializePropertyName does not exist for property p.  This can occur for properties like byte[], HTML/XML types, etc.
+							//{
+
+							//	if (attDefVal is not null) //Test if the property's DefaultValueAttribute (it's unlikely if this is present) value does not match the current property value,
+							//	{
+							//		if (!pValIsAttributeDefault)
+							//			AddAttribute();
+							//	}
+							//	else //There was no DefaultValueAttribute found (i.e., attDefVal is null and thus pValIsAttributeDefault is false),
+							//		 //so now we see if we have a non-default (e.g., non-null for reference types) property value (obtained from GetTypeDefaultValue) for its datatype.
+							//	{
+							//		if (!pValIsAttributeDefault)
+							//			AddAttribute();
+							//	}
+							//}
 						}
 					}
+
 					void AddAttribute()
 					{
 						nodeIndex++;
@@ -2283,11 +2319,11 @@ namespace SDC.Schema
 				}
 				else //not IdentifiedExtensionType
 				{
-					IdentifiedExtensionType? ancestorIet = node.ParentIETypeNode;
+					IdentifiedExtensionType? ancestorIet = node.ParentIETnode;
 					if (ancestorIet is not null)
 					{
 						if (ancestorIet.ID?.Contains(nameSpace) ?? false)
-							nameBody = Regex.Replace(node.ParentIETypeNode?.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
+							nameBody = Regex.Replace(node.ParentIETnode?.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
 						else if(ancestorIet.BaseName is not null) nameBody = ancestorIet.BaseName ?? CreateBaseNameFromsGuid(node.sGuid);
 						else nameBody = node.BaseName ?? CreateBaseNameFromsGuid(node.sGuid);
 					}
@@ -2318,7 +2354,7 @@ namespace SDC.Schema
 			string baseName = "";
 			if (bt is not IdentifiedExtensionType)
 			{
-				var iet = bt.ParentIETypeNode;
+				var iet = bt.ParentIETnode;
 				if (iet is not null)
 					baseName = iet.BaseName;
 				else

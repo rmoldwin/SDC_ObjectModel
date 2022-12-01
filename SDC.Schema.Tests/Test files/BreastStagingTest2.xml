@@ -43,7 +43,7 @@
 												<List>
 													<ListItem type="mustImplement.false omitWhenSelected.true" ID="testLI1" mustImplement="false" omitWhenSelected="true">
 														<ListItemResponseField type="---TEST---responseRequired.true" responseRequired="true">
-															<Response>
+															<Response >
 																<byte type="---TEST--- allowAPPROX.false.def quantEnum.EQ.def maxExclusive.0 minExclusive.1 totalDigits.2"
 																	  allowAPPROX="false" quantEnum="EQ" maxExclusive="0" minExclusive="1" totalDigits="2"/>
 															</Response>

@@ -152,4 +152,25 @@
 	}
 
 
+	public static bool IsNumeric(this object obj)
+	{
+		switch (obj)
+		{
+			case Byte:
+			case SByte:
+			case UInt16:
+			case UInt32:
+			case UInt64:
+			case Int16:
+			case Int32:
+			case Int64:
+			case Single:
+			case Decimal:
+			case Double:
+
+				return true;
+			default:
+				return false;
+		}
+	}
 }

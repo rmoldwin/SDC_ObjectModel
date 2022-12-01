@@ -55,7 +55,7 @@ namespace SDC.Schema.Tests.Functional
             Debug.Print((FD.Nodes.Equals(FD.TopNode.Nodes)).ToString());
             foreach (BaseType n in FD.Nodes.Values)
             {
-                Debug.Print("Node name: " +n?.name + "Node type: " + n?.GetType().Name + ", ParentIET: " + n?.ParentIETypeNode?.ID);
+                Debug.Print("Node name: " +n?.name + "Node type: " + n?.GetType().Name + ", ParentIET: " + n?.ParentIETnode?.ID);
             }
 
             Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
@@ -91,7 +91,7 @@ namespace SDC.Schema.Tests.Functional
                             title = q.title;
                             pubOption = q.Property?.Find(p => p.propName == "pubOption")?.val;
                             mustImp = q.mustImplement;
-                            parIet = q.ParentIETypeNode;
+                            parIet = q.ParentIETnode;
                             childIetList = q.GetListItems()?.Cast<IdentifiedExtensionType>().ToList();
                             childIetList = q.ListField_Item?.List?.Items?.Cast<IdentifiedExtensionType>().ToList(); ;
 							childIetList = q.ChildItemsNode?.ChildItemsList;
