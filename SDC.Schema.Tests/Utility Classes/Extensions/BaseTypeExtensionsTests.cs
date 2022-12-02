@@ -98,7 +98,7 @@ namespace SDC.Schema.Tests.Utils.Extensions
 				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  SubNode: {en}    {"".PadRight(pad, gt)}");
 				Debug.Print("<==<==<== Attr ==>==>==>| Default Val |<==<==<==<==<== Val ==>==>==>==>==>");
 				foreach (AttributeInfo ai in lai)
-					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? "").PadRight(13)}| {ai.AttributeValue?.ToString()}");
+					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? "").PadRight(13)}| {ai.Value?.ToString()}");
 			}
 			//  ------------------------------------------------------------------------------------
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
@@ -108,15 +108,15 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		}
 
         [TestMethod()]
-        public void GetXmlAttributesFilledCompareVersions()
+        public void CompareVersions()
         {
 			Setup.Reset();
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var FD = Setup.FD;
+			//var FD = Setup.FD;
 			//Dictionary<iet_sGuid, Dictionary<parent_sGuid, child_List<AttributeInfo>>>
 
 
-			var pathOrig = Path.Combine("..", "..", "..", "Test files", "DefaultValsTest2.xml");
+			//var pathOrig = Path.Combine("..", "..", "..", "Test files", "DefaultValsTest2.xml");
 			var pathV2 = Path.Combine("..", "..", "..", "Test files", "DefaultValsTest2.xmlv2");
 			var pathV1 = Path.Combine("..", "..", "..", "Test files", "DefaultValsTest2.xmlv1");
 
@@ -126,7 +126,7 @@ namespace SDC.Schema.Tests.Utils.Extensions
 			//File.WriteAllText(pathV1, origFile); //write v1 file (original)
 			
 
-			var fNew = File.OpenWrite(pathV2);
+			//var fNew = File.OpenWrite(pathV2);
 			FormDesignType? fdV2 = FormDesignType.DeserializeFromXml(File.ReadAllText(pathV2));
 			FormDesignType? fdV1 = FormDesignType.DeserializeFromXml(File.ReadAllText(pathV1));
 			//System.IO.File.AppendAllText(pathOld, fdV2.GetXml());
@@ -134,79 +134,146 @@ namespace SDC.Schema.Tests.Utils.Extensions
 			//fdV2.SaveXmlToFile(pathV2);
 			//fdV1.SaveXmlToFile(pathV1);
 
-			var slAttV2= GetXmlAttributesFilledTree(fdV2);
+			SortedList<string, Dictionary<string, List<AttributeInfo>>>? slAttV2= GetXmlAttributesFilledTree(fdV2);//keys are IET sGuid, subNode sGuid; holds serializable attribute List for individual subNodes
 			SortedList<string, Dictionary<string, List<AttributeInfo>>>? slAttV1 = GetXmlAttributesFilledTree(fdV1);
-			Dictionary<string, List<AttributeInfo>>? daiV1;	
-			Dictionary<string, List<AttributeInfo>>? daiV2;
+
+			Dictionary<string, List<AttributeInfo>>? dlaiV1;  //serializable attribute List for individual subNodes
+			Dictionary<string, List<AttributeInfo>>? dlaiV2;
+
+			Dictionary<string, DifNodeIET> dDifNodeIET = new(); //the key is the IET node sGuid. Holds attribute changes in all IET and subNodes
 
 			slAttV2.AsParallel().ForAll(kv2 =>
 			{
-				//Look for match in slAttV1
-				if (slAttV1.TryGetValue(kv2.Key, out daiV1))  //for each V2 IET node
+				//Setup IET node data;
+				string sGuidIET = kv2.Key;
+				Guid GuidIET = ShortGuid.Decode(sGuidIET);
+				bool isParChangedIET = false;
+				bool isMovedIET = false;
+				bool isNewIET = false;
+				bool isRemovedIET = false;
+				bool isAttListChanged = false;
+
+				//List<AttributeInfo>? lAIv2IET = kv2.Value[sGuidIET];  //could simply use kv2.Value.Values[0] instead				
+				//AttributeInfo aiV2IET = lAIv2IET[0];
+				//string nameV2IET = aiV2IET.Name;
+
+				List<AttInfoDif> laiDif = new(); //For each IET node, there is one laiDif per subnode (including the IET node)
+				Dictionary<string, List<AttInfoDif>> dlaiDif = new();  //the key is the IET sGuid; dlaiDif will be added later to difNodeIET, which will then be added to dDifNodeIET
+				dlaiDif.Add(sGuidIET, laiDif); //add the laiDif to its dictionary; later we will stuff this laiDiff List object with attribute change data for the IET node and all of its subNodes.
+
+
+				//we now have to populate laiDif with with AttInfoDif structs for each changed attribute
+				//We also have to set all the above bool settings for difNodeIET
+				//Then finally, we need to add one new dDifNodeIET struct entry (difNodeIET) for each V2 IET.
+				////We can also add difNodeIET structs for V1 IET nodes V1 that were not present in V2
+
+
+				//holds the List<AttributeInfo> where the attributes differ from V1 to V2; part of dDiffNodeIET; the key of the IET node sGuid.
+				//laiDif will become the value part of dlaiDifIET
+
+
+				var ietV1 = fdV1.Nodes[GuidIET] as IdentifiedExtensionType;
+				if (ietV1 is not null)
 				{
-					//Get the V2 IET attribute dictionary.  The first entry contains the V2 IET node data
-					string ietsGuid = kv2.Key;
-					var ietlAIv2 = kv2.Value[ietsGuid];  //could simply use kv2.Value.Values[0] instead
-					var ietAIv2 = ietlAIv2[0];
-					string ietNameV2 = ietAIv2.Name;
-
-					var ietlAIv1 = daiV1[ietsGuid]; //could simply use daiV1[0] instead
-					var ietAIv1 = ietlAIv1[0];
-
-
-					var ietGuid = ShortGuid.Decode(ietsGuid);
-					var ietV1 = fdV1.Nodes[ietGuid] as IdentifiedExtensionType;
-					var ietV2 = (IdentifiedExtensionType)fdV2.Nodes[ietGuid] as IdentifiedExtensionType;
-
-					HashSet<(string sGuidIET, string sGuid, string attName)> aiHashV1;
-					HashSet<(string sGuidIET, string sGuid, string attName)> aiHashV2;
-
+					var ietV2 = fdV2.Nodes[GuidIET] as IdentifiedExtensionType;
 
 					//If V2 IET parent node is not the same as V1 parent node, mark as PARENT CHANGED
-					if (ietAIv2.ParentNodesGuid != ietAIv1.ParentNodesGuid)
-					{ }//mark as PARENT CHANGED
+					if (ietV1.ParentNode?.sGuid != ietV2?.ParentNode?.sGuid)
+					{ isParChangedIET = true; }
 
 					//If V2 IET prev sib node is not the same as V1 prev sib, mark as POSITION CHANGED
-					//TODO: see if we can ad prev sib to the ai struct, to perhaps avoid this lookup
-					if (ietV2.GetNodePreviousSib != ietV2.GetNodePreviousSib)
-					{ }//mark as POSITION CHANGED
+					//TODO: see if we can add prev sib to the ai struct, to perhaps avoid this lookup
+					if (ietV1.GetNodePreviousSib != ietV2!.GetNodePreviousSib)
+					{ isMovedIET = true; }
 
-					//loop through attributes of each V2 node under the current IET, test for a mismatched value
-					daiV2 = kv2.Value; //dict contains List<AttributeInfo> for iet and all non IET descendant nodes.
-					foreach (var sguidV2 in daiV2.Keys)
+					//Look for match in slAttV1
+					if (slAttV1.TryGetValue(kv2.Key, out dlaiV1))  //retrive attribute dictionary for each V2 IET node
 					{
-						aiHashV2 = new();
-						aiHashV1 = new();
+						//Get the V1 IET attribute dictionary.  The first entry contains the V2 IET node data					
+						List<AttributeInfo>? laIV1IET = dlaiV1[sGuidIET]; //could simply use dlaiV1[0] instead
+						AttributeInfo aiV1IET = laIV1IET[0];					
 
-						foreach (var aiV2 in daiV2[sguidV2])
+						//loop through attributes of each V2 node under the current IET, test for a mismatched value
+						dlaiV2 = kv2.Value; //dict contains List<AttributeInfo> for iet node and all non IET descendant nodes.
+
+						foreach (var sGuidV2 in dlaiV2.Keys) //loop through IET subNodes
 						{
-							
-							aiHashV2.Add((ietsGuid, sguidV2, aiV2.Name));
+							HashSet<(string sGuidIET, string sGuid, AttributeInfo ai)> aiHashV2IET = new();
+							HashSet<(string sGuidIET, string sGuid, AttributeInfo ai)> aiHashV1IET = new();
 
-							//look for attribute match in daiV1
-							if (daiV1.TryGetValue(sguidV2, out var laiV1))
+							dlaiV1.TryGetValue(sGuidV2, out var laiV1); //Find matching subNode in V1 (using sGuidV2), and retrieve its serializable attributes (laiV1)
+
+							foreach (var aiV2 in dlaiV2[sGuidV2]) //Loop through V2 **attributes** in the currrent subNode (with subNode key: sGuidV2)
 							{
-								var aiV1 = laiV1.Find(aiV1 => aiV1.Name == aiV2.Name);
-								aiHashV1.Add((ietsGuid, sguidV2, aiV1.Name));
+								aiHashV2IET.Add((sGuidIET, sGuidV2, aiV2)); //document that the serializable attribute exists in V2
+								
+								if (laiV1 is not null)
+								{   //look for V1 subNode attribute match in laiV1
+									var aiV1 = laiV1.FirstOrDefault(aiV1 => aiV1.Name == aiV2.Name);
 
-
-								if (aiV1 == default)
-								{ } //?write "missing" aiV1 value to attsRemovedInV2 struct output, or just use **attsRemovedInV2** hashSet result output below
-								else if (aiV1.AttributeValue != aiV2.AttributeValue)
-								{ }//write aiV1 to the struct output 
-
+									if (aiV1 != default) //matching serialized attributes were found on the V1 subNode
+									{
+										aiHashV1IET.Add((sGuidIET, sGuidV2, aiV1)); //document that the serializable attribute exists in V1
+										if (aiV1.Value != aiV2.Value) //See if the attribute values match
+										{
+											laiDif.Add(new AttInfoDif(sGuidV2, aiV1, aiV2));
+											isAttListChanged = true;
+										}
+									}
+									else //if (aiV1 == default) //a matching serialized attributes was NOT found on the V1 subNode
+									{
+										//The V1 subNode does exist here.
+										//aiV1 has default value -  so, the aiV1 attribute on the V1 subNode is not serialized (i.e., missing or at default tvalue) 
+										laiDif.Add(new AttInfoDif(sGuidV2, default, aiV2));
+										isAttListChanged = true;
+									}
+								}
+								else //sGuidV2 does not match a list of filled V1 attributes (laiV1) on a matching V1 subNode (if it exists);
+									 //we might have a new V2 subNode here, without a matching V1 subNode
+									 // (i.e., a V2-matching V1 subNode does not exist), or maybe? a subNode with all default attributes
+								{
+									laiDif.Add(new AttInfoDif(sGuidV2, default, aiV2));
+									isAttListChanged = true;
+								}
 							}
-							else
-							{ }//the node is missing, or there are no attributes on the node
-						}
-						var attsRemovedInV2 = aiHashV1.AsParallel().Except(aiHashV2);
-						var attsAddedInV2 = aiHashV1.AsParallel().Except(aiHashV1);
-						//We need to feed these tuples into some sruct, keyed by an sGuid
-					}
-				}
-				else { }//mark entire V2 node as NEW (along with all its attributes)
 
-			});
+							var attsRemovedInV2 = aiHashV1IET.Except(aiHashV2IET); //Add IEqualityComparer to only look at sGuid and Name
+							//var attsAddedInV2 = aiHashV2IET.AsParallel().Except(aiHashV2IET.AsParallel());  //Add IEqualityComparer to only look at sGuid and Name
+
+							//Document the V2 removed attributes in the laiDif List:
+							//The missing attribute name/value can be found by querying on AttInfoDif.sGuidSubnode, and looking in AttInfoDif.aiV1.Name and AttInfoDif.aiV1.Value
+							foreach (var rem in attsRemovedInV2)
+							{
+								laiDif.Add(new AttInfoDif(rem.sGuid, aiV1: rem.ai, default));  //note that aiV2 is **default**; this indicates that **all** V1 serialized attribute were removed in V2
+								isAttListChanged = true;
+							}
+
+						}//looping through IET subNodes ends here
+
+
+					}//retrieve a V1 attribute dictionary for each IET node ends here
+					else //could not retrieve a V1 attribute dictionary (dlaiV1) matching a V2 IET node, even though the V1 IET node exists;
+						 //It should be present even if it has no Key/Value entries.
+						 //If the V1 subNode was null, we would not be here.  See label **V1SubNodeIsNull**
+					{
+						Debugger.Break();
+						//throw error here?
+					}
+				}//Find matching V1 IET node ends here			
+				else //matching ietV1 is not found in V1 Nodes
+				{
+				V1SubNodeIsNull: isNewIET = true;
+				}
+				//finished looking for subNodes with attribute differences, as well as missing subnodes
+				//Construct difNodeIET and add to dDifNodeIET for each IET node 
+				DifNodeIET difNodeIET = new(sGuidIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged, dlaiDif);
+				dDifNodeIET.Add(sGuidIET, difNodeIET);
+
+				//TODO: Should we add isRemoved DifNodeIET entries, for IETs in V1 but not in V2?  This is not strictly necessary 
+
+
+			}//END of each V2 IET node loop processing in lambda
+				);
 
 			void CompareNodes ()
 			{
@@ -215,86 +282,24 @@ namespace SDC.Schema.Tests.Utils.Extensions
 
 			}
 
-			//char gt = ">"[0];
-			char gt = '>';
-			//  ------------------------------------------------------------------------------------
-
-
 			
-			BaseType? btOld = null;
-			Dictionary<string, List<AttributeInfo>>? dlaiNew = null;
-			Dictionary<string, List<AttributeInfo>>? dlaiOld = null;
-			ConditionalWeakTable<BaseType, List<AttributeInfo>>? cwtNewNodesAi = null;
-			ConditionalWeakTable<BaseType, List<AttributeInfo>>? cwtOldNodesAi = null;
-
-
-			//do a quick Nodes compare to determine New nodes
-			//No need to find deleted nodes for this task, so we can start with the New tree, and find matches (hits, misses) in the old tree
-			//Can compare ParentNode and index order in sib list using ParentNodes and ChildNodes dictionaries.
-
-			//Then iterate matching nodes and look for changed attributes of interest
-			//This can be done without creating new dictionaries, but it may be easier (but slower) to process each tree separately, an dumping results into dictionaries.
-			foreach (var ietNew in fdV2?.IETnodes)
-			{
-				//find matching iet node, in new fdV1 tree
-				if(fdV1.Nodes.TryGetValue(ietNew.ObjectGUID, out btOld ))
-				{
-					var ietOld = (IdentifiedExtensionType)btOld;
-
-					if (slAttV1.TryGetValue(ietNew.sGuid, out dlaiOld)) //dlaiOld holds all the attributes collected under ietOld/btOld
-					{ //
-						if (slAttV2.TryGetValue(ietNew.sGuid, out dlaiNew))//dlaiNew holds all the attributes collected under ietNew
-						{
-							//compare attribute lists node by node
-							foreach (var kvLaiNew in dlaiNew) //iterate all the sub-nodes of ietNew, and return each sub-node's AttributeInfo list
-							{
-								List<AttributeInfo>? laiOld = new();
-								if (dlaiOld.TryGetValue(kvLaiNew.Key, out laiOld)) //fins matching sub-node in dlaiOld, which holds each sub-node's AttributeInfo list
-								{
-									foreach (var attNew in kvLaiNew.Value)
-									{
-										//find the matching node in dlaiOld, and compare each attribute, adding any non-matches into a List<iet_sGuid, mismatched_AttributeInfo>
-										var attOld = laiOld.FirstOrDefault(p => p.Name == attNew.Name);
-										if(attOld.Name is not null)
-										{ 
-											if(attOld.AttributeValue != attNew.AttributeValue)
-											{ }//save the old and new values in separate data structure array (HashSet of SortedList), with one array per iet node.
-												//We can then compute an non-matching set operation to return the differences.
-												//Differences must also account for added and removed nodes on the new side, and possibly on th old sidee
-											   //Each array element is a struct like ~ {subnodeElementName, AttrName, AttrVal} for both the old and new values, but only if they differ
-											   //iet sGuid and a node ref, sub-node type, sub-node elementName, sub-node's parentNode sGuid, subnode index in IEnumerable sib list
-										}
-										//also want to document attributes that have been removed from the new version, added, or changed
-										//skip name, order, sGuid comparisons
-										//include parentNode sGuid, index in IEnumerable sib list
-									}
-								}else
-								{ } //attribute is missing in the old tree fdV1
-							}
-						}
-					}
-					else//ietOld does not exist
-					{ } //we have a new node -  nothing to compare but Mark it as new for fdV2
-
-				}
-			}
-
 
 		//  ------------------------------------------------------------------------------------
 		void Log(BaseType subNode, List<AttributeInfo> lai)
 			{
+				//char gt = ">"[0];
+				const char gt = '>';
 				var en = subNode.ElementName;
 				int enLen = 36 - en.Length;
 				int pad = (enLen > 0) ? enLen : 0;
 				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  SubNode: {en}    {"".PadRight(pad, gt)}");
 				Debug.Print("<==<==<== Attr ==>==>==>| Default Val |<==<==<==<==<== Val ==>==>==>==>==>");
 				foreach (AttributeInfo ai in lai)
-					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? "").PadRight(13)}| {ai.AttributeValue?.ToString()}");
+					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? "").PadRight(13)}| {ai.Value?.ToString()}");
 			}
+
 			//  ------------------------------------------------------------------------------------
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-			Debug.Print(FD.GetXml());
-
 
 		}
 
@@ -304,7 +309,7 @@ namespace SDC.Schema.Tests.Utils.Extensions
 
 		}
 		[TestMethod()]
-		public void GetDoteLevelIET()
+		public void GetDotLevelIET()
 		{
 			int i = 0;
 			foreach (var n in Setup.FD.IETnodes)
@@ -339,14 +344,21 @@ namespace SDC.Schema.Tests.Utils.Extensions
 
         }
 
-
-
-		//!ToDo: include ParentNode (if changed) and Previous sib (if changed) in record
 		public readonly record struct Attribute(BaseType node, string sGuid, string attName, string? attVal, bool isDefault = true);
 		public readonly record struct AttributeDiff(BaseType oldNode, BaseType newNode, string sGuidOld, string sGuidNew, string attName, string? attValOld, string? attValNew);
 		public readonly record struct SDCattribute(string AttName, string? AttVal, bool IsSerialized, bool IsDefault);
 		public readonly record struct NodeInfo(string DotNotation, ShortGuid ParentNodesGuid, ShortGuid IETparentNodesGuid, int SibIndex, List<AttributeInfo> cwtNewNodesAi);
-		public readonly record struct NodeInfoIET(string IetDotNotation, ShortGuid ParentNodesGuid, ShortGuid? IETparentNodesGuid, int SibIndex, ConditionalWeakTable<BaseType, List<AttributeInfo>> cwtNewNodesAi);
+		public readonly record struct AttInfoDif(string sGuidSubnode, AttributeInfo aiV1, AttributeInfo aiV2);
+		public readonly record struct DifNodeIET(
+			string sGuidIET, 
+			bool isParChanged, //parent node has changed
+			bool isMoved, //prev sibling node has changed
+			bool isNew, //Node present in V2 only
+			bool isRemoved, //Node present in V1 only
+			bool isAttListChanged,
+			Dictionary<string, List<AttInfoDif>> dlaiDif //in case we need to look up attribute Diffs by subnode sGuid
+			);
+
 		public bool AddedNode(BaseType nodeNew, Dictionary<Guid, BaseType> dictOld, out BaseType? oldNode)
 		=> dictOld.TryGetValue(nodeNew.ObjectGUID, out oldNode);
 		public bool RemovedNode(BaseType nodeOld, Dictionary<Guid, BaseType> dictNew, out BaseType? newNode)

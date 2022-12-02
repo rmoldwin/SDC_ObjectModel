@@ -16,28 +16,36 @@ namespace SDC.Schema
 	public readonly record struct AttributeInfo
 	{
 		/// <summary>
-		/// Constructor for <see cref="AttributeInfo"/>
+		/// Constructor for <see cref="AttributeInfo"/><br/>
+		/// A default value of "AAAAAAAAAAAAAAAAAAAAAA" for <paramref name="sGuid"/> indicates that the attribute does not exist because its SDC node (with a default sGuid value) does not exist.<br/>
+		/// If the <paramref name="sGuid"/> is valid, the node exists, but the attribute either does not exist, or is present at its default value.
 		/// </summary>
 		/// <param name="parentNode"></param>
-		/// <param name="sdcElementNode_sGuid">The ShortGuid (sGuid) property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.</param>
+		/// <param name="sGuid">The ShortGuid (sGuid) property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.</param>
 		/// <param name="attributeValue">The value of this attribute instance.</param>
 		/// <param name="attributePropInfo">The PropertyInfo object that describes this attribute on its parent object node (which is represented by SdcElementNodeSguid).</param>
 		/// <param name="order">The serialized ordinal position of the attribute in the current element</param>
-		public AttributeInfo(BaseType parentNode, 
-			ShortGuid sdcElementNode_sGuid, 
+		public AttributeInfo(BaseType? parentNode, 
+			ShortGuid sGuid, 
 			object? attributeValue, 
-			PropertyInfo attributePropInfo, 
+			PropertyInfo? attributePropInfo, 
 			int order)
-		{
-			var parentIETNode = parentNode.ParentIETnode;
-			this.ParentNodesGuid = parentNode.sGuid;
+		{			
+			if(sGuid == "AAAAAAAAAAAAAAAAAAAAAA" || attributePropInfo is null)
+			{ this.IsEmpty = true; }
+			var parentIETNode = parentNode?.ParentIETnode;
+			this.sGuid = sGuid;
+			this.ParentNodesGuid = parentNode?.sGuid;
 			this.ParentIETNodesGuid = parentIETNode?.sGuid;
-			this.ParentNodeObjectID = parentNode.ObjectID;
+			this.ParentNodeObjectID = parentNode?.ObjectID??0;
 			this.ParentIETNodeObjectID = parentIETNode?.ObjectID;
-			this.AttributeValue = attributeValue;
-			this.DefaultValue = SdcUtil.GetAttributeDefaultValue(attributePropInfo);
-			this.AttributePropInfo = attributePropInfo;
-			this.Name = AttributePropInfo.Name;
+			this.Value = attributeValue;
+			if (attributePropInfo is not null)
+			{
+				this.DefaultValue = SdcUtil.GetAttributeDefaultValue(attributePropInfo);
+				this.AttributePropInfo = attributePropInfo;
+				this.Name = AttributePropInfo.Name;
+			}
 			this.Order = order;
 		}
 
@@ -45,12 +53,12 @@ namespace SDC.Schema
 		/// <summary>
 		/// The PropertyInfo object that describes this attribute on its parent object node (which is represented by SdcElementNodeSguid).
 		/// </summary>
-		public PropertyInfo AttributePropInfo { get; }
+		public PropertyInfo? AttributePropInfo { get; }
 
 		/// <summary>
 		/// The value of this attribute instance.
 		/// </summary>
-		public object? AttributeValue { get; }
+		public object? Value { get; }
 
 		/// <summary>
 		/// The value of the DefaultValueAttribute which is present on some XML attribute properties.
@@ -62,7 +70,7 @@ namespace SDC.Schema
 		/// The ShortGuid property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.
 		/// The sGuid can be used to retrieve an SDC object, while not holding onto an object reference inside this struct.
 		/// </summary>
-		public ShortGuid ParentNodesGuid { get; }
+		public ShortGuid? ParentNodesGuid { get; }
 		/// <summary>
 		/// The ObjectID property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.
 		/// The ObjectID can be used to retrieve an SDC object, while not holding an object reference inside this struct.
@@ -87,11 +95,17 @@ namespace SDC.Schema
 		/// <summary>
 		/// Name of the attribute, as it will appear in XML
 		/// </summary>
-		public string Name { get; }
+		public string? Name { get; }
 		/// <summary>
 		/// The serialized ordinal position of the attribute in the current element
 		/// </summary>
 		public int Order { get; }
+		public ShortGuid? sGuid { get; }
+		/// <summary>
+		/// If true, then the source node's sGuid is populated, then the attribute is not serialized, and all other fields are uninitialized. <br/>
+		/// if sGuid has a default value ("AAAAAAAAAAAAAAAAAAAAAA"), then the node is also null.  This is a default value for this struct. 
+		/// </summary>
+		public bool IsEmpty { get; }
 
 	}
 	/// <summary>
@@ -145,6 +159,11 @@ namespace SDC.Schema
 		/// </summary>
 		public int Order { get; }
 
+		/// <summary>
+		/// If true, then the source node's sGuid is populated, then the attribute is not serialized, and all other fields are uninitialized. <br/>
+		/// if sGuid has a default value ("AAAAAAAAAAAAAAAAAAAAAA"), then the node is also null.  This is a default value for this struct. 
+		/// </summary>
+		public bool IsEmpty { get; }
 
 	}
 }

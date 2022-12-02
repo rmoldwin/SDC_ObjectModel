@@ -15,7 +15,7 @@ namespace SDC.Schema
 		/// List of all errors and warnings encounterd during XML validation.
 		/// Callers are responsible for clearing the list after validation
 		/// </summary>
-		public static List<ValidationEventArgs> valEventList = new();
+		private static List<ValidationEventArgs> valEventList = new();
 
 		/// <summary>
 		/// Convert the SDC object tree to xml and validate the xml;
@@ -114,7 +114,7 @@ namespace SDC.Schema
 			return copy;
 
 		}
-		internal static string ValidationLastMessage { get; private set; }
+		private static string ValidationLastMessage { get; set; }
 
 		private static void XmlValidater(string xml)
 		{
