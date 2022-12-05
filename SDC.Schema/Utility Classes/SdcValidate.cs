@@ -77,18 +77,18 @@ namespace SDC.Schema
 
 				if (sdcSchemaUri is null)
 				{
-					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCRetrieveForm.xsd"));
+					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDC.Schema", "SDC Schema Files", "SDCRetrieveForm.xsd"));
 
 					//the following sub-Schemas are NOT automatically discovered by the validator; they are required here:
-					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCFormDesign.xsd"));
-					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCMapping.xsd"));
-					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCBase.xsd"));
-					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCDataTypes.xsd"));
-					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCExpressions.xsd"));
-					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCResources.xsd"));
-					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCTemplateAdmin.xsd"));
-					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "xhtml.xsd"));
-					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "xml.xsd"));
+					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDC.Schema", "SDC Schema Files", "SDCFormDesign.xsd"));
+					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDC.Schema", "SDC Schema Files", "SDCMapping.xsd"));
+					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDC.Schema", "SDC Schema Files", "SDCBase.xsd"));
+					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDC.Schema", "SDC Schema Files", "SDCDataTypes.xsd"));
+					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDC.Schema", "SDC Schema Files", "SDCExpressions.xsd"));
+					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDC.Schema", "SDC Schema Files", "SDCResources.xsd"));
+					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDC.Schema", "SDC Schema Files", "SDCTemplateAdmin.xsd"));
+					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDC.Schema", "SDC Schema Files", "xhtml.xsd"));
+					sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDC.Schema", "SDC Schema Files", "xml.xsd"));
 					//Extras, not currently used.  Adding them may duplicate some type definitions (defined above) and thus cause errors
 					//sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDC_IDR.xsd"));
 					//sdcSchemas.Add(null, Path.Combine(Directory.GetCurrentDirectory(), "SDCRetrieveFormComplex.xsd"));

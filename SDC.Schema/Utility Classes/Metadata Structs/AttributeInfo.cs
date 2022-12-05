@@ -40,9 +40,12 @@ namespace SDC.Schema
 			this.ParentNodeObjectID = parentNode?.ObjectID??0;
 			this.ParentIETNodeObjectID = parentIETNode?.ObjectID;
 			this.Value = attributeValue;
+			this.ValueString = attributeValue?.ToString();
+			
 			if (attributePropInfo is not null)
 			{
 				this.DefaultValue = SdcUtil.GetAttributeDefaultValue(attributePropInfo);
+				this.DefaultValueString = DefaultValue?.ToString();
 				this.AttributePropInfo = attributePropInfo;
 				this.Name = AttributePropInfo.Name;
 			}
@@ -61,10 +64,20 @@ namespace SDC.Schema
 		public object? Value { get; }
 
 		/// <summary>
+		/// String version of Value
+		/// </summary>
+		public string? ValueString { get; }
+
+		/// <summary>
 		/// The value of the DefaultValueAttribute which is present on some XML attribute properties.
 		/// The Value property of DefaultValueAttribute contains the property default value. 
 		/// </summary>
 		public object? DefaultValue { get; }
+
+		/// <summary>
+		/// String version of DefaultValue
+		/// </summary>
+		public string? DefaultValueString { get; }
 
 		/// <summary>
 		/// The ShortGuid property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.
