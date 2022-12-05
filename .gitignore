@@ -366,3 +366,5 @@ FodyWeavers.xsd
 /SDC_CodeGeneratorTest/SDC Schema/Schema Classes/BaseType.cs
 /SDC_CodeGeneratorTest/SDC Schema/Excluded SDC Schema Classes
 /SDC_CodeGeneratorTest/SDC.Schema/SDC Schema Files/Excluded SDC Schema Classes
+/SDC.Schema.Tests/Test files/CompareTrees Test Output.csv
+/SDC.Schema.Tests/Test files/CompareTrees Test Output.xlsx

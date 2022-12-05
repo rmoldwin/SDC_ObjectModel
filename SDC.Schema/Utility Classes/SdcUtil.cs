@@ -1115,9 +1115,9 @@ namespace SDC.Schema
 			if (sibs is null) return null;
 			SortElementKids(n, sibs);
 
-			var index = sibs?.IndexOf(n) ?? -1;
+			var index = sibs?.IndexOf(n) ?? -1; //
 			if (index == 0) return null; //item is the first item
-			return sibs?[index - 1];
+			return sibs?[index - 1]; //throws exception if index = -1 (child not found in the list of sibs)
 		}
 		/// <summary>
 		/// Retrieve the previous <see cref="BaseType"/> sibling SDC element node by reflection from the parent node.
