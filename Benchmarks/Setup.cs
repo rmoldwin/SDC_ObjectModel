@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.ObjectModel;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿
 using System.Runtime.CompilerServices;
 using SDC.Schema;
 using SDC.Schema.Extensions;
@@ -11,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace SDC.Schema.Tests
 {
@@ -21,7 +21,9 @@ namespace SDC.Schema.Tests
         private static string _XmlPath =>
             //Path.Combine("..", "..", "..", "Test files", "DefaultValsTest2.xml")
             Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
-
+		//private static string pathOrig = Path.Combine("C:\\Users\\rmoldwi\\OneDrive\\One Drive Documents\\SDC\\SDC Git Repo\\SDC.Schema\\SDC.Schema.Tests\\Test files\\BreastStagingTest2.xml".Split("\\"));
+		//Path.Combine(Directory.GetCurrentDirectory(), "SDC.Schema", "SDC Schema Files", "SDCFormDesign.xsd"));
+		//C:\Users\rmoldwi\OneDrive\One Drive Documents\SDC\SDC Git Repo\SDC.Schema\SDC.Schema.Tests\Test files\
 		private static string _Xml;
 
         public static string DataElementXml { get; set; }
@@ -60,7 +62,6 @@ namespace SDC.Schema.Tests
         }
 
 
-        [TestMethod]
         public static string GetXmlPath()
         {
             return _XmlPath;

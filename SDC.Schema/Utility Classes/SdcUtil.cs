@@ -1345,6 +1345,8 @@ namespace SDC.Schema
 			List<AttributeInfo> attributes = new();
 			IEnumerable<PropertyInfo>? piIE = null;
 			int nodeIndex = -1;
+			var attMethods = new AttributeMethods();
+			IList<AttributeInfo>? atts;
 
 			//Create a LIFO stack of the targetNode inheritance hierarchy.  The stack's top level type will always be BaseType
 			//For most non-datatype SDC objects, it could be a bit more efficient to use ExtensionBaseType - we can test this another time
@@ -1363,6 +1365,19 @@ namespace SDC.Schema
 			while (s.Count > 0)
 			{
 				t = s.Pop();
+				if (false)
+				{
+					if (t == typeof(BaseType))
+						atts = attMethods.GetTypeFilledAttributes(t, n, new string[] { "name", "sGuid", "order" });
+					else
+						atts = attMethods.GetTypeFilledAttributes(t, n);
+					if (atts is not null)
+					{
+						attributes.AddRange(atts);
+						continue;
+					}
+				}
+
 				piIE = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
 						.Where(pi => pi.GetCustomAttributes<XmlAttributeAttribute>().Any());
 				foreach (var p in piIE)
@@ -1411,7 +1426,7 @@ namespace SDC.Schema
 								else //Check the data type's intrinsic default value set by .NET
 								{
 									var typeDefaultVal = GetTypeDefaultValue(pVal.GetType());
-									if (! pVal.Equals(typeDefaultVal))
+									if (!pVal.Equals(typeDefaultVal))
 										AddAttribute();
 								}
 								//else if (pVal.IsNumeric() && (double)pVal == 0)  //pVal is a numeric type
@@ -1464,6 +1479,119 @@ namespace SDC.Schema
 		}
 
 
+		private static AttributeMethods attMethods = new ();
+		public static List<AttributeInfo> ReflectChildXmlAttributesFast(BaseType n
+			, bool getAllXmlAttributes = true
+			, bool omitDefaultValues = true
+			, string[]? attributesToExclude = null
+			, string[]? attributesToInclude = null)
+		{
+			if (n is null) throw new NullReferenceException("n cannot be null"); //You can't have sibs without a parent
+
+			List<AttributeInfo> attributes = new();
+			IEnumerable<PropertyInfo>? piIE = null;
+			int nodeIndex = -1; 
+			IList<AttributeInfo>? atts;
+
+			//Create a LIFO stack of the targetNode inheritance hierarchy.  The stack's top level type will always be BaseType
+			//For most non-datatype SDC objects, it could be a bit more efficient to use ExtensionBaseType - we can test this another time
+			Type t = n.GetType();
+			var s = new Stack<Type>();
+			s.Push(t);
+
+			do
+			{//build the stack of inherited types from parentNode
+				t = t.BaseType!;
+				if (t.IsAssignableTo(typeof(BaseType))) s.Push(t);
+				else break; //quit when we hit a non-BaseType type
+			} while (true);
+
+			//starting with the least-derived inherited type (BaseType), look for any non-null properties of targetNode
+			while (s.Count > 0)
+			{
+				t = s.Pop();
+
+				if (t == typeof(BaseType))
+					atts = attMethods.GetTypeFilledAttributes(t, n, new string[] { "name", "sGuid", "order" });
+				else
+					atts = attMethods.GetTypeFilledAttributes(t, n);
+				if (atts is not null)
+				{
+					attributes.AddRange(atts);
+					continue;
+				}
+
+
+				piIE = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+						.Where(pi => pi.GetCustomAttributes<XmlAttributeAttribute>().Any());
+				foreach (var p in piIE)
+				{
+					nodeIndex++;
+					if (getAllXmlAttributes) AddAttribute();
+					else
+					{
+						var sspn = t.GetMethod("ShouldSerialize" + p.Name)?.Invoke(n, null); //sspn == ShouldSerialize*PropertyName*
+
+						var pVal = p.GetValue(n);
+						var attDefVal = GetAttributeDefaultValue(p);
+
+						if (pVal is not null) //if pVal is null, there is nothing to serialize
+						{
+							if (attributesToExclude is not null && attributesToExclude.Contains(p.Name)) continue;
+							if (attributesToInclude is not null && !attributesToInclude.Contains(p.Name)) continue;
+
+							//if (p.Name == "showInReport") Debugger.Break();
+							bool IsAttDefValMatch = attDefVal?.Equals(pVal) ?? false; //Does pVal match its DefaultValueAttribute (i.e., attDefVal); false if DefaultValueAttribute not present (null)
+
+							if (sspn is bool shouldSerialize && shouldSerialize) //if(_shouldSerializePropertyName is true);	and pVal does not match its DefaultValueAttribute (i.e., attDefVal)
+							{
+								//Make sure the property does not hold a default value (based on DefaultValueAttribute's Value property)
+								//sspn does NOT overide DefaultValueAttribute setting, the serializer will not produce output if DefaultValueAttribute matches the current value.
+								//The only easy way to overide it (force XML output) is to remove the DefaultValueAttribute, or create the serializer with an XmlAttributeOverrides instruction in its constructor
+								//see https://stackoverflow.com/questions/28054335/force-xml-serialization-of-xmldefaultvalue-values, and
+								//https://learn.microsoft.com/en-us/dotnet/api/system.xml.serialization.xmlattributes.xmldefaultvalue?view=net-7.0
+
+								if (!IsAttDefValMatch)
+								{
+									//if (p.Name == "showInReport") Debugger.Break();
+									AddAttribute();
+								}
+							}
+							else if (omitDefaultValues)  //The XML serializer omits all properties set to the Value of the DefaultValueAttribute, assuming DefaultValueAttribute decorates the property
+							{
+								if (attDefVal is not null) //Check the DefaultValueAttribute
+								{
+									if (!IsAttDefValMatch)
+									{
+										//if (p.Name == "showInReport") Debugger.Break();
+										AddAttribute();
+									}
+								}
+								else //Check the data type's intrinsic default value set by .NET
+								{
+									var typeDefaultVal = GetTypeDefaultValue(pVal.GetType());
+									if (!pVal.Equals(typeDefaultVal))
+										AddAttribute();
+								}
+								//?TODO: Add default tests for other SDC data types
+							}
+							else AddAttribute();
+						}
+					}
+
+					void AddAttribute()
+					{
+						nodeIndex++;
+						attributes.Add(FillAttributeInfo(p, n));
+					}
+				}
+			}
+			return attributes;
+
+			AttributeInfo FillAttributeInfo(PropertyInfo p, BaseType elementNode) =>
+				new(elementNode, elementNode.sGuid, p!.GetValue(elementNode), p, nodeIndex);
+
+		}
 
 		/// <summary>
 		/// Retrieve the SDC default value (if one exists) for the SDC XML attribute identified by <paramref name="pi"/>.  

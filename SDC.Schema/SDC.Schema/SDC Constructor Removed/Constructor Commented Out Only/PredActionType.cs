@@ -28,7 +28,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// PredActionType receives the Boolean result from a PredicateGuardType object.  If the @returnVal is true, it executes the optional Actions under the Actions node.  If the PredGuardType @returnVal is false, it executes optional recursive PredActionType logic to potentially execute alternative Actions.
+/// PredActionType receives the Boolean result from a PredicateGuardType object.  If the @returnVal is true, it executes the optional _actions under the _actions node.  If the PredGuardType @returnVal is false, it executes optional recursive PredActionType logic to potentially execute alternative _actions.
 /// </summary>
 [XmlInclude(typeof(EventType))]
 [XmlInclude(typeof(OnEventType))]
@@ -62,7 +62,7 @@ public partial class PredActionType : PredGuardType
                         || (_actions.Equals(value) != true)))
             {
                 _actions = value;
-                OnPropertyChanged("Actions", value);
+                OnPropertyChanged("_actions", value);
             }
         }
     }
@@ -99,7 +99,7 @@ public partial class PredActionType : PredGuardType
     }
     
     /// <summary>
-    /// Test whether Actions should be serialized
+    /// Test whether _actions should be serialized
     /// </summary>
     public virtual bool ShouldSerializeActions()
     {

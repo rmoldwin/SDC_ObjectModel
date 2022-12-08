@@ -28,7 +28,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// SDC datatypes for Data Entry (DE), based mostly on W3C specifications. Uses base Attributes and Extension capability to enhance the list of Data Types. Includes additonal metadata to specify data input restrictions for data entry forms, and to aid in validation of SDC form responses in SDC XML instance documents.
+/// SDC datatypes for Data Entry (DE), based mostly on W3C specifications. Uses base _attributes and Extension capability to enhance the list of Data Types. Includes additonal metadata to specify data input restrictions for data entry forms, and to aid in validation of SDC form responses in SDC XML instance documents.
 /// Must be one of the following:
 /// --HTML (HTML_DEtype)
 /// --XML (XML_DEtype)

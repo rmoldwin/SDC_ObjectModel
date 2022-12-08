@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FormDesign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="urn:ihe:qrph:sdc:2016 ../../../sdc-schema-package/SDCFormDesign.xsd" xmlns="urn:ihe:qrph:sdc:2016"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="DefaultValsTest.CTP9_sdcFDF" baseURI="cap.org"
+ fullURI="_baseURI=cap.org&amp;_lineage=DefaultValsTest&amp;_version=.CTP9&amp;_docType=sdcFDF"
+ formTitle="DefaultValsTest" lineage="DefaultValsTest"
+ filename="DefaultValsTest_sdcFDF.xml" version="CTP9">
+
+	<Property name="SaveState" propName="SaveState" val="New"/>
+	<Property name="Copyright" type="CAPeCC_static_text" styleClass="copyright" propName="Copyright"
+	val="(c) 2018 College of American Pathologists. All rights reserved. License required for use."/>
+	<Property name="GenericHeaderText" type="CAPeCC_static_text" propName="GenericHeaderText"
+	val="Breast Cancer Staging Calculator"/>
+	<Body name="Body" ID="Breast.Ca.Stg.Calc.359_sdcFDF_Body">
+		<ChildItems name="ch_Body">
+
+			<Section name="S_Onc_Clin_Assess_43969" ID="43969.100004300"
+			title="ONCOLOGIST: Initial Clinical Staging Assessment">
+				<ChildItems name="ch_43969_1">
+
+					<Question type="cT ---TEST--- readOnly.true showInReport.True.def enabled.false visible.false" name="Q_cT_52167" ID="52167.100004300"
+						title="Primary Tumor (Invasive Carcinoma) (cT)" showInReport="True" readOnly="true" enabled="false" visible="false">
+						<ListField type="---TEST--- maxSelections.1.def minSelections.1.def numCols.1.def storedCol.1.def colTextDelimiter.bar.def" name="lf_52167_1" 
+								   maxSelections="1" minSelections="1" numCols="1" storedCol="1" colTextDelimiter="|">
+							<List name="lst_52167_2">
+								<ListItem name="LI_cTX_44567" ID="44567.100004300" associatedValue="cTx"
+									title="cTX: Primary tumor cannot be assessed">
+									<Property name="p_rptTxt_44567_1" propName="reportText" val="cTX"/>
+									<ChildItems>
+										<Question ID="Q1" title = "Q1">
+											<ListField type="---TEST--- maxSelections.0 minSelections.2 numCols.2 storedCol.2 colTextDelimiter.sc" 
+													   maxSelections="0" minSelections="2" numCols="2" storedCol="2" colTextDelimiter=";">																							
+												<List>
+													<ListItem type="mustImplement.false omitWhenSelected.true" ID="testLI1" mustImplement="false" omitWhenSelected="true">
+														<ListItemResponseField type="---TEST---responseRequired.true" responseRequired="true">
+															<Response>
+																<byte type="---TEST--- allowAPPROX.false.def quantEnum.EQ.def maxExclusive.0 minExclusive.1 totalDigits.2" 
+																	  allowAPPROX="false" quantEnum="EQ" maxExclusive="0" minExclusive="1" totalDigits="2"/>
+															</Response>
+															<ResponseUnits type="---TEST--- val.ml unitSystem.custom" unitSystem="custom" val="ml"/>
+														</ListItemResponseField>
+													</ListItem>
+												</List>
+											</ListField>
+										</Question>
+										<Question type="---TEST--- readOnly.false.def enabled.true.def showInReport.False" ID="Q2" 
+												  readOnly="false" title = "Q2" enabled="true" showInReport="False" >
+											<ListField type="---TEST--- colTextDelimiter.semicolon numCols.2 storedCol.2" 
+													   colTextDelimiter=";" numCols="2" storedCol="2" >
+												<List>
+													<ListItem type="---TEST--- mustImplement.true.def omitWhenSelected.false.def " 
+														ID="testLI2" omitWhenSelected="false"  mustImplement="true" >
+														<ListItemResponseField type="---TEST--- responseRequired.false.def" 
+															responseRequired="false">
+															<Response>
+																<string type="---TEST--- xsi:nil.true" xsi:nil="true"/> 
+															</Response>
+															<CallSetValue type="---TEST--- allowNull.true.def listDelimiter.bar.def dataType.string.def returnVal.1" 
+																		  allowNull="true" listDelimiter="|" dataType="string" returnVal="1" >
+																<LocalFunctionName type="---TEST--- val" val="#AJCC_CalcPathStage"/>
+																<ParameterValue type="---TEST--- paramName" paramName="myParam" >
+																	<string/>
+																</ParameterValue>
+															</CallSetValue>
+															<TextAfterResponse type="---TEST--- val.ml" val="ml"/>
+															<ResponseUnits type="---TEST--- val.ml unitSystem.UCUM.def" unitSystem="UCUM" val="ml"/>
+														</ListItemResponseField>
+														<OnDeselect allowNull="true">
+															<CallBoolFunc type="---TEST--- listDelimiter.semicolon returnList.false.def" 
+																		  listDelimiter=";" returnList="false">
+																<LocalFunctionName type="---TEST--- val" val="#Body" />
+															</CallBoolFunc>
+														</OnDeselect>
+														<SelectIf  type="---TEST--- boolOp.AND.def" boolOp="AND">
+															<AttributeEval type="---TEST---itemNames hasAssociatedValueEQ.EQ hasResponse.true" 
+																		   itemNames="LI_cT0_41284" hasAssociatedValueEQ="EQ" hasResponse="true"/>
+															<AttributeEval type="---TEST---itemNames hasAssociatedValueEQ.GTE hasResponse.false" 
+																		   itemNames="LI_cT0_41284" hasAssociatedValueEQ="GTE" hasResponse="false"/>
+														</SelectIf>
+													</ListItem>
+													
+												</List>
+											</ListField>
+										</Question>
+									</ChildItems>
+								</ListItem>
+								<ListItem name="LI_cT0_41284" ID="41284.100004300" associatedValue="cT0"
+									title="cT0: No evidence of primary tumor">
+									<Property name="p_rptTxt_41284_1" propName="reportText" val="cT0"/>
+									<ListItemResponseField type="---TEST--- responseRequired.true" 
+														   responseRequired="true">
+										<Response>
+											<int type="---TEST--- allowAPPROX.true quantEnum.GTE maxExclusive.3 minExclusive.0 totalDigits.2"  
+												 allowAPPROX="true" quantEnum="GTE" maxExclusive="3" minExclusive="0" totalDigits="2"/>
+										</Response>
+									</ListItemResponseField>
+								</ListItem>
+								
+							</List>
+						</ListField>
+					</Question>
+					
+
+
+
+
+
+
+
+					<ButtonAction ID="SubmitInitClinAssess" title="Submit Initial Clinical Assessment">
+						<OnClick>
+							<Actions>
+
+								<SetAttributeValue targetNames="S_Onc_Clin_Assess_43969" actEnable="false"/>
+								<SetAttributeValue targetNames="SaveState" actSetVal="ClinAssess"/>
+								<SetAttributeValue targetNames="S_PathReport_49193" actEnable="true"/>
+
+								<CallFunction>
+									<LocalFunctionName type="submit" val="SubmitIntClinAssessment"/>
+								</CallFunction>
+							</Actions>
+						</OnClick>
+					</ButtonAction>
+				</ChildItems>
+			</Section>
+		</ChildItems>
+	</Body>
+	<Footer type="---TEST--- mustImplement.true.def maxCard.1.def minCard.0 visible.true.def " name="footer" ID="Breast.Ca.Stg.Calc.359_.CTP9_sdcFDF" mustImplement="true" maxCard="1" minCard="0" visible="true"  >
+		<Property type="meta" styleClass="copyright" propName="CopyrightFooter" name="CopyrightFooter-under-footer"
+		val="(c) 2018 College of American Pathologists. All rights reserved. License required for use."/>
+	</Footer>
+</FormDesign>
+
+

@@ -638,7 +638,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     /// </summary>
     public virtual bool ShouldSerializeassociatedValueType()
     {
-        return !string.IsNullOrEmpty(associatedValueType);
+        return !string.IsNullOrEmpty(associatedValueType) || associatedValueType != "attributeToMatch";
     }
 }
 }

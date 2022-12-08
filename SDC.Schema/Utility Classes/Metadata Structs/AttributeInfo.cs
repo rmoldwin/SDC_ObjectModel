@@ -25,11 +25,13 @@ namespace SDC.Schema
 		/// <param name="attributeValue">The value of this attribute instance.</param>
 		/// <param name="attributePropInfo">The PropertyInfo object that describes this attribute on its parent object node (which is represented by SdcElementNodeSguid).</param>
 		/// <param name="order">The serialized ordinal position of the attribute in the current element</param>
+		/// <param name="name">The name of the property, and the text of the attribute as it will appear in XML</param>
 		public AttributeInfo(BaseType? parentNode, 
 			ShortGuid sGuid, 
 			object? attributeValue, 
 			PropertyInfo? attributePropInfo, 
-			int order)
+			int order,
+			string? name = null)
 		{			
 			if(sGuid == "AAAAAAAAAAAAAAAAAAAAAA" || attributePropInfo is null)
 			{ this.IsEmpty = true; }
@@ -47,7 +49,7 @@ namespace SDC.Schema
 				this.DefaultValue = SdcUtil.GetAttributeDefaultValue(attributePropInfo);
 				this.DefaultValueString = DefaultValue?.ToString();
 				this.AttributePropInfo = attributePropInfo;
-				this.Name = AttributePropInfo.Name;
+				this.Name = name??AttributePropInfo.Name;
 			}
 			this.Order = order;
 		}

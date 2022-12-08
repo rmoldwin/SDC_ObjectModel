@@ -302,7 +302,7 @@ namespace SDC.Schema
     public interface IHasActionElseGroup : IActions, IHasElseNode { }
     public interface IHasElseNode { }
     public interface IActions { }
-    public interface IActionsMember { }//used from within an individual action object; "this" refers to the action object itself.  Its parent is the Actions element (ActionsType)
+    public interface IActionsMember { }//used from within an individual action object; "this" refers to the action object itself.  Its parent is the _actions element (ActionsType)
     public interface IValidationTests { }
     public interface IClone { }
     public interface IHtmlPackage { }//On SDCPackage.HTMLPackage

@@ -102,7 +102,7 @@ namespace SDC.Schema
     }
     //public enum EventActionEnum  //EventActions, PredActionTypeMember
     //{
-    //    Actions,
+    //    _actions,
     //    AttributeEvalActionType,
     //    CallFuncBoolActionType,
     //    Else,

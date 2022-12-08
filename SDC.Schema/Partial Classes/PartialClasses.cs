@@ -3922,7 +3922,7 @@ namespace SDC.Schema
 		}
 		private void Init()
 		{
-			ElementName = "Actions";
+			ElementName = "_actions";
 			ElementPrefix = "act";
 		}
 	}

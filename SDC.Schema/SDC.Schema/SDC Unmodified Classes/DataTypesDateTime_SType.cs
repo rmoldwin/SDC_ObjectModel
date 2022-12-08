@@ -28,7 +28,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 /// <summary>
-/// SDC datatypes in Simple (SType) format, based mostly on W3C specifications.  Uses base Attributes and Extension capability to enhance the list of Data Types.
+/// SDC datatypes in Simple (SType) format, based mostly on W3C specifications.  Uses base _attributes and Extension capability to enhance the list of Data Types.
 /// Must be one of the following:
 /// --dateTime (dateTimeStamp_Stype)
 /// --dateTimeStamp (dateTimeStamp_Stype)
