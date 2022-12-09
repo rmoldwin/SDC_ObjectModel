@@ -1,4 +1,8 @@
-﻿public static class ObjectExtensions
+﻿using Newtonsoft.Json.Linq;
+using System.Numerics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
+public static class ObjectExtensions
 {
 	public static bool IsGenericList(this object o)
 	{
@@ -152,25 +156,142 @@
 	}
 
 
-	public static bool IsNumeric(this object obj)
-	{
-		switch (obj)
-		{
-			case Byte:
-			case SByte:
-			case UInt16:
-			case UInt32:
-			case UInt64:
-			case Int16:
-			case Int32:
-			case Int64:
-			case Single:
-			case Decimal:
-			case Double:
+	//public static bool IsNumeric(this object obj)
+	//{
+	//	switch (obj)
+	//	{
+	//		case Byte:
+	//		case SByte:
+	//		case UInt16:
+	//		case UInt32:
+	//		case UInt64:
+	//		case Int16:
+	//		case Int32:
+	//		case Int64:
+	//		case Single:
+	//		case Decimal:
+	//		case Double:
 
-				return true;
-			default:
-				return false;
+	//			return true;
+	//		default:
+	//			return false;
+	//	}
+	//}
+
+
+	public static bool IsNumeric(this ValueType value)
+	{
+		return (value is Byte ||
+				value is Int16 ||
+				value is Int32 ||
+				value is Int64 ||
+				value is SByte ||
+				value is UInt16 ||
+				value is UInt32 ||
+				value is UInt64 ||
+				value is BigInteger ||
+				value is Decimal ||
+				value is Double ||
+				value is Single);
+	}
+
+
+	public static bool IsNumeric(this object value)
+	{
+		return (value is Byte ||
+				value is Int16 ||
+				value is Int32 ||
+				value is Int64 ||
+				value is SByte ||
+				value is UInt16 ||
+				value is UInt32 ||
+				value is UInt64 ||
+				value is BigInteger ||
+				value is Decimal ||
+				value is Double ||
+				value is Single);
+	}
+
+	public static bool IsInteger(this ValueType value)
+	{
+		return (value is SByte || value is Int16 || value is Int32
+				|| value is Int64 || value is Byte || value is UInt16
+				|| value is UInt32 || value is UInt64
+				|| value is BigInteger);
+	}
+	public static bool IsInteger(object value)
+	{
+		return (value is SByte || value is Int16 || value is Int32
+				|| value is Int64 || value is Byte || value is UInt16
+				|| value is UInt32 || value is UInt64
+				|| value is BigInteger);
+	}
+	public static bool IsFloat(this ValueType value)
+	{
+		return (value is float | value is double | value is decimal);
+	}
+	public static bool IsFloat(object value)
+	{
+		return (value is float | value is double | value is decimal);
+	}
+
+	public enum NumericRelationship
+	{
+		GreaterThan = 1,
+		EqualTo = 0,
+		LessThan = -1
+	};
+	public static NumericRelationship Compare(ValueType value1, ValueType value2)
+	{
+		if (!IsNumeric(value1))
+			throw new ArgumentException($"{nameof(value1)} is not a number.");
+		if (!IsNumeric(value2))
+			throw new ArgumentException($"{nameof(value2)} is not a number.");
+
+		// Use long as common integral type
+		if (IsInteger(value1) && IsInteger(value2))
+		{
+			long long1 = (long)value1;
+			long long2 = (long)value2;
+			return (NumericRelationship)BigInteger.Compare(long1, long2);
+		}
+		// At least one value is floating point; use Double.
+		else
+		{
+			Double dbl1 = 0;
+			Double dbl2 = 0;
+			try
+			{
+				dbl1 = Convert.ToDouble(value1);
+			}
+			catch (OverflowException)
+			{
+				Console.WriteLine($"{nameof(value1)} is outside the range of a Double.");
+			}
+			try
+			{
+				dbl2 = Convert.ToDouble(value2);
+			}
+			catch (OverflowException)
+			{
+				Console.WriteLine($"{nameof(value2)} is outside the range of a Double.");
+			}
+			return (NumericRelationship)dbl1.CompareTo(dbl2);
 		}
 	}
+	public static NumericRelationship Compare(BigInteger bigint1, ValueType value2)
+	{
+		if (!IsNumeric(value2)) throw new ArgumentException($"{nameof(value2)} is not a number.");
+		// Use BigInteger as common integral type
+		var bigint2 = (BigInteger)value2;
+		return (NumericRelationship)BigInteger.Compare(bigint1, bigint2);
+	}
+	public static NumericRelationship Compare(ValueType value1, BigInteger bigint2)
+	{
+		if (!IsNumeric(value1)) throw new ArgumentException($"{nameof(value1)} is not a number.");
+		return (NumericRelationship) (-1 * (int)Compare(bigint2, value1));
+	}
+
+	//https://learn.microsoft.com/en-us/dotnet/api/system.valuetype?view=net-7.0
+
 }

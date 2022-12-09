@@ -53,10 +53,10 @@ namespace SDC.Schema
 		/// <summary>
 		/// This SortedSet contains the ObjectID of each node that has been sorted by ITreeSibComparer.  
 		/// Each entry in this SortedSet indicates that nodes child nodes have already been sorted.  
-		/// Checking for a parent node in this SortedSet is used to bypass the resorting of child nodes during a tree sorting operation.  
+		/// Checking for a parent node in this HashSet is used to bypass the resorting of child nodes during a tree sorting operation.  
 		/// The SortedList is cleared after the conclusion of the sorting operation, using TreeSort_ClearNodeIds().
 		/// </summary>
-		private static readonly SortedSet<int> TreeSort_NodeIds = new();
+		internal static readonly HashSet<int> TreeSort_NodeIds = new();
 
 		/// <summary>
 		/// List-sorting code can test for the presence of a flagged parent node in TreeSort_NodeIds with TreeSort_IsSorted. 
@@ -1110,6 +1110,7 @@ namespace SDC.Schema
 		{
 			var par = n.ParentNode;
 			var topNode = Get_ITopNode(n);
+			if (topNode is null) throw new InvalidOperationException("topNode could not obtained from the input node n");
 			if (par is null) return null;
 			topNode._ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
 			if (sibs is null) return null;
@@ -1492,6 +1493,7 @@ namespace SDC.Schema
 			IEnumerable<PropertyInfo>? piIE = null;
 			int nodeIndex = -1; 
 			IList<AttributeInfo>? atts;
+			var excludedAtts = new string[] { "name", "sGuid", "order" };
 
 			//Create a LIFO stack of the targetNode inheritance hierarchy.  The stack's top level type will always be BaseType
 			//For most non-datatype SDC objects, it could be a bit more efficient to use ExtensionBaseType - we can test this another time
@@ -1512,7 +1514,7 @@ namespace SDC.Schema
 				t = s.Pop();
 
 				if (t == typeof(BaseType))
-					atts = attMethods.GetTypeFilledAttributes(t, n, new string[] { "name", "sGuid", "order" });
+					atts = attMethods.GetTypeFilledAttributes(t, n, excludedAtts);
 				else
 					atts = attMethods.GetTypeFilledAttributes(t, n);
 				if (atts is not null)
@@ -3009,4 +3011,75 @@ namespace SDC.Schema
 		#endregion
 
 	}
+
+
+	public class X_SdcUtilParallel
+	{
+		/// <summary>
+		/// Retrieve the previous <see cref="BaseType"/> sibling SDC element node, using the _ChildNodes dictionary.
+		/// </summary>
+		/// <param name="n"></param>
+		/// <returns></returns>
+		public BaseType? GetPrevSibElement(BaseType n)
+		{
+			var par = n.ParentNode;
+			var topNode = Get_ITopNode(n);
+			if (topNode is null) throw new InvalidOperationException("topNode could not obtained from the input node n");
+			if (par is null) return null;
+			topNode._ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
+			if (sibs is null) return null;
+
+			SortElementKids(n, sibs);  //not thread safe ???
+
+			var index = sibs?.IndexOf(n) ?? -1; //
+			if (index == -1) Debugger.Break();
+			if (index == 0) return null; //item is the first item
+			return sibs?[index - 1]; //throws exception if index = -1 (child not found in the list of sibs)
+		}
+
+		/// <summary>
+		/// For the current <paramref name="n"/>, retrieve the ancestor _ITopNode object that contains the subtree dictionaries<br/>
+		/// e.g., Nodes, ChildNodes, IETNodes. <br/>
+		/// If this node (<paramref name="n"/>) implements <see cref="_ITopNode"/>, the method returns (_ITopNode)n
+		/// </summary>
+		/// <param name="n">The node for which we need to retrieve _ITopNode dictionaries</param>
+		/// <returns>A reference to an _ITopNode object</returns>
+		internal _ITopNode? Get_ITopNode(BaseType n)
+		{
+			if (n is _ITopNode itn) return itn;
+			return n.TopNode as _ITopNode;
+		}
+
+		/// <summary>
+		/// Given a parent SDC node, this method will sort the child nodes (kids)
+		/// This method is used to keep lists of sibling nodes in the same order as the SDC object tree
+		/// </summary>
+		/// <param name="parentItem">The parent SDC node</param>
+		/// <param name="kids">"kids" is a List&lt;BaseType> containing all the child nodes under parentItem.
+		/// This is generally obtained from the parentItem using the _ITopNode._ChildNodes Dictionary object
+		/// If it is not supplied, it will be obtained below from parentItem</param>
+		/// <returns>List&lt;BaseType>? containing ordered list of child nodes, or null if no child nodes are present</returns>
+		private List<BaseType>? SortElementKids(BaseType parentItem, List<BaseType>? kids = null)
+		{
+			//Sorting uses reflection, and this is an expensive operation, so we only sort once per parent node
+			//TreeSort_NodeIds is a HashSet that holds the ObjectIDs of parent nodes whose children have already been sorted.
+			//If a parent node's children have already been sorted, it appears in TreeSort_NodeIds, and we can skip sorting it again. 
+
+			//(This method is NOT used by IMoveRemoveExtensions.RegisterParentNode, which uses the reflection-based TreeSibComparer directly for child nodes - 
+			//This ensures that the node dictionaries (_Nodes, _ParentNodes and _ChildNodes) are kept sorted in the same order as they will be serialized in XML.)
+
+			if (kids is null || kids.Count == 0)
+				if (!Get_ITopNode(parentItem)?._ChildNodes.TryGetValue(parentItem.ObjectGUID, out kids)??false 
+					&& (kids?.Count > 0)) return null;
+
+			if (!SdcUtil.TreeSort_NodeIds.Contains(parentItem.ObjectID) && kids is not null)
+			{
+				kids.Sort(new TreeSibComparer());
+				SdcUtil.TreeSort_NodeIds.Add(parentItem.ObjectID);
+			}
+			return kids;
+		}
+
+	}
+
 }

@@ -17,7 +17,10 @@ Console.WriteLine("Hello, World!");
 
 //var summary = BenchmarkRunner.Run<MemoryBenchmarkerDemo>();
 var summary = BenchmarkRunner.Run<SdcTests>();
+
+
 //var s = new SdcTests();
+//s.CompareVersions();
 
 public class AntiVirusFriendlyConfig : ManualConfig
 {
@@ -53,16 +56,18 @@ public class SdcTests
 		}
 	}
 
-	//[Benchmark]
+	[Benchmark]
 	public void TestGetXmlAttributesFilledTree()
 	{
 		GetXmlAttributesFilledTree(topNode);
 	}
-	//[Benchmark]
+	[Benchmark]
 	public void TestGetXmlAttributesFilledTreeFast()
 	{
 		GetXmlAttributesFilledTreeFast(topNode);
 	}
+
+
 	public SortedList<string, Dictionary<string, List<AttributeInfo>>> GetXmlAttributesFilledTree(ITopNode topNode)
 	{
 
@@ -187,6 +192,7 @@ public class SdcTests
 																	  //foreach(var kv2 in slAttV2)
 		Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Compare Setup Complete");
 		Setup.TimerStart($"==>{Setup.CallerName()} Compare Started");
+		var eqAttCompare = new SdcSerializedAttComparer(); //should be thread-safe
 
 		var locker = new object();
 		slAttV2.AsParallel().ForAll(kv2 =>
@@ -200,15 +206,15 @@ public class SdcTests
 			bool isNewIET = false;
 			bool isRemovedIET = false;
 			bool isAttListChanged = false;
-			var eqAttCompare = new SdcSerializedAttComparer();
+			
 
 			List<AttInfoDif> laiDif = new(); //For each IET node, there is one laiDif per subnode (including the IET node)
-			Dictionary<string, List<AttInfoDif>> dlaiDif = new();  //the key is the IET sGuid; **d**laiDif will be added later to difNodeIET, which will then be added to **d**DifNodeIET
+			Dictionary<string, List<AttInfoDif>> dlaiDif = new();  //the key is the IET sGuid; dlaiDif will be added later to difNodeIET, which will then be added to **d**DifNodeIET
 			dlaiDif.Add(sGuidIET, laiDif); //add the laiDif to its dictionary; later we will stuff this laiDiff List object with attribute change data for the IET node and all of its subNodes.
 
 			//we now have to populate laiDif with with AttInfoDif structs for each changed attribute
 			//We also have to set all the above bool settings for difNodeIET
-			//Then finally, we need to add one new **d**DifNodeIET struct entry (difNodeIET) for each V2 IET.
+			//Then finally, we need to add one new dDifNodeIET struct entry (difNodeIET) for each V2 IET.
 			////We can also add difNodeIET structs for V1 IET nodes V1 that were not present in V2
 
 			//holds the List<AttributeInfo> where the attributes differ from V1 to V2; part of dDiffNodeIET; the key of the IET node sGuid.
@@ -229,9 +235,16 @@ public class SdcTests
 				{ isParChangedIET = true; }
 
 				//If V2 IET prev sib node is not the same as V1 prev sib, mark as POSITION CHANGED
+
+
 				//TODO: see if we can add prev sib to the ai struct, to perhaps avoid this lookup
+				//TODO: use a non-static thread-safe version of GetNodePreviousSib to avoid locking;  Thus it could not be an extension method
+				//!- Tried thread-safe version unsuccessfully
+				//var util = new SdcUtilParallel();
+				//lock(locker) 	if (util.GetPrevSibElement(ietV1)?.sGuid != util.GetPrevSibElement(ietV2)?.sGuid) //thread safe instance (?) method hierarchy with (hopefully) no shared state
+
 				lock (locker) if (ietV1.GetNodePreviousSib()?.sGuid != ietV2!.GetNodePreviousSib()?.sGuid)  //static extension method needs locking
-					{ isMovedIET = true; }
+				{ isMovedIET = true; }
 
 				//Look for match in slAttV1
 				if (slAttV1.TryGetValue(kv2.Key, out var dlaiV1))  //retrieve attribute dictionary for each V2 IET node
@@ -263,8 +276,28 @@ public class SdcTests
 								if (aiV1 != default) //matching serialized attributes were found on the V1 subNode
 								{
 									aiHashV1IET.Add(new(sGuidV2, aiV1)); //document that the serializable attribute exists in V1
-									if (aiV1.Value?.ToString() != aiV2.Value?.ToString()) //See if the attribute values match;
-																						  //TODO: could perhaps make this more efficient by doing direct compare of value types, instead of using ToString()
+									
+									//bool isValueType = false;
+									//ValueType? v1 = default;
+									//ValueType? v2 = default; ;
+									//if (aiV2.Value is ValueType) //A ValueType is never null
+									//{
+									//	isValueType = true;
+									//	v2 = aiV2.Value! as ValueType;
+									//}
+									//if (aiV1.Value is ValueType) //A ValueType is never null
+									//{
+									//	isValueType = true;
+									//	v1 = aiV1.Value! as ValueType;
+									//}
+
+									//bool isEqualAtts = false;
+									//if (isValueType && v1 == v2) isEqualAtts = true;
+									//else if (aiV1.ValueString == aiV2.ValueString) isEqualAtts = true;
+
+									//if (!isEqualAtts)
+									if (aiV1.ValueString != aiV2.ValueString) //See if the attribute values match;
+									//TODO: could perhaps make this more efficient by doing direct compare of value types, instead of using ToString()
 									{
 										laiDif.Add(new AttInfoDif(sGuidV2, aiV1, aiV2));
 										isAttListChanged = true;
@@ -333,12 +366,7 @@ public class SdcTests
 
 		void CompareNodes()
 		{
-
-
-
 		}
-
-
 
 		//  ------------------------------------------------------------------------------------
 		void Log(BaseType subNode, List<AttributeInfo> lai)
@@ -397,3 +425,6 @@ public class MemoryBenchmarkerDemo
 		return list.ToString();
 	}
 }
+
+
+

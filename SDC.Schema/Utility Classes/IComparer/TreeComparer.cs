@@ -141,6 +141,8 @@ namespace SDC.Schema
 			var s = new Stack<Type>();
 			s.Push(t);
 
+			object locker = new();
+
 			do
 			{//build the stack of inherited types from parentNode
 				t = t.BaseType!;
@@ -152,32 +154,33 @@ namespace SDC.Schema
 			while (s.Count > 0)
 			{
 				sType = s.Pop();
-				piIE = sType
+					piIE = sType
 					.GetProperties() //(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-					.Where(p => p.GetCustomAttributes<XmlElementAttribute>().Any());
-				foreach (var p in piIE)
-				{
-					nodeIndex++;
-					object? o = p.GetValue(parentNode);
-					if (o is not null)
+					.Where(p => p.GetCustomAttributes<XmlElementAttribute>().Any()); //GetCustomAttributes is static, and thus not thread-safe
+
+					foreach (var p in piIE)
 					{
-						if (o is BaseType bt)
+						nodeIndex++;
+						object? o = p.GetValue(parentNode);
+						if (o is not null)
 						{
-							if (bt == nodeA) return -1;
-							if (bt == nodeB) return 1;
-						}
-						else if (o is IEnumerable<BaseType> ie && ie.Any())
-							foreach (var n in ie)
+							if (o is BaseType bt)
 							{
-								if (n == nodeA) return -1;
-								if (n == nodeB) return 1;
+								if (bt == nodeA) return -1;
+								if (bt == nodeB) return 1;
 							}
-						else {}
+							else if (o is IEnumerable<BaseType> ie && ie.Any())
+								foreach (var n in ie)
+								{
+									if (n == nodeA) return -1;
+									if (n == nodeB) return 1;
+								}
+							else { }
+						}
+						else { }
 					}
-					else {}
 				}
-			}
-			//If we get down here, the is a problem with teh TopNode dictionaries.  This data will help with debugging.
+			//If we get down here, there is a problem with the TopNode dictionaries.  This data will help with debugging.
 
 			InvalidOperationException ex = new("The supplied nodes cannot be sorted");
 			ex.Data.Add("nodeA.name", nodeA?.name);
