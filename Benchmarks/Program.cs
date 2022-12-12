@@ -56,15 +56,21 @@ public class SdcTests
 		}
 	}
 
-	[Benchmark]
+	//[Benchmark]
 	public void TestGetXmlAttributesFilledTree()
 	{
 		GetXmlAttributesFilledTree(topNode);
 	}
-	[Benchmark]
+	//[Benchmark]
 	public void TestGetXmlAttributesFilledTreeFast()
 	{
 		GetXmlAttributesFilledTreeFast(topNode);
+	}
+
+	[Benchmark]
+	public void ReflectNodes()
+	{ //Now with PropInfo caching.
+		SdcUtil.ReflectRefreshTree(Setup.FD, out var text); 
 	}
 
 
@@ -182,12 +188,16 @@ public class SdcTests
 
 		//var fNew = File.OpenWrite(pathV2);
 		FormDesignType? fdV2 = FormDesignType.DeserializeFromXml(File.ReadAllText(pathV2));
+		//BaseType.ResetRootNode(); //This line is probably no longer needed, as it's called by the deserializer methods
 		FormDesignType? fdV1 = FormDesignType.DeserializeFromXml(File.ReadAllText(pathV1));
 
 		SortedList<string, Dictionary<string, List<AttributeInfo>>>? slAttV2 = GetXmlAttributesFilledTreeFast(fdV2);//keys are IET sGuid, subNode sGuid; holds serializable attribute List for individual subNodes
 		SortedList<string, Dictionary<string, List<AttributeInfo>>>? slAttV1 = GetXmlAttributesFilledTreeFast(fdV1);
 
-		ConcurrentBag<(string, DifNodeIET)> cbDifNodeIET;
+		var nodesRemovedInV2IET = fdV1.IETnodes.Except(fdV1.IETnodes);
+		var nodesAddedInV2IET = fdV2.IETnodes.Except(fdV1.IETnodes);
+
+		//ConcurrentBag<(string, DifNodeIET)> cbDifNodeIET;
 		ConcurrentDictionary<string, DifNodeIET> dDifNodeIET = new(); //the key is the IET node sGuid. Holds attribute changes in all IET and subNodes
 																	  //foreach(var kv2 in slAttV2)
 		Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Compare Setup Complete");
@@ -234,12 +244,13 @@ public class SdcTests
 				if (ietV1.ParentNode?.sGuid != ietV2?.ParentNode?.sGuid)
 				{ isParChangedIET = true; }
 
-				//If V2 IET prev sib node is not the same as V1 prev sib, mark as POSITION CHANGED
+				//If V2 IET prev sib node is not the same as V1 prev sib, mark as POSITION CHANGED (isMovedIET = true;)
 
 
 				//TODO: see if we can add prev sib to the ai struct, to perhaps avoid this lookup
 				//TODO: use a non-static thread-safe version of GetNodePreviousSib to avoid locking;  Thus it could not be an extension method
-				//!- Tried thread-safe version unsuccessfully
+				//!- Tried to create thread-safe version unsuccessfully, so we still need a lock when looking up previous sib nodes,
+				//! and potentially incurring the need for sorting of ChildNodes entries
 				//var util = new SdcUtilParallel();
 				//lock(locker) 	if (util.GetPrevSibElement(ietV1)?.sGuid != util.GetPrevSibElement(ietV2)?.sGuid) //thread safe instance (?) method hierarchy with (hopefully) no shared state
 
@@ -359,10 +370,13 @@ public class SdcTests
 			//We could also try a regular dictionary with a lock, but that might be slower if there are many Add contentions on the lock - needs testing 
 
 			//TODO: Should we add isRemoved DifNodeIET entries, for IETs in V1 but not in V2?  This is not strictly necessary 
+			//!We could fill a hash table with all V1 matching nodes in this loop; the V2 nodes (or sGuids) not in the V1-match hashtable were removed in V2
 
 			//return true;
 		}//END of each V2 IET node loop processing in lambda
 			);
+		//Add V1 nodes that are not in V2
+
 
 		void CompareNodes()
 		{

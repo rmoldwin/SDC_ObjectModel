@@ -125,7 +125,7 @@ namespace SDC.Schema
 		/// </summary>
 		[XmlIgnore]
         [JsonIgnore]
-        public RetrieveFormPackageType PackageNode { get; }
+        public RetrieveFormPackageType? PackageNode { get; }
 
 		//public abstract void SetNames(string elementName = "", string elementPrefix = "", string baseName = "");
 		

@@ -62,17 +62,7 @@ namespace SDC.Schema
 		#endregion
 
 		#region ITopNode 
-		#region ITopNode Main
-		//[JsonIgnore]
-		//int _ITopNode._MaxObjectIDint { get; set; } = 0; //internal
-		[XmlIgnore]
-		[JsonIgnore]
-		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		//[XmlIgnore]
-		//[JsonIgnore]
-		//public int MaxObjectID { get => ((_ITopNode)this)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
-		[XmlIgnore]
-		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
+
 		[XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyDictionary<Guid, BaseType> Nodes
@@ -84,17 +74,6 @@ namespace SDC.Schema
 				return _nodesRO;
 			}
 		}
-		[XmlIgnore]
-		[JsonIgnore]
-		Dictionary<Guid, BaseType> _ITopNode._ParentNodes { get; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes { get; } = new Dictionary<Guid, List<BaseType>>();
-		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
-		[XmlIgnore]
-		[JsonIgnore]
-		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
@@ -110,8 +89,6 @@ namespace SDC.Schema
 			}
 		}
 
-		public List<BaseType> GetSortedNodesList() => ((ITopNode)this).GetSortedNodes();
-		public ObservableCollection<BaseType> GetSortedNodesObsCol() => ((ITopNode)this).GetSortedNodesObsCol();
 		[XmlIgnore]
 		[JsonIgnore]
 		public bool GlobalAutoNameFlag { get; set; } = true;
@@ -138,7 +115,7 @@ namespace SDC.Schema
 		{
 			BaseType.ResetRootNode();
 			((_ITopNode)this).ClearDictionaries();
-			//((_ITopNode)this)._MaxObjectIDint = 0;
+			((_ITopNode)this)._MaxObjectID = 0;
 			Property = null;
 			Extension = null;
 			Comment = null;
@@ -149,6 +126,25 @@ namespace SDC.Schema
 			Header = null;
 			Footer = null;
 		}
+		#region _ITopNode
+
+		private ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
+		int _ITopNode._MaxObjectID { get; set; } = 0;
+
+		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
+	
+		Dictionary<Guid, BaseType> _ITopNode._ParentNodes { get; } = new ();
+
+		Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes { get; } = new ();
+
+		HashSet<int> _ITopNode._TreeSort_NodeIds { get; } = new ();
+
+		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
+
+		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
+		
+
 		#endregion
 
 		#region Deserialization
@@ -264,17 +260,7 @@ namespace SDC.Schema
 		}
 
 		#region ITopNode
-		#region ITopNodeMain
-		//[JsonIgnore]
-		//int _ITopNode._MaxObjectIDint { get; set; } //internal
-		[XmlIgnore]
-		[JsonIgnore]
-		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		//[XmlIgnore]
-		//[JsonIgnore]
-		//public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
-		[XmlIgnore]
-		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
+
 		[XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyDictionary<Guid, BaseType> Nodes
@@ -286,17 +272,6 @@ namespace SDC.Schema
 				return _nodesRO;
 			}
 		}
-		[XmlIgnore]
-		[JsonIgnore]
-		public Dictionary<Guid, BaseType> _ParentNodes { get; private set; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		public Dictionary<Guid, List<BaseType>> _ChildNodes { get; private set; } = new Dictionary<Guid, List<BaseType>>();
-		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
-		[XmlIgnore]
-		[JsonIgnore]
-		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
@@ -312,8 +287,6 @@ namespace SDC.Schema
 			}
 		}
 
-		public List<BaseType> GetSortedNodesList() => ((ITopNode)this).GetSortedNodes();
-		public ObservableCollection<BaseType> GetSortedNodesObsCol() => ((ITopNode)this).GetSortedNodesObsCol();
 		[XmlIgnore]
 		[JsonIgnore]
 		public bool GlobalAutoNameFlag { get; set; } = true;
@@ -347,6 +320,18 @@ namespace SDC.Schema
 			Items = null;
 		}
 
+		#region _ITopNode
+		private ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
+
+		int _ITopNode._MaxObjectID { get; set; } = 0;
+		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
+		Dictionary<Guid, BaseType> _ITopNode._ParentNodes { get; } = new Dictionary<Guid, BaseType>();
+		Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes { get; } = new Dictionary<Guid, List<BaseType>>();
+		HashSet<int> _ITopNode._TreeSort_NodeIds { get; } = new();
+
+		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
+		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
 		#endregion
 
 		#region Deserialization
@@ -404,17 +389,9 @@ namespace SDC.Schema
 		}
 
 		#region ITopNode
-		#region ITopNodeMain
-		//[JsonIgnore]
-		//int _ITopNode._MaxObjectIDint { get; set; } //internal
 		[XmlIgnore]
 		[JsonIgnore]
-		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		//[XmlIgnore]
-		//[JsonIgnore]
-		//public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
-		[XmlIgnore]
-		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
+		public int MaxObjectID { get; internal set; } = 0;
 		[XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyDictionary<Guid, BaseType> Nodes
@@ -426,17 +403,6 @@ namespace SDC.Schema
 				return _nodesRO;
 			}
 		}
-		[XmlIgnore]
-		[JsonIgnore]
-		public Dictionary<Guid, BaseType> _ParentNodes { get; private set; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		public Dictionary<Guid, List<BaseType>> _ChildNodes { get; private set; } = new Dictionary<Guid, List<BaseType>>();
-		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
-		[XmlIgnore]
-		[JsonIgnore]
-		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
@@ -475,7 +441,7 @@ namespace SDC.Schema
 		{
 			BaseType.ResetRootNode();
 			((_ITopNode)this).ClearDictionaries();
-			//((_ITopNode)this)._MaxObjectIDint = 0;
+			((_ITopNode)this)._MaxObjectID = 0;
 			Property = null;
 			Extension = null;
 			Comment = null;
@@ -483,7 +449,19 @@ namespace SDC.Schema
 			Items = null;
 			SDCPackage = null;
 		}
+		#endregion
 
+		#region _ITopNode
+		private ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
+
+		int _ITopNode._MaxObjectID { get; set; } = 0;
+		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
+		Dictionary<Guid, BaseType> _ITopNode._ParentNodes { get; } = new Dictionary<Guid, BaseType>();
+		Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes { get; } = new Dictionary<Guid, List<BaseType>>();
+		HashSet<int> _ITopNode._TreeSort_NodeIds { get; } = new();
+		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
+		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
 
 		#endregion
 
@@ -521,9 +499,7 @@ namespace SDC.Schema
 		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPack(byte[], bool, SdcUtil.CreateName?, int, int)"/>
 		public static RetrieveFormPackageType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
 			=> TopNodeSerializer<RetrieveFormPackageType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
-		#endregion
-
-		#endregion
+		#endregion		
 
 
 	}
@@ -548,17 +524,6 @@ namespace SDC.Schema
 			ElementPrefix = "PL";
 		}
 		#region ITopNode
-		#region ITopNodeMain
-		//[JsonIgnore]
-		//int _ITopNode._MaxObjectIDint { get; set; } //internal
-		[XmlIgnore]
-		[JsonIgnore]
-		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		//[XmlIgnore]
-		//[JsonIgnore]
-		//public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
-		[XmlIgnore]
-		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyDictionary<Guid, BaseType> Nodes
@@ -570,17 +535,6 @@ namespace SDC.Schema
 				return _nodesRO;
 			}
 		}
-		[XmlIgnore]
-		[JsonIgnore]
-		public Dictionary<Guid, BaseType> _ParentNodes { get; private set; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		public Dictionary<Guid, List<BaseType>> _ChildNodes { get; private set; } = new Dictionary<Guid, List<BaseType>>();
-		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
-		[XmlIgnore]
-		[JsonIgnore]
-		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
@@ -595,13 +549,9 @@ namespace SDC.Schema
 				return _IETnodesRO;
 			}
 		}
-
-		public List<BaseType> GetSortedNodesList() => ((ITopNode)this).GetSortedNodes();
-		public ObservableCollection<BaseType> GetSortedNodesObsCol() => ((ITopNode)this).GetSortedNodesObsCol();
 		[XmlIgnore]
 		[JsonIgnore]
 		public bool GlobalAutoNameFlag { get; set; } = true;
-
 
 		/// <summary>
 		/// 
@@ -623,7 +573,7 @@ namespace SDC.Schema
 		{
 			BaseType.ResetRootNode();
 			((_ITopNode)this).ClearDictionaries();
-			//((_ITopNode)this)._MaxObjectIDint = 0;
+			((_ITopNode)this)._MaxObjectID = 0;
 			Property = null;
 			Extension = null;
 			Comment = null;
@@ -632,9 +582,22 @@ namespace SDC.Schema
 			this.HTML = null;
 		}
 
-
 		#endregion
 
+		#region _ITopNode
+
+		private ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
+
+		int _ITopNode._MaxObjectID { get; set; } = 0;
+		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();	
+		Dictionary<Guid, BaseType> _ITopNode._ParentNodes { get; } = new Dictionary<Guid, BaseType>();
+		Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes { get; } = new Dictionary<Guid, List<BaseType>>();
+		HashSet<int> _ITopNode._TreeSort_NodeIds { get; } = new();
+		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
+		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
+
+		#endregion
 
 		#region Deserialization
 
@@ -669,8 +632,9 @@ namespace SDC.Schema
 		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromMsgPack(byte[], bool, SdcUtil.CreateName?, int, int)"/>
 		public static PackageListType DeserializeFromMsgPack(byte[] sdcMsgPack, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
 			=> TopNodeSerializer<PackageListType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
-		#endregion		#endregion
+
 		#endregion
+
 
 	}
 	public partial class MappingType : _ITopNode, ITopNodeDeserialize<MappingType>
@@ -688,17 +652,6 @@ namespace SDC.Schema
 			ElementPrefix = "MAP";
 		}
 		#region ITopNode
-		#region ITopNodeMain
-		//[JsonIgnore]
-		//int _ITopNode._MaxObjectIDint { get; set; } //internal
-		[XmlIgnore]
-		[JsonIgnore]
-		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		//[XmlIgnore]
-		//[JsonIgnore]
-		//public int MaxObjectID { get => ((_ITopNode)TopNode)._MaxObjectIDint; }  //save the highest object counter value for the current FormDesign tree
-		[XmlIgnore]
-		internal ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyDictionary<Guid, BaseType> Nodes
@@ -710,17 +663,6 @@ namespace SDC.Schema
 				return _nodesRO;
 			}
 		}
-		[XmlIgnore]
-		[JsonIgnore]
-		public Dictionary<Guid, BaseType> _ParentNodes { get; private set; } = new Dictionary<Guid, BaseType>();
-		[XmlIgnore]
-		[JsonIgnore]
-		public Dictionary<Guid, List<BaseType>> _ChildNodes { get; private set; } = new Dictionary<Guid, List<BaseType>>();
-		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
-		[XmlIgnore]
-		[JsonIgnore]
-		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 		[XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
@@ -735,13 +677,9 @@ namespace SDC.Schema
 				return _IETnodesRO;
 			}
 		}
-
-		public List<BaseType> GetSortedNodesList() => ((ITopNode)this).GetSortedNodes();
-		public ObservableCollection<BaseType> GetSortedNodesObsCol() => ((ITopNode)this).GetSortedNodesObsCol();
 		[XmlIgnore]
 		[JsonIgnore]
 		public bool GlobalAutoNameFlag { get; set; } = true;
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -762,14 +700,26 @@ namespace SDC.Schema
 		{
 			BaseType.ResetRootNode();
 			((_ITopNode)this).ClearDictionaries();
-			//((_ITopNode)this)._MaxObjectIDint = 0;
+			((_ITopNode)this)._MaxObjectID = 0;
 			Property = null;
 			Extension = null;
 			Comment = null;
 			this.ItemMap = null;
 			this.DefaultCodeSystem = null;
 		}
+		#endregion
 
+		#region _ITopNode
+		private ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
+
+		int _ITopNode._MaxObjectID { get; set; } = 0;
+		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
+		Dictionary<Guid, BaseType> _ITopNode._ParentNodes { get; } = new ();
+		Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes { get;} = new ();
+		HashSet<int> _ITopNode._TreeSort_NodeIds { get; } = new();
+		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
+		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
 
 		#endregion
 
@@ -808,7 +758,7 @@ namespace SDC.Schema
 			=> TopNodeSerializer<MappingType>.DeserializeFromMsgPack(sdcMsgPack, refreshSdc, createNameDelegate, orderStart, orderGap);
 
 		#endregion		#endregion
-		#endregion
+		
 
 
 	}
@@ -1172,8 +1122,7 @@ namespace SDC.Schema
 		///		After the SDC object tree is created, parent nodes and other metadata can be assigned using <see cref="SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?)"/>
 		/// </summary>
 		protected BaseType()
-		{
-			ObjectID = BaseType.LastObjectID++;
+		{			
 
 			if (this is ITopNode tn)
 			{
@@ -1181,19 +1130,28 @@ namespace SDC.Schema
 				{
 					LastTopNode = tn; //Point to myself as the TopNode
 					TopNode = tn;
+					ObjectID = ((_ITopNode)this)._MaxObjectID++;
 				}
 				else
 				{
 					TopNode = LastTopNode; //Point to LastTopNode as the TopNode
 					LastTopNode = tn;
+					ObjectID = ((_ITopNode)this)._MaxObjectID++;
 				}
 			}//not ITopNode below here
 			else if (LastTopNode is not null)
 			{
 				TopNode = LastTopNode;
+				ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
 			}
 			else if (LastTopNode is null) 
-			{ }//the caller is instantiating a new node that is not descended from an ITopNode node.
+			{//the caller is instantiating a new node that is not descended from an ITopNode node.
+				//ObjectID will need to be incremented if & when the node is grafted onto another node that is ITopNode, or has an ITopNode ancestor
+				ObjectID = -1;
+			}
+
+
+			//ObjectID = BaseType.LastObjectID++;
 
 		}
 
@@ -1228,21 +1186,27 @@ namespace SDC.Schema
 			else if (parentNode is not null)
 			{
 				if (parentNode is ITopNode ptn)
+				{
 					TopNode = (_ITopNode)parentNode;
+					ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
+				}
 				else if (parentNode.TopNode is not null)
+				{
 					TopNode = (_ITopNode)parentNode.TopNode;
-				else { } //this node descends form an "illegal" non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode,
+					ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
+				}
+				else { //this node descends form an "illegal" non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode,
 						 //but we can still process it, as long as we check for null TopNode everywhere we need it (mainly in Dictionaries).
 						 //later, this "illegal" tree will need to be grafted onto a legal tree and TopNodes will need to be assigned during
 						 //the grafting/moving process, based on the target tree's TopNodes.
+					ObjectID = -1;
+				} 
 			}
 			else if (parentNode is null) { }//the caller is trying to instantiate a standalone root node that is not a proper ITopNode.  TopNode is thus null here
 
 			//!________Assign default sGuid, BaseName, ObjectGUID, ObjectID, @order, @name & populate dictionaries___________________
 
 			SdcUtil.AssignGuid_sGuid_BaseName(this);			
-
-			this.ObjectID = BaseType.LastObjectID++; //Can we retire ObjectID?
 
 			this.RegisterNodeAndParent(parentNode);
 
@@ -1259,7 +1223,7 @@ namespace SDC.Schema
 		#endregion Local methods
 
 		#region  Local Members
-		internal static int LastObjectID { get => lastObjectID; private set => lastObjectID = value; }
+		//internal static int LastObjectID { get => lastObjectID; private set => lastObjectID = value; }
 		internal void StoreError(string errorMsg) //TODO: Replace with event that logs each error
 		{
 			var exData = new Exception();
@@ -1570,13 +1534,13 @@ namespace SDC.Schema
 		public static void ResetRootNode()  //Rename to ResetStatic
 		{
 			LastTopNode = null;
-			LastObjectID = 0;
+			//LastObjectID = 0;
 		}
 
 		[XmlIgnore]
 		[JsonIgnore]
 		/// <inheritdoc/>
-		public string BaseName { get; set; }
+		public string BaseName { get; set; } = "";
 		#endregion
 
 		#region ChangeTracking
@@ -1599,7 +1563,7 @@ namespace SDC.Schema
 		private int elementOrder;
 		private string _elementName = "";
 		private string _elementPrefix = "";
-		private RetrieveFormPackageType _PackageNode;
+		private RetrieveFormPackageType? _PackageNode;
 		private static ITopNode? LastTopNode;
 		//private static BaseType? LastAddedNode;
 		private static int lastObjectID = 0;

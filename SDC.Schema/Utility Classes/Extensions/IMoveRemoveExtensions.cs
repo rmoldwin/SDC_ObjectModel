@@ -502,10 +502,10 @@ namespace SDC.Schema.Extensions
 					var childList = tn._ChildNodes[par.ObjectGUID];
 					success = childList.Remove(node); //Returns a List<BaseType> and removes "item" from that list
 					if (!success)
-						throw new InvalidOperationException($"Could not remove list node from _ChildNodes dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
+						throw new InvalidOperationException($"Could not remove list node from {nameof(tn._ChildNodes)} dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
 					if (childList.Count == 0) success = tn._ChildNodes.Remove(par.ObjectGUID); //remove the entire entry from _ChildNodes
 					if (!success)
-						throw new InvalidOperationException($"Could not remove parent entry from _ChildNodes dictionary: name: {par.name ?? "(none)"}, ObjectGUID: {par.ObjectGUID}");
+						throw new InvalidOperationException($"Could not remove parent entry from {nameof(tn._ChildNodes)} dictionary: name: {par.name ?? "(none)"}, ObjectGUID: {par.ObjectGUID}");
 				}
 				else {} //no _ChildNodes entries are present for this node
 			}
@@ -533,20 +533,20 @@ namespace SDC.Schema.Extensions
 			{
 				bool success = tn?._Nodes.Remove(node.ObjectGUID) ?? false;
 				if (!success)
-					throw new Exception($"Could not remove object from _Nodes dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
+					throw new Exception($"Could not remove object from {nameof(tn._Nodes)} dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
 				node.UnRegisterParent();
 
 				if (node is IdentifiedExtensionType iet)
 				{
 					var inb = tn!._IETnodes;
 					if(inb is null) 
-						throw new InvalidOperationException($"TopNode._IETnodes was null; Node name: {iet.name ?? "(none)"}, Short Guid: {node.sGuid}");
+						throw new InvalidOperationException($"{nameof(tn._IETnodes)} was null; Node name: {iet.name ?? "(none)"}, Short Guid: {node.sGuid}");
 
 					foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
 					{
 						success = inb.Remove(n);
 						if (!success)
-						throw new Exception($"Could not remove object from _IETnodes collection. Node name: {node.name ?? "(none)"}, Short Guid: {node.sGuid}");
+						throw new Exception($"Could not remove object from {nameof(tn._IETnodes)} collection. Node name: {node.name ?? "(none)"}, Short Guid: {node.sGuid}");
 					}
 				}
 			}

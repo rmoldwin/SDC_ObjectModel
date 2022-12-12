@@ -52,7 +52,8 @@ namespace SDC.Schema.Tests.Functional
 			SdcUtil.CreateName? delCreateName = SdcUtil.CreateCAPname;
 			//delCreateName = null;
 			
-			var sdcList = SdcUtil.ReflectRefreshTree(Setup.FD, out string? s, true, true, delCreateName);
+			var sdcList = SdcUtil.ReflectRefreshTree(Setup.FD, out string? s, true, true, delCreateName
+				,0,10);
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 			Debug.Print(s);
 			Debug.Print(Setup.FD.GetXml());
@@ -396,7 +397,7 @@ namespace SDC.Schema.Tests.Functional
 		{
 
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			SdcUtil.TreeSort_ClearNodeIds();
+			SdcUtil.TreeSort_ClearNodeIds(Setup.FD);
 
 			BaseType? n = SdcUtil.GetLastDescendantElement(Setup.FD);
 			int i = Setup.FD.Nodes.Count - 1;
@@ -413,7 +414,7 @@ namespace SDC.Schema.Tests.Functional
 				n = SdcUtil.GetPrevElement(n);
 				i--;
 			}
-			SdcUtil.TreeSort_ClearNodeIds();
+			SdcUtil.TreeSort_ClearNodeIds(Setup.FD);
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
 

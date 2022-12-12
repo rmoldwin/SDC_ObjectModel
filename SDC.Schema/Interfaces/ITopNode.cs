@@ -20,26 +20,21 @@ namespace SDC.Schema
 	//In particular, SdcSerializer<T> uses "where T:IBaseType" as its generic restricion, enabling the SdcSerializer methods to use ITopNode as a parameter type.
 	//If SdcSerializer<T> used T: BaseType, its methods would not accept ITopNode, since an interface cannot inherit a class (BaseType)
 	{
+
 		/// <summary>
 		/// ReadOnlyObservableCollection of all SDC nodes.
 		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
 		ReadOnlyDictionary<Guid, BaseType> Nodes { get; }
 
 		/// <summary>
 		/// ReadOnlyObservableCollection of IET nodes.
 		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
 		ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes { get; }
 
-		//[XmlIgnore]
-		//[JsonIgnore]
-		/////Holds the largest ObjectID that was most-recently assigned to a new node.  <br/>
-		/////The MaxObjectID is incremented by 1 each time a new node is added to an SDC object tree. <br/>
-		/////MaxObjectID can be reset to 0 by calling ITopNode.ResetRootNode()
-		//int MaxObjectID { get; }
-
-		//[XmlIgnore]
-		//[JsonIgnore]
-		//      internal int MaxObjectID { get; set; }
 		/// <summary>
 		/// Automatically create and assign element names to all SDC elements
 		/// </summary>
@@ -97,36 +92,37 @@ namespace SDC.Schema
 	/// </summary>
 	internal interface _ITopNode : ITopNode
 	{
+		///Holds the largest ObjectID that was most-recently assigned to a new node.  <br/>
+		///The _MaxObjectID is incremented by 1 each time a new node is added to an SDC object tree. <br/>
+		///_MaxObjectID can be reset to 0 by calling ITopNode.ResetRootNode()
+		int _MaxObjectID { get; set; }
+
 		/// <summary>
 		/// Internal base object for initializing IETnodesRO.
 		/// </summary>
-		internal ObservableCollection<IdentifiedExtensionType> _IETnodes { get; }
-
-
-		///// <summary>
-		///// Internal version of MaxObjectID, which has a setter; MaxObjectID only has a getter.
-		///// </summary> 
-		//internal int _MaxObjectIDint { get; set; }
+		ObservableCollection<IdentifiedExtensionType> _IETnodes { get; }
 
 		/// <summary>
 		/// Dictionary.  Given an Node ObjectGUID, returns the node's object reference.
 		/// </summary>
-		[XmlIgnore]
-		[JsonIgnore]
-		internal Dictionary<Guid, BaseType> _Nodes { get; }
+		Dictionary<Guid, BaseType> _Nodes { get; }
 
 		/// <summary>
 		/// Dictionary.  Given a Node ObjectGUID, return the *parent* node's object reference
 		/// </summary>
-		[XmlIgnore]
-		[JsonIgnore]
-		internal Dictionary<Guid, BaseType> _ParentNodes { get; }
+		Dictionary<Guid, BaseType> _ParentNodes { get; }
 		/// <summary>
 		/// Dictionary.  Given a NodeID ObjectGUID, return a list of the child nodes object reference
 		/// </summary>
-		[XmlIgnore]
-		[JsonIgnore]
-		internal Dictionary<Guid, List<BaseType>> _ChildNodes { get; }
+		Dictionary<Guid, List<BaseType>> _ChildNodes { get; }
+
+		/// <summary>
+		/// This HashSet contains the ObjectID of each node that has been sorted by ITreeSibComparer.  
+		/// Each entry in this HashSet indicates that nodes child nodes have already been sorted.  
+		/// Checking for a parent node in this HashSet is used to bypass the resorting of child nodes during a tree sorting operation.  
+		/// The SortedList is cleared after the conclusion of the sorting operation, using TreeSort_ClearNodeIds().
+		/// </summary>
+		HashSet<int> _TreeSort_NodeIds { get; }
 		protected internal void ClearDictionaries();
 	}
 }

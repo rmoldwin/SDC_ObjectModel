@@ -19,7 +19,7 @@ namespace SDC.Schema
 			if (par is null) 
 				throw new ArgumentException("The nodeA parent node was null"); 
 			if (nodeB.ParentNode != par) 
-				throw new ArgumentException("The nodeA parent node must be the same as the nodeB parent node");
+				throw new ArgumentException("For sibling nodes, the nodeA parent node must be the same as the nodeB parent node");
 			if (nodeA == nodeB)
 				return 0; 
 

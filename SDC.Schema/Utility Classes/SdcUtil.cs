@@ -29,6 +29,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using static System.Formats.Asn1.AsnWriter;
 
 
 namespace SDC.Schema
@@ -39,24 +40,24 @@ namespace SDC.Schema
 	public static class SdcUtil
 	{
 		#region Local
-		private static Dictionary<Guid, BaseType> Get_Nodes(BaseType n)
+		internal static Dictionary<Guid, BaseType> Get_Nodes(BaseType n)
 		{ return Get_ITopNode(n)._Nodes; }
-		private static Dictionary<Guid, List<BaseType>> Get_ChildNodes(BaseType n)
+		internal static Dictionary<Guid, List<BaseType>> Get_ChildNodes(BaseType n)
 		{ return Get_ITopNode(n)._ChildNodes; }
-		private static Dictionary<Guid, BaseType> Get_ParentNodes(BaseType n)
+		internal static Dictionary<Guid, BaseType> Get_ParentNodes(BaseType n)
 		{ return Get_ITopNode(n)._ParentNodes; }
-		private static ObservableCollection<IdentifiedExtensionType> Get_IETnodes(BaseType n)
+		internal static ObservableCollection<IdentifiedExtensionType> Get_IETnodes(BaseType n)
 		{ return Get_ITopNode(n)._IETnodes; }
-		private static HashSet<string> UniqueBaseNames = new(); //key is BaseName, value is sGuid; ensure that all BaseNames are unique
+		internal static HashSet<string> UniqueBaseNames = new(); //key is BaseName, value is sGuid; ensure that all BaseNames are unique
 
 
 		/// <summary>
 		/// This SortedSet contains the ObjectID of each node that has been sorted by ITreeSibComparer.  
-		/// Each entry in this SortedSet indicates that nodes child nodes have already been sorted.  
+		/// Each entry in this HashSet indicates that nodes child nodes have already been sorted.  
 		/// Checking for a parent node in this HashSet is used to bypass the resorting of child nodes during a tree sorting operation.  
 		/// The SortedList is cleared after the conclusion of the sorting operation, using TreeSort_ClearNodeIds().
 		/// </summary>
-		internal static readonly HashSet<int> TreeSort_NodeIds = new();
+		//private static readonly HashSet<int> TreeSort_NodeIds = new();
 
 		/// <summary>
 		/// List-sorting code can test for the presence of a flagged parent node in TreeSort_NodeIds with TreeSort_IsSorted. 
@@ -64,13 +65,34 @@ namespace SDC.Schema
 		/// then the child-list-sorting code should use the ChildNodes dictionary to retrieve the sorted child nodes.  If it returns false, 
 		/// the code should use ITreeSibComparer to sort the child nodes (in a List&lt;BaseType>) before using accessing the nodes in sorted order.
 		/// </summary>
-		/// <param name="ObjectID"></param>
+		/// <param name="parentItem"></param>
 		/// <returns></returns>
-		private static bool TreeSort_IsSorted(int ObjectID)
+		private static bool TreeSort_IsSorted(BaseType parentItem)
 		{
-			if (TreeSort_NodeIds.Contains(ObjectID)) return true;
+			var _topNode = Get_ITopNode(parentItem);
+			if (_topNode is null) throw new NullReferenceException($"{nameof(_topNode)} cannot be null");
+			if (_topNode._TreeSort_NodeIds.Contains(parentItem.ObjectID)) return true;
 			return false;
 		}
+
+		private static void TreeSort_Add(BaseType parentItem)
+		{
+			var _topNode = Get_ITopNode(parentItem);
+			if (_topNode is null) throw new NullReferenceException($"{nameof(_topNode)} cannot be null");
+			_topNode._TreeSort_NodeIds.Add(parentItem.ObjectID);
+		}
+
+		/// <summary>
+		/// Dictionary to cache PropertyInfo objects to speed reflection of SDC nodes
+		/// </summary>
+		private static Dictionary<Type, List<PropertyInfo>?> dPropInfo = new();
+		/// <summary>
+		/// Clear the dPropInfo Dictionary, which hold cached PropertyInfo objects that are used to speed up SDC node reflection.<br/>
+		/// Used for performance testing.
+		/// </summary>
+		internal static void CleardPropInfoDictionary()
+		{ dPropInfo.Clear(); }
+
 		/// <summary>
 		/// TreeSort_ClearNodeIds is used when starting a node traversal by reflection using the reflection-based ITreeSibComparer.  
 		/// Calling this method will cause the node comparison method to use ITreeSibComparer to sort sets of sibling nodes, 
@@ -82,9 +104,11 @@ namespace SDC.Schema
 		/// If it returns false, the sorting code should use IComparer to sort the child nodes List&lt;BaseType> 
 		/// before using accessing the child nodes list in sorted order.
 		/// </summary>
-		public static void TreeSort_ClearNodeIds()
-		{
-			TreeSort_NodeIds.Clear();
+		public static void TreeSort_ClearNodeIds(BaseType n)
+		{//TODO: Make this internal  (or Friend) as it's only used for testing
+			var _topNode = Get_ITopNode(n);
+			if (_topNode is null) throw new NullReferenceException($"{nameof(_topNode)} cannot be null");
+			_topNode._TreeSort_NodeIds.Clear();
 		}
 
 		/// <summary>
@@ -172,15 +196,15 @@ namespace SDC.Schema
 		/// The default value is 10.<br/>
 		/// A value of 0 will prevent @order from being generated and serialized.</param>		
 		public static List<BaseType> ReflectRefreshTree(ITopNode topNode
-		, out string? treeText
-		, bool print = false
-		, bool refreshTree = true
-		, CreateName? createNodeName = null
-		, int orderStart = 0
-		, int orderGap = 10)
+			, out string? treeText
+			, bool print = false
+			, bool refreshTree = true
+			, CreateName? createNodeName = null
+			, int orderStart = 0
+			, int orderGap = 10)
 
 		{
-			TreeSort_ClearNodeIds();
+			TreeSort_ClearNodeIds((BaseType)topNode);
 			int counter = 0;
 			int indent = 0;
 			int order = orderStart;
@@ -275,11 +299,20 @@ namespace SDC.Schema
 
 				while (s.Count > 0)
 				{
-					var props = s.Pop().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-						.Where(p => p.IsDefined(typeof(XmlElementAttribute)))
+					List<PropertyInfo>? props = new ();
+					Type sPop = s.Pop();
+
+					if (! dPropInfo.TryGetValue(sPop, out props))
+					{
+						props = sPop.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+						.Where(p => p.IsDefined(typeof(XmlElementAttribute))).ToList();
 						//.OrderBy(p => p.GetCustomAttributes<XmlElementAttribute>()  //ordering is not currently needed to retrieve
 						//.First().Order)											  //properties in XML Element order, but this could change
 						;
+
+						dPropInfo.Add(sPop, props);
+					}
+
 					foreach (var p in props)
 					{
 						var prop = p.GetValue(node);
@@ -333,7 +366,7 @@ namespace SDC.Schema
 																					 //Debug.Print(btProp.sGuid + "; Obj ID: " + btProp.ObjectID);
 
 					//Mark parentNode as having its child nodes already sorted
-					TreeSort_NodeIds.Add(parentNode.ObjectID);  //Change ObjectID to ObjectGUID?
+					TreeSort_Add(parentNode);  //Change ObjectID to ObjectGUID?
 					AssignSdcProperties(parentNode, piChildProperty);
 				}
 
@@ -413,7 +446,7 @@ namespace SDC.Schema
 		/// <returns>Sorted List&lt;BaseType> containing all nodes in the tree</returns>
 		public static List<BaseType> ReflectTreeList(ITopNode topNode, out string treeText, bool print = false)
 		{
-			TreeSort_ClearNodeIds();
+			//TreeSort_ClearNodeIds();
 			List<BaseType> outList = new();
 			StringBuilder sbTreeText = new();
 			int counter; //used to count each node sequentially
@@ -481,7 +514,7 @@ namespace SDC.Schema
 			var cn = Get_ChildNodes(n);// topNode._ChildNodes;
 			int i = 0;
 			var sortedList = new List<BaseType>();
-			if (ResetSortFlags) TreeSort_ClearNodeIds();
+			if (ResetSortFlags) TreeSort_ClearNodeIds(n);
 
 			MoveNext(n);
 
@@ -528,7 +561,7 @@ namespace SDC.Schema
 			var cn = Get_ChildNodes(n);// topNode._ChildNodes;
 			int i = 0;
 			var sortedList = new List<BaseType>();
-			if (ResetSortFlags) TreeSort_ClearNodeIds();
+			if (ResetSortFlags) TreeSort_ClearNodeIds(n);
 
 			MoveNext(n);
 
@@ -575,7 +608,7 @@ namespace SDC.Schema
 			var cn = Get_ChildNodes(n);// topNode._ChildNodes;
 			var sortedList = new List<IdentifiedExtensionType>();
 			int i = -1;
-			if (resortChildNodes && resetSortFlags) TreeSort_ClearNodeIds();
+			if (resortChildNodes && resetSortFlags) TreeSort_ClearNodeIds(n);
 
 			MoveNext(n);
 
@@ -1110,11 +1143,11 @@ namespace SDC.Schema
 		{
 			var par = n.ParentNode;
 			var topNode = Get_ITopNode(n);
-			if (topNode is null) throw new InvalidOperationException("topNode could not obtained from the input node n");
 			if (par is null) return null;
+			if (topNode is null) throw new InvalidOperationException("topNode could not obtained from the input node n");			
 			topNode._ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
 			if (sibs is null) return null;
-			SortElementKids(n, sibs);
+			SortElementKids(par, sibs);
 
 			var index = sibs?.IndexOf(n) ?? -1; //
 			if (index == 0) return null; //item is the first item
@@ -2654,10 +2687,10 @@ namespace SDC.Schema
 				//if (!(Get_ITopNode(parentItem))._ChildNodes.TryGetValue(parentItem.ObjectGUID, out kids) && kids?.Count > 0) return null;
 				if (!Get_ChildNodes(parentItem).TryGetValue(parentItem.ObjectGUID, out kids) && kids?.Count > 0) return null;
 
-			if (!TreeSort_NodeIds.Contains(parentItem.ObjectID) && kids is not null)
+			if (!TreeSort_IsSorted(parentItem) && kids is not null)
 			{
 				kids.Sort(new TreeSibComparer());
-				TreeSort_NodeIds.Add(parentItem.ObjectID);
+				TreeSort_Add(parentItem);
 			}
 			return kids;
 		}
@@ -3009,76 +3042,6 @@ namespace SDC.Schema
 			piProperty.GetValue(parent);
 
 		#endregion
-
-	}
-
-
-	public class X_SdcUtilParallel
-	{
-		/// <summary>
-		/// Retrieve the previous <see cref="BaseType"/> sibling SDC element node, using the _ChildNodes dictionary.
-		/// </summary>
-		/// <param name="n"></param>
-		/// <returns></returns>
-		public BaseType? GetPrevSibElement(BaseType n)
-		{
-			var par = n.ParentNode;
-			var topNode = Get_ITopNode(n);
-			if (topNode is null) throw new InvalidOperationException("topNode could not obtained from the input node n");
-			if (par is null) return null;
-			topNode._ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
-			if (sibs is null) return null;
-
-			SortElementKids(n, sibs);  //not thread safe ???
-
-			var index = sibs?.IndexOf(n) ?? -1; //
-			if (index == -1) Debugger.Break();
-			if (index == 0) return null; //item is the first item
-			return sibs?[index - 1]; //throws exception if index = -1 (child not found in the list of sibs)
-		}
-
-		/// <summary>
-		/// For the current <paramref name="n"/>, retrieve the ancestor _ITopNode object that contains the subtree dictionaries<br/>
-		/// e.g., Nodes, ChildNodes, IETNodes. <br/>
-		/// If this node (<paramref name="n"/>) implements <see cref="_ITopNode"/>, the method returns (_ITopNode)n
-		/// </summary>
-		/// <param name="n">The node for which we need to retrieve _ITopNode dictionaries</param>
-		/// <returns>A reference to an _ITopNode object</returns>
-		internal _ITopNode? Get_ITopNode(BaseType n)
-		{
-			if (n is _ITopNode itn) return itn;
-			return n.TopNode as _ITopNode;
-		}
-
-		/// <summary>
-		/// Given a parent SDC node, this method will sort the child nodes (kids)
-		/// This method is used to keep lists of sibling nodes in the same order as the SDC object tree
-		/// </summary>
-		/// <param name="parentItem">The parent SDC node</param>
-		/// <param name="kids">"kids" is a List&lt;BaseType> containing all the child nodes under parentItem.
-		/// This is generally obtained from the parentItem using the _ITopNode._ChildNodes Dictionary object
-		/// If it is not supplied, it will be obtained below from parentItem</param>
-		/// <returns>List&lt;BaseType>? containing ordered list of child nodes, or null if no child nodes are present</returns>
-		private List<BaseType>? SortElementKids(BaseType parentItem, List<BaseType>? kids = null)
-		{
-			//Sorting uses reflection, and this is an expensive operation, so we only sort once per parent node
-			//TreeSort_NodeIds is a HashSet that holds the ObjectIDs of parent nodes whose children have already been sorted.
-			//If a parent node's children have already been sorted, it appears in TreeSort_NodeIds, and we can skip sorting it again. 
-
-			//(This method is NOT used by IMoveRemoveExtensions.RegisterParentNode, which uses the reflection-based TreeSibComparer directly for child nodes - 
-			//This ensures that the node dictionaries (_Nodes, _ParentNodes and _ChildNodes) are kept sorted in the same order as they will be serialized in XML.)
-
-			if (kids is null || kids.Count == 0)
-				if (!Get_ITopNode(parentItem)?._ChildNodes.TryGetValue(parentItem.ObjectGUID, out kids)??false 
-					&& (kids?.Count > 0)) return null;
-
-			if (!SdcUtil.TreeSort_NodeIds.Contains(parentItem.ObjectID) && kids is not null)
-			{
-				kids.Sort(new TreeSibComparer());
-				SdcUtil.TreeSort_NodeIds.Add(parentItem.ObjectID);
-			}
-			return kids;
-		}
 
 	}
 

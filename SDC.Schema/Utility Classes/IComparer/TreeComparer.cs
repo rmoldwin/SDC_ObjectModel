@@ -123,17 +123,17 @@ namespace SDC.Schema
 
 
 		/// <summary>
-		/// Given a parent node, determine whether nodeA or nodeB comes first in the child list
+		/// Given a parent node, determine whether nodeA or nodeB comes first in the child list.<br/>
 		/// Uses reflection only, and does not use any node dictionaries.
 		/// </summary>
 		/// <param name="parentNode"></param>
-		/// <returns><b>-1</b>: nodeA comes first; <b>1</b>: nodeB comes first; <b>0</b>: the nodeA and nodeB reference the same node.</returns>
+		/// <returns><b>-1</b>: nodeA comes first; <b>1</b>: nodeB comes first; <b>0</b>: nodeA and nodeB reference the same node.</returns>
 		public static int SibComparer(BaseType parentNode, BaseType nodeA, BaseType nodeB, out int nodeIndex)
 		{
 			nodeIndex = -1;
 			if (nodeA == nodeB) return 0;
 			IEnumerable<PropertyInfo>? piIE = null;
-			Type sType = null;
+			Type? sType = null;
 
 			//Create a LIFO stack of the targetNode inheritance hierarchy.  The stack's top level type will always be BaseType
 			//For most non-datatype SDC objects, it could be a bit more efficient to use ExtensionBaseType - we can test this another time
