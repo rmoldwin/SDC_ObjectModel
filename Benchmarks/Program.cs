@@ -64,7 +64,7 @@ public class SdcTests
 	//[Benchmark]
 	public void TestGetXmlAttributesFilledTreeFast()
 	{
-		GetXmlAttributesFilledTreeFast(topNode);
+		GetXmlAttributesFilledTree(topNode);
 	}
 
 	[Benchmark]
@@ -72,7 +72,6 @@ public class SdcTests
 	{ //Now with PropInfo caching.
 		SdcUtil.ReflectRefreshTree(Setup.FD, out var text); 
 	}
-
 
 	public SortedList<string, Dictionary<string, List<AttributeInfo>>> GetXmlAttributesFilledTree(ITopNode topNode)
 	{
@@ -125,57 +124,6 @@ public class SdcTests
 		Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		Debug.Print(topNode.GetXml());
 	}
-	public SortedList<string, Dictionary<string, List<AttributeInfo>>> GetXmlAttributesFilledTreeFast(ITopNode topNode)
-	{
-
-		//Setup.Reset();
-		//Setup.TimerStart($"==>{Setup.CallerName()} Started");
-		//topNode = Setup.FD;
-
-		//Dictionary<iet_sGuid, Dictionary<parent_sGuid, child_List<AttributeInfo>>>
-		SortedList<string, Dictionary<string, List<AttributeInfo>>> dictAttr = new();
-		char gt = ">"[0];
-		//  ------------------------------------------------------------------------------------
-
-		foreach (IdentifiedExtensionType iet in topNode.IETnodes)
-		{
-			var en = iet.ElementName;
-			int enLen = 36 - en.Length;
-			int pad = (enLen > 0) ? enLen : 0;
-			//Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  IET Node: {en}   {"".PadRight(pad, gt)}");
-
-			//Dictionary<parent_sGuid, child_List<AttributeInfo>>
-			Dictionary<string, List<AttributeInfo>> dlai = new();
-
-			//process iet's child nodes and their attributes
-			var sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1, 0, false);
-			if (sublist is not null)
-			{
-				foreach (var subNode in sublist)
-				{
-					var lai = SdcUtil.ReflectChildXmlAttributesFast(subNode);
-					//Log(subNode, lai);
-					dlai.Add(subNode.sGuid, lai);
-				}
-				dictAttr.Add(iet.sGuid, dlai);
-			}
-		}
-		return dictAttr;
-		//  ------------------------------------------------------------------------------------
-		void Log(BaseType subNode, List<AttributeInfo> lai)
-		{
-			var en = subNode.ElementName;
-			int enLen = 36 - en.Length;
-			int pad = (enLen > 0) ? enLen : 0;
-			Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  SubNode: {en}    {"".PadRight(pad, gt)}");
-			Debug.Print("<==<==<== Attr ==>==>==>| Default Val |<==<==<==<==<== Val ==>==>==>==>==>");
-			foreach (AttributeInfo ai in lai)
-				Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? "").PadRight(13)}| {ai.Value?.ToString()}");
-		}
-		//  ------------------------------------------------------------------------------------
-		Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-		Debug.Print(topNode.GetXml());
-	}
 	[Benchmark]
 	public void CompareVersions()
 	{
@@ -191,13 +139,13 @@ public class SdcTests
 		//BaseType.ResetRootNode(); //This line is probably no longer needed, as it's called by the deserializer methods
 		FormDesignType? fdV1 = FormDesignType.DeserializeFromXml(File.ReadAllText(pathV1));
 
-		SortedList<string, Dictionary<string, List<AttributeInfo>>>? slAttV2 = GetXmlAttributesFilledTreeFast(fdV2);//keys are IET sGuid, subNode sGuid; holds serializable attribute List for individual subNodes
-		SortedList<string, Dictionary<string, List<AttributeInfo>>>? slAttV1 = GetXmlAttributesFilledTreeFast(fdV1);
+		SortedList<string, Dictionary<string, List<AttributeInfo>>>? slAttV2 = GetXmlAttributesFilledTree(fdV2);//keys are IET sGuid, subNode sGuid; holds serializable attribute List for individual subNodes
+		SortedList<string, Dictionary<string, List<AttributeInfo>>>? slAttV1 = GetXmlAttributesFilledTree(fdV1);
 
-		var nodesRemovedInV2IET = fdV1.IETnodes.Except(fdV1.IETnodes);
-		var nodesAddedInV2IET = fdV2.IETnodes.Except(fdV1.IETnodes);
+		var nodesRemovedInV2IET = fdV1.IETnodes.Except(fdV2.IETnodes); //V1 nodes no longer found in V2
+		var nodesAddedInV2IET = fdV2.IETnodes.Except(fdV1.IETnodes); //V2 nodes that were not present in V1
 
-		//ConcurrentBag<(string, DifNodeIET)> cbDifNodeIET;
+		//ConcurrentBag<(string, _DifNodeIET)> cbDifNodeIET;
 		ConcurrentDictionary<string, DifNodeIET> dDifNodeIET = new(); //the key is the IET node sGuid. Holds attribute changes in all IET and subNodes
 																	  //foreach(var kv2 in slAttV2)
 		Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Compare Setup Complete");
@@ -219,7 +167,7 @@ public class SdcTests
 			
 
 			List<AttInfoDif> laiDif = new(); //For each IET node, there is one laiDif per subnode (including the IET node)
-			Dictionary<string, List<AttInfoDif>> dlaiDif = new();  //the key is the IET sGuid; dlaiDif will be added later to difNodeIET, which will then be added to **d**DifNodeIET
+			Dictionary<string, List<AttInfoDif>> dlaiDif = new();  //the key is the IET sGuid; dlaiDif will be added later to difNodeIET, which will then be added to **d**_DifNodeIET
 			dlaiDif.Add(sGuidIET, laiDif); //add the laiDif to its dictionary; later we will stuff this laiDiff List object with attribute change data for the IET node and all of its subNodes.
 
 			//we now have to populate laiDif with with AttInfoDif structs for each changed attribute
@@ -366,10 +314,10 @@ public class SdcTests
 			DifNodeIET difNodeIET = new(sGuidIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged, dlaiDif);
 			dDifNodeIET.AddOrUpdate(sGuidIET, difNodeIET, (sGuidIET, difNodeIET) => difNodeIET);
 
-			//We could also use a ConcurrentBag<(string, DifNodeIET)>, and add nodes to a dictionary after this method completes 
+			//We could also use a ConcurrentBag<(string, _DifNodeIET)>, and add nodes to a dictionary after this method completes 
 			//We could also try a regular dictionary with a lock, but that might be slower if there are many Add contentions on the lock - needs testing 
 
-			//TODO: Should we add isRemoved DifNodeIET entries, for IETs in V1 but not in V2?  This is not strictly necessary 
+			//TODO: Should we add isRemoved _DifNodeIET entries, for IETs in V1 but not in V2?  This is not strictly necessary 
 			//!We could fill a hash table with all V1 matching nodes in this loop; the V2 nodes (or sGuids) not in the V1-match hashtable were removed in V2
 
 			//return true;

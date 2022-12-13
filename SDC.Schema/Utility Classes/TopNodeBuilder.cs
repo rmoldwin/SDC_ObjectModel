@@ -14,7 +14,7 @@ public class TopNodeBuilder<T> where T : class, ITopNode, new()
 	ITopNode _tempTopNode;
 	
 	readonly private T _newTopNode;
-	private ITopNode? _ancestorTopNode;		
+	private ITopNode? _ancestorTopNode;
 	private string? _id;
 
 	public TopNodeBuilder()

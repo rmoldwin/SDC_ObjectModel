@@ -85,13 +85,36 @@ namespace SDC.Schema
 		/// <summary>
 		/// Dictionary to cache PropertyInfo objects to speed reflection of SDC nodes
 		/// </summary>
-		private static Dictionary<Type, List<PropertyInfo>?> dPropInfo = new();
+		private static readonly Dictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfo = new();
 		/// <summary>
-		/// Clear the dPropInfo Dictionary, which hold cached PropertyInfo objects that are used to speed up SDC node reflection.<br/>
+		/// Clear the dListPropInfo Dictionary, which hold cached PropertyInfo objects that are used to speed up SDC node reflection.<br/>
 		/// Used for performance testing.
 		/// </summary>
 		internal static void CleardPropInfoDictionary()
-		{ dPropInfo.Clear(); }
+		{ dListPropInfo.Clear(); }
+
+		/// <summary>
+		/// Cache XmlRootAttribute objects
+		/// </summary>
+		private static readonly Dictionary<Type, List<XmlRootAttribute>?> dXmlRootAtts = new();
+		/// <summary>
+		/// Cache XmlElementAttribute objects
+		/// </summary>
+		private static readonly Dictionary<Type, List<XmlElementAttribute>?> dXmlElementAtts = new();
+		/// <summary>
+		/// Cache XmlChoiceIdentifierAttribute objects
+		/// </summary>
+		private static readonly Dictionary<Type, List<XmlChoiceIdentifierAttribute>?> dXmlChoiceIdentifierAtts = new();
+		/// <summary>
+		/// Cache XmlAttributeAttribute objects
+		/// </summary>
+		private static readonly Dictionary<Type, List<XmlAttributeAttribute>?> dXmlAttAtts = new();
+		/// <summary>
+		/// Cache XmlAttributeAttribute objects
+		/// </summary>
+		private static readonly Dictionary<Type, List<AttributeInfo>?> dListAttInfo = new();
+
+
 
 		/// <summary>
 		/// TreeSort_ClearNodeIds is used when starting a node traversal by reflection using the reflection-based ITreeSibComparer.  
@@ -299,10 +322,10 @@ namespace SDC.Schema
 
 				while (s.Count > 0)
 				{
-					List<PropertyInfo>? props = new ();
+					IEnumerable<PropertyInfo>? props;
 					Type sPop = s.Pop();
 
-					if (! dPropInfo.TryGetValue(sPop, out props))
+					if (! dListPropInfo.TryGetValue(sPop, out props))
 					{
 						props = sPop.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
 						.Where(p => p.IsDefined(typeof(XmlElementAttribute))).ToList();
@@ -310,7 +333,7 @@ namespace SDC.Schema
 						//.First().Order)											  //properties in XML Element order, but this could change
 						;
 
-						dPropInfo.Add(sPop, props);
+						dListPropInfo.Add(sPop, props);
 					}
 
 					foreach (var p in props)
@@ -354,19 +377,19 @@ namespace SDC.Schema
 					//the enum value that contains the XML element name.
 					//The enum location is found in XmlChoiceIdentifierAttribute on the IEnumerable Property
 					//This should be handled in ReflectSdcElement
-					btProp.TopNode = current_ITopNode;
+					btProp.TopNode = current_ITopNode;  //not thread-safe, unless passed as parameter
 
 					if (btProp is _ITopNode itn) //we have a subsumed ITopNode node
 						current_ITopNode = Init_ITopNode(itn);
 
-					SdcUtil.AssignGuid_sGuid_BaseName(btProp);
+					SdcUtil.AssignGuid_sGuid_BaseName(btProp);  //check if thread-safe - may rely on parent IET
 
 					//Refill the node dictionaries with the current node
 					btProp.RegisterNodeAndParent(parentNode, childNodesSort: false); //we are adding nodes in reflection-sorted order
 																					 //Debug.Print(btProp.sGuid + "; Obj ID: " + btProp.ObjectID);
-
-					//Mark parentNode as having its child nodes already sorted
-					TreeSort_Add(parentNode);  //Change ObjectID to ObjectGUID?
+																					 //Adding is not thread-safe - need ConcurrentDictionary
+																					 //Mark parentNode as having its child nodes already sorted
+					TreeSort_Add(parentNode);  //Change ObjectID to ObjectGUID?  //Probably thread-safe, as it's a hashtable, but may need Concurrent Hashtable?
 					AssignSdcProperties(parentNode, piChildProperty);
 				}
 
@@ -1368,7 +1391,7 @@ namespace SDC.Schema
 		/// <param name="attributesToExclude">string array containing the names of SDC XML attributes to omit from the returned List</param>
 		/// <param name="attributesToInclude">string array containing the names of SDC XML attributes to include in the returned List</param>
 		/// <returns> <see cref="List{AttributeInfo}"/> containing the child nodes</returns>
-		public static List<AttributeInfo> ReflectChildXmlAttributes(BaseType n
+		public static List<AttributeInfo> X_ReflectChildXmlAttributes(BaseType n
 			, bool getAllXmlAttributes = true
 			, bool omitDefaultValues = true
 			, string[]? attributesToExclude = null
@@ -1514,7 +1537,7 @@ namespace SDC.Schema
 
 
 		private static AttributeMethods attMethods = new ();
-		public static List<AttributeInfo> ReflectChildXmlAttributesFast(BaseType n
+		public static List<AttributeInfo> ReflectChildXmlAttributes(BaseType n
 			, bool getAllXmlAttributes = true
 			, bool omitDefaultValues = true
 			, string[]? attributesToExclude = null
@@ -1546,6 +1569,7 @@ namespace SDC.Schema
 			{
 				t = s.Pop();
 
+				//Look in filled attributes in hard-coded SDC types
 				if (t == typeof(BaseType))
 					atts = attMethods.GetTypeFilledAttributes(t, n, excludedAtts);
 				else
@@ -1556,9 +1580,14 @@ namespace SDC.Schema
 					continue;
 				}
 
+				if( ! dListPropInfo.TryGetValue(t, out piIE))  //look in cache to bypass slow PropertyInfo lookup
+				{
+					piIE = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+							.Where(pi => pi.GetCustomAttributes<XmlAttributeAttribute>().Any());
+					dListPropInfo.Add(t, piIE); //cache for next time
+				}
+				if (piIE is null) continue;
 
-				piIE = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-						.Where(pi => pi.GetCustomAttributes<XmlAttributeAttribute>().Any());
 				foreach (var p in piIE)
 				{
 					nodeIndex++;

@@ -181,4 +181,16 @@ namespace SDC.Schema
 		public bool IsEmpty { get; }
 
 	}
+
+	public readonly record struct AttInfoDif(string sGuidSubnode, AttributeInfo aiV1, AttributeInfo aiV2);
+	public readonly record struct _DifNodeIET(
+			string sGuidIET,
+			bool isParChanged, //parent node has changed
+			bool isMoved, //prev sibling node has changed
+			bool isNew, //Node present in V2 only
+			bool isRemoved, //Node present in V1 only
+			bool isAttListChanged,
+			Dictionary<string, List<AttInfoDif>> dlaiDif //in case we need to look up attribute Diffs by subnode sGuid
+			);
+
 }

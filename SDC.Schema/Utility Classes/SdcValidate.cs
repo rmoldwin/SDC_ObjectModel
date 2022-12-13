@@ -56,6 +56,9 @@ namespace SDC.Schema
 				case PackageListType pl:
 					xml = pl.GetXml();
 					break;
+				case MappingType mp:
+					xml = mp.GetXml();
+					break;
 				default:
 					throw new InvalidOperationException("Unknown object type supplied for ITopNode itn");
 			}

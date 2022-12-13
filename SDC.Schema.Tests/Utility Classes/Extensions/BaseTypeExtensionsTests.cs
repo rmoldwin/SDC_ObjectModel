@@ -147,12 +147,12 @@ namespace SDC.Schema.Tests.Utils.Extensions
 				var eqAttCompare = new SdcSerializedAttComparer();
 
 				List<AttInfoDif> laiDif = new(); //For each IET node, there is one laiDif per subnode (including the IET node)
-				Dictionary<string, List<AttInfoDif>> dlaiDif = new();  //the key is the IET sGuid; **d**laiDif will be added later to difNodeIET, which will then be added to **d**DifNodeIET
+				Dictionary<string, List<AttInfoDif>> dlaiDif = new();  //the key is the IET sGuid; **d**laiDif will be added later to difNodeIET, which will then be added to **d**_DifNodeIET
 				dlaiDif.Add(sGuidIET, laiDif); //add the laiDif to its dictionary; later we will stuff this laiDiff List object with attribute change data for the IET node and all of its subNodes.
 
 				//we now have to populate laiDif with with AttInfoDif structs for each changed attribute
 				//We also have to set all the above bool settings for difNodeIET
-				//Then finally, we need to add one new **d**DifNodeIET struct entry (difNodeIET) for each V2 IET.
+				//Then finally, we need to add one new **d**_DifNodeIET struct entry (difNodeIET) for each V2 IET.
 				////We can also add difNodeIET structs for V1 IET nodes V1 that were not present in V2
 
 				//holds the List<AttributeInfo> where the attributes differ from V1 to V2; part of dDiffNodeIET; the key of the IET node sGuid.
@@ -266,10 +266,10 @@ namespace SDC.Schema.Tests.Utils.Extensions
 				DifNodeIET difNodeIET = new(sGuidIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged, dlaiDif);
 				dDifNodeIET.AddOrUpdate(sGuidIET, difNodeIET, (sGuidIET, difNodeIET) => difNodeIET);
 
-				//We could also use a ConcurrentBag<(string, DifNodeIET)>, and add nodes to a dictionary after this method completes 
+				//We could also use a ConcurrentBag<(string, _DifNodeIET)>, and add nodes to a dictionary after this method completes 
 				//We could also try a regular dictionary with a lock, but that might be slower if there are many Add contentions on the lock - needs testing 
 
-				//TODO: Should we add isRemoved DifNodeIET entries, for IETs in V1 but not in V2?  This is not strictly necessary 
+				//TODO: Should we add isRemoved _DifNodeIET entries, for IETs in V1 but not in V2?  This is not strictly necessary 
 
 				//return true;
 			}//END of each V2 IET node loop processing in lambda

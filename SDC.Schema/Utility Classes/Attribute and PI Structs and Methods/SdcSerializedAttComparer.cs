@@ -19,8 +19,8 @@ namespace SDC.Schema
 				if (v1.ai.Name == v2.ai.Name) return true;
 			return false;
 		}
-/// <inheritdoc/>
 
+		/// <inheritdoc/>
 		public override int GetHashCode([DisallowNull] SdcSerializedAtt ssa)
 		{
 			return (ssa.sGuid + ";" + ssa.ai.Name).GetHashCode();
