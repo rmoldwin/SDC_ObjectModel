@@ -1,61 +1,86 @@
-﻿using SDC.Schema;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Xml.Serialization;
-using SDC.Schema.Tests;
+﻿using CSharpVitamins;
 using SDC.Schema.Extensions;
-using CSharpVitamins;
+using System;
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel; //contains ReadOnly collections
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 
 namespace SDC.Schema.Tests.Utils
 {
 	public class CompareTrees<T> where T : ITopNode
 	{
-		object propertyName;
 		private T _prevVersion;
 		private T _newVersion;
 
-		//keys are IET sGuid, subNode sGuid; holds serializable attribute List for individual subNodes
-		private SortedList<string, Dictionary<string, List<AttributeInfo>>>? _slAttPrev;
-		private SortedList<string, Dictionary<string, List<AttributeInfo>>>? _slAttNew;
+		//Key for the SortedList is IET sGuid, Key for internal Dict is subNode sGuid; holds serializable attribute List for individual subNodes
+		private SortedList<string, Dictionary<string, List<AttributeInfo>>> _slAttPrev;
+		private SortedList<string, Dictionary<string, List<AttributeInfo>>> _slAttNew;
 
-		private IEnumerable<IdentifiedExtensionType>? _IETnodesRemovedInNew;
-		private IEnumerable<IdentifiedExtensionType>? _IETnodesAddedInNew;
-		private ConcurrentDictionary<string, _DifNodeIET> dDifNodeIET = new(); //the key is the IET node sGuid. Holds attribute changes in all IET and subNodes
-																			   //foreach(var kv2 in slAttNew)
-
+		private List<IdentifiedExtensionType> _IETnodesRemovedInNew;
+		private List<IdentifiedExtensionType> _IETnodesAddedInNew;
+		private readonly ConcurrentDictionary<string, DifNodeIET> dDifNodeIET = new(); //the key is the IET node sGuid. Holds attribute changes in all IET and subNodes
+																					   //foreach(var kv2 in slAttNew)
+		#region     ctor   
 		public CompareTrees(T prevVersion, T newVersion)
 		{
-			ConstructCompareTrees(prevVersion, newVersion);
-
+			CtorCompareTrees(prevVersion, newVersion);
 		}
 		public CompareTrees(string prevXml, string newXml)
 		{
 			try
 			{
 				_newVersion = ITopNodeDeserialize<T>.DeserializeFromXml(newXml);
-				_prevVersion = ITopNodeDeserialize<T>.DeserializeFromXml(prevXml);
 			}
 			catch (Exception ex)
 			{
-				ex.Data.Add("message", $"""
-				The XML parameter(s) passed as "{nameof(prevXml)}" and/or "{nameof(newXml)}" resulted in an error.  
-				Check the following possible sources of error:
-				1) Do they both hold legal SDC XML using an ITopNode element (e.g., <FormDesign>) as the root XML element?  Try validating the XMLs against the SDC Schema.
-				2) Do they both result in the same type of ITopNode (e.g., FormDesignType) specified as they Generic type of this class?
-				"""
+				//C# 11 syntax
+				//ex.Data.Add("message", $"""
+				//The XML parameter "{nameof(newXml)}" resulted in an error upon deserialization as type <T>.  
+				//Check the following possible sources of error:
+				//1) Does {nameof(newXml)} use an ITopNode element (e.g., <FormDesign>) as the root SDC XML element?  
+				//   Try validating {nameof(newXml)} against the SDC Schema.
+				//2) Does {nameof(newXml)} result in the correct <T> ITopNode type (e.g., <T> is <FormDesignType>)
+				//"""
+				//);
+				ex.Data.Add("message",
+					$"The XML parameter \"{nameof(newXml)}\" resulted in an error upon deserialization as type <T>.\r\n" +
+					$"\tCheck the following possible sources of error:\r\n" +
+					$"1) Does {nameof(newXml)} use an ITopNode element (e.g., <FormDesign>) as the root SDC XML element?\r\n" +
+					$"\tTry validating {nameof(newXml)} against the SDC Schema.\r\n" +
+					$"2) Does {nameof(newXml)} result in the correct <T> ITopNode type (e.g., <T> is <FormDesignType>)"
 				);
 				throw;
 			}
+			try
+			{
+				_prevVersion = ITopNodeDeserialize<T>.DeserializeFromXml(newXml);
+			}
+			catch (Exception ex)
+			{
+				//C# 11 syntax
+				//ex.Data.Add("message", $"""
+				//The XML parameter "{nameof(prevXml)}" resulted in an error upon deserialization as type <T>.  
+				//Check the following possible sources of error:
+				//1) Does {nameof(prevXml)} use an ITopNode element (e.g., <FormDesign>) as the root SDC XML element?  
+				//   Try validating {nameof(prevXml)} against the SDC Schema.
+				//2) Does {nameof(prevXml)} result in the correct <T> ITopNode type (e.g., <T> is <FormDesignType>)
+				//"""
+				//);
+				ex.Data.Add("message",
+					$"The XML parameter \"{nameof(prevXml)}\" resulted in an error upon deserialization as type <T>.\r\n" +
+					$"\tCheck the following possible sources of error:\r\n" +
+					$"1) Does {nameof(prevXml)} use an ITopNode element (e.g., <FormDesign>) as the root SDC XML element?\r\n" +
+					$"\tTry validating {nameof(prevXml)} against the SDC Schema.\r\n" +
+					$"2) Does {nameof(prevXml)} result in the correct <T> ITopNode type (e.g., <T> is <FormDesignType>)"
+);
+				throw;
+			}
 
-			ConstructCompareTrees(_prevVersion, _newVersion);
+			CtorCompareTrees(_prevVersion, _newVersion);
 		}
-		private void ConstructCompareTrees(T prevVersion, T newVersion)
+		private void CtorCompareTrees(T prevVersion, T newVersion)
 		{
 			_prevVersion = prevVersion;
 			_newVersion = newVersion;
@@ -66,17 +91,14 @@ namespace SDC.Schema.Tests.Utils
 			ComputeAddedRemovedNodes();
 		}
 
+		#endregion
 
-		private void ComputeAddedRemovedNodes()
-		{
-			_IETnodesRemovedInNew = _prevVersion.IETnodes.Except(_newVersion.IETnodes); //Prev nodes no longer found in New
-			_IETnodesAddedInNew = _newVersion.IETnodes.Except(_prevVersion.IETnodes); //New nodes that were not present in Prev
-		}
 		public CompareTrees<T> ChangePrevVersion(T prevVersion)
 		{
 			_prevVersion = prevVersion;
 			_slAttPrev = GetSerializedXmlAttributesFromTree(_prevVersion);
 			ComputeAddedRemovedNodes();
+			CompareVersions();
 			return this;
 		}
 		public CompareTrees<T> ChangeNewVersion(T newVersion)
@@ -84,52 +106,16 @@ namespace SDC.Schema.Tests.Utils
 			_newVersion = newVersion;
 			_slAttNew = GetSerializedXmlAttributesFromTree(_newVersion);
 			ComputeAddedRemovedNodes();
+			CompareVersions();
 			return this;
 		}
 
-		public SortedList<string, Dictionary<string, List<AttributeInfo>>> GetSerializedXmlAttributesFromTree(ITopNode topNode)
+		private void ComputeAddedRemovedNodes()
 		{
-			SortedList<string, Dictionary<string, List<AttributeInfo>>> dictAttr = new();
-			char gt = ">"[0];
-			//  ------------------------------------------------------------------------------------
-
-			foreach (IdentifiedExtensionType iet in topNode.IETnodes)
-			{
-				var en = iet.ElementName;
-				int enLen = 36 - en.Length;
-				int pad = (enLen > 0) ? enLen : 0;
-				//Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  IET Node: {en}   {"".PadRight(pad, gt)}");
-
-				Dictionary<string, List<AttributeInfo>> dlai = new();
-
-				//process iet's child nodes and their attributes
-				var sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1, 0, false);
-				if (sublist is not null)
-				{
-					foreach (var subNode in sublist)
-					{
-						var lai = SdcUtil.ReflectChildXmlAttributes(subNode);
-						//Log(subNode, lai);
-						dlai.Add(subNode.sGuid, lai);
-					}
-					dictAttr.Add(iet.sGuid, dlai);
-				}
-			}
-			return dictAttr;
-			//  ------------------------------------------------------------------------------------
-			void Log(BaseType subNode, List<AttributeInfo> lai)
-			{
-				var en = subNode.ElementName;
-				int enLen = 36 - en.Length;
-				int pad = (enLen > 0) ? enLen : 0;
-				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  SubNode: {en}    {"".PadRight(pad, gt)}");
-				Debug.Print("<==<==<== Attr ==>==>==>| Default Val |<==<==<==<==<== Val ==>==>==>==>==>");
-				foreach (AttributeInfo ai in lai)
-					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? "").PadRight(13)}| {ai.Value?.ToString()}");
-			}
+			_IETnodesRemovedInNew = _prevVersion.IETnodes.Except(_newVersion.IETnodes).ToList(); //Prev nodes no longer found in New
+			_IETnodesAddedInNew = _newVersion.IETnodes.Except(_prevVersion.IETnodes).ToList(); //New nodes that were not present in Prev
 		}
-		
-		public ConcurrentDictionary<string, _DifNodeIET>? CompareVersions()
+		private ConcurrentDictionary<string, DifNodeIET>? CompareVersions()
 		{
 			var eqAttCompare = new SdcSerializedAttComparer(); //should be thread-safe
 			var locker = new object();
@@ -149,7 +135,7 @@ namespace SDC.Schema.Tests.Utils
 
 
 				List<AttInfoDif> laiDif = new(); //For each IET node, there is one laiDif per subnode (including the IET node)
-				Dictionary<string, List<AttInfoDif>> dlaiDif = new();  //the key is the IET sGuid; dlaiDif will be added later to difNodeIET, which will then be added to **d**_DifNodeIET
+				Dictionary<string, List<AttInfoDif>> dlaiDif = new();  //the key is the IET sGuid; dlaiDif will be added later to difNodeIET, which will then be added to **d**DifNodeIET
 				dlaiDif.Add(sGuidIET, laiDif); //add the laiDif to its dictionary; later we will stuff this laiDiff List object with attribute change data for the IET node and all of its subNodes.
 
 				//we now have to populate laiDif with with AttInfoDif structs for each changed attribute
@@ -218,7 +204,7 @@ namespace SDC.Schema.Tests.Utils
 										aiHashPrevIET.Add(new(sGuidNew, aiPrev)); //document that the serializable attribute exists in Prev
 
 										if (aiPrev.ValueString != aiNew.ValueString) //See if the attribute values match;
-																				  //TODO: could perhaps make this more efficient by doing direct compare of value types, instead of using ToString()
+																					 //TODO: could perhaps make this more efficient by doing direct compare of value types, instead of using ToString()
 										{
 											laiDif.Add(new AttInfoDif(sGuidNew, aiPrev, aiNew));
 											isAttListChanged = true;
@@ -250,7 +236,7 @@ namespace SDC.Schema.Tests.Utils
 							//The missing attribute name/value can be found by querying on AttInfoDif.sGuidSubnode, and looking in AttInfoDif.aiPrev.Name and AttInfoDif.aiPrev.Value
 							foreach (var rem in attsRemovedInNew)
 							{
-								laiDif.Add(new AttInfoDif(rem.sGuid, aiV1: rem.ai, default));  //note that aiNew is **default**; this indicates that **all** Prev serialized attribute were removed in New
+								laiDif.Add(new AttInfoDif(rem.sGuid,  rem.ai, default));  //note that aiNew is **default**; this indicates that **all** Prev serialized attribute were removed in New
 								isAttListChanged = true;
 							}
 
@@ -273,22 +259,22 @@ namespace SDC.Schema.Tests.Utils
 				//finished looking for subNodes with attribute differences, as well as missing subnodes
 				//Construct difNodeIET and add to dDifNodeIET for each IET node 
 
-				_DifNodeIET difNodeIET = new(sGuidIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged, dlaiDif);
+				DifNodeIET difNodeIET = new(sGuidIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged, dlaiDif);
 				dDifNodeIET.AddOrUpdate(sGuidIET, difNodeIET, (sGuidIET, difNodeIET) => difNodeIET);
 
-				//We could also use a ConcurrentBag<(string, _DifNodeIET)>, and add nodes to a dictionary after this method completes 
+				//We could also use a ConcurrentBag<(string, DifNodeIET)>, and add nodes to a dictionary after this method completes 
 				//We could also try a regular dictionary with a lock, but that might be slower if there are many Add contentions on the lock - needs testing 
 
-				//TODO: Should we add isRemoved _DifNodeIET entries, for IETs in Prev but not in New?  This is not strictly necessary 
+				//TODO: Should we add isRemoved DifNodeIET entries, for IETs in Prev but not in New?  This is not strictly necessary 
 				//!We could fill a hash table with all Prev matching nodes in this loop; the New nodes (or sGuids) not in the Prev-match hashtable were removed in New
 
 				//return true;
 			}//END of each New IET node loop processing in lambda
 				);
-		//Add Prev nodes that are not in New
-		return dDifNodeIET;
+			//Add Prev nodes that are not in New
+			return dDifNodeIET;
 
-		void CompareNodes()
+			void CompareNodes()
 			{
 			}
 
@@ -300,13 +286,75 @@ namespace SDC.Schema.Tests.Utils
 				var en = subNode.ElementName;
 				int enLen = 36 - en.Length;
 				int pad = (enLen > 0) ? enLen : 0;
-				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  SubNode: {en}    {"".PadRight(pad, gt)}");
+				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  SubNode: {en}    {string.Empty.PadRight(pad, gt)}");
 				Debug.Print("<==<==<== Attr ==>==>==>| Default Val |<==<==<==<==<== Val ==>==>==>==>==>");
 				foreach (AttributeInfo ai in lai)
-					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? "").PadRight(13)}| {ai.Value?.ToString()}");
+					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? string.Empty).PadRight(13)}| {ai.Value?.ToString()}");
 			}
 		}
 
+		public SortedList<string, Dictionary<string, List<AttributeInfo>>> GetSerializedXmlAttributesFromTree(ITopNode topNode)
+		{
+			SortedList<string, Dictionary<string, List<AttributeInfo>>> dictAttr = new();
+			char gt = ">"[0];
+			//  ------------------------------------------------------------------------------------
 
+			foreach (IdentifiedExtensionType iet in topNode.IETnodes)
+			{
+				var en = iet.ElementName;
+				int enLen = 36 - en.Length;
+				int pad = (enLen > 0) ? enLen : 0;
+				//Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  IET Node: {en}   {"".PadRight(pad, gt)}");
+
+				Dictionary<string, List<AttributeInfo>> dlai = new();
+
+				//process iet's child nodes and their attributes
+				var sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1, 0, false);
+				if (sublist is not null)
+				{
+					foreach (var subNode in sublist)
+					{
+						var lai = SdcUtil.ReflectChildXmlAttributes(subNode);
+						//Log(subNode, lai);
+						dlai.Add(subNode.sGuid, lai);
+					}
+					dictAttr.Add(iet.sGuid, dlai);
+				}
+			}
+			return dictAttr;
+			//  ------------------------------------------------------------------------------------
+			void Log(BaseType subNode, List<AttributeInfo> lai)
+			{
+				var en = subNode.ElementName;
+				int enLen = 36 - en.Length;
+				int pad = (enLen > 0) ? enLen : 0;
+				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  SubNode: {en}    {string.Empty.PadRight(pad, gt)}");
+				Debug.Print("<==<==<== Attr ==>==>==>| Default Val |<==<==<==<==<== Val ==>==>==>==>==>");
+				foreach (AttributeInfo ai in lai)
+					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? string.Empty).PadRight(13)}| {ai.Value?.ToString()}");
+			}
+		}
+
+		public ReadOnlyCollection<IdentifiedExtensionType> GetIETnodesRemovedInNew
+		{ get => new (_IETnodesRemovedInNew); }
+		public ReadOnlyCollection<IdentifiedExtensionType> GetIETnodesAddedInNew
+		{ get => new (_IETnodesRemovedInNew); }
+		public DifNodeIET? GetIETattributes(IdentifiedExtensionType IETnode)
+		{ return dDifNodeIET[IETnode.sGuid]; }
+		public DifNodeIET? GetIETattributes(string sGuidIET)
+		{ return dDifNodeIET[sGuidIET]; }
+		public ReadOnlyDictionary<string, DifNodeIET>? GetIETattDiffs { get => new(dDifNodeIET); }//new(dDifNodeIET);} //C# 11 only: dDifNodeIET.AsReadOnly(); 
+		public bool IsNewNodeAdded(BaseType nodeNew, out BaseType? NodePrev)
+		=> _prevVersion.Nodes.TryGetValue(nodeNew.ObjectGUID, out NodePrev);
+		public bool IsPrevNodeRemoved(BaseType prevNode, out BaseType? newNode)
+		=> _newVersion.Nodes.TryGetValue(prevNode.ObjectGUID, out newNode);
+
+		void test()
+		{
+			var t = GetIETnodesRemovedInNew.Append(new SectionItemType(null));
+			//var d = GetIETattDiffs.Values.Append(new(GetIETattributes("A")));
+
+
+		}
 	}
 }

@@ -12,50 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="bin\Debug\net6.0\SDCBase.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="bin\Debug\net6.0\SDCDataTypes.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="bin\Debug\net6.0\SDCExpressions.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="bin\Debug\net6.0\SDCFormDesign.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="bin\Debug\net6.0\SDCMapping.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="bin\Debug\net6.0\SDCOverrides.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="bin\Debug\net6.0\SDCResources.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="bin\Debug\net6.0\SDCRetrieveForm.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="bin\Debug\net6.0\SDCRetrieveFormComplex.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="bin\Debug\net6.0\SDCSubmitForm.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="bin\Debug\net6.0\sdctemplate.css" />
-    <None Include="bin\Debug\net6.0\sdctemplate.xslt" />
-    <None Include="bin\Debug\net6.0\SDCTemplateAdmin.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="bin\Debug\net6.0\SDC_IDR.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="bin\Debug\net6.0\xhtml.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="bin\Debug\net6.0\xml.xsd">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="Core Tests.csproj" />
     <None Include="Core Tests.csproj.user" />
   </ItemGroup>

@@ -19,17 +19,17 @@ using System.Collections.Concurrent;
 using System.Data.SqlTypes;
 
 namespace SDC.Schema.Tests.Utils.Extensions
-{ 
-    
-    [TestClass()]
-    public class BaseTypeExtensionsTests
-    {
+{
 
-        [TestMethod()]
-        public void GetChildrenTest()
-        {
-            
-        }
+	[TestClass()]
+	public class BaseTypeExtensionsTests
+	{
+
+		[TestMethod()]
+		public void GetChildrenTest()
+		{
+
+		}
 		[TestMethod]
 		public void GetXmlAttributesAllOneNode()
 		{
@@ -37,7 +37,7 @@ namespace SDC.Schema.Tests.Utils.Extensions
 
 			var FD = Setup.FD;
 			var lst = FD.TopNode?.GetNodeByName("S_57219")?
-				.GetXmlAttributesAll();			
+				.GetXmlAttributesAll();
 			foreach (var n in lst) Debug.Print($"{n.Name}");
 
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
@@ -66,19 +66,19 @@ namespace SDC.Schema.Tests.Utils.Extensions
 			SortedList<string, Dictionary<string, List<AttributeInfo>>> dictAttr = new();
 			char gt = ">"[0];
 			//  ------------------------------------------------------------------------------------
-			
+
 			foreach (IdentifiedExtensionType iet in topNode.IETnodes)
 			{
 				var en = iet.ElementName;
 				int enLen = 36 - en.Length;
 				int pad = (enLen > 0) ? enLen : 0;
 				//Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  IET Node: {en}   {"".PadRight(pad, gt)}");
-				
+
 				//Dictionary<parent_sGuid, child_List<AttributeInfo>>
-				Dictionary<string, List<AttributeInfo>> dlai = new(); 
+				Dictionary<string, List<AttributeInfo>> dlai = new();
 
 				//process iet's child nodes and their attributes
-				var sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1,0, false);
+				var sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1, 0, false);
 				if (sublist is not null)
 				{
 					foreach (var subNode in sublist)
@@ -109,9 +109,9 @@ namespace SDC.Schema.Tests.Utils.Extensions
 
 		}
 
-        [TestMethod()]
-        public void CompareVersions()
-        {
+		[TestMethod()]
+		public void CompareVersions()
+		{
 			//Setup.Reset();
 			Setup.TimerStart($"==>{Setup.CallerName()} Compare Setup Started");
 
@@ -147,12 +147,12 @@ namespace SDC.Schema.Tests.Utils.Extensions
 				var eqAttCompare = new SdcSerializedAttComparer();
 
 				List<AttInfoDif> laiDif = new(); //For each IET node, there is one laiDif per subnode (including the IET node)
-				Dictionary<string, List<AttInfoDif>> dlaiDif = new();  //the key is the IET sGuid; **d**laiDif will be added later to difNodeIET, which will then be added to **d**_DifNodeIET
+				Dictionary<string, List<AttInfoDif>> dlaiDif = new();  //the key is the IET sGuid; **d**laiDif will be added later to difNodeIET, which will then be added to **d**DifNodeIET
 				dlaiDif.Add(sGuidIET, laiDif); //add the laiDif to its dictionary; later we will stuff this laiDiff List object with attribute change data for the IET node and all of its subNodes.
 
 				//we now have to populate laiDif with with AttInfoDif structs for each changed attribute
 				//We also have to set all the above bool settings for difNodeIET
-				//Then finally, we need to add one new **d**_DifNodeIET struct entry (difNodeIET) for each V2 IET.
+				//Then finally, we need to add one new **d**DifNodeIET struct entry (difNodeIET) for each V2 IET.
 				////We can also add difNodeIET structs for V1 IET nodes V1 that were not present in V2
 
 				//holds the List<AttributeInfo> where the attributes differ from V1 to V2; part of dDiffNodeIET; the key of the IET node sGuid.
@@ -174,8 +174,8 @@ namespace SDC.Schema.Tests.Utils.Extensions
 
 					//If V2 IET prev sib node is not the same as V1 prev sib, mark as POSITION CHANGED
 					//TODO: see if we can add prev sib to the ai struct, to perhaps avoid this lookup
-					lock(locker) if (ietV1.GetNodePreviousSib()?.sGuid != ietV2!.GetNodePreviousSib()?.sGuid)  //static extension method needs locking
-					{ isMovedIET = true; }
+					lock (locker) if (ietV1.GetNodePreviousSib()?.sGuid != ietV2!.GetNodePreviousSib()?.sGuid)  //static extension method needs locking
+						{ isMovedIET = true; }
 
 					//Look for match in slAttV1
 					if (slAttV1.TryGetValue(kv2.Key, out var dlaiV1))  //retrieve attribute dictionary for each V2 IET node
@@ -189,7 +189,7 @@ namespace SDC.Schema.Tests.Utils.Extensions
 
 						foreach (var sGuidV2 in dlaiV2.Keys) //loop through IET subNodes
 						{
-							
+
 							var aiHashV1IET = new HashSet<SdcSerializedAtt>(eqAttCompare);
 							var aiHashV2IET = new HashSet<SdcSerializedAtt>(eqAttCompare);
 							//HashSet<(string sGuidIET, string sGuid, AttributeInfo ai)> aiHashV1IET = new();
@@ -235,7 +235,7 @@ namespace SDC.Schema.Tests.Utils.Extensions
 							}
 
 							var attsRemovedInV2 = aiHashV1IET.Except(aiHashV2IET, eqAttCompare); //Add IEqualityComparer to only look at sGuid and Name; ai.Value is an object, which requires special handling (convert to string before comparing)
-							
+
 							//Document the V2 removed attributes in the laiDif List:
 							//The missing attribute name/value can be found by querying on AttInfoDif.sGuidSubnode, and looking in AttInfoDif.aiV1.Name and AttInfoDif.aiV1.Value
 							foreach (var rem in attsRemovedInV2)
@@ -266,26 +266,26 @@ namespace SDC.Schema.Tests.Utils.Extensions
 				DifNodeIET difNodeIET = new(sGuidIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged, dlaiDif);
 				dDifNodeIET.AddOrUpdate(sGuidIET, difNodeIET, (sGuidIET, difNodeIET) => difNodeIET);
 
-				//We could also use a ConcurrentBag<(string, _DifNodeIET)>, and add nodes to a dictionary after this method completes 
+				//We could also use a ConcurrentBag<(string, DifNodeIET)>, and add nodes to a dictionary after this method completes 
 				//We could also try a regular dictionary with a lock, but that might be slower if there are many Add contentions on the lock - needs testing 
 
-				//TODO: Should we add isRemoved _DifNodeIET entries, for IETs in V1 but not in V2?  This is not strictly necessary 
+				//TODO: Should we add isRemoved DifNodeIET entries, for IETs in V1 but not in V2?  This is not strictly necessary 
 
 				//return true;
 			}//END of each V2 IET node loop processing in lambda
 				);
 
-			void CompareNodes ()
+			void CompareNodes()
 			{
 
 
 
 			}
 
-			
 
-		//  ------------------------------------------------------------------------------------
-		void Log(BaseType subNode, List<AttributeInfo> lai)
+
+			//  ------------------------------------------------------------------------------------
+			void Log(BaseType subNode, List<AttributeInfo> lai)
 			{
 				//char gt = ">"[0];
 				const char gt = '>';
@@ -304,8 +304,8 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		}
 
 		[TestMethod()]
-        public void GetPropertyInfoListTest()
-        {
+		public void GetPropertyInfoListTest()
+		{
 
 		}
 		[TestMethod()]
@@ -315,43 +315,43 @@ namespace SDC.Schema.Tests.Utils.Extensions
 			foreach (var n in Setup.FD.IETnodes)
 			{
 				i++;
-				Console.WriteLine($"#: {i}, DotLevel: {n.DotLevelIET??"{error}"}, name: {n.name??"{none}"}, ID: {n.ID}, title: {((n as DisplayedType)?.title)??"{none}"}\r\n");
+				Console.WriteLine($"#: {i}, DotLevel: {n.DotLevelIET ?? "{error}"}, name: {n.name ?? "{none}"}, ID: {n.ID}, title: {((n as DisplayedType)?.title) ?? "{none}"}\r\n");
 				if (i == 100) break;
 			}
 		}
 
 		[TestMethod()]
-        public void GetPropertyInfoMetaDataTest()
-        {
+		public void GetPropertyInfoMetaDataTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void GetSubtreeTest()
-        {
+		[TestMethod()]
+		public void GetSubtreeTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void GetSibsTest()
-        {
+		[TestMethod()]
+		public void GetSibsTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void IsItemChangeAllowedTest()
-        {
+		[TestMethod()]
+		public void IsItemChangeAllowedTest()
+		{
 
-        }
+		}
 
 		public readonly record struct Attribute(BaseType node, string sGuid, string attName, string? attVal, bool isDefault = true);
 		public readonly record struct AttributeDiff(BaseType oldNode, BaseType newNode, string sGuidOld, string sGuidNew, string attName, string? attValOld, string? attValNew);
 		public readonly record struct SDCattributeName(string AttName, string? AttVal, bool IsSerialized, bool IsDefault);
-		
+
 		public readonly record struct NodeInfo(string DotNotation, ShortGuid ParentNodesGuid, ShortGuid IETparentNodesGuid, int SibIndex, List<AttributeInfo> cwtNewNodesAi);
 		public readonly record struct AttInfoDif(string sGuidSubnode, AttributeInfo aiV1, AttributeInfo aiV2);
 		public readonly record struct DifNodeIET(
-			string sGuidIET, 
+			string sGuidIET,
 			bool isParChanged, //parent node has changed
 			bool isMoved, //prev sibling node has changed
 			bool isNew, //Node present in V2 only
@@ -366,10 +366,27 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		=> dictNew.TryGetValue(nodeOld.ObjectGUID, out newNode);
 
 
-
-
-
 	}
+
+	public readonly record struct TestStruct (int i)
+	{ };
+	public record class TestClass(int i)
+	{ 
+
+	};
+	public readonly record struct  myEntity(int i, string s)
+	{
+		public readonly int I = i;
+		public void Test(int j)
+		{
+			//I=123;  //read only
+			var n = new myEntity(i,s);
+			n.Test(12);
+			//n.i = 123; //read only
+			//n.I = 123; //read only
+			//n.I = 111; //read only
+		}
+	};
 
 
 }

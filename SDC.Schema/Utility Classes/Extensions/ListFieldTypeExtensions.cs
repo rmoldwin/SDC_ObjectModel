@@ -13,7 +13,7 @@ namespace SDC.Schema.Extensions
 		/// <exception cref="InvalidOperationException"></exception>
 		public static LookupEndPointType AddEndpoint(this ListFieldType lf)
 		{
-			if (lf.List == null)
+			if (lf.List is null)
 			{
 				var lep = new LookupEndPointType(lf);
 				lf.LookupEndpoint = lep;

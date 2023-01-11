@@ -126,5 +126,12 @@ namespace SDC.Schema.Tests.Functional
 			Answer = 6,
 			AnswerFillin = 20
 		}
-	}
+        [TestMethod]
+        public void Test()
+        {
+			var s = new Setup();
+			var bstV1 = Setup.BreastStagingTestV1;
+			var bstV2 = Setup.BreastStagingTestV2;
+		}
+    }
 }

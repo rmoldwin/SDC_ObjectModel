@@ -18,7 +18,7 @@ namespace SDC.Schema.Tests.Functional
 	[TestClass]
 	public class NavigationTests
 	{
-		private TestContext testContextInstance;
+		private TestContext ctx;
 
 		public NavigationTests()
 		{
@@ -26,6 +26,8 @@ namespace SDC.Schema.Tests.Functional
 			//This can cause some Assert methods, whch depend on the order of ObjectIDs, to fail.
 			//So we Reset the source SDC xml before starting this test suite
 			Setup.Reset();
+			//ctx = new();
+
 		}
 		/// <summary>
 		///Gets or sets the test context which provides
@@ -35,11 +37,11 @@ namespace SDC.Schema.Tests.Functional
 		{
 			get
 			{
-				return testContextInstance;
+				return ctx;
 			}
 			set
 			{
-				testContextInstance = value;
+				ctx = value;
 			}
 		}
 

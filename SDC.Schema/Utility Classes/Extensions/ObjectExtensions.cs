@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Numerics;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+//using static System.Runtime.InteropServices.JavaScript.JSType;  //C# 11 only
 
 public static class ObjectExtensions
 {

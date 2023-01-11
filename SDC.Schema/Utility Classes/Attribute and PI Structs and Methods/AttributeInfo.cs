@@ -2,6 +2,7 @@
 using SDC.Schema;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
@@ -32,9 +33,10 @@ namespace SDC.Schema
 			PropertyInfo? attributePropInfo, 
 			int order,
 			string? name = null)
-		{			
-			if(sGuid == "AAAAAAAAAAAAAAAAAAAAAA" || attributePropInfo is null)
+		{
+			if (sGuid == "AAAAAAAAAAAAAAAAAAAAAA" || attributePropInfo is null)
 			{ this.IsEmpty = true; }
+			else IsEmpty = false;
 			var parentIETNode = parentNode?.ParentIETnode;
 			this.sGuid = sGuid;
 			this.ParentNodesGuid = parentNode?.sGuid;
@@ -50,6 +52,12 @@ namespace SDC.Schema
 				this.DefaultValueString = DefaultValue?.ToString();
 				this.AttributePropInfo = attributePropInfo;
 				this.Name = name??AttributePropInfo.Name;
+			}else
+			{
+				this.DefaultValue = null;
+				this.DefaultValueString = null;
+				this.AttributePropInfo = null;
+				this.Name = null;
 			}
 			this.Order = order;
 		}
@@ -140,6 +148,9 @@ namespace SDC.Schema
 			PropertyInfo attributePropInfo,
 			int order)
 		{
+			if (attributePropInfo is null)
+			{ this.IsEmpty = true; }
+			else this.IsEmpty = false;
 			this.AttributeValue = attributeValue;
 			this.DefaultValue = SdcUtil.GetAttributeDefaultValue(attributePropInfo);
 			this.AttributePropInfo = attributePropInfo;
@@ -175,15 +186,26 @@ namespace SDC.Schema
 		public int Order { get; }
 
 		/// <summary>
-		/// If true, then the source node's sGuid is populated, then the attribute is not serialized, and all other fields are uninitialized. <br/>
+		/// If true, then if the source node's sGuid is populated, then the attribute is not serialized, and all other fields are uninitialized. <br/>
 		/// if sGuid has a default value ("AAAAAAAAAAAAAAAAAAAAAA"), then the node is also null.  This is a default value for this struct. 
 		/// </summary>
 		public bool IsEmpty { get; }
 
 	}
 
-	public readonly record struct AttInfoDif(string sGuidSubnode, AttributeInfo aiV1, AttributeInfo aiV2);
-	public readonly record struct _DifNodeIET(
+	/// <summary>
+	/// public readonly record struct AttInfoDif(string sGuidSubnode, AttributeInfo aiPrev, AttributeInfo aiNew);
+	/// 
+	/// 
+	/// </summary>
+	/// <param name="sGuidIET"></param>
+	/// <param name="isParChanged"></param>
+	/// <param name="isMoved"></param>
+	/// <param name="isNew"></param>
+	/// <param name="isRemoved"></param>
+	/// <param name="isAttListChanged"></param>
+	/// <param name="dlaiDif"></param>
+	public readonly record struct DifNodeIET(
 			string sGuidIET,
 			bool isParChanged, //parent node has changed
 			bool isMoved, //prev sibling node has changed
@@ -192,5 +214,15 @@ namespace SDC.Schema
 			bool isAttListChanged,
 			Dictionary<string, List<AttInfoDif>> dlaiDif //in case we need to look up attribute Diffs by subnode sGuid
 			);
+	/// <summary>
+	/// Holds the non-default attribute values for 2 SDC nodes (aiPrev and aiNew) whose attribtues are being compared.<br/>
+	/// The nodes must be of the same SDC type, and represent the same node (i.e., share the same sGuid) <br/>
+	/// from two different versions of the same SDC tree.
+	/// </summary>
+	/// <param name="sGuidSubnode">The sGuid shared by both SDC nodes (the older [aiPrev] node, and the newer [aiNew] node)</param>
+	/// <param name="aiPrev">An <see cref="AttributeInfo"/> record containing attribute information for the older SDC tree's node.</param>
+	/// <param name="aiNew">An <see cref="AttributeInfo"/> record containing attribute information for the newer SDC tree's node.</param>
+	public readonly record struct AttInfoDif(string sGuidSubnode, AttributeInfo aiPrev, AttributeInfo aiNew);
+
 
 }

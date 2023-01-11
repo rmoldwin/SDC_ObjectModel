@@ -972,15 +972,15 @@ namespace SDC.Schema
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		public LookupEndPointType LookupEndpoint
+		public LookupEndPointType? LookupEndpoint
 		{
 			get
 			{
-				if (Item.GetType() == typeof(LookupEndPointType))
+				if (Item is not null && Item.GetType() == typeof(LookupEndPointType))
 					return (LookupEndPointType)this.Item;
-				else return null!;
+				else return null;
 			}
-			set { this.Item = value; }
+			set { this.Item = value; } //TODO: should be internal scope to prevent changing/removing/nulling the node
 		}
 
 	}

@@ -454,7 +454,7 @@ namespace SDC.Schema
 		/// Reflects the SDC tree and re-registers all nodes in the tree in the main SDC OM dictionaries: _ITopNode._Nodes, _ITopNode._ParentNodes, _ITopNode._ChildNodes.
 		/// </summary>
 		/// <param name="tn"></param>
-		/// <returns> Sorted List<BaseType> containing all nodes subsumed under <paramref name="tn"/></returns>
+		/// <returns> Sorted <b>List&lt;BaseType></b> containing all nodes subsumed under <paramref name="tn"/></returns>
 		public static List<BaseType> ReflectUpdateTreeDictionaries(ITopNode tn)
 		{
 			return ReflectRefreshSubtreeList((BaseType)tn.TopNode);

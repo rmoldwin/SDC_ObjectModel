@@ -145,7 +145,7 @@ public class SdcTests
 		var nodesRemovedInV2IET = fdV1.IETnodes.Except(fdV2.IETnodes); //V1 nodes no longer found in V2
 		var nodesAddedInV2IET = fdV2.IETnodes.Except(fdV1.IETnodes); //V2 nodes that were not present in V1
 
-		//ConcurrentBag<(string, _DifNodeIET)> cbDifNodeIET;
+		//ConcurrentBag<(string, DifNodeIET)> cbDifNodeIET;
 		ConcurrentDictionary<string, DifNodeIET> dDifNodeIET = new(); //the key is the IET node sGuid. Holds attribute changes in all IET and subNodes
 																	  //foreach(var kv2 in slAttV2)
 		Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Compare Setup Complete");
@@ -167,7 +167,7 @@ public class SdcTests
 			
 
 			List<AttInfoDif> laiDif = new(); //For each IET node, there is one laiDif per subnode (including the IET node)
-			Dictionary<string, List<AttInfoDif>> dlaiDif = new();  //the key is the IET sGuid; dlaiDif will be added later to difNodeIET, which will then be added to **d**_DifNodeIET
+			Dictionary<string, List<AttInfoDif>> dlaiDif = new();  //the key is the IET sGuid; dlaiDif will be added later to difNodeIET, which will then be added to **d**DifNodeIET
 			dlaiDif.Add(sGuidIET, laiDif); //add the laiDif to its dictionary; later we will stuff this laiDiff List object with attribute change data for the IET node and all of its subNodes.
 
 			//we now have to populate laiDif with with AttInfoDif structs for each changed attribute
@@ -314,10 +314,10 @@ public class SdcTests
 			DifNodeIET difNodeIET = new(sGuidIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged, dlaiDif);
 			dDifNodeIET.AddOrUpdate(sGuidIET, difNodeIET, (sGuidIET, difNodeIET) => difNodeIET);
 
-			//We could also use a ConcurrentBag<(string, _DifNodeIET)>, and add nodes to a dictionary after this method completes 
+			//We could also use a ConcurrentBag<(string, DifNodeIET)>, and add nodes to a dictionary after this method completes 
 			//We could also try a regular dictionary with a lock, but that might be slower if there are many Add contentions on the lock - needs testing 
 
-			//TODO: Should we add isRemoved _DifNodeIET entries, for IETs in V1 but not in V2?  This is not strictly necessary 
+			//TODO: Should we add isRemoved DifNodeIET entries, for IETs in V1 but not in V2?  This is not strictly necessary 
 			//!We could fill a hash table with all V1 matching nodes in this loop; the V2 nodes (or sGuids) not in the V1-match hashtable were removed in V2
 
 			//return true;
