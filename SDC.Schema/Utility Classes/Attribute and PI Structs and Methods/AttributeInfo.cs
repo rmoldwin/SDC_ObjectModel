@@ -57,7 +57,7 @@ namespace SDC.Schema
 				this.DefaultValue = null;
 				this.DefaultValueString = null;
 				this.AttributePropInfo = null;
-				this.Name = null;
+				this.Name = (name is not null) ? name: "null";
 			}
 			this.Order = order;
 		}

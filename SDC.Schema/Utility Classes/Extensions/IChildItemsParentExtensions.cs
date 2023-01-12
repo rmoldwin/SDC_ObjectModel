@@ -21,6 +21,17 @@ namespace SDC.Schema.Extensions
 
 			return sNew;
 		}
+		/// <summary>
+		/// Note: Any QuestionResponse (QF/QR) will be created with default values and a string data type.<br/>
+		/// Use AddChildQuestionResponse for more control over QR creation.
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="qType"></param>
+		/// <param name="id"></param>
+		/// <param name="title"></param>
+		/// <param name="insertPosition"></param>
+		/// <returns></returns>
+		/// <exception cref="NotSupportedException"></exception>
 		public static QuestionItemType AddChildQuestion(this IChildItemsParent parent, QuestionEnum qType, string id, string title = null, int insertPosition = -1) 
 			//where T : BaseType, IChildItemsParent<T>
 		{

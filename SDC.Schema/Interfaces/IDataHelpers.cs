@@ -10,13 +10,22 @@ using System.Threading.Tasks.Sources;
 using System.Xml;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
+using static System.Net.WebRequestMethods;
 
 namespace SDC.Schema
 {
     public interface IDataHelpers
     {
-        #region Data Helpers
-        static DataTypes_DEType AddDataTypesDE(
+		#region Data Helpers
+		/// <summary>
+		/// Adds the data types de.
+		/// </summary>
+		/// <param name="rfParent">The rf parent.</param>
+		/// <param name="dataTypeEnum">The data type enum.</param>
+		/// <param name="quantifierEnum">The quantifier enum.</param>
+		/// <param name="value">The value.</param>
+		/// <returns></returns>
+		static DataTypes_DEType AddDataTypesDE(
           ResponseFieldType rfParent,
           ItemChoiceType dataTypeEnum = ItemChoiceType.@string,
           dtQuantEnum quantifierEnum = dtQuantEnum.EQ,
@@ -610,15 +619,22 @@ namespace SDC.Schema
                 case ItemChoiceType.@string:
                     {
                         var dt = new @string_DEtype(rfParent.Response);
-                        if (value != null)
-                        {
-                            if (value is string)
+                            if (value is not null && (value.ToString() is string s))
                             {
-                                if (string.IsNullOrWhiteSpace((string)value))
-                                    dt.val = (string)value;
+							//Escape special characters (", <, &) in attributes: " &quot; < &lt; & &amp;
+							//https://stackoverflow.com/questions/1091945/what-characters-do-i-need-to-escape-in-xml-documents                                if (! string.IsNullOrWhiteSpace(s))
+							//This might get slow if we're assigning/replacing a lot of strings this way
+							//ToDo: Convert Replace methods to Span<string> ? or look for occurrance before replacing; this is not easy to do...
+							//https://stackoverflow.com/questions/67387766/fastest-way-to-replace-occurences-in-small-string-using-span-in-c-sharp
+
+							s = s.Replace("\"", "&quot;")
+                                .Replace("<", "&lt;")
+                                .Replace("&", "&amp;");
+
+							dt.val = (string)value;
                             }
                             else StoreError("Supplied value parameter was not a string datatype");
-                        }
+
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;

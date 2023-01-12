@@ -244,7 +244,7 @@ namespace SDC.Schema.Extensions
 				foreach (AttributeInfo ai in lai)
 				{
 					if (doLog) sb.Append($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? "").PadRight(13)}| {ai.Value?.ToString()}\r\n");
-					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? "").PadRight(13)}| {ai.Value?.ToString()}");
+					Debug.Print($"{ai.Name?.PadRight(24)??"No name"}|{(ai.DefaultValue?.ToString() ?? "").PadRight(13)}| {ai.Value?.ToString()}");
 				}
 			}
 		}
