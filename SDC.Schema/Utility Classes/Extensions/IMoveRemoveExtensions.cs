@@ -76,14 +76,16 @@ namespace SDC.Schema.Extensions
 
 
 			bool result = RemoveNodesRecursively(btSource); //remove node from TopNode dictionaries
-			if (result is true)
-				return result;
+			if (result is true)  //remove teh btSource nodde
+			{
+				result = RemoveNodeObject(btSource); //Remove from object tree
+				if (result) btSource.UnRegisterNodeAndParent(); //Remove from dictionaries
+				return result;			}
 			else
 				throw new InvalidOperationException($"Method {nameof(RemoveRecursive)} removed btSource from the object tree dictionaries.\r\n" +
 					$"However, an error occured while trying to remove the node object (and descendants, if applicable).\r\n" +
 					$"The object tree and its dictionares are now in an inconsistent state.\r\n" +
 					$"Try running {nameof(SdcUtil.ReflectRefreshTree)} to refresh the object tree and its dictionaries");
-
 
 			bool RemoveNodesRecursively(BaseType nodeToRemove)
 			{
@@ -94,18 +96,20 @@ namespace SDC.Schema.Extensions
 
 				if (topNode is null)
 					throw new NullReferenceException($"{nameof(topNode)} cannot be null.");
-
-				if (topNode._ChildNodes.TryGetValue(nodeToRemove.ObjectGUID, out List<BaseType>? kids))
+				bool remResult = false;
+				if (topNode._ChildNodes.TryGetValue(nodeToRemove.ObjectGUID, out List<BaseType>? kids) && kids is not null)
 				{
-					while(kids.Count > 0)
+					while (kids?.Count > 0)
 					{
-						RemoveNodesRecursively(kids.Last()); //recurse depth first 
-						kids.Last().RemoveNodeObject(); //Remove from object tree
-						kids.Last().UnRegisterNodeAndParent(); //Remove from dictionaries
+						var lastKid = kids.Last();
+						RemoveNodesRecursively(lastKid); //recurse depth first 
+						remResult = lastKid.RemoveNodeObject(); //Remove from object tree
+						if (remResult) lastKid.UnRegisterNodeAndParent(); //Remove from dictionaries
+						else { Debugger.Break(); break; } //exit early if failure to remove a node
 					}
-					return true;
+					return remResult;
 				}
-				return false;
+				return true;  //no kids were found or removed
 			}
 		}
 		/// <summary>
@@ -141,7 +145,7 @@ namespace SDC.Schema.Extensions
 					Debug.Print($"After Remove: nodeToRemove is null? {nodeToRemove is null}");
 					Console.WriteLine($"After Remove: nodeToRemove is null? {nodeToRemove is null}");
 					//nodeToRemove may still hold a reference to our prop object, until nodeToRemove goes out of scope.
-					if (nodeToRemove is not null) Debugger.Break();
+					//if (nodeToRemove is not null) Debugger.Break();
 					return true;
 				}
 				else
