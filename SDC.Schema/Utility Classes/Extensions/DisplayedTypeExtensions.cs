@@ -69,6 +69,7 @@ namespace SDC.Schema.Extensions
 			var ev = new EventType(dt);
 			ev.ElementName = "OnEnter";
 			ev.ElementPrefix = "onen";
+			dt.OnEnter ??= new ();
 			dt.OnEnter.Add(ev);
 			return ev;
 		}
@@ -77,6 +78,7 @@ namespace SDC.Schema.Extensions
 			var oe = new OnEventType(dt);
 			oe.ElementName = "OnEvent";
 			oe.ElementPrefix = "onev";
+			dt.OnEvent ??= new();
 			dt.OnEvent.Add(oe);
 			return oe;
 		}
@@ -85,6 +87,7 @@ namespace SDC.Schema.Extensions
 			var oe = new EventType(dt);
 			oe.ElementName = "OnExit";
 			oe.ElementPrefix = "onex";
+			dt.OnEnter ??= new();
 			dt.OnEnter.Add(oe);
 			return oe;
 		}

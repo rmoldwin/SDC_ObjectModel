@@ -52,11 +52,10 @@ namespace SDC.Schema
 				q.GetQuestionSubtype() == QuestionEnum.QuestionSingle ||
 				q.GetQuestionSubtype() == QuestionEnum.QuestionRaw)
 			{
-				if (q.ListField_Item is null) q.AddListFieldToQuestion();
-				ListType? list = q.ListField_Item?.List;
-				if (list is null) q.ListField_Item?.AddList();
+				var lf = q.AddListFieldToQuestion();
+				var list = lf.AddList();  //AddList checks for pre-existing List object
 
-				ListItemType li = new ListItemType(list!, id);
+				ListItemType li = new ListItemType(list, id);
 				li.title = defTitle;
 				int count = list?.QuestionListMembers.Count ?? 0;
 				if (insertPosition < 0 || insertPosition > count) insertPosition = count;

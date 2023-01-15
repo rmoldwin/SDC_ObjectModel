@@ -164,6 +164,13 @@ namespace SDC.Schema.Extensions
 			if (oc is null || !oc.Any()) return null;
 			return new ReadOnlyObservableCollection<IdentifiedExtensionType>(oc);
 		}
+		/// <summary>
+		/// Add a <see cref="ChildItemsType"/> node to the parent object.<br/>
+		/// If a <see cref="ChildItemsType"/> node already exists, the existing node is returned.
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentNullException"></exception>
 		public static ChildItemsType AddChildItemsNode(this IChildItemsParent parent) 
 		{
 			ChildItemsType childItems;  //this class contains an "Items" list
@@ -172,7 +179,7 @@ namespace SDC.Schema.Extensions
 			//return childItems; 
 			else if (parent.ChildItemsNode == null)
 			{
-				childItems = new ChildItemsType((BaseType)parent);
+				childItems = new ChildItemsType(parent);
 				parent.ChildItemsNode = childItems;  //This may be null for the Header, Body and Footer  - need to check this
 													   //SdcUtil.AssignXmlElementAndOrder(childItems);
 			}

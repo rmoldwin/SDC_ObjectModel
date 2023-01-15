@@ -1759,7 +1759,7 @@ namespace SDC.Schema
 	public partial class ChildItemsType
 	{
 		protected ChildItemsType() { Init(); }
-		public ChildItemsType(BaseType parentNode) : base(parentNode)
+		public ChildItemsType(IChildItemsParent parentNode) : base((BaseType)parentNode)
 		{
 			Init();
 
