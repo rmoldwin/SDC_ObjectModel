@@ -87,8 +87,8 @@ namespace SDC.Schema.Extensions
 			var oe = new EventType(dt);
 			oe.ElementName = "OnExit";
 			oe.ElementPrefix = "onex";
-			dt.OnEvent ??= new();
-			dt.OnEnter.Add(oe);
+			dt.OnExit ??= new();
+			dt.OnExit.Add(oe);
 			return oe;
 		}
 		public static bool MoveEvent_(this DisplayedType dt, EventType ev, List<EventType> targetList = null, int index = -1)
