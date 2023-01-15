@@ -259,6 +259,22 @@ namespace SDC.Schema
 			ElementPrefix = "DE";
 		}
 
+		[XmlIgnore]
+		[JsonIgnore]
+		public List<IdentifiedExtensionType> DataElement_Items
+		{
+			get
+			{
+				Items ??= new();
+				return Items;
+			}		
+			set
+			{
+					Items = value;
+			}
+
+		}
+
 		#region ITopNode
 
 		[XmlIgnore]
@@ -770,7 +786,7 @@ namespace SDC.Schema
 		: IChildItemsMember<ButtonItemType>
 	{
 		protected ButtonItemType() { Init(); }
-		public ButtonItemType(BaseType parentNode, string id = "") : base(parentNode)
+		public ButtonItemType(BaseType parentNode, string id = "") : base(parentNode, id)
 		{
 			Init();
 		}
@@ -1772,9 +1788,12 @@ namespace SDC.Schema
 
 		[XmlIgnore]
 		[JsonIgnore]
-		public List<IdentifiedExtensionType>? ChildItemsList
+		public List<IdentifiedExtensionType> ChildItemsList
 		{
-			get { return this.Items; }
+			get {
+				Items ??= new();
+				return this.Items; 
+			}
 			set { this.Items = value; }
 		}
 

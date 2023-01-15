@@ -19,12 +19,14 @@ namespace SDC.Schema.Extensions
 		public static EventType AddOnDeselect(this ListItemType li)
 		{
 			var ods = new EventType(li);
+			li.OnDeselect ??= new();
 			li.OnDeselect.Add(ods);
 			return ods;
 		}
 		public static EventType AddOnSelect(this ListItemType li)
 		{
 			var n = new EventType(li);
+			li.OnSelect ??= new();
 			li.OnSelect.Add(n);
 			return n;
 		}

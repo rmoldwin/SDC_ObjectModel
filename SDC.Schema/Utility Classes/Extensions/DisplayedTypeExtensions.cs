@@ -87,7 +87,7 @@ namespace SDC.Schema.Extensions
 			var oe = new EventType(dt);
 			oe.ElementName = "OnExit";
 			oe.ElementPrefix = "onex";
-			dt.OnEnter ??= new();
+			dt.OnEvent ??= new();
 			dt.OnEnter.Add(oe);
 			return oe;
 		}
