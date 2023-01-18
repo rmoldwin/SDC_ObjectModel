@@ -6,6 +6,7 @@ using System.Collections.ObjectModel; //contains ReadOnly collections
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.ComponentModel;
 
 namespace SDC.Schema.Tests.Utils
 {
@@ -20,8 +21,13 @@ namespace SDC.Schema.Tests.Utils
 
 		private List<IdentifiedExtensionType> _IETnodesRemovedInNew;
 		private List<IdentifiedExtensionType> _IETnodesAddedInNew;
-		private readonly ConcurrentDictionary<string, DifNodeIET> dDifNodeIET = new(); //the key is the IET node sGuid. Holds attribute changes in all IET and subNodes
-																					   //foreach(var kv2 in slAttNew)
+		private List<BaseType> _nodesRemovedInNew;
+		private List<BaseType> _nodesAddedInNew;
+
+		private readonly ConcurrentDictionary<string, DifNodeIET> _dDifNodeIET = new(); //the key is the IET node sGuid. Holds attribute changes in all IET and subNodes
+																						//foreach(var kv2 in slAttNew)
+		private SDCsGuidEqualityComparer<BaseType> _sGuidEqComparerBase = new();
+		private SDCsGuidEqualityComparer<IdentifiedExtensionType> _sGuidEqComparerIET = new();
 		#region     ctor   
 		public CompareTrees(T prevVersion, T newVersion)
 		{
@@ -93,7 +99,7 @@ namespace SDC.Schema.Tests.Utils
 
 		#endregion
 
-		public CompareTrees<T> ChangePrevVersion(T prevVersion)
+		private CompareTrees<T> ChangePrevVersion(T prevVersion)
 		{
 			_prevVersion = prevVersion;
 			_slAttPrev = GetSerializedXmlAttributesFromTree(_prevVersion);
@@ -101,7 +107,7 @@ namespace SDC.Schema.Tests.Utils
 			CompareVersions();
 			return this;
 		}
-		public CompareTrees<T> ChangeNewVersion(T newVersion)
+		private CompareTrees<T> ChangeNewVersion(T newVersion)
 		{
 			_newVersion = newVersion;
 			_slAttNew = GetSerializedXmlAttributesFromTree(_newVersion);
@@ -109,11 +115,30 @@ namespace SDC.Schema.Tests.Utils
 			CompareVersions();
 			return this;
 		}
+		
+		public T NewVersion
+		{
+			get => _newVersion;
+			set => ChangeNewVersion(value);
+		}
+		public T PrevVersion
+		{
+			get => _prevVersion;
+			set => ChangePrevVersion(value);
+		}
 
 		private void ComputeAddedRemovedNodes()
 		{
-			_IETnodesRemovedInNew = _prevVersion.IETnodes.Except(_newVersion.IETnodes).ToList(); //Prev nodes no longer found in New
-			_IETnodesAddedInNew = _newVersion.IETnodes.Except(_prevVersion.IETnodes).ToList(); //New nodes that were not present in Prev
+			_IETnodesRemovedInNew = _prevVersion.IETnodes.Except(_newVersion.IETnodes, _sGuidEqComparerIET).ToList(); //Prev nodes no longer found in New
+			_IETnodesAddedInNew = _newVersion.IETnodes.Except(_prevVersion.IETnodes, _sGuidEqComparerIET).ToList(); //New nodes that were not present in Prev
+
+			//Collection<BaseType> test = new();
+			BaseType[] test = { };
+			var prevNodes = _prevVersion.Nodes.Values;
+			var newNodes = _newVersion.Nodes.Values;
+			_nodesRemovedInNew = prevNodes.Except(newNodes, _sGuidEqComparerBase).ToList(); //Prev nodes no longer found in New
+			_nodesAddedInNew = newNodes.Except(prevNodes, _sGuidEqComparerBase).ToList(); //New nodes that were not present in Prev
+
 		}
 		private ConcurrentDictionary<string, DifNodeIET>? CompareVersions()
 		{
@@ -140,7 +165,7 @@ namespace SDC.Schema.Tests.Utils
 
 				//we now have to populate laiDif with with AttInfoDif structs for each changed attribute
 				//We also have to set all the above bool settings for difNodeIET
-				//Then finally, we need to add one new dDifNodeIET struct entry (difNodeIET) for each New IET.
+				//Then finally, we need to add one new _dDifNodeIET struct entry (difNodeIET) for each New IET.
 				////We can also add difNodeIET structs for Prev IET nodes Prev that were not present in New
 
 				//holds the List<AttributeInfo> where the attributes differ from Prev to New; part of dDiffNodeIET; the key of the IET node sGuid.
@@ -257,10 +282,10 @@ namespace SDC.Schema.Tests.Utils
 				PrevSubNodeIsNull: isNewIET = true;
 				}
 				//finished looking for subNodes with attribute differences, as well as missing subnodes
-				//Construct difNodeIET and add to dDifNodeIET for each IET node 
+				//Construct difNodeIET and add to _dDifNodeIET for each IET node 
 
 				DifNodeIET difNodeIET = new(sGuidIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged, dlaiDif);
-				dDifNodeIET.AddOrUpdate(sGuidIET, difNodeIET, (sGuidIET, difNodeIET) => difNodeIET);
+				_dDifNodeIET.AddOrUpdate(sGuidIET, difNodeIET, (sGuidIET, difNodeIET) => difNodeIET);
 
 				//We could also use a ConcurrentBag<(string, DifNodeIET)>, and add nodes to a dictionary after this method completes 
 				//We could also try a regular dictionary with a lock, but that might be slower if there are many Add contentions on the lock - needs testing 
@@ -272,7 +297,7 @@ namespace SDC.Schema.Tests.Utils
 			}//END of each New IET node loop processing in lambda
 				);
 			//Add Prev nodes that are not in New
-			return dDifNodeIET;
+			return _dDifNodeIET;
 
 			void CompareNodes()
 			{
@@ -338,12 +363,16 @@ namespace SDC.Schema.Tests.Utils
 		public ReadOnlyCollection<IdentifiedExtensionType> GetIETnodesRemovedInNew
 		{ get => new (_IETnodesRemovedInNew); }
 		public ReadOnlyCollection<IdentifiedExtensionType> GetIETnodesAddedInNew
-		{ get => new (_IETnodesRemovedInNew); }
+		{ get => new (_IETnodesAddedInNew); }
+		public ReadOnlyCollection<BaseType> GetNodesRemovedInNew
+		{ get => new(_nodesRemovedInNew); }
+		public ReadOnlyCollection<BaseType> GetNodesAddedInNew
+		{ get => new(_nodesAddedInNew); }
 		public DifNodeIET? GetIETattributes(IdentifiedExtensionType IETnode)
-		{ return dDifNodeIET[IETnode.sGuid]; }
-		public DifNodeIET? GetIETattributes(string sGuidIET)
-		{ return dDifNodeIET[sGuidIET]; }
-		public ReadOnlyDictionary<string, DifNodeIET>? GetIETattDiffs { get => new(dDifNodeIET); }//new(dDifNodeIET);} //C# 11 only: dDifNodeIET.AsReadOnly(); 
+		{ return _dDifNodeIET.TryGetValue(IETnode.sGuid, out DifNodeIET dni) ? dni : null; }
+		public DifNodeIET? GetIETattributes(ShortGuid sGuidIET)
+		{ return _dDifNodeIET.TryGetValue(sGuidIET, out DifNodeIET dni )?dni:null ; }
+		public ReadOnlyDictionary<string, DifNodeIET>? GetIETattDiffs { get => new(_dDifNodeIET); }
 		public bool IsNewNodeAdded(BaseType nodeNew, out BaseType? NodePrev)
 		=> _prevVersion.Nodes.TryGetValue(nodeNew.ObjectGUID, out NodePrev);
 		public bool IsPrevNodeRemoved(BaseType prevNode, out BaseType? newNode)

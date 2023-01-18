@@ -1,17 +1,11 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MsgPack.Serialization.CollectionSerializers;
-using SDC.Schema;
 using SDC.Schema.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Xml;
-using System.Xml.Linq;
 
 namespace SDC.Schema.Tests.Functional
 {
@@ -49,13 +43,13 @@ namespace SDC.Schema.Tests.Functional
 		public void ReflectRefreshTree_X1_NoPrint()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			
+
 			//Create new BaseType names
 			SdcUtil.CreateName? delCreateName = SdcUtil.CreateCAPname;
 			//delCreateName = null;
-			
+
 			var sdcList = SdcUtil.ReflectRefreshTree(Setup.FD, out string? s, true, true, delCreateName
-				,0,10);
+				, 0, 10);
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 			Debug.Print(s);
 			Debug.Print(Setup.FD.GetXml());
@@ -89,9 +83,9 @@ namespace SDC.Schema.Tests.Functional
 			{
 				if (n is DisplayedType) content = ": title: " + (n as DisplayedType).title;
 				else if (n is PropertyType) content = ": " + (n as PropertyType).propName + ": " + (n as PropertyType).val;
-				else content = "";
+				else content = string.Empty;
 
-				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? "").PadRight(20) + ": " + (n.ElementName ?? "").PadRight(25) + content);
+				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? string.Empty).PadRight(20) + ": " + (n.ElementName ?? string.Empty).PadRight(25) + content);
 				n = SdcUtil.ReflectNextElement(n);
 				i++;
 			}
@@ -110,9 +104,9 @@ namespace SDC.Schema.Tests.Functional
 			{
 				if (n is DisplayedType) content = ": title: " + (n as DisplayedType).title;
 				else if (n is PropertyType) content = ": " + (n as PropertyType).propName + ": " + (n as PropertyType).val;
-				else content = "";
+				else content = string.Empty;
 
-				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? "").PadRight(20) + ": " + (n.ElementName ?? "").PadRight(25) + content);
+				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? string.Empty).PadRight(20) + ": " + (n.ElementName ?? string.Empty).PadRight(25) + content);
 				n = SdcUtil.ReflectNextElement2(n);
 				i++;
 			}
@@ -155,9 +149,9 @@ namespace SDC.Schema.Tests.Functional
 					content = ": title: " + (n as DisplayedType)?.title;
 				else if (n is PropertyType)
 					content = ": " + (n as PropertyType)?.propName + ": " + (n as PropertyType)?.val;
-				else content = "";
+				else content = string.Empty;
 
-				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? "").PadRight(20) + ": " + (n.ElementName ?? "").PadRight(25) + content);
+				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? string.Empty).PadRight(20) + ": " + (n.ElementName ?? string.Empty).PadRight(25) + content);
 			}
 
 			Debug.Print("Output Time" + ((Stopwatch.GetTimestamp() - a) / Stopwatch.Frequency).ToString());
@@ -178,9 +172,9 @@ namespace SDC.Schema.Tests.Functional
 			{
 				if (n is DisplayedType) content = ": title: " + (n as DisplayedType).title;
 				else if (n is PropertyType) content = ": " + (n as PropertyType).propName + ": " + (n as PropertyType).val;
-				else content = "";
+				else content = string.Empty;
 
-				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? "").PadRight(20) + ": " + (n.ElementName ?? "").PadRight(25) + content);
+				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? string.Empty).PadRight(20) + ": " + (n.ElementName ?? string.Empty).PadRight(25) + content);
 
 				n = SdcUtil.GetNextElement(n);
 				i++;
@@ -215,9 +209,9 @@ namespace SDC.Schema.Tests.Functional
 
 				//if (n.TryGetChildNodes(out ReadOnlyCollection<BaseType> kids) )
 				//{
-					firstChild = n.GetChildNodes()?.First();
-					if (firstChild != null)
-						MoveNext(firstChild);
+				firstChild = n.GetChildNodes()?.First();
+				if (firstChild != null)
+					MoveNext(firstChild);
 				//}
 
 
@@ -247,9 +241,9 @@ namespace SDC.Schema.Tests.Functional
 			{
 				if (n is DisplayedType) content = ": title: " + (n as DisplayedType)?.title;
 				else if (n is PropertyType) content = ": " + (n as PropertyType)?.propName + ": " + (n as PropertyType)?.val;
-				else content = "";
+				else content = string.Empty;
 
-				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? "").PadRight(20) + ": " + (n.ElementName ?? "").PadRight(25) + content);
+				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? string.Empty).PadRight(20) + ": " + (n.ElementName ?? string.Empty).PadRight(25) + content);
 			}
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
@@ -307,7 +301,7 @@ namespace SDC.Schema.Tests.Functional
 				{
 					if (par.TryGetChildNodes(out childList))
 					{
-						var index = childList?.IndexOf(prevPar)??-1;
+						var index = childList?.IndexOf(prevPar) ?? -1;
 						if (index < childList?.Count - 1)
 						{
 							nextNode = childList?[index + 1];
@@ -329,9 +323,9 @@ namespace SDC.Schema.Tests.Functional
 				{
 					if (n is DisplayedType) content = ": title: " + (n as DisplayedType)?.title;
 					else if (n is PropertyType) content = ": " + (n as PropertyType)?.propName + ": " + (n as PropertyType)?.val;
-					else content = "";
+					else content = string.Empty;
 
-					Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? "").PadRight(20) + ": " + (n.ElementName ?? "").PadRight(25) + content);
+					Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? string.Empty).PadRight(20) + ": " + (n.ElementName ?? string.Empty).PadRight(25) + content);
 				}
 			}
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
@@ -369,7 +363,7 @@ namespace SDC.Schema.Tests.Functional
 				i++;
 
 
-				if (n.TryGetChildNodes( out var childList))
+				if (n.TryGetChildNodes(out var childList))
 				{
 					firstChild = childList?[0];
 					if (firstChild != null)
@@ -380,14 +374,14 @@ namespace SDC.Schema.Tests.Functional
 				var par = n.ParentNode;
 				if (par != null)
 				{
-					if (par.TryGetChildNodes( out var sibList))
+					if (par.TryGetChildNodes(out var sibList))
 					{
 						var index = sibList.IndexOf(n);
 						if (index < sibList.Count - 1)
 						{
 							nextSib = sibList[index + 1];
 							if (nextSib != null)
-								MoveNext(nextSib);	
+								MoveNext(nextSib);
 						}
 					}
 				}
@@ -409,9 +403,9 @@ namespace SDC.Schema.Tests.Functional
 			{
 				if (n is DisplayedType) content = ": title: " + (n as DisplayedType)?.title;
 				else if (n is PropertyType) content = ": " + (n! as PropertyType)?.propName + ": " + (n as PropertyType)?.val;
-				else content = "";
+				else content = string.Empty;
 
-				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? "").PadRight(20) + ": " + (n.ElementName ?? "").PadRight(25) + content);
+				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? string.Empty).PadRight(20) + ": " + (n.ElementName ?? string.Empty).PadRight(25) + content);
 
 				n = SdcUtil.GetPrevElement(n);
 				i--;
@@ -613,7 +607,7 @@ namespace SDC.Schema.Tests.Functional
 
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
-		
+
 		[TestMethod]
 		public void ReflectChildList()
 		{
@@ -634,7 +628,7 @@ namespace SDC.Schema.Tests.Functional
 				Debug.Print($"{n.order}: \t Name: {n.name}");
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
-		
+
 		[TestMethod]
 		public void Misc()
 		{

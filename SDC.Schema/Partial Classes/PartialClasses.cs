@@ -263,15 +263,8 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public List<IdentifiedExtensionType> DataElement_Items
 		{
-			get
-			{
-				Items ??= new();
-				return Items;
-			}		
-			set
-			{
-					Items = value;
-			}
+			get { return Items; }		
+			set { Items = value; }
 
 		}
 
@@ -877,7 +870,8 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public ChildItemsType? ChildItemsNode
 		{
-			get { return this.Item1; }
+			get 
+			{ return Item1;	}
 			set { this.Item1 = value; }
 		}
 		#endregion
@@ -1790,10 +1784,7 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public List<IdentifiedExtensionType> ChildItemsList
 		{
-			get {
-				Items ??= new();
-				return this.Items; 
-			}
+			get { return this.Items; }
 			set { this.Items = value; }
 		}
 
@@ -3924,7 +3915,8 @@ namespace SDC.Schema
 		[XmlIgnore]
 		public List<ExtensionBaseType> ActAction_Items
 		{
-			get { return Items; }
+			get 
+			{ return Items; }
 			set
 			{
 				if (Items == value)

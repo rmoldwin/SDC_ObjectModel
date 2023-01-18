@@ -1,60 +1,52 @@
-﻿using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.ObjectModel;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SDC.Schema;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Xml.Serialization;
 
 namespace SDC.Schema.Tests.OMTests
 {
-    [TestClass()]
-    public class _SectionItemTypeTests
-    {
-        [TestMethod()]
-        public void SectionItemTypeTest()
-        {
+	[TestClass()]
+	public class _SectionItemTypeTests
+	{
+		[TestMethod()]
+		public void SectionItemTypeTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void AddChildSectionTest()
-        {
+		[TestMethod()]
+		public void AddChildSectionTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void AddChildQuestionTest()
-        {
+		[TestMethod()]
+		public void AddChildQuestionTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void AddChildInjectedFormTest()
-        {
+		[TestMethod()]
+		public void AddChildInjectedFormTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void AddChildButtonActionTest()
-        {
+		[TestMethod()]
+		public void AddChildButtonActionTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void AddChildDisplayedItemTest()
-        {
+		[TestMethod()]
+		public void AddChildDisplayedItemTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void HasChildItemsTest()
-        {
+		[TestMethod()]
+		public void HasChildItemsTest()
+		{
 
-        }
-    }
+		}
+	}
 }

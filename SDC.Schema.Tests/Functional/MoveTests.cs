@@ -1,152 +1,147 @@
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.ObjectModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
-using SDC.Schema;
 using SDC.Schema.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Xml;
 using System.Xml.Serialization;
 
 //using SDC.Schema;
 
 namespace SDC.Schema.Tests.Functional
 {
-    [TestClass]
-    public class MoveTests
-    {
-        private TestContext testContextInstance;
+	[TestClass]
+	public class MoveTests
+	{
+		private TestContext testContextInstance;
 
-        /// <summary>
-        ///Gets or sets the test context which provides
-        ///information about and functionality for the current test run.
-        ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
-        [TestMethod]
-        public void MoveListItemInList()
-        {
-            Setup.TimerStart($"==>{Setup.CallerName()} Started");
-                //FD.TopNode.ReorderNodes();
-                var li = Setup.FD.Nodes.Where(n =>
-                    n.Value is ListItemType liTest &&
-                    liTest.ID == "38493.100004300").FirstOrDefault().Value
-                    as ListItemType;
-                Assert.IsTrue(li is ListItemType);
+		/// <summary>
+		///Gets or sets the test context which provides
+		///information about and functionality for the current test run.
+		///</summary>
+		public TestContext TestContext
+		{
+			get
+			{
+				return testContextInstance;
+			}
+			set
+			{
+				testContextInstance = value;
+			}
+		}
+		[TestMethod]
+		public void MoveListItemInList()
+		{
+			Setup.TimerStart($"==>{Setup.CallerName()} Started");
+			//FD.TopNode.ReorderNodes();
+			var li = Setup.FD.Nodes.Where(n =>
+				n.Value is ListItemType liTest &&
+				liTest.ID == "38493.100004300").FirstOrDefault().Value
+				as ListItemType;
+			Assert.IsTrue(li is ListItemType);
 
-                List<BaseType> lst1;
-                List<BaseType> lst2;
-                List<BaseType> lst3;
+			List<BaseType> lst1;
+			List<BaseType> lst2;
+			List<BaseType> lst3;
 
-                lst1 = SdcUtil.ReflectChildElements(Setup.FD.GetListItemByID("51689.100004300"));
-                lst2 = SdcUtil.ReflectChildElements(Setup.FD.GetListItemByID("38493.100004300"));
-                lst3 = SdcUtil.ReflectChildElements(Setup.FD.GetNodeByName("lst_44135_3"));
+			lst1 = SdcUtil.ReflectChildElements(Setup.FD.GetListItemByID("51689.100004300"));
+			lst2 = SdcUtil.ReflectChildElements(Setup.FD.GetListItemByID("38493.100004300"));
+			lst3 = SdcUtil.ReflectChildElements(Setup.FD.GetNodeByName("lst_44135_3"));
 
-                lst3 = SdcUtil.ReflectRefreshSubtreeList(Setup.FD.GetSectionByID("43969.100004300"));
-                //foreach (var n in lst3) Debug.Print(n.name);
-                var tc = new TreeComparer();
-                lst3.Sort(tc);
-                foreach (var n in lst3) Debug.Print(n.name + ": " + n.ElementName + ", " + n.ObjectID);
+			lst3 = SdcUtil.ReflectRefreshSubtreeList(Setup.FD.GetSectionByID("43969.100004300"));
+			//foreach (var n in lst3) Debug.Print(n.name);
+			var tc = new TreeComparer();
+			lst3.Sort(tc);
+			foreach (var n in lst3) Debug.Print(n.name + ": " + n.ElementName + ", " + n.ObjectID);
 
-                var lst4 = Setup.FD.Nodes.Values.ToList();
-                var res = lst4[0].GetType().GetProperties()
-                    .Where(p => p.GetCustomAttributes<XmlElementAttribute>().Count() > 0 && p.GetValue(lst4[0]) != null)
-                    .Select(p => p.GetValue(lst4[0])).ToList();
+			var lst4 = Setup.FD.Nodes.Values.ToList();
+			var res = lst4[0].GetType().GetProperties()
+				.Where(p => p.GetCustomAttributes<XmlElementAttribute>().Count() > 0 && p.GetValue(lst4[0]) != null)
+				.Select(p => p.GetValue(lst4[0])).ToList();
 
-                var propList = new List<BaseType>();
+			var propList = new List<BaseType>();
 
-                while (false)
-                {
-                    foreach (object o in res)
-                    {
-                        var bt = o as BaseType;
-                        if (bt != null)
-                        {
-                            Debug.Print(bt.name);
-                            propList.Add(bt);
-                        }
-                        else
-                        if (o is IList il) foreach (var n in il.OfType<BaseType>())
-                            {
-                                Debug.Print(n.name);
-                                propList.Add(n);
-                            }
-                    }
-                }
+			while (false)
+			{
+				foreach (object o in res)
+				{
+					var bt = o as BaseType;
+					if (bt != null)
+					{
+						Debug.Print(bt.name);
+						propList.Add(bt);
+					}
+					else
+					if (o is IList il) foreach (var n in il.OfType<BaseType>())
+						{
+							Debug.Print(n.name);
+							propList.Add(n);
+						}
+				}
+			}
 
-                propList.Sort(new TreeComparer());
-                int i = 0;
-                foreach (var n in propList) Debug.Print((i++).ToString() + ": " + n.name);
+			propList.Sort(new TreeComparer());
+			int i = 0;
+			foreach (var n in propList) Debug.Print((i++).ToString() + ": " + n.name);
 
-                SdcUtil.ReflectRefreshSubtreeList(lst4[0], true, true);
-                foreach (var n in lst4) Debug.Print(n.name + ": " + n.ElementName + ", " + n.ObjectID.ToString() + ", order:" + n.order.ToString() );
-
-
-                lst4.Sort(tc);
-                var list = (ListType)li.ParentNode;
-            
+			SdcUtil.ReflectRefreshSubtreeList(lst4[0], true, true);
+			foreach (var n in lst4) Debug.Print(n.name + ": " + n.ElementName + ", " + n.ObjectID.ToString() + ", order:" + n.order.ToString());
 
 
-                li.Move(list, 6);                
-                Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == 6);
+			lst4.Sort(tc);
+			var list = (ListType)li.ParentNode;
 
-                li.Move(list, 99);
-                Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == list.Items.Count()-1);
 
-                li.Move(list, 0);
-                Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == 0);
 
-                li.Move(list);
-                Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == list.Items.Count() - 1);
-            Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-            Setup.Reset(); //reset after moving nodes.
-        }
-        [TestMethod]
-        public void MoveListItemToOtherList()
-        {
-            Setup.TimerStart($"==>{Setup.CallerName()} Started");
-                var li = Setup.FD.Nodes.Where(n =>
-                    n.Value is ListItemType liTest &&
-                    liTest.ID == "38493.100004300").FirstOrDefault().Value
-                    as ListItemType;
-                Assert.IsTrue(li is ListItemType);
-                var list = (ListType)li.ParentNode;
+			li.Move(list, 6);
+			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == 6);
 
-                var list2 = Setup.FD.Nodes.Where(n =>
-                    n.Value is ListType liTest &&
-                    liTest.name == "lst_58267_3").FirstOrDefault().Value
-                    as ListType;
-                Assert.IsTrue(list2 is ListType);
+			li.Move(list, 99);
+			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == list.Items.Count() - 1);
 
-                //Move to different List (list2)
-                li.Move(list2, 2);
-                Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == 2);
-                Assert.AreEqual(list2, li.ParentNode);
-            Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
+			li.Move(list, 0);
+			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == 0);
+
+			li.Move(list);
+			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == list.Items.Count() - 1);
+			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 			Setup.Reset(); //reset after moving nodes.
 		}
-        [TestMethod]
-        public void MoveListDInList()
-        {
-            Setup.TimerStart("==>[] Started");
+		[TestMethod]
+		public void MoveListItemToOtherList()
+		{
+			Setup.TimerStart($"==>{Setup.CallerName()} Started");
+			var li = Setup.FD.Nodes.Where(n =>
+				n.Value is ListItemType liTest &&
+				liTest.ID == "38493.100004300").FirstOrDefault().Value
+				as ListItemType;
+			Assert.IsTrue(li is ListItemType);
+			var list = (ListType)li.ParentNode;
 
-            Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
-        }
+			var list2 = Setup.FD.Nodes.Where(n =>
+				n.Value is ListType liTest &&
+				liTest.name == "lst_58267_3").FirstOrDefault().Value
+				as ListType;
+			Assert.IsTrue(list2 is ListType);
+
+			//Move to different List (list2)
+			li.Move(list2, 2);
+			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == 2);
+			Assert.AreEqual(list2, li.ParentNode);
+			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
+			Setup.Reset(); //reset after moving nodes.
+		}
+		[TestMethod]
+		public void MoveListDInList()
+		{
+			Setup.TimerStart("==>[] Started");
+
+			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		}
 
 		[TestMethod]
 		public void ClearChildItemsAfterDropOver()
@@ -159,14 +154,14 @@ namespace SDC.Schema.Tests.Functional
 			FormDesignType FD = TopNodeSerializer<FormDesignType>.DeserializeFromXmlPath(path);
 			var myXML = TopNodeSerializer<FormDesignType>.GetXml(FD);
 
-            var S_16182 = FD.GetSectionByName("S_16182");
-            var Q_58807 = FD.GetQuestionByName("Q_58807");
-            var LI_40307 = FD.GetListItemByName("LI_40307");
-            var LI_39079 = FD.GetListItemByName("LI_39079");
-            var LIR_16195 = FD.GetListItemByName("LI_16195");
-            var LI_16196 = FD.GetListItemByName("LI_16196");
-            var Q_16214 = FD.GetQuestionByName("Q_16214");
-            var Q_16250 = FD.GetQuestionByName("Q_16250");
+			var S_16182 = FD.GetSectionByName("S_16182");
+			var Q_58807 = FD.GetQuestionByName("Q_58807");
+			var LI_40307 = FD.GetListItemByName("LI_40307");
+			var LI_39079 = FD.GetListItemByName("LI_39079");
+			var LIR_16195 = FD.GetListItemByName("LI_16195");
+			var LI_16196 = FD.GetListItemByName("LI_16196");
+			var Q_16214 = FD.GetQuestionByName("Q_16214");
+			var Q_16250 = FD.GetQuestionByName("Q_16250");
 
 			Assert.IsTrue(LI_40307.ChildItemsNode is null);
 
@@ -185,13 +180,13 @@ namespace SDC.Schema.Tests.Functional
 			Move(Q_16214, LIR_16195, DropPosition.Over);
 			Assert.IsTrue(LIR_16195.GetChildNodes().Count == 3);//Has Property, and a ChildItems node
 			Assert.IsTrue(LI_40307.ChildItemsNode is null);
-            Assert.IsTrue(LI_39079.ChildItemsNode is null);
+			Assert.IsTrue(LI_39079.ChildItemsNode is null);
 
 			//Move qLat under liExci - should cause error
 			Move(Q_16214, LI_40307, DropPosition.Over);
 			Assert.IsTrue(LI_40307.GetChildNodes().Count == 1);
-			Assert.IsTrue(LIR_16195.ChildItemsNode is null); 
-            Assert.IsTrue(LI_39079.ChildItemsNode is null);
+			Assert.IsTrue(LIR_16195.ChildItemsNode is null);
+			Assert.IsTrue(LI_39079.ChildItemsNode is null);
 
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
@@ -209,36 +204,36 @@ namespace SDC.Schema.Tests.Functional
 			var myXML = TopNodeSerializer<FormDesignType>.GetXml(FD);
 
 			SectionItemType? S_16182 = FD.GetSectionByName("S_16182"); //SPECIMEN
-				var Q_58807 = FD.GetQuestionByName("Q_58807"); //Procedure (Note A)
-					var LI_40307 = FD.GetListItemByName("LI_40307");
-					var LI_39079 = FD.GetListItemByName("LI_39079");
-					var LIR_16195 = FD.GetListItemByName("LI_16195");
-					var LI_16196 = FD.GetListItemByName("LI_16196");
-				var Q_16214 = FD.GetQuestionByName("Q_16214"); //QS: Specimen Laterality
-					var LI_16215 = FD.GetListItemByName(name: "LI_16215");
-					var LI_16216 = FD.GetListItemByName("LI_16216");
-					var LI_16218 = FD.GetListItemByName("LI_16218");
+			var Q_58807 = FD.GetQuestionByName("Q_58807"); //Procedure (Note A)
+			var LI_40307 = FD.GetListItemByName("LI_40307");
+			var LI_39079 = FD.GetListItemByName("LI_39079");
+			var LIR_16195 = FD.GetListItemByName("LI_16195");
+			var LI_16196 = FD.GetListItemByName("LI_16196");
+			var Q_16214 = FD.GetQuestionByName("Q_16214"); //QS: Specimen Laterality
+			var LI_16215 = FD.GetListItemByName(name: "LI_16215");
+			var LI_16216 = FD.GetListItemByName("LI_16216");
+			var LI_16218 = FD.GetListItemByName("LI_16218");
 			var S_16249 = FD.GetSectionByName("S_16249"); //S:TUMOR
-				var Q_16250 = FD.GetQuestionByName("Q_16250"); //QS: Tumor Site (Note B)
-				var p_rptTxt_16250_1 = FD.GetPropertyByName("p_rptTxt_16250_1"); //Report Text
-					var LI_16251 = FD.GetListItemByName("LI_16251");
-					var LI_16252 = FD.GetListItemByName(name: "LI_16252");
-					var LI_16253 = FD.GetListItemByName("LI_16253");
-					var LI_16254 = FD.GetListItemByName(name: "LI_16254");
-					var LI_16255 = FD.GetListItemByName("LI_16255");
-					var LI_16256 = FD.GetListItemByName("LI_16256");
+			var Q_16250 = FD.GetQuestionByName("Q_16250"); //QS: Tumor Site (Note B)
+			var p_rptTxt_16250_1 = FD.GetPropertyByName("p_rptTxt_16250_1"); //Report Text
+			var LI_16251 = FD.GetListItemByName("LI_16251");
+			var LI_16252 = FD.GetListItemByName(name: "LI_16252");
+			var LI_16253 = FD.GetListItemByName("LI_16253");
+			var LI_16254 = FD.GetListItemByName(name: "LI_16254");
+			var LI_16255 = FD.GetListItemByName("LI_16255");
+			var LI_16256 = FD.GetListItemByName("LI_16256");
 
-						var Q_52840 = FD.GetQuestionByName("Q_52840"); //QR: Specify Distance from Nipple in Centimeters (cm)
-						var p_rptTxt_52840_1 = FD.GetPropertyByName("p_rptTxt_52840_1"); //p: Distance from Nipple (Centimeters)
-						var rf_52840_2 = FD.GetNodeByName("rf_52840_2");
-						var rsp_52840_3 = FD.GetNodeByName(name: "rsp_52840_3");
-						var dec_52840_4 = FD.GetNodeByName(name: "dec_52840_4");
+			var Q_52840 = FD.GetQuestionByName("Q_52840"); //QR: Specify Distance from Nipple in Centimeters (cm)
+			var p_rptTxt_52840_1 = FD.GetPropertyByName("p_rptTxt_52840_1"); //p: Distance from Nipple (Centimeters)
+			var rf_52840_2 = FD.GetNodeByName("rf_52840_2");
+			var rsp_52840_3 = FD.GetNodeByName(name: "rsp_52840_3");
+			var dec_52840_4 = FD.GetNodeByName(name: "dec_52840_4");
 
-					var LI_16257 = FD.GetListItemByName("LI_16257");//LIR: Other (specify)			
-					var p_rptTxt_16257_1 = FD.GetPropertyByName("p_rptTxt_16257_1"); //Distance from Nipple (Centimeters)
-					var lirf_16257_2 = FD.GetNodeByName("lirf_16257_2");
-					var rsp_16257_3 = FD.GetNodeByName(name: "rsp_16257_3");
-					var str_16257_4 = FD.GetNodeByName(name: "str_16257_4");
+			var LI_16257 = FD.GetListItemByName("LI_16257");//LIR: Other (specify)			
+			var p_rptTxt_16257_1 = FD.GetPropertyByName("p_rptTxt_16257_1"); //Distance from Nipple (Centimeters)
+			var lirf_16257_2 = FD.GetNodeByName("lirf_16257_2");
+			var rsp_16257_3 = FD.GetNodeByName(name: "rsp_16257_3");
+			var str_16257_4 = FD.GetNodeByName(name: "str_16257_4");
 
 
 
@@ -258,11 +253,11 @@ namespace SDC.Schema.Tests.Functional
 			Assert.IsTrue(Q_58807?.GetListItems()?.Count == 7);
 			Assert.IsTrue(Q_16214?.GetListItems() is null);
 
-			Move(LI_16218, Q_16214,  DropPosition.Over); //Move LI_16218 back home to Q_16214
+			Move(LI_16218, Q_16214, DropPosition.Over); //Move LI_16218 back home to Q_16214
 			Assert.IsTrue(Q_16214?.GetListItems()?.Count == 1);
 
 
-			
+
 
 			Assert.IsTrue(S_16182?.ChildItemsNode.ChildItemsList.Count == 2);
 			Move(S_16249, S_16182, DropPosition.Over);  //Drop Tumor onto Specimen node to make Tumor a child section
@@ -278,39 +273,39 @@ namespace SDC.Schema.Tests.Functional
 			Setup.Reset(); //reset after moving nodes.
 		}
 		[TestMethod]
-        public void MoveListDItoOtherList()
-        {
-            Setup.TimerStart("==>[] Started");
+		public void MoveListDItoOtherList()
+		{
+			Setup.TimerStart("==>[] Started");
 
-            Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
-        }
-        [TestMethod]
-        public void MoveListDIQuestionChild()
-        {
-            Setup.TimerStart("==>[] Started");
+			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		}
+		[TestMethod]
+		public void MoveListDIQuestionChild()
+		{
+			Setup.TimerStart("==>[] Started");
 
-            Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
-        }
-        [TestMethod]
-        public void MoveQuestionInChildItems()
-        {
-            Setup.TimerStart("==>[] Started");
+			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		}
+		[TestMethod]
+		public void MoveQuestionInChildItems()
+		{
+			Setup.TimerStart("==>[] Started");
 
-            Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
-        }
-        [TestMethod]
-        public void MoveQuestionToNewChildItems()
-        {
-            Setup.TimerStart("==>[] Started");
+			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		}
+		[TestMethod]
+		public void MoveQuestionToNewChildItems()
+		{
+			Setup.TimerStart("==>[] Started");
 
-            Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
-        }
-        public void MoveSectionToNewChildItems()
-        {
-            Setup.TimerStart("==>[] Started");
+			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		}
+		public void MoveSectionToNewChildItems()
+		{
+			Setup.TimerStart("==>[] Started");
 
-            Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
-        }
+			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		}
 
 		public bool Move(BaseType sourceNode, BaseType targetNode, DropPosition position)
 		{
@@ -356,7 +351,7 @@ namespace SDC.Schema.Tests.Functional
 
 				ChildItemsType? sourceChildItemsNode = null;
 				ListType? sourceListNode = null;
-				if(sourceNode.ParentNode is ChildItemsType cit)
+				if (sourceNode.ParentNode is ChildItemsType cit)
 					sourceChildItemsNode = cit;
 				if (sourceNode.ParentNode is ListType lt)
 					sourceListNode = lt;
@@ -477,17 +472,17 @@ namespace SDC.Schema.Tests.Functional
 				Console.WriteLine($"targetAsCIP: {targetAsCIP?.As<DisplayedType>()?.title ?? "null"}");
 				Console.WriteLine($"targetNode: {targetNode?.As<DisplayedType>()?.title ?? "null"}");
 				Console.WriteLine($"qsqmTarget: {(qsqmTarget?.As<DisplayedType>()?.title ?? "null")}; NewTarget: {targetNode?.ElementName ?? "null"}: {targetNode?.As<DisplayedType>()?.title ?? "null"}");
-				Console.WriteLine($"targetAttachementSite: {targetAttachementSite?.ElementName ?? targetAttachementSite?.GetType().Name?? "null"}");
+				Console.WriteLine($"targetAttachementSite: {targetAttachementSite?.ElementName ?? targetAttachementSite?.GetType().Name ?? "null"}");
 
-				if (targetAttachementSite is null) throw new InvalidOperationException("Could not determine targetAttachementSite");				
-				
+				if (targetAttachementSite is null) throw new InvalidOperationException("Could not determine targetAttachementSite");
+
 				bool result = false;
 				bool deleteEmptyParentNode = false;
 				if (targetAttachementSite is ChildItemsType) deleteEmptyParentNode = true; //delete the ChildItems node is it is "childless"
 
 				Console.WriteLine("Before Move");
-				
-				result = sourceNode.Move(targetAttachementSite, targetIndex, deleteEmptyParentNode);					
+
+				result = sourceNode.Move(targetAttachementSite, targetIndex, deleteEmptyParentNode);
 
 				Console.WriteLine("After Move");
 				Console.WriteLine("result: " + result);
@@ -498,7 +493,7 @@ namespace SDC.Schema.Tests.Functional
 					Console.WriteLine(subTree.Count);
 					foreach (IdentifiedExtensionType n in subTree)
 						Console.WriteLine(n.ElementPrefix + ": " + n.As<DisplayedType>().title ?? "(null)" + "; ");
-				} 
+				}
 				else Console.WriteLine("subTree.Count == 0");
 
 				Console.WriteLine("END:--------------------------------------");

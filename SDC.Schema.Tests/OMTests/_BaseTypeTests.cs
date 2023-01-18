@@ -1,108 +1,100 @@
-﻿using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.ObjectModel;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SDC.Schema;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Xml.Serialization;
 
 namespace SDC.Schema.Tests.OMTests
 {
-    [TestClass()]
-    public class _BaseTypeTests
-    {
-        [TestMethod()]
-        public void IsMoveAllowedTest()
-        {
+	[TestClass()]
+	public class _BaseTypeTests
+	{
+		[TestMethod()]
+		public void IsMoveAllowedTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void RemoveTest()
-        {
+		[TestMethod()]
+		public void RemoveTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void MoveTest()
-        {
+		[TestMethod()]
+		public void MoveTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void GetNodeFirstSibTest()
-        {
+		[TestMethod()]
+		public void GetNodeFirstSibTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void GetNodeLastSibTest()
-        {
+		[TestMethod()]
+		public void GetNodeLastSibTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void GetNodePreviousSibTest()
-        {
+		[TestMethod()]
+		public void GetNodePreviousSibTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void GetNodeNextSibTest()
-        {
+		[TestMethod()]
+		public void GetNodeNextSibTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void GetNodePreviousTest()
-        {
+		[TestMethod()]
+		public void GetNodePreviousTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void GetNodeNextTest()
-        {
+		[TestMethod()]
+		public void GetNodeNextTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void GetNodeFirstChildTest()
-        {
+		[TestMethod()]
+		public void GetNodeFirstChildTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void GetNodeLastChildTest()
-        {
+		[TestMethod()]
+		public void GetNodeLastChildTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void GetNodeLastDescendantTest()
-        {
+		[TestMethod()]
+		public void GetNodeLastDescendantTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void GetPropertyInfoTest()
-        {
+		[TestMethod()]
+		public void GetPropertyInfoTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void SetNamesTest()
-        {
+		[TestMethod()]
+		public void SetNamesTest()
+		{
 
-        }
+		}
 
-        [TestMethod()]
-        public void ResetSdcImportTest()
-        {
+		[TestMethod()]
+		public void ResetSdcImportTest()
+		{
 
-        }
-    }
+		}
+	}
 }

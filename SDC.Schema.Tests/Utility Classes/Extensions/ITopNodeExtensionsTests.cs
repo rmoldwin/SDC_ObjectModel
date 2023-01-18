@@ -1,13 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SDC.Schema;
 using SDC.Schema.Extensions;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SDC.Schema.Tests;
 
 namespace SDC.Schema.Tests.Utils.Extensions
 {
@@ -118,7 +113,7 @@ namespace SDC.Schema.Tests.Utils.Extensions
 
 		[TestMethod()]
 		public void GetXmlAttributesFilledTest()
-		{		
+		{
 			var fd = Setup.FD;
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 

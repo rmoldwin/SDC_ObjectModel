@@ -1,22 +1,13 @@
-﻿using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.ObjectModel;
+﻿using CSharpVitamins;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema;
+using SDC.Schema.Extensions;
 using System;
-using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Xml.Serialization;
-using SDC.Schema.Tests;
-using SDC.Schema.Extensions;
-using CSharpVitamins;
-using System.Runtime.CompilerServices;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-using System.Collections.Specialized;
-using System.Collections.Concurrent;
-using System.Data.SqlTypes;
 
 namespace SDC.Schema.Tests.Utils.Extensions
 {
@@ -97,10 +88,10 @@ namespace SDC.Schema.Tests.Utils.Extensions
 				var en = subNode.ElementName;
 				int enLen = 36 - en.Length;
 				int pad = (enLen > 0) ? enLen : 0;
-				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  SubNode: {en}    {"".PadRight(pad, gt)}");
+				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  SubNode: {en}    {string.Empty.PadRight(pad, gt)}");
 				Debug.Print("<==<==<== Attr ==>==>==>| Default Val |<==<==<==<==<== Val ==>==>==>==>==>");
 				foreach (AttributeInfo ai in lai)
-					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? "").PadRight(13)}| {ai.Value?.ToString()}");
+					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? string.Empty).PadRight(13)}| {ai.Value?.ToString()}");
 			}
 			//  ------------------------------------------------------------------------------------
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
@@ -292,10 +283,10 @@ namespace SDC.Schema.Tests.Utils.Extensions
 				var en = subNode.ElementName;
 				int enLen = 36 - en.Length;
 				int pad = (enLen > 0) ? enLen : 0;
-				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  SubNode: {en}    {"".PadRight(pad, gt)}");
+				Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  SubNode: {en}    {string.Empty.PadRight(pad, gt)}");
 				Debug.Print("<==<==<== Attr ==>==>==>| Default Val |<==<==<==<==<== Val ==>==>==>==>==>");
 				foreach (AttributeInfo ai in lai)
-					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? "").PadRight(13)}| {ai.Value?.ToString()}");
+					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? string.Empty).PadRight(13)}| {ai.Value?.ToString()}");
 			}
 
 			//  ------------------------------------------------------------------------------------
@@ -368,19 +359,19 @@ namespace SDC.Schema.Tests.Utils.Extensions
 
 	}
 
-	public readonly record struct TestStruct (int i)
+	public readonly record struct TestStruct(int i)
 	{ };
 	public record class TestClass(int i)
-	{ 
+	{
 
 	};
-	public readonly record struct  myEntity(int i, string s)
+	public readonly record struct myEntity(int i, string s)
 	{
 		public readonly int I = i;
 		public void Test(int j)
 		{
 			//I=123;  //read only
-			var n = new myEntity(i,s);
+			var n = new myEntity(i, s);
 			n.Test(12);
 			//n.i = 123; //read only
 			//n.I = 123; //read only

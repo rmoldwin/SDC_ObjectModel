@@ -1,23 +1,17 @@
-﻿using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.ObjectModel;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Runtime.CompilerServices;
-using SDC.Schema;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema.Extensions;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Xml.Serialization;
+using System.Runtime.CompilerServices;
 
 namespace SDC.Schema.Tests
 {
 
 	public class Setup
 	{
-		private static string?  _fileFolderPath;
+		private static string? _fileFolderPath;
 		private static FormDesignType? _BreastInvasive;
 		private static FormDesignType? _Adrenal;
 		private static RetrieveFormPackageType? _SampleSDCPackage;
@@ -41,7 +35,7 @@ namespace SDC.Schema.Tests
 		public Setup(string testFileFolderPath = "")
 		{
 			if (Path.Exists(testFileFolderPath))
-			{				
+			{
 				_fileFolderPath = Path.Combine(testFileFolderPath.Split(new char[] { '/', '\\' }));
 				_fileFolderPath = Path.GetFullPath(_fileFolderPath);
 			}
@@ -105,21 +99,22 @@ namespace SDC.Schema.Tests
 		public static string? DefaultValsV1_XML { get; private set; }
 		public static string? DefaultValsV2_XML { get; private set; }
 		//------------------------------------------------
-		public static FormDesignType BreastInvasive {
+		public static FormDesignType BreastInvasive
+		{
 			get
 			{
 				if (_BreastInvasive is null)
-					_BreastInvasive = FormDesignType.DeserializeFromXml(BreastInvasive_XML ?? "");
+					_BreastInvasive = FormDesignType.DeserializeFromXml(BreastInvasive_XML ?? string.Empty);
 				return _BreastInvasive;
 			}
-			private set { _BreastInvasive = value; }		
-			}
+			private set { _BreastInvasive = value; }
+		}
 		public static FormDesignType Adrenal
 		{
 			get
 			{
 				if (_Adrenal is null)
-					_Adrenal = FormDesignType.DeserializeFromXml(Adrenal_XML ?? "");
+					_Adrenal = FormDesignType.DeserializeFromXml(Adrenal_XML ?? string.Empty);
 				return _Adrenal;
 			}
 			private set { _Adrenal = value; }
@@ -129,7 +124,7 @@ namespace SDC.Schema.Tests
 			get
 			{
 				if (_SampleSDCPackage is null)
-					_SampleSDCPackage = RetrieveFormPackageType.DeserializeFromXml(SampleSDCPackage_XML ?? "");
+					_SampleSDCPackage = RetrieveFormPackageType.DeserializeFromXml(SampleSDCPackage_XML ?? string.Empty);
 				return _SampleSDCPackage;
 			}
 			private set { _SampleSDCPackage = value; }
@@ -139,7 +134,7 @@ namespace SDC.Schema.Tests
 			get
 			{
 				if (_DE_Sample is null)
-					_DE_Sample = DataElementType.DeserializeFromXml(DE_Sample_XML ?? "");
+					_DE_Sample = DataElementType.DeserializeFromXml(DE_Sample_XML ?? string.Empty);
 				return _DE_Sample;
 			}
 			private set { _DE_Sample = value; }
@@ -149,7 +144,7 @@ namespace SDC.Schema.Tests
 			get
 			{
 				if (_DemogCCO_LungSurg is null)
-					_DemogCCO_LungSurg = DemogFormDesignType.DeserializeFromXml(DemogCCO_LungSurg_XML ?? "");
+					_DemogCCO_LungSurg = DemogFormDesignType.DeserializeFromXml(DemogCCO_LungSurg_XML ?? string.Empty);
 				return _DemogCCO_LungSurg;
 			}
 			private set { _DemogCCO_LungSurg = value; }
@@ -159,7 +154,7 @@ namespace SDC.Schema.Tests
 			get
 			{
 				if (_BreastStagingTestV1 is null)
-					_BreastStagingTestV1 = FormDesignType.DeserializeFromXml(BreastStagingTestV1_XML ?? "");
+					_BreastStagingTestV1 = FormDesignType.DeserializeFromXml(BreastStagingTestV1_XML ?? string.Empty);
 				return _BreastStagingTestV1;
 			}
 			private set { BreastStagingTestV1 = value; }
@@ -169,7 +164,7 @@ namespace SDC.Schema.Tests
 			get
 			{
 				if (_BreastStagingTestV2 is null)
-					_BreastStagingTestV2 = FormDesignType.DeserializeFromXml(BreastStagingTestV2_XML ?? "");
+					_BreastStagingTestV2 = FormDesignType.DeserializeFromXml(BreastStagingTestV2_XML ?? string.Empty);
 				return _BreastStagingTestV2;
 			}
 			private set { _BreastStagingTestV2 = value; }
@@ -179,7 +174,7 @@ namespace SDC.Schema.Tests
 			get
 			{
 				if (_DefaultValsV1 is null)
-					_DefaultValsV1 = FormDesignType.DeserializeFromXml(DefaultValsV1_XML ?? "");
+					_DefaultValsV1 = FormDesignType.DeserializeFromXml(DefaultValsV1_XML ?? string.Empty);
 				return _DefaultValsV1;
 			}
 			private set { _DefaultValsV1 = value; }
@@ -189,7 +184,7 @@ namespace SDC.Schema.Tests
 			get
 			{
 				if (_DefaultValsV2 is null)
-					_DefaultValsV2 = FormDesignType.DeserializeFromXml(DefaultValsV2_XML ?? "");
+					_DefaultValsV2 = FormDesignType.DeserializeFromXml(DefaultValsV2_XML ?? string.Empty);
 				return _DefaultValsV2;
 			}
 			private set { _DefaultValsV2 = value; }

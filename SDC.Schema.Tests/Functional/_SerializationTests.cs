@@ -5,55 +5,55 @@ using System.Linq;
 
 namespace SDC.Schema.Tests.Functional
 {
-    [TestClass]
-    public class _SerializationTests
-    {
-
- 
-
-        public _SerializationTests()
-        {
-        }
+	[TestClass]
+	public class _SerializationTests
+	{
 
 
 
-
-        [TestMethod]
-        public void RoundtripFormDesign()
-        {
-
-        }
-        [TestMethod]
-        public void RoundtripDemogFormDesign()
-        {
-
-        }
-        [TestMethod]
-        public void RoundtripDataElement()
-        {
-
-        }
-        [TestMethod]
-        public void RoundtripPackage()
-        {
-
-        }
-        [TestMethod]
-        public void RoundtripComplexPackage()
-        {
-
-        }
-        [TestMethod]
-        public void RoundtripIdr()
-        {
-
-        }
-        [TestMethod]
-        public void RoundtripMap()
-        {
-
-        }
+		public _SerializationTests()
+		{
+		}
 
 
-    }
+
+
+		[TestMethod]
+		public void RoundtripFormDesign()
+		{
+
+		}
+		[TestMethod]
+		public void RoundtripDemogFormDesign()
+		{
+
+		}
+		[TestMethod]
+		public void RoundtripDataElement()
+		{
+
+		}
+		[TestMethod]
+		public void RoundtripPackage()
+		{
+
+		}
+		[TestMethod]
+		public void RoundtripComplexPackage()
+		{
+
+		}
+		[TestMethod]
+		public void RoundtripIdr()
+		{
+
+		}
+		[TestMethod]
+		public void RoundtripMap()
+		{
+
+		}
+
+
+	}
 }

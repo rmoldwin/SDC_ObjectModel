@@ -1,5 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<FormDesign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="FD_ydYyII" sGuid="ydYyIIaYx06C9NlTO6ZVfA" order="0" ID="Breast.Invasive.Bx.Res.359_.CTP9_sdcFDF" baseURI="cap.org" formTitle="Breast Cancer Staging Calculator" filename="Breast.Ca.Stg.Calc.359_CTP9_sdcFDF.xml" fullURI="_baseURI=cap.org&amp;_lineage=Breast.Ca.Stg.Calc.359&amp;_version=.CTP9&amp;_docType=sdcFDF" version="CTP9" lineage="Breast.Ca.Stg.Calc.359" xmlns="urn:ihe:qrph:sdc:2016">
+<FormDesign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="urn:ihe:qrph:sdc:2016 ../../../sdc-schema-package/SDCFormDesign.xsd" xmlns="urn:ihe:qrph:sdc:2016"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="FD_ydYyII" sGuid="ydYyIIaYx06C9NlTO6ZVfA" order="0"
+ ID="Breast.Invasive.Bx.Res.359_.CTP9_sdcFDF" baseURI="cap.org" formTitle="Breast Cancer Staging Calculator"
+ filename="Breast.Ca.Stg.Calc.359_CTP9_sdcFDF.xml"
+ fullURI="_baseURI=cap.org&amp;_lineage=Breast.Ca.Stg.Calc.359&amp;_version=.CTP9&amp;_docType=sdcFDF" version="CTP9"
+ lineage="Breast.Ca.Stg.Calc.359">
   <Property name="p_SaveStat_ydYyII_1" sGuid="7U4Qwj2zBESIMa8eKKfKnA" order="10" propName="SaveState" val="New" />
   <Property name="p_Copyrigh_ydYyII_2" type="CAPeCC_static_text" styleClass="copyright" sGuid="U5LsMI4VFkSxxqBIfDMv2A" order="20" propName="Copyright" val="(c) 2018 College of American Pathologists. All rights reserved. License required for use." />
   <Property name="p_GenericH_ydYyII_3" type="CAPeCC_static_text" sGuid="i93Fq-hFbE-g4IVMA-TGtg" order="30" propName="GenericHeaderText" val="Breast Cancer Staging Calculator" />
@@ -14,7 +20,7 @@
   <Property name="p_WebPosti_ydYyII_12" type="CAPeCC_meta dt.dateTime" sGuid="dKf-wC_0aUemr5XF9wqBuA" order="120" propName="WebPostingDate" />
   <Property name="p_ShortNam_ydYyII_13" type="CAPeCC_meta" sGuid="BdeGaLekikaeVoQpYY2VMg" order="130" propName="ShortName" val="Breast.Ca.Stg.Calc" />
   <Property name="p_ReleaseS_ydYyII_14" type="CAPeCC_meta" sGuid="EvXQgRNMJkGsrRS3m118YQ" order="140" propName="ReleaseStatus" val="CTP9" />
-  <Body name="S_body.ZSyWij" sGuid="ZS-y-Wij0Eqc8ojScbyGfw" order="150" ID="Breast.Ca.Stg.Calc.359_sdcFDF_Body">
+  <Body name="S_ZSyWij" sGuid="ZS-y-Wij0Eqc8ojScbyGfw" order="150" ID="Breast.Ca.Stg.Calc.359_sdcFDF_Body">
     <ChildItems name="ch_ZSyWij_1" sGuid="S1vC-p7pGUqfz8okKdoUVw" order="160">
       <Section name="S_43969" sGuid="7YwfT3jcx0qtwaoZO4cz-w" order="170" ID="43969.100004300" title="ONCOLOGIST: Initial Clinical Staging Assessment">
         <ChildItems name="ch_43969_1" sGuid="3I5Fr_xeKEaoTkYdgR-dXw" order="180">
@@ -48,7 +54,9 @@
                         <List name="lst_cuvVvG_6" sGuid="JFn-j-STn0SjTCW3WQzmjQ" order="390">
                           <ListItem name="LI_WhIrlf" type="---TEST--- mustImplement.true.def omitWhenSelected.false.def" sGuid="WhIrlfe5f0-ukxg8DOyZ7w" order="400" ID="testLI2">
                             <ListItemResponseField name="lirf_WhIrlf_1" type="---TEST--- responseRequired.false.def" sGuid="9mptzGD680qnVUljHiLUrA" order="410">
-                              <Response name="rsp_WhIrlf_2" sGuid="p-WbJKmuE0mhBc-_Y_JDNw" order="420" />
+                              <Response name="rsp_WhIrlf_2" sGuid="p-WbJKmuE0mhBc-_Y_JDNw" order="420" >
+                                <string sGuid = "XzbI7XtzoUeC84x52v9BTA"/>
+                              </Response>
                               <CallSetValue name="callFunc_WhIrlf_3" type="---TEST--- allowNull.true.def listDelimiter.bar.def dataType.string.def returnVal.1" sGuid="HMuRhZQ0KkCGEf__9jVpiQ" order="430" returnVal="1">
                                 <LocalFunctionName name="uri_WhIrlf_4" type="---TEST--- val" sGuid="tEVDTRpF-0SoQBHeqVDgJA" order="440" val="#AJCC_CalcPathStage" />
                                 <ParameterValue name="DataTypes_WhIrlf_5" type="---TEST--- paramName" sGuid="A07eAFk1N0Cq7Zjc-4Flrg" order="450" paramName="myParam">
@@ -187,21 +195,22 @@
           </ButtonAction>
         </ChildItems>
       </Section>
-      <Section name="S_49193" sGuid="Ke_ZH_naV0ui-W7MBuNSHQ" order="1220" ID="49193.100004300" title="PATHOLOGY: Anatomic and Biomarker Reports" enabled="false">
+      <Section name="S_49193" sGuid="Ke_ZH_naV0ui-W7MBuNSHQ" order="1220" ID="1.100004300" title="PATHOLOGY: Anatomic and Biomarker Reports" enabled="false">
         <ChildItems name="ch_49193_1" sGuid="FyHIswsUBk6iu4lToaWAOg" order="1230">
           <Section name="S_39641" sGuid="Awolo8mKokibReAXANUHcg" order="1240" ID="39641.100004300" title="Anatomic Pathology - Invasive Breast Cancer">
             <ChildItems name="ch_39641_1" sGuid="3ST2vUsAEUuBErErHWYpcw" order="1250">
               <DisplayedItem name="DI_50996" sGuid="vUL3ct1Abkq3uuV3AxfA0g" order="1260" ID="50996.100004300" title="Note: If there are multiple invasive carcinomas, size, grade, histologic type, and the results of studies for estrogen receptor (ER), progesterone receptor (PR), and HER2 should pertain to the largest invasive carcinoma. If smaller invasive carcinomas differ in any of these features, this information may be included in the &quot;Comments&quot; section.">
                 <Property name="p_reportTe_50996_1" sGuid="WLxdZJo30EGZ8wwS9Yp4Pw" order="1270" propName="reportText" val="{no text}" />
               </DisplayedItem>
-              <Section name="S_39924" sGuid="hzxTXzB0c02o1BjpnRLzSA" order="1280" ID="39924.100004300" title="CLINICAL">
+              <Section name="S_139924" sGuid="hzxTXzB0c02o1BjpnRLzSA" order="1280" ID="39924.100004300" title="CLINICAL">
                 <ChildItems name="ch_39924_1" sGuid="lgdBp-Ve40qX_HMQzRIQ0Q" order="1290">
                   <Question name="QM_43574" sGuid="BifLlc4YVUuCFTAqqA0gnQ" order="1300" ID="43574.100004300" title="Clinical History (Note P)">
                     <Property name="p_reportTe_43574_1" sGuid="T0dKzXRU8Ue_3EWCaipycA" order="1310" propName="reportText" val="Clinical History" />
-                    <ListField name="lf_43574_2" sGuid="25aXZet4-k6R_CNfWTGR5Q" order="1320" maxSelections="0">
+                    <ListField name="lf_43574_2" sGuid="25aXZet4-k6R_CNfWTGR5Q" order="1320" maxSelections="1">
                       <List name="lst_43574_3" sGuid="2UUP6VmLfk696FHfOEj2BQ" order="1330">
                         <DisplayedItem name="DI_37004" sGuid="ukuZDx7ZKUqMP8BNgzxjmA" order="1340" ID="37004.100004300" title="The current clinical / radiologic breast findings for which this surgery is performed include:">
                           <Property name="p_reportTe_37004_1" sGuid="KNn9zQ6qXky_g9C959xbbw" order="1350" propName="reportText" val="{no text}" />
+                          <Property name="p_reportTe_37004_2" sGuid="PdQi6PiXV06AIv-Tvlh5Xw" order="1350" propName="reportText" val="{no text}" />
                         </DisplayedItem>
                         <ListItem name="LI_47873" sGuid="UC7o9_QPqk-MSmp5Hj-RWw" order="1360" ID="47873.100004300" title="Palpable mass" />
                         <ListItem name="LI_39638" sGuid="JPu6oT6X6k26YG4X6oEx-g" order="1370" ID="39638.100004300" title="Nipple discharge" />
@@ -213,6 +222,7 @@
                             </Response>
                           </ListItemResponseField>
                         </ListItem>
+                        <ListItem sGuid="BlNOOWghDkiN4FHoAjXlbA" ID="43033_New.100004300" title="Other (specify) NEW"/>
                         <DisplayedItem name="DI_47361" sGuid="aFdchdA7MUWwDRY4WFlaHA" order="1430" ID="47361.100004300" title="Prior history">
                           <Property name="p_reportTe_47361_1" sGuid="HuurvKmk_EO0WyRFCumJqg" order="1440" propName="reportText" val="{no text}" />
                         </DisplayedItem>
@@ -3893,7 +3903,7 @@
       </Section>
     </ChildItems>
   </Body>
-  <Footer name="S_footerstjSDl" sGuid="stj-SDlsdUKRJKgDAa5BxQ" order="24610" ID="Breast.Ca.Stg.Calc.359_.CTP9_sdcFDF">
+  <Footer name="S_stjSDl" sGuid="stj-SDlsdUKRJKgDAa5BxQ" order="24610" ID="Breast.Ca.Stg.Calc.359_.CTP9_sdcFDF">
     <Property name="p_Copyrigh_stjSDl_1" type="meta" styleClass="copyright" sGuid="jIscyzQcn02KggXnSmwA1A" order="24620" propName="CopyrightFooter" val="(c) 2018 College of American Pathologists. All rights reserved. License required for use." />
   </Footer>
 </FormDesign>

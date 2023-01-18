@@ -83,15 +83,22 @@ namespace SDC.Schema
 		}
 
 		/// <summary>
-		/// Dictionary to cache PropertyInfo objects to speed reflection of SDC nodes
+		/// Dictionary to cache PropertyInfo objects to speed reflection of SDC Element nodes
 		/// </summary>
-		private static readonly Dictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfo = new();
+		private static readonly Dictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfoElements = new();
 		/// <summary>
-		/// Clear the dListPropInfo Dictionary, which hold cached PropertyInfo objects that are used to speed up SDC node reflection.<br/>
-		/// Used for performance testing.
+		/// Dictionary to cache PropertyInfo objects to speed reflection of SDC Attribute nodes
 		/// </summary>
-		internal static void CleardPropInfoDictionary()
-		{ dListPropInfo.Clear(); }
+		private static readonly Dictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfoAttributes = new();
+
+
+
+		///// <summary>
+		///// Clear the dListPropInfo Dictionary, which hold cached PropertyInfo objects that are used to speed up SDC node reflection.<br/>
+		///// Used for performance testing.
+		///// </summary>
+		//internal static void CleardPropInfoDictionary()
+		//{ dListPropInfo.Clear(); }
 
 		/// <summary>
 		/// Cache XmlRootAttribute objects
@@ -325,7 +332,7 @@ namespace SDC.Schema
 					IEnumerable<PropertyInfo>? props;
 					Type sPop = s.Pop();
 
-					if (! dListPropInfo.TryGetValue(sPop, out props))
+					if (! dListPropInfoElements.TryGetValue(sPop, out props))
 					{
 						props = sPop.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
 						.Where(p => p.IsDefined(typeof(XmlElementAttribute))).ToList();
@@ -333,7 +340,7 @@ namespace SDC.Schema
 						//.First().Order)											  //properties in XML Element order, but this could change
 						;
 
-						dListPropInfo.Add(sPop, props);
+						dListPropInfoElements.Add(sPop, props);
 					}
 
 					foreach (var p in props)
@@ -1580,18 +1587,18 @@ namespace SDC.Schema
 					continue;
 				}
 
-				if( ! dListPropInfo.TryGetValue(t, out piIE))  //look in cache to bypass slow PropertyInfo lookup
+				if( ! dListPropInfoAttributes.TryGetValue(t, out piIE))  //look in cache to bypass slow PropertyInfo lookup
 				{
 					piIE = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
 							.Where(pi => pi.GetCustomAttributes<XmlAttributeAttribute>().Any());
-					dListPropInfo.Add(t, piIE); //cache for next time
+					dListPropInfoAttributes.Add(t, piIE); //cache for next time
 				}
 				if (piIE is null) continue;
 
 				foreach (var p in piIE)
 				{
 					nodeIndex++;
-					if (getAllXmlAttributes) AddAttribute();
+					if (getAllXmlAttributes) AddAttribute(p, n);
 					else
 					{
 						var sspn = t.GetMethod("ShouldSerialize" + p.Name)?.Invoke(n, null); //sspn == ShouldSerialize*PropertyName*
@@ -1618,7 +1625,7 @@ namespace SDC.Schema
 								if (!IsAttDefValMatch)
 								{
 									//if (p.Name == "showInReport") Debugger.Break();
-									AddAttribute();
+									AddAttribute(p, n);
 								}
 							}
 							else if (omitDefaultValues)  //The XML serializer omits all properties set to the Value of the DefaultValueAttribute, assuming DefaultValueAttribute decorates the property
@@ -1628,22 +1635,22 @@ namespace SDC.Schema
 									if (!IsAttDefValMatch)
 									{
 										//if (p.Name == "showInReport") Debugger.Break();
-										AddAttribute();
+										AddAttribute(p, n);
 									}
 								}
 								else //Check the data type's intrinsic default value set by .NET
 								{
 									var typeDefaultVal = GetTypeDefaultValue(pVal.GetType());
 									if (!pVal.Equals(typeDefaultVal))
-										AddAttribute();
+										AddAttribute(p, n);
 								}
 								//?TODO: Add default tests for other SDC data types
 							}
-							else AddAttribute();
+							else AddAttribute(p, n);
 						}
 					}
 
-					void AddAttribute()
+					void AddAttribute(PropertyInfo p, BaseType n)
 					{
 						nodeIndex++;
 						attributes.Add(FillAttributeInfo(p, n));
@@ -1653,7 +1660,7 @@ namespace SDC.Schema
 			return attributes;
 
 			AttributeInfo FillAttributeInfo(PropertyInfo p, BaseType elementNode) =>
-				new(elementNode, elementNode.sGuid, p!.GetValue(elementNode), p, nodeIndex);
+				new(elementNode, elementNode.sGuid, p.GetValue(elementNode), p, nodeIndex);
 
 		}
 
