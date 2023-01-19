@@ -1,6 +1,7 @@
 ﻿using CSharpVitamins;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace SDC.Schema.Tests.Utils
@@ -68,23 +69,32 @@ namespace SDC.Schema.Tests.Utils
 		[TestMethod()]
 		public void GetIETnodesRemovedInNewTest()
 		{
-			var ietNodesRem = comparer!.GetIETnodesRemovedInNew;
+			var C = comparer!.GetIETnodesRemovedInNew;
 
 		}
 		[TestMethod()]
 		public void GetIETnodesAddedInNewTest()
 		{
 			var ietNodesAdd = comparer!.GetIETnodesAddedInNew;
+			Assert.AreEqual(ietNodesAdd.Count, 1);
+			Assert.AreEqual(ietNodesAdd.ElementAt(0).ID, "43033_New.100004300");
 		}
 		[TestMethod()]
 		public void GetNodesRemovedInNewTest()
 		{
 			var nodesRem = comparer!.GetNodesRemovedInNew;
+			Debug.Print(nodesRem.Count.ToString());
+			Assert.AreEqual(nodesRem.Count, 1);
+			Debug.Print(nodesRem.ElementAt(0)?.ParentNode?.sGuid); //Since the node is new, its null sGuid is generated uniquely with each test
+			Assert.AreEqual(nodesRem.ElementAt(0)?.ParentNode?.sGuid, "p-WbJKmuE0mhBc-_Y_JDNw");
 		}
 		[TestMethod()]
 		public void GetNodesAddedInNewTest()
 		{
 			var nodesAdd = comparer!.GetNodesAddedInNew;
+			Debug.Print(nodesAdd.Count.ToString());
+			Assert.AreEqual(nodesAdd.Count, 3);
+			Assert.AreEqual(nodesAdd.ElementAt(0).sGuid, "XzbI7XtzoUeC84x52v9BTA");
 		}
 	}
 }

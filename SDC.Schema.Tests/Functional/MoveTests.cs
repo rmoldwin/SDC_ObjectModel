@@ -135,13 +135,6 @@ namespace SDC.Schema.Tests.Functional
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 			Setup.Reset(); //reset after moving nodes.
 		}
-		[TestMethod]
-		public void MoveListDInList()
-		{
-			Setup.TimerStart("==>[] Started");
-
-			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
-		}
 
 		[TestMethod]
 		public void ClearChildItemsAfterDropOver()
@@ -273,34 +266,41 @@ namespace SDC.Schema.Tests.Functional
 			Setup.Reset(); //reset after moving nodes.
 		}
 		[TestMethod]
-		public void MoveListDItoOtherList()
+		public void _MoveListDInList()
 		{
 			Setup.TimerStart("==>[] Started");
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
 		[TestMethod]
-		public void MoveListDIQuestionChild()
+		public void _MoveListDItoOtherList()
 		{
 			Setup.TimerStart("==>[] Started");
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
 		[TestMethod]
-		public void MoveQuestionInChildItems()
+		public void _MoveListDIQuestionChild()
 		{
 			Setup.TimerStart("==>[] Started");
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
 		[TestMethod]
-		public void MoveQuestionToNewChildItems()
+		public void _MoveQuestionInChildItems()
 		{
 			Setup.TimerStart("==>[] Started");
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
-		public void MoveSectionToNewChildItems()
+		[TestMethod]
+		public void _MoveQuestionToNewChildItems()
+		{
+			Setup.TimerStart("==>[] Started");
+
+			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		}
+		public void _MoveSectionToNewChildItems()
 		{
 			Setup.TimerStart("==>[] Started");
 
