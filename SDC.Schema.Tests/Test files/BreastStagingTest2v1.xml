@@ -1,5 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<FormDesign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="FD_ydYyII" sGuid="ydYyIIaYx06C9NlTO6ZVfA" order="0" ID="Breast.Invasive.Bx.Res.359_.CTP9_sdcFDF" baseURI="cap.org" formTitle="Breast Cancer Staging Calculator" filename="Breast.Ca.Stg.Calc.359_CTP9_sdcFDF.xml" fullURI="_baseURI=cap.org&amp;_lineage=Breast.Ca.Stg.Calc.359&amp;_version=.CTP9&amp;_docType=sdcFDF" version="CTP9" lineage="Breast.Ca.Stg.Calc.359" xmlns="urn:ihe:qrph:sdc:2016">
+<FormDesign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="urn:ihe:qrph:sdc:2016 ../../../sdc-schema-package/SDCFormDesign.xsd" xmlns="urn:ihe:qrph:sdc:2016"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="FD_ydYyII" sGuid="ydYyIIaYx06C9NlTO6ZVfA" order="0"
+ ID="Breast.Invasive.Bx.Res.359_.CTP9_sdcFDF" baseURI="cap.org" formTitle="Breast Cancer Staging Calculator"
+ filename="Breast.Ca.Stg.Calc.359_CTP9_sdcFDF.xml"
+ fullURI="_baseURI=cap.org&amp;_lineage=Breast.Ca.Stg.Calc.359&amp;_version=.CTP9&amp;_docType=sdcFDF" version="CTP9"
+ lineage="Breast.Ca.Stg.Calc.359">
   <Property name="p_SaveStat_ydYyII_1" sGuid="7U4Qwj2zBESIMa8eKKfKnA" order="10" propName="SaveState" val="New" />
   <Property name="p_Copyrigh_ydYyII_2" type="CAPeCC_static_text" styleClass="copyright" sGuid="U5LsMI4VFkSxxqBIfDMv2A" order="20" propName="Copyright" val="(c) 2018 College of American Pathologists. All rights reserved. License required for use." />
   <Property name="p_GenericH_ydYyII_3" type="CAPeCC_static_text" sGuid="i93Fq-hFbE-g4IVMA-TGtg" order="30" propName="GenericHeaderText" val="Breast Cancer Staging Calculator" />
@@ -48,7 +54,9 @@
                         <List name="lst_cuvVvG_6" sGuid="JFn-j-STn0SjTCW3WQzmjQ" order="390">
                           <ListItem name="LI_WhIrlf" type="---TEST--- mustImplement.true.def omitWhenSelected.false.def" sGuid="WhIrlfe5f0-ukxg8DOyZ7w" order="400" ID="testLI2">
                             <ListItemResponseField name="lirf_WhIrlf_1" type="---TEST--- responseRequired.false.def" sGuid="9mptzGD680qnVUljHiLUrA" order="410">
-                              <Response name="rsp_WhIrlf_2" sGuid="p-WbJKmuE0mhBc-_Y_JDNw" order="420" />
+                              <Response name="rsp_WhIrlf_2" sGuid="p-WbJKmuE0mhBc-_Y_JDNw" order="420" >
+                                <string />
+                              </Response>
                               <CallSetValue name="callFunc_WhIrlf_3" type="---TEST--- allowNull.true.def listDelimiter.bar.def dataType.string.def returnVal.1" sGuid="HMuRhZQ0KkCGEf__9jVpiQ" order="430" returnVal="1">
                                 <LocalFunctionName name="uri_WhIrlf_4" type="---TEST--- val" sGuid="tEVDTRpF-0SoQBHeqVDgJA" order="440" val="#AJCC_CalcPathStage" />
                                 <ParameterValue name="DataTypes_WhIrlf_5" type="---TEST--- paramName" sGuid="A07eAFk1N0Cq7Zjc-4Flrg" order="450" paramName="myParam">

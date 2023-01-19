@@ -212,22 +212,25 @@ namespace SDC.Schema.Tests.Functional
 			var Pkg = RetrieveFormPackageType.DeserializeFromXmlPath(path);
 			//XMLPackageType XPT = (XMLPackageType)Pkg.Nodes.Values.Where(n => n is XMLPackageType).FirstOrDefault();
 
-			FormDesignType FD = (FormDesignType)Pkg.Nodes.Values.Where(n => n is FormDesignType).FirstOrDefault()!;
+			DemogFormDesignType DFD = (DemogFormDesignType)Pkg.Nodes.Values.Where(n => n is DemogFormDesignType).FirstOrDefault()!;
+			FormDesignType FD = (FormDesignType)Pkg.Nodes.Values.Where(n => n is FormDesignType).Skip(1).First();
 
 
-			var Q = (QuestionItemType?)FD.Nodes.Values.Where(
+			var Q = (QuestionItemType?)DFD.Nodes.Values.Where(
 				t => t.GetType() == typeof(QuestionItemType)).Where(
 				q => ((QuestionItemType)q).ID == "37387.100004300").FirstOrDefault();
+
+
 			var DI = Q.AddChildDisplayedItem("DDDDD");//should add to end of the <List>
 			DI.name = "my added DI";
 
-			DisplayedType? DI1 = (DisplayedType)FD.Nodes.Values.Where(n => n.name == "my added DI").FirstOrDefault();
-			DisplayedType? DI2 = (DisplayedType)Q.ChildItemsNode.Items[0];
-			QuestionItemType? Q1 = (QuestionItemType)DI2.ParentNode.ParentNode;
-			string diName = Q.Item1.Items[0].name;
-			string diName2 = Q.ChildItemsNode.ChildItemsList[0].ID;
-			int i = Q.ChildItemsNode.ChildItemsList.Count();
-			bool b1 = Q.ChildItemsNode.ShouldSerializeItems();
+			DisplayedType? DI1 = FD.Nodes.Values.Where(n => n.name == "my added DI").FirstOrDefault() as DisplayedType;
+			DisplayedType? DI2 = Q?.ChildItemsNode?.Items?[0] as DisplayedType;
+			QuestionItemType? Q1 = DI2?.ParentNode?.ParentNode as QuestionItemType;
+			string diName = Q?.Item1.Items[0].name??"";
+			string diName2 = Q?.ChildItemsNode?.ChildItemsList[0].ID??"";
+			int i = Q?.ChildItemsNode?.ChildItemsList?.Count()??default;
+			bool b1 = Q?.ChildItemsNode?.ShouldSerializeItems()??default;
 
 			var myXML = Pkg.GetXml();
 

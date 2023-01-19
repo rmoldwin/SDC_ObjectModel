@@ -351,7 +351,7 @@ namespace SDC.Schema
 							if (prop is BaseType)
 							{
 								btProp = (BaseType)prop;
-								if (refreshTree) RefreshTree(parentNode: node, piChildProperty: p);
+								if (refreshTree) RefreshTree(parentNode: node, piChildProperty: p, btProp, ref current_ITopNode);
 								if (print) sbTreeText.Append($"{"".PadRight(indent, '.')}({btProp.DotLevel})#{counter}; OID: {btProp.ObjectID}; name: {btProp.name}{content(btProp)}");
 								//Debug.Assert(btProp.ObjectID == counter);
 								SortedNodes.Add(btProp);
@@ -362,7 +362,7 @@ namespace SDC.Schema
 								foreach (BaseType btItem in ieProp)
 								{
 									btProp = btItem;
-									if (refreshTree) RefreshTree(parentNode: node, piChildProperty: p);
+									if (refreshTree) RefreshTree(parentNode: node, piChildProperty: p, btProp, ref current_ITopNode);
 									if (print) sbTreeText.Append($"{"".PadRight(indent, '.')}({btProp.DotLevel})#{counter}; OID: {btProp.ObjectID}; name: {btProp.name}{content(btItem)}");
 									//Debug.Assert(btItem.ObjectID == counter);
 									SortedNodes.Add(btProp);
@@ -375,7 +375,7 @@ namespace SDC.Schema
 				indent--;
 				//!-------------------------------------------------------------------------------------------------------------------------------
 
-				void RefreshTree(BaseType parentNode, PropertyInfo piChildProperty)
+				void RefreshTree(BaseType parentNode, PropertyInfo piChildProperty, BaseType btProp, ref _ITopNode? current_ITopNode)
 				{
 					//piChildProperty is the PropertyInfo object from the btProp property
 					//Neither piChildProperty nor btProp reliably contains the XML element name for the btProp node
@@ -384,10 +384,14 @@ namespace SDC.Schema
 					//the enum value that contains the XML element name.
 					//The enum location is found in XmlChoiceIdentifierAttribute on the IEnumerable Property
 					//This should be handled in ReflectSdcElement
-					btProp.TopNode = current_ITopNode;  //not thread-safe, unless passed as parameter
+					
 
 					if (btProp is _ITopNode itn) //we have a subsumed ITopNode node
+					{
 						current_ITopNode = Init_ITopNode(itn);
+						btProp.TopNode = parentNode.TopNode;
+					}
+					else btProp.TopNode = current_ITopNode;
 
 					SdcUtil.AssignGuid_sGuid_BaseName(btProp);  //check if thread-safe - may rely on parent IET
 
@@ -397,10 +401,10 @@ namespace SDC.Schema
 																					 //Adding is not thread-safe - need ConcurrentDictionary
 																					 //Mark parentNode as having its child nodes already sorted
 					TreeSort_Add(parentNode);  //Change ObjectID to ObjectGUID?  //Probably thread-safe, as it's a hashtable, but may need Concurrent Hashtable?
-					AssignSdcProperties(parentNode, piChildProperty);
+					AssignSdcProperties(parentNode, piChildProperty, btProp, current_ITopNode, order, orderGap, print, sbTreeText, createNodeName);
 				}
 
-				void AssignSdcProperties(BaseType parentNode, PropertyInfo pi)
+				void AssignSdcProperties(BaseType parentNode, PropertyInfo pi, BaseType? btProp, ITopNode? current_ITopNode, int order, int orderGap, bool print, StringBuilder sbTreeText, CreateName? createNodeName)
 				{
 					string elementName;
 					int elementOrder = -1;
