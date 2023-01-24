@@ -401,10 +401,10 @@ namespace SDC.Schema
 																					 //Adding is not thread-safe - need ConcurrentDictionary
 																					 //Mark parentNode as having its child nodes already sorted
 					TreeSort_Add(parentNode);  //Change ObjectID to ObjectGUID?  //Probably thread-safe, as it's a hashtable, but may need Concurrent Hashtable?
-					AssignSdcProperties(parentNode, piChildProperty, btProp, current_ITopNode, order, orderGap, print, sbTreeText, createNodeName);
+					AssignSdcProperties(parentNode, piChildProperty, btProp, current_ITopNode, ref order, orderGap, print, sbTreeText, createNodeName);
 				}
 
-				void AssignSdcProperties(BaseType parentNode, PropertyInfo pi, BaseType? btProp, ITopNode? current_ITopNode, int order, int orderGap, bool print, StringBuilder sbTreeText, CreateName? createNodeName)
+				void AssignSdcProperties(BaseType parentNode, PropertyInfo pi, BaseType btProp, ITopNode? current_ITopNode, ref int order, int orderGap, bool print, StringBuilder sbTreeText, CreateName? createNodeName)
 				{
 					string elementName;
 					int elementOrder = -1;
@@ -1542,7 +1542,7 @@ namespace SDC.Schema
 			return attributes;
 
 			AttributeInfo FillAttributeInfo(PropertyInfo p, BaseType elementNode) =>
-				new(elementNode, elementNode.sGuid, p!.GetValue(elementNode), p, nodeIndex);
+				new(elementNode, p!.GetValue(elementNode), p, nodeIndex);
 
 		}
 
@@ -1664,7 +1664,7 @@ namespace SDC.Schema
 			return attributes;
 
 			AttributeInfo FillAttributeInfo(PropertyInfo p, BaseType elementNode) =>
-				new(elementNode, elementNode.sGuid, p.GetValue(elementNode), p, nodeIndex);
+				new(elementNode, p.GetValue(elementNode), p, nodeIndex);
 
 		}
 

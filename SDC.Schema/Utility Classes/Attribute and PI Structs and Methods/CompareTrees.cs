@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.ComponentModel;
+using System.Collections.Generic;
 
 namespace SDC.Schema.Tests.Utils
 {
@@ -25,7 +26,7 @@ namespace SDC.Schema.Tests.Utils
 		private List<BaseType> _nodesAddedInNew;
 
 		private readonly ConcurrentDictionary<string, DifNodeIET> _dDifNodeIET = new(); //the key is the IET node sGuid. Holds attribute changes in all IET and subNodes
-																						//foreach(var kv2 in slAttNew)
+																						//foreach(var kvNewIET in slAttNew)
 		private SDCsGuidEqualityComparer<BaseType> _sGuidEqComparerBase = new();
 		private SDCsGuidEqualityComparer<IdentifiedExtensionType> _sGuidEqComparerIET = new();
 		#region     ctor   
@@ -104,7 +105,7 @@ namespace SDC.Schema.Tests.Utils
 			_prevVersion = prevVersion;
 			_slAttPrev = GetSerializedXmlAttributesFromTree(_prevVersion);
 			ComputeAddedRemovedNodes();
-			CompareVersions();
+			CompareVersionAttributes();
 			return this;
 		}
 		private CompareTrees<T> ChangeNewVersion(T newVersion)
@@ -112,7 +113,7 @@ namespace SDC.Schema.Tests.Utils
 			_newVersion = newVersion;
 			_slAttNew = GetSerializedXmlAttributesFromTree(_newVersion);
 			ComputeAddedRemovedNodes();
-			CompareVersions();
+			CompareVersionAttributes();
 			return this;
 		}
 		
@@ -140,45 +141,58 @@ namespace SDC.Schema.Tests.Utils
 			_nodesAddedInNew = newNodes.Except(prevNodes, _sGuidEqComparerBase).ToList(); //New nodes that were not present in Prev
 
 		}
-		private ConcurrentDictionary<string, DifNodeIET>? CompareVersions()
+		private ConcurrentDictionary<string, DifNodeIET>? CompareVersionAttributes()
 		{
 			var eqAttCompare = new SdcSerializedAttComparer(); //should be thread-safe
 			var locker = new object();
 			if (_slAttNew is null || _slAttPrev is null) return null;
 
-			_slAttNew.AsParallel().ForAll(kv2 =>
-			//slAttNew.All(kv2 =>
+			//With _slAttNew and _slAttPrev, we are only looking at nodes that have attributes that will be serialized to XML.  All other nodes are skipped.
+			//Since we are parellelizing the algorith, the results will not be in node order.  They can be sorted later
+
+			_slAttNew.AsParallel().ForAll(kvNewIET =>
+			//slAttNew.All(kvNewIET =>
 			{
 				//Setup IET node data;
-				string sGuidIET = kv2.Key;
-				Guid GuidIET = ShortGuid.Decode(sGuidIET); //may need locking here - check source code
+				string sGuidNewIET = kvNewIET.Key;
+				Dictionary<string, List<AttributeInfo>>? dlaiNewIET = kvNewIET.Value; //Contains List<AttributeInfo> for IET node and all non IET descendant nodes. Key is the IET & subnode sGuid
+				Guid GuidIET = ShortGuid.Decode(sGuidNewIET); //may need locking here - check source code
 				bool isParChangedIET = false;
 				bool isMovedIET = false;
 				bool isNewIET = false;
 				bool isRemovedIET = false;
 				bool isAttListChanged = false;
+				bool hasAddedSubNodes = false;
+				bool hasRemovedSubNodes = false;
+				List<BaseType>? addedSubNodes = null;
+				List<BaseType>? removedSubNodes = null;
+
+				List<AttInfoDif> laiDifSubNodes = new(); //For each IET node, there is one laiDifSubNodes per subnode (including the IET node)
+				Dictionary<string, List<AttInfoDif>> dlaiDifIET = new();  //the key is the IET sGuid; dlaiDifIET will be added later to difNodeIET, which will then be added to **d**DifNodeIET
+				dlaiDifIET.Add(sGuidNewIET, laiDifSubNodes); //add the laiDifSubNodes to its dictionary; later we will stuff this laiDiff List object with attribute change data for the IET node and all of its subNodes.
 
 
-				List<AttInfoDif> laiDif = new(); //For each IET node, there is one laiDif per subnode (including the IET node)
-				Dictionary<string, List<AttInfoDif>> dlaiDif = new();  //the key is the IET sGuid; dlaiDif will be added later to difNodeIET, which will then be added to **d**DifNodeIET
-				dlaiDif.Add(sGuidIET, laiDif); //add the laiDif to its dictionary; later we will stuff this laiDiff List object with attribute change data for the IET node and all of its subNodes.
-
-				//we now have to populate laiDif with with AttInfoDif structs for each changed attribute
+				//We now have to populate laiDifSubNodes with with AttInfoDif structs for each changed attribute
 				//We also have to set all the above bool settings for difNodeIET
 				//Then finally, we need to add one new _dDifNodeIET struct entry (difNodeIET) for each New IET.
 				////We can also add difNodeIET structs for Prev IET nodes Prev that were not present in New
 
 				//holds the List<AttributeInfo> where the attributes differ from Prev to New; part of dDiffNodeIET; the key of the IET node sGuid.
-				//laiDif will become the value part of dlaiDifIET
+				//laiDifSubNodes will become the value part of dlaiDifIET
 
 				IdentifiedExtensionType? ietPrev;
 				if (_prevVersion.Nodes.TryGetValue(GuidIET, out BaseType? value))
 					ietPrev = value as IdentifiedExtensionType;
 				else ietPrev = null;
 
-
 				if (ietPrev is not null)
 				{
+					//Check for added or removed subnodes, by comparing the the matching ietPrev node:
+					lock (locker) removedSubNodes = GetRemovedIETsubNodes(sGuidNewIET);
+					if (removedSubNodes is not null && removedSubNodes.Count > 0) hasRemovedSubNodes = true; 
+					lock (locker) addedSubNodes = GetAddedIETsubNodes(sGuidNewIET);
+					if (addedSubNodes is not null && addedSubNodes.Count > 0) hasAddedSubNodes = true;  //this step is required to flag possibly changed attributes on IET subNodes.																										
+
 					var ietNew = _newVersion.Nodes[GuidIET] as IdentifiedExtensionType;
 
 					//If New IET parent node is not the same as Prev parent node, mark as PARENT CHANGED
@@ -199,69 +213,75 @@ namespace SDC.Schema.Tests.Utils
 						{ isMovedIET = true; }
 
 					//Look for match in slAttPrev
-					if (_slAttPrev.TryGetValue(kv2.Key, out var dlaiPrev))  //retrieve attribute dictionary for each New IET node
+					if (_slAttPrev.TryGetValue(sGuidNewIET, out var dlaiPrevIET))  //retrieve serialized attribute dictionary for each New IET node
 					{
 						//Get the Prev IET attribute dictionary.  The first entry contains the New IET node data					
-						List<AttributeInfo>? laiPrevIET = dlaiPrev[sGuidIET]; //could simply use dlaiPrev[0] instead
-						AttributeInfo aiPrevIET = laiPrevIET[0];
+						//List<AttributeInfo> laiPrevIET = dlaiPrevIET[sGuidNewIET]; //could simply use dlaiPrevIET.Values[0] instead
+						//AttributeInfo aiPrevIET = laiPrevIET[0];
 
 						//loop through attributes of each New node under the current IET, test for a mismatched value
-						var dlaiNew = kv2.Value; //dict contains List<AttributeInfo> for iet node and all non IET descendant nodes.
 
-						foreach (var sGuidNew in dlaiNew.Keys) //loop through IET subNodes
+						foreach (var sGuidNewSubNode in dlaiNewIET.Keys) //loop through IET subNodes, whose sGuids are the keys to dlaiNewIET
 						{
+							//The first sub-node retrieved is the IET node itself
+							//Check for matching Prev subnode here
 
-							var aiHashPrevIET = new HashSet<SdcSerializedAtt>(eqAttCompare);
-							var aiHashNewIET = new HashSet<SdcSerializedAtt>(eqAttCompare);
+							var aiHashPrevIET = new HashSet<SdcSerializedAtt>(eqAttCompare); //holds nodes with serialized attribbutes in Prev that match a node in New; This is not a complete collection of Prev nodes 
+							var aiHashNewIET = new HashSet<SdcSerializedAtt>(eqAttCompare);  //holds nodes with serialized attributes in New
 
-							dlaiPrev.TryGetValue(sGuidNew, out var laiPrev); //Find matching subNode in Prev (using sGuidNew), and retrieve its serializable attributes (laiPrev)
+							dlaiPrevIET.TryGetValue(sGuidNewSubNode, out var laiPrevSubNode); //Find matching subNode in Prev (using sGuidNewSubNode), and retrieve its serializable attributes (laiPrevSubNode)
 
-							foreach (var aiNew in dlaiNew[sGuidNew]) //Loop through New **attributes** in the currrent subNode (with subNode key: sGuidNew)
+							foreach (var aiNewSubNode in dlaiNewIET[sGuidNewSubNode]) //Loop through New **attributes** in the currrent subNode (with subNode key: sGuidNewSubNode)
 							{
-								aiHashNewIET.Add(new(sGuidNew, aiNew)); //document that the serializable attribute exists in New
+								aiHashNewIET.Add(new(sGuidNewSubNode, aiNewSubNode)); //document that the serializable attribute exists in New
 
-								if (laiPrev is not null)
-								{   //look for Prev subNode attribute match in laiPrev
-									var aiPrev = laiPrev.FirstOrDefault(aiPrev => aiPrev.Name == aiNew.Name);  //TODO: can be optimized to remove Linq
+								if (laiPrevSubNode is not null)
+								{   //look for Prev subNode serialized-attribute match in laiPrevSubNode
+									var aiPrevSubNode = laiPrevSubNode.FirstOrDefault(aiPrev => aiPrev.Name == aiNewSubNode.Name);  //TODO: can be optimized to remove Linq
 
-									if (aiPrev != default) //matching serialized attributes were found on the Prev subNode
+									//COMPARE ATTRIBUTES
+
+									if (aiPrevSubNode != default) 
+									//a matching serialized attribute (represented by aiPrevSubNode) was found on the Prev subNode.  It matches aiNewSubNode
 									{
-										aiHashPrevIET.Add(new(sGuidNew, aiPrev)); //document that the serializable attribute exists in Prev
+										aiHashPrevIET.Add(new(sGuidNewSubNode, aiPrevSubNode)); //document that the serializable attribute exists in the matching node from  Prev tree
 
-										if (aiPrev.ValueString != aiNew.ValueString) //See if the attribute values match;
-																					 //TODO: could perhaps make this more efficient by doing direct compare of value types, instead of using ToString()
+										if (aiPrevSubNode.ValueString != aiNewSubNode.ValueString) //See if the attribute values match;  
 										{
-											laiDif.Add(new AttInfoDif(sGuidNew, aiPrev, aiNew));
+											laiDifSubNodes.Add(new AttInfoDif(sGuidNewSubNode, aiPrevSubNode, aiNewSubNode));
 											isAttListChanged = true;
 										}
 									}
-									else //if (aiPrev == default) //a matching serialized attribute was NOT found on the Prev subNode
+									else //if (aiPrevSubNode == default) //a matching serialized attribute was NOT found on the Prev subNode
 									{
-										//The Prev subNode does exist here.
-										//aiPrev has default value -  so, the aiPrev attribute on the Prev subNode is not serialized (i.e., it's missing or at default tvalue) 
-										laiDif.Add(new AttInfoDif(sGuidNew, default, aiNew));
-										isAttListChanged = true;
+										//The Prev subNode does exist here, but all its attributes are at default values.
+										//aiPrevSubNode has default value -  so, the aiPrevSubNode attribute on the Prev subNode is not serialized (i.e., it's missing or at default tvalue) 
+										if (aiNewSubNode.ValueString is not null
+										&& aiNewSubNode.ValueString != aiNewSubNode.DefaultValueString
+										&& aiNewSubNode.Value != aiNewSubNode.DefaultValue)
+										{
+											laiDifSubNodes.Add(new AttInfoDif(sGuidNewSubNode, default, aiNewSubNode));
+											isAttListChanged = true;
+										}
 									}
 								}
-								else //sGuidNew does not match a list of filled Prev attributes (laiPrev) on a matching Prev subNode (if it exists);
+								else //laiPrevSubNode is null here //sGuidNewSubNode does not match a list of filled Prev attributes (laiPrevSubNode) on a matching Prev subNode (if it exists);
 									 //we probably have a new New **sub**Node here, without a matching Prev **sub**Node
 									 // (i.e., a New-matching Prev subNode does not exist),
-									 // or maybe? it's a subNode with all default attributes (this should not happen here, as laiPrev should still exist, but with no values)
+									 // or maybe? it's a subNode with all default attributes (this should not happen here, as laiPrevSubNode should still exist (not null), but with no values (count = 0))
 								{
-									laiDif.Add(new AttInfoDif(sGuidNew, default, aiNew));
-									isAttListChanged = true;
-									//at present, there is no way to document that the Prev subNode did not exist, but that subNode info is not currently needed.
-									//However, the (non-)existance of the Prev node can be determined easily from Prev Nodes dictionary.
+									laiDifSubNodes.Add(new AttInfoDif(sGuidNewSubNode, null, aiNewSubNode));									
+									//isAttListChanged = true;
 								}
 							}
 
-							var attsRemovedInNew = aiHashPrevIET.Except(aiHashNewIET, eqAttCompare); //Add IEqualityComparer to only look at sGuid and Name; ai.Value is an object, which requires special handling (convert to string before comparing)
+							var attsRemovedInNew = aiHashPrevIET.Except(aiHashNewIET, eqAttCompare); //Uses SdcSerializedAttComparer eqAttCompare to only look at sGuid and Name; ai.Value is an object, which requires special handling (convert to string before comparing)
 
-							//Document the New removed attributes in the laiDif List:
-							//The missing attribute name/value can be found by querying on AttInfoDif.sGuidSubnode, and looking in AttInfoDif.aiPrev.Name and AttInfoDif.aiPrev.Value
+							//Document the New removed attributes in the laiDifSubNodes List:
+							//The missing attribute name/value can be found by querying on AttInfoDif.sGuidSubnode, and looking in AttInfoDif.aiPrevSubNode.Name and AttInfoDif.aiPrevSubNode.Value
 							foreach (var rem in attsRemovedInNew)
 							{
-								laiDif.Add(new AttInfoDif(rem.sGuid,  rem.ai, default));  //note that aiNew is **default**; this indicates that **all** Prev serialized attribute were removed in New
+								laiDifSubNodes.Add(new AttInfoDif(rem.sGuid,  rem.ai, null));  //note that aiNewSubNode is null ; this indicates that Prev does not exist or  **all** Prev serialized attribute were removed in New
 								isAttListChanged = true;
 							}
 
@@ -269,7 +289,7 @@ namespace SDC.Schema.Tests.Utils
 
 
 					}//retrieve a Prev attribute dictionary for each IET node ends here
-					else //could not retrieve a Prev attribute dictionary (dlaiPrev) matching a New IET node, even though the Prev IET node exists;
+					else //could not retrieve a Prev serialized attribute dictionary (dlaiPrevIET) matching a New IET node, even though the Prev IET node exists;
 						 //It should be present even if it has no Key/Value entries.
 						 //If the Prev subNode was null, we would not be here.  See label **PrevSubNodeIsNull**
 					{
@@ -279,13 +299,15 @@ namespace SDC.Schema.Tests.Utils
 				}//Find matching Prev IET node ends here			
 				else //matching ietPrev is not found in Prev Nodes
 				{
-				PrevSubNodeIsNull: isNewIET = true;
+					isNewIET = true;
 				}
 				//finished looking for subNodes with attribute differences, as well as missing subnodes
 				//Construct difNodeIET and add to _dDifNodeIET for each IET node 
 
-				DifNodeIET difNodeIET = new(sGuidIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged, dlaiDif);
-				_dDifNodeIET.AddOrUpdate(sGuidIET, difNodeIET, (sGuidIET, difNodeIET) => difNodeIET);
+				DifNodeIET difNodeIET = new(sGuidNewIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged, 
+					hasAddedSubNodes, hasRemovedSubNodes, addedSubNodes, removedSubNodes, dlaiDifIET);
+
+				_dDifNodeIET.AddOrUpdate(sGuidNewIET, difNodeIET, (sGuidIET, difNodeIET) => difNodeIET);
 
 				//We could also use a ConcurrentBag<(string, DifNodeIET)>, and add nodes to a dictionary after this method completes 
 				//We could also try a regular dictionary with a lock, but that might be slower if there are many Add contentions on the lock - needs testing 
@@ -339,7 +361,7 @@ namespace SDC.Schema.Tests.Utils
 				{
 					foreach (var subNode in sublist)
 					{
-						var lai = SdcUtil.ReflectChildXmlAttributes(subNode);
+						var lai = SdcUtil.ReflectChildXmlAttributes(subNode, false);
 						//Log(subNode, lai);
 						dlai.Add(subNode.sGuid, lai);
 					}
@@ -364,8 +386,80 @@ namespace SDC.Schema.Tests.Utils
 		{ get => new (_IETnodesRemovedInNew); }
 		public ReadOnlyCollection<IdentifiedExtensionType> GetIETnodesAddedInNew
 		{ get => new (_IETnodesAddedInNew); }
+
+		/// <summary>
+		/// Find IET sub-nodes from <see cref="PrevVersion"/> that were added in <see cref="NewVersion"/>.<br/>
+		/// The function expects an sGuid for an <see cref="IdentifiedExtensionType"/> node from <see cref="NewVersion"/>.<br/>
+		/// If a matching IET node exists in <see cref="PrevVersion"/>, it returns a list of any of the IET's <br/>
+		/// <see cref="NewVersion"/> sub-nodes that were added to (i.e., not found in) <see cref="PrevVersion"/>.
+		/// </summary>
+		/// <param name="sGuidIETnew">sGuid of the new IET node sub-tree to examine.</param>
+		/// <returns>Null, if no matching previous IET node exists in <see cref="PrevVersion"/>.<br/>
+		/// Empty List&lt;BaseType>, if a matching previous IET node exists in <see cref="PrevVersion"/>, but no added nodes were found.<br/>
+		/// Otherwise, returns List&lt;BaseType> containing added IET sub-nodes that were not present in <see cref="PrevVersion"/>.
+		/// </returns>
+		public List<BaseType>? GetAddedIETsubNodes(ShortGuid sGuidIETnew)
+		{
+			//Get added nodes:
+			//Get ietNew node from sGuidIETnew
+			//Get list of ietNew descendants(ietNewSubNodes)
+			//	For each newSubNode, look in _prevVersion.Nodes for matches
+			//		For each missing prevSubNode, add newSubNode to the addedSubNodes
+
+			if (_newVersion.Nodes.TryGetValue(ShortGuid.Decode(sGuidIETnew), out BaseType? btNew)
+				&& btNew is IdentifiedExtensionType ietNew)
+			{
+				var addedSubNodes = new List<BaseType>();
+				var ietNewSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietNew, -1, 0, false);
+				foreach (var newSubNode in ietNewSubNodes)
+				{
+					if (!_prevVersion.Nodes.TryGetValue(ShortGuid.Decode(newSubNode.sGuid), out _))
+						addedSubNodes.Add(newSubNode);
+				}
+				return addedSubNodes;
+			}
+			return null; //no matching ietPrev node was present in _prevVersion	
+		}
+		/// <summary>
+		/// Find IET sub-nodes from <see cref="PrevVersion"/> that are no longer present in <see cref="NewVersion"/>.<br/>
+		/// The function expects an sGuid for an <see cref="IdentifiedExtensionType"/> node from <see cref="NewVersion"/>.<br/>
+		/// If a matching IET node exists in <see cref="PrevVersion"/>, it returns a list of any of the IET's <br/>
+		/// <see cref="PrevVersion"/> sub-nodes that were removed from (i.e., not found in) <see cref="NewVersion"/>.
+		/// </summary>
+		/// <param name="sGuidIETnew">sGuid of the new IET node sub-tree to examine.</param>
+		/// <returns>Null, if no matching previous IET node exists in <see cref="PrevVersion"/>.<br/>
+		/// Empty List&lt;BaseType>, if a matching previous IET node exists in <see cref="PrevVersion"/>, but no removed nodes were found.<br/>
+		/// Otherwise, returns List&lt;BaseType> containing removed IET sub-nodes that were present in <see cref="PrevVersion"/>.
+		/// </returns>
+		public List<BaseType>? GetRemovedIETsubNodes(ShortGuid sGuidIETnew)
+		{
+			//Get removed nodes:
+			//Get matching ietPrev node from sGuidIETnew
+			//Get list of ietPrev descendants(ietPrevSubNodes)
+			//	For each prevSubNode, look in _newVersion.Nodes
+			//		For each missing newSubNode, add prevSubNode to removedSubNodes
+
+			if (_prevVersion.Nodes.TryGetValue(ShortGuid.Decode(sGuidIETnew), out BaseType? btPrev)
+				&& btPrev is IdentifiedExtensionType ietPrev )
+				{
+					var removedSubNodes = new List<BaseType>();
+					var ietPrevSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietPrev, -1, 0, false);
+					foreach (var prevSubNode in ietPrevSubNodes)
+					{
+						if (!_newVersion.Nodes.TryGetValue(ShortGuid.Decode(prevSubNode.sGuid), out _))
+							removedSubNodes.Add(prevSubNode);
+					}
+					return removedSubNodes;
+				}
+			return null; //no matching ietPrev node was present in _prevVersion			
+		}
+
+
+
+
 		public ReadOnlyCollection<BaseType> GetNodesRemovedInNew
 		{ get => new(_nodesRemovedInNew); }
+
 		public ReadOnlyCollection<BaseType> GetNodesAddedInNew
 		{ get => new(_nodesAddedInNew); }
 		public DifNodeIET? GetIETattributes(IdentifiedExtensionType IETnode)

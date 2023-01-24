@@ -3,6 +3,7 @@ using SDC.Schema;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
@@ -21,28 +22,27 @@ namespace SDC.Schema
 		/// A default value of "AAAAAAAAAAAAAAAAAAAAAA" for <paramref name="sGuid"/> indicates that the attribute does not exist because its SDC node (with a default sGuid value) does not exist.<br/>
 		/// If the <paramref name="sGuid"/> is valid, the node exists, but the attribute either does not exist, or is present at its default value.
 		/// </summary>
-		/// <param name="parentNode"></param>
+		/// <param name="node">The SDC node that is the subject of this record</param>
 		/// <param name="sGuid">The ShortGuid (sGuid) property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.</param>
 		/// <param name="attributeValue">The value of this attribute instance.</param>
 		/// <param name="attributePropInfo">The PropertyInfo object that describes this attribute on its parent object node (which is represented by SdcElementNodeSguid).</param>
 		/// <param name="order">The serialized ordinal position of the attribute in the current element</param>
 		/// <param name="name">The name of the property, and the text of the attribute as it will appear in XML</param>
-		public AttributeInfo(BaseType? parentNode,
-			ShortGuid sGuid,
+		public AttributeInfo(BaseType node,
 			object? attributeValue,
 			PropertyInfo? attributePropInfo,
 			int order,
 			string? name = null)
 		{
-			if (sGuid == "AAAAAAAAAAAAAAAAAAAAAA" || attributePropInfo is null)
-			{ this.IsEmpty = true; }
-			else IsEmpty = false;
-			var parentIETNode = parentNode?.ParentIETnode;
-			this.sGuid = sGuid;
-			this.ParentNodesGuid = parentNode?.sGuid;
-			this.ParentIETNodesGuid = parentIETNode?.sGuid;
-			this.ParentNodeObjectID = parentNode?.ObjectID ?? 0;
+			this.sGuid = node.sGuid;
+			var par = node.ParentNode;			
+			this.ParentNodesGuid = par?.sGuid;
+			this.ParentNodeObjectID = par?.ObjectID;
+
+			var parentIETNode = node.ParentIETnode;
+			this.ParentIETNodesGuid = parentIETNode?.sGuid;			
 			this.ParentIETNodeObjectID = parentIETNode?.ObjectID;
+
 			this.Value = attributeValue;
 			this.ValueString = attributeValue?.ToString();
 
@@ -64,19 +64,14 @@ namespace SDC.Schema
 
 
 		/// <summary>
-		/// The PropertyInfo object that describes this attribute on its parent object node (which is represented by SdcElementNodeSguid).
+		/// Name of the attribute, as it will appear in XML
 		/// </summary>
-		public PropertyInfo? AttributePropInfo { get; }
+		public string? Name { get; }
 
 		/// <summary>
 		/// The value of this attribute instance.
 		/// </summary>
 		public object? Value { get; }
-
-		/// <summary>
-		/// String version of Value
-		/// </summary>
-		public string? ValueString { get; }
 
 		/// <summary>
 		/// The value of the DefaultValueAttribute which is present on some XML attribute properties.
@@ -85,9 +80,15 @@ namespace SDC.Schema
 		public object? DefaultValue { get; }
 
 		/// <summary>
+		/// String version of Value
+		/// </summary>
+		public string? ValueString { get; }
+
+		/// <summary>
 		/// String version of DefaultValue
 		/// </summary>
 		public string? DefaultValueString { get; }
+		public ShortGuid? sGuid { get; }
 
 		/// <summary>
 		/// The ShortGuid property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.
@@ -98,7 +99,7 @@ namespace SDC.Schema
 		/// The ObjectID property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.
 		/// The ObjectID can be used to retrieve an SDC object, while not holding an object reference inside this struct.
 		/// </summary>
-		public int ParentNodeObjectID { get; }
+		public int? ParentNodeObjectID { get; }
 
 
 		/// <summary>
@@ -113,22 +114,22 @@ namespace SDC.Schema
 		/// The ParentIETNode may be null, generating a null value for ParentIETNodeObjectID.
 		/// </summary>
 		public int? ParentIETNodeObjectID { get; }
-
-
-		/// <summary>
-		/// Name of the attribute, as it will appear in XML
-		/// </summary>
-		public string? Name { get; }
 		/// <summary>
 		/// The serialized ordinal position of the attribute in the current element
 		/// </summary>
 		public int Order { get; }
-		public ShortGuid? sGuid { get; }
+
+
 		/// <summary>
-		/// If true, then the source node's sGuid is populated, then the attribute is not serialized, and all other fields are uninitialized. <br/>
-		/// if sGuid has a default value ("AAAAAAAAAAAAAAAAAAAAAA"), then the node is also null.  This is a default value for this struct. 
+		/// The PropertyInfo object that describes this attribute on its parent object node (which is represented by SdcElementNodeSguid).
 		/// </summary>
-		public bool IsEmpty { get; }
+		public PropertyInfo? AttributePropInfo { get; }
+
+		/// <summary>
+		/// If true, if the source node's sGuid is populated, then the attribute is not serialized, and all other fields are uninitialized. <br/>
+		/// if sGuid is null or has a default value ("AAAAAAAAAAAAAAAAAAAAAA"), then the node is also null.  This is a default value for a <see cref="ShortGuid"/>. 
+		/// </summary>
+		//public bool? IsEmpty { get; }
 
 	}
 	/// <summary>
@@ -265,7 +266,7 @@ namespace SDC.Schema
 	public readonly record struct AttInfoDif
 	{
 
-		public AttInfoDif(string sGuidSubnode, AttributeInfo aiPrev, AttributeInfo aiNew)
+		public AttInfoDif(string sGuidSubnode, AttributeInfo? aiPrev, AttributeInfo? aiNew)
 		{
 			this.sGuidSubnode = sGuidSubnode;
 			this.aiPrev = aiPrev;
@@ -279,11 +280,11 @@ namespace SDC.Schema
 		/// <summary>
 		/// <see cref="AttributeInfo"/> record struct holding attribute information for the compared node in the previous version
 		/// </summary>
-		public readonly AttributeInfo aiPrev;
+		public readonly AttributeInfo? aiPrev;
 		/// <summary>
 		/// <see cref="AttributeInfo"/> record struct holding attribute information for the compared node in the new version
 		/// </summary>
-		public readonly AttributeInfo aiNew;
+		public readonly AttributeInfo? aiNew;
 
 	}
 
@@ -296,6 +297,7 @@ namespace SDC.Schema
 	/// <param name="isNew">True if the node is present in V2 (new version) only</param>
 	/// <param name="isRemoved">True if the node is present in V1 (previous version) only</param>
 	/// <param name="isAttListChanged">True if the node's list of attributes has changed across versions</param>
+	/// <param name="hasNewSubNodes">True if the node has gained new sub-nodes</param>
 	/// <param name="dlaiDif">This dictionary is used to look up attribute changes (as a <see cref="AttInfoDif"/> struct) <br/> 
 	/// across new and previous node versions, using the subnode sGuid as the dictionary key.</param>
 	public readonly record struct DifNodeIET( //init auto-implemented syntax
@@ -304,7 +306,11 @@ namespace SDC.Schema
 			bool isMoved, //prev sibling node has changed		
 			bool isNew, //Node present in V2 only			
 			bool isRemoved, //Node present in V1 only
-			bool isAttListChanged,
+			bool isAttListChanged, //one or more of the node's XML attributes have changed
+			bool hasAddedSubNodes, //Node has gained new sub-nodes
+			bool hasRemovedSubNodes, //Node has removed sub-nodes
+			List<BaseType>? addedSubNodes,
+			List<BaseType>? removedSubNodes,
 			Dictionary<string, List<AttInfoDif>> dlaiDif //in case we need to look up attribute Diffs by subnode sGuid
 			)
 	{ };

@@ -11,7 +11,7 @@ namespace SDC.Schema.Tests
 
 	public class Setup
 	{
-		private static string? _fileFolderPath;
+		private static string _fileFolderPath;
 		private static FormDesignType? _BreastInvasive;
 		private static FormDesignType? _Adrenal;
 		private static RetrieveFormPackageType? _SampleSDCPackage;
@@ -52,19 +52,14 @@ namespace SDC.Schema.Tests
 			//Files for CompareTrees
 			Setup.BreastStagingTestV1_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "BreastStagingTest2v1.xml"));
 			Setup.BreastStagingTestV2_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "BreastStagingTest2v2.xml"));
+			Setup.BreastStagingTestV3_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "BreastStagingTest2v3.xml"));
+			//Setup.BreastStagingTestV4_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "BreastStagingTest2v4.xml"));
+			//Setup.BreastStagingTestV5_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "BreastStagingTest2v5.xml"));
+
 			Setup.DefaultValsV1_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "DefaultValsTest2v1.xml"));
-			Setup.DefaultValsV2_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "DefaultValsTest2v2.xml"));
-
-
 
 		}
 		#endregion
-
-		static Setup()
-		{
-			Reset();
-			//Reset();
-		}
 
 		public static void Reset()
 		{
@@ -86,7 +81,18 @@ namespace SDC.Schema.Tests
 			FD = FormDesignType.DeserializeFromXml(_Xml);
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==Setup finished----------\r\n");
 		}
+		public bool SaveFile(string fileText, string fileName, bool overWriteFile = false)
+		{
+			FileInfo fi = new FileInfo(Path.Combine(_fileFolderPath, fileName));
+			if (!overWriteFile && fi.Exists) return false;
 
+			//File.WriteAllText(_fileFolderPath, fileName);
+			using (TextWriter w = fi.CreateText())
+				w.Write(fileText);
+			
+			fi.Refresh();
+			return true;
+		}
 		public static string? FD_XML { get; private set; }
 		public static string? BreastInvasive_XML { get; private set; }
 		public static string? Adrenal_XML { get; private set; }
@@ -96,6 +102,9 @@ namespace SDC.Schema.Tests
 		//-----------------------------------------------
 		public static string? BreastStagingTestV1_XML { get; private set; }
 		public static string? BreastStagingTestV2_XML { get; private set; }
+		public static string? BreastStagingTestV3_XML { get; private set; }
+		public static string? BreastStagingTestV4_XML { get; private set; }
+		public static string? BreastStagingTestV5_XML { get; private set; }
 		public static string? DefaultValsV1_XML { get; private set; }
 		public static string? DefaultValsV2_XML { get; private set; }
 		//------------------------------------------------
