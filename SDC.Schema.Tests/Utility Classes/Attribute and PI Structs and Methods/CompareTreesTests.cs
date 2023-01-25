@@ -1,8 +1,14 @@
-﻿using CSharpVitamins;
+﻿using BenchmarkDotNet.Disassemblers;
+using CSharpVitamins;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Channels;
 
 namespace SDC.Schema.Tests.Utils
 {
@@ -53,8 +59,15 @@ namespace SDC.Schema.Tests.Utils
 		[TestMethod()]
 		public void ChangeNewVersionTest()
 		{
+			//TODO:
+			//Show Element Names on all nodes, incl subnodes
+			//Changed Atts: False: this does not roll up changes from subnodes; change to true for subnodes?
+			//Remove "Deleted Node" - will never be populated
+
+
+
 			InitV1V2();
-			string xNew = Setup.BreastStagingTestV3_XML!;
+			string xNew = Setup.BreastStagingTestV4_XML!;
 			FormDesignType tNew = FormDesignType.DeserializeFromXml(xNew);
 			FormDesignType tPrev = comparer!.PrevVersion;
 			comparer!.NewVersion = tNew;
@@ -68,7 +81,7 @@ namespace SDC.Schema.Tests.Utils
 			Console.WriteLine("------------------------------------Changed Nodes:------------------------------------");
 
 			IOrderedEnumerable<DifNodeIET> dDifNodeIET = comparer.GetIETattDiffs?.Values.OrderBy(difNodeIET => tNew.Nodes[ShortGuid.Decode(difNodeIET.sGuidIET)].order)!;
-			
+
 			foreach (DifNodeIET n in dDifNodeIET)  //Process all IET nodes that have some kind of change
 			{
 				var newNodeIET = tNew.Nodes[ShortGuid.Decode(n.sGuidIET)];
@@ -78,41 +91,71 @@ namespace SDC.Schema.Tests.Utils
 
 				if (n.isAttListChanged || n.isNew || n.isRemoved || n.isParChanged || n.isMoved || n.hasAddedSubNodes || n.hasRemovedSubNodes)
 				{
-					Console.WriteLine($"IET_Node NameNew: {newNodeIET.name}\t\tNamePrev: {prevSubNodeIET?.name}\t\tsGuid: {newNodeIET.sGuid} ");
+					Console.WriteLine($"IET: {(newNodeIET.ElementName).PadRight(25)}NameNew: {newNodeIET.name}\t\tNamePrev: {prevSubNodeIET?.name}\t\tsGuid: {newNodeIET.sGuid} ");
 
 					Console.WriteLine(
 						$"\tChanged Atts:   {n.isAttListChanged}\tNew Node:         {n.isNew}\t\tDeleted Node: {n.isRemoved}\r\n" +
 						$"\tParent Changed: {n.isParChanged}\tMoved:            {n.isMoved}\t\tOrder:        {newNodeIET.order}\r\n" +
 						$"\tNew SubNodes:   {n.hasAddedSubNodes} \tRemoved SubNodes: {n.hasRemovedSubNodes}");
+					
 					if (n.dlaiDif.Values.Count == 0) Console.WriteLine($"\tNo SubNodes present");
 
-					foreach (var laiDif in n.dlaiDif.Values)
+					if (n.addedSubNodes is not null)
 					{
-						//?Do we need to add Empty structs to DifNodeIET for added/removed/changed sub-nodes?  
-						//?Or create a DifNodeIET struct for subnodes too (a DifNodeSub struct)?
+						if (n.addedSubNodes.Count > 0)
+						{
+							Console.WriteLine("\r\n\tAdded SubNodes:");
+							foreach (var asn in n.addedSubNodes)
+							{
+								Console.WriteLine($"\t\tSubNode {(asn.ElementName + ":").PadRight(30)}Name: {(asn.name).PadRight(20)}sGuid: {asn.sGuid}");
+							}
+							Console.WriteLine();
+						}
+					}
 
-						if (laiDif.Count() == 0) Console.WriteLine();
-						int i = 0;
-						foreach (var aiDif in laiDif) 
-						{	//retrieve only those subNodes with serialized attributes
+					if (n.removedSubNodes is not null)
+					{
+						if (n.removedSubNodes.Count > 0)
+						{
+							Console.WriteLine("\r\n\tRemoved SubNodes:");
+							foreach (var rsn in n.removedSubNodes)
+							{
+								Console.WriteLine($"\t\tSubNode {(rsn.ElementName + ":").PadRight(30)}Name: {(rsn.name).PadRight(20)}sGuid: {rsn.sGuid}");
+							}
+							Console.WriteLine();
+						}
+					}
 
-							if (i++ == 0) Console.WriteLine();
+
+					string subNodesGuid = "";
+					//foreach (var laiDif in n.dlaiDif.Values)
+					foreach (var kvDif in n.dlaiDif)
+
+					{
+						var laiDif = kvDif.Value;
+
+						if (laiDif.Count() > 0) 
+							Console.Write("\tSubNodes with Attribute Changes:");
+						foreach (var aiDif in laiDif)
+						{   //retrieve only those subNodes with serialized attributes
+
+							//if (i++ == 0) 
+								//Console.WriteLine();
 							var newSubNode = tNew.Nodes[ShortGuid.Decode(aiDif.sGuidSubnode)];
 							tPrev.Nodes.TryGetValue(ShortGuid.Decode(aiDif.sGuidSubnode), out var prevSubNode);
 							//new and changed serialized attributes go here
+							if (subNodesGuid != newSubNode.sGuid)
+								Console.WriteLine($"\r\n\t\tSubNode {newSubNode.ElementName} \tName: {newSubNode.name} \tNamePrev: {prevSubNode?.name}\tsGuid: {newSubNode.sGuid}");
 
-							Console.WriteLine($"\t\tSubNode NameNew_: {newSubNode.name} \tNamePrev: {prevSubNode?.name}\tsGuid: {newSubNode.sGuid}");
+							if (aiDif.aiNew is not null) Console.WriteLine($"\t\t\tNewAtt: {(aiDif.aiNew.Value.Name + "").PadRight(20)} Val: {(aiDif.aiNew.Value.Value + "").PadRight(20)}DefVal: {aiDif.aiNew.Value.DefaultValue}\t\tAttOrder: {aiDif.aiNew.Value.Order}");
+							if (aiDif.aiPrev is not null) Console.WriteLine($"\t\t\tPrevAtt: {(aiDif.aiPrev.Value.Name + "").PadRight(20)} Val: {(aiDif.aiPrev.Value.Value + "").PadRight(20)}DefVal: {aiDif.aiPrev.Value.DefaultValue}\t\tAttOrder: {aiDif.aiPrev.Value.Order}");
 
-							if (aiDif.aiNew is not null) Console.WriteLine($"\t\tNew: {aiDif.aiNew}");
-							if (aiDif.aiPrev is not null) Console.WriteLine($"\t\tPrev: {aiDif.aiPrev}");
-
-							Console.WriteLine();
-						}						
+							subNodesGuid = newSubNode.sGuid;
+						}
 					}
+					Console.WriteLine();
 				}
 			}
-
-
 		}
 
 		[TestMethod()]
@@ -132,7 +175,7 @@ namespace SDC.Schema.Tests.Utils
 			//"PdQi6PiXV06AIv-Tvlh5Xw"  Property
 			//"BlNOOWghDkiN4FHoAjXlbA"  ListItem
 			ShortGuid sg = "BlNOOWghDkiN4FHoAjXlbA";
-			DifNodeIET a = comparer!.GetIETattributes(sg)??default;
+			DifNodeIET a = comparer!.GetIETattributes(sg) ?? default;
 			DifNodeIET2 b = new();
 
 			Assert.AreEqual(a, default(DifNodeIET));

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace SDC.Schema
 {
 	/// <summary>
-	/// Compare 2 AttributeInfo structs based on sGuid and Name
+	/// Compare 2 AttributeInfo structs based on sGuid and the XML attribute Name.
 	/// </summary>
 	public class SdcSerializedAttComparer : EqualityComparer<SdcSerializedAtt>
 	{

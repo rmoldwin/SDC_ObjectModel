@@ -18,16 +18,13 @@ namespace SDC.Schema
 	public readonly record struct AttributeInfo
 	{
 		/// <summary>
-		/// Constructor for <see cref="AttributeInfo"/><br/>
-		/// A default value of "AAAAAAAAAAAAAAAAAAAAAA" for <paramref name="sGuid"/> indicates that the attribute does not exist because its SDC node (with a default sGuid value) does not exist.<br/>
-		/// If the <paramref name="sGuid"/> is valid, the node exists, but the attribute either does not exist, or is present at its default value.
+		/// Holds information for one XML attribute of the supplied SDC node parameter/>
 		/// </summary>
-		/// <param name="node">The SDC node that is the subject of this record</param>
-		/// <param name="sGuid">The ShortGuid (sGuid) property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.</param>
+		/// <param name="node">The SDC node that is the subject of this record.</param>
 		/// <param name="attributeValue">The value of this attribute instance.</param>
 		/// <param name="attributePropInfo">The PropertyInfo object that describes this attribute on its parent object node (which is represented by SdcElementNodeSguid).</param>
-		/// <param name="order">The serialized ordinal position of the attribute in the current element</param>
-		/// <param name="name">The name of the property, and the text of the attribute as it will appear in XML</param>
+		/// <param name="order">The serialized ordinal position of the attribute in the current element.</param>
+		/// <param name="name">The name of the property, and the text of the attribute as it will appear in XML.</param>
 		public AttributeInfo(BaseType node,
 			object? attributeValue,
 			PropertyInfo? attributePropInfo,
@@ -35,7 +32,7 @@ namespace SDC.Schema
 			string? name = null)
 		{
 			this.sGuid = node.sGuid;
-			var par = node.ParentNode;			
+			BaseType? par = node.ParentNode;			
 			this.ParentNodesGuid = par?.sGuid;
 			this.ParentNodeObjectID = par?.ObjectID;
 
@@ -64,7 +61,7 @@ namespace SDC.Schema
 
 
 		/// <summary>
-		/// Name of the attribute, as it will appear in XML
+		/// Name of the attribute, as it will appear in XML.
 		/// </summary>
 		public string? Name { get; }
 
@@ -80,14 +77,17 @@ namespace SDC.Schema
 		public object? DefaultValue { get; }
 
 		/// <summary>
-		/// String version of Value
+		/// String version of Value.
 		/// </summary>
 		public string? ValueString { get; }
 
 		/// <summary>
-		/// String version of DefaultValue
+		/// String version of DefaultValue.
 		/// </summary>
 		public string? DefaultValueString { get; }
+		/// <summary>
+		/// ShortGuid (sGuid) for the SDC node.
+		/// </summary>
 		public ShortGuid? sGuid { get; }
 
 		/// <summary>

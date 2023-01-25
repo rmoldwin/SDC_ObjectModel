@@ -1,11 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <FormDesign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="urn:ihe:qrph:sdc:2016 ../../../sdc-schema-package/SDCFormDesign.xsd" xmlns="urn:ihe:qrph:sdc:2016"
- xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="FD_ydYyII" sGuid="ydYyIIaYx06C9NlTO6ZVfA" order="0"
- ID="Breast.Invasive.Bx.Res.359_.CTP9_sdcFDF" baseURI="cap.org" formTitle="Breast Cancer Staging Calculator"
+ xsi:schemaLocation="urn:ihe:qrph:sdc:2016 SDC%20Schema%20Files/SDCFormDesign.xsd"
+ xmlns="urn:ihe:qrph:sdc:2016" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="FD_ydYyII"
+ sGuid="ydYyIIaYx06C9NlTO6ZVfA" order="0" ID="Breast.Invasive.Bx.Res.359_.CTP9_sdcFDF"
+ baseURI="cap.org" formTitle="Breast Cancer Staging Calculator"
  filename="Breast.Ca.Stg.Calc.359_CTP9_sdcFDF.xml"
- fullURI="_baseURI=cap.org&amp;_lineage=Breast.Ca.Stg.Calc.359&amp;_version=.CTP9&amp;_docType=sdcFDF" version="CTP9"
- lineage="Breast.Ca.Stg.Calc.359">
+ fullURI="_baseURI=cap.org&amp;_lineage=Breast.Ca.Stg.Calc.359&amp;_version=.CTP9&amp;_docType=sdcFDF"
+ version="CTP9" lineage="Breast.Ca.Stg.Calc.359">
   <Property name="p_SaveStat_ydYyII_1" sGuid="7U4Qwj2zBESIMa8eKKfKnA" order="10" propName="SaveState" val="New" />
   <Property name="p_Copyrigh_ydYyII_2" type="CAPeCC_static_text" styleClass="copyright" sGuid="U5LsMI4VFkSxxqBIfDMv2A" order="20" propName="Copyright" val="(c) 2018 College of American Pathologists. All rights reserved. License required for use." />
   <Property name="p_GenericH_ydYyII_3" type="CAPeCC_static_text" sGuid="i93Fq-hFbE-g4IVMA-TGtg" order="30" propName="GenericHeaderText" val="Breast Cancer Staging Calculator" />
@@ -82,12 +83,7 @@
                   </ChildItems>
                 </ListItem>
                 <ListItem name="LI_41284" sGuid="t6xPFRjcrkKxwMXRq7H4YA" order="550" ID="41284.100004300" title="cT0: No evidence of primary tumor" associatedValue="cT0">
-                  <Property name="p_reportTe_41284_1" sGuid="XTrF-ziBfESg1AlbrdjNOA" order="560" propName="reportText" val="cT0" />
-                  <ListItemResponseField name="lirf_41284_2" type="---TEST--- responseRequired.true" sGuid="p9t6lqVnTECqwmMy5UsiQQ" order="570" responseRequired="true">
-                    <Response name="rsp_41284_3" sGuid="zgKgOrGRSkWZ28sqQehxrA" order="580">
-                      <int name="int_41284_4" type="---TEST--- allowAPPROX.true quantEnum.GTE maxExclusive.3 minExclusive.0 totalDigits.2" sGuid="B7UAj8c23kury1-mIZWIKw" order="590" quantEnum="GTE" minExclusive="0" maxExclusive="3" totalDigits="2" allowAPPROX="true" />
-                    </Response>
-                  </ListItemResponseField>
+
                 </ListItem>
               </List>
             </ListField>
@@ -254,7 +250,14 @@
                   <Question name="QM_59031" sGuid="6HDe9sGOTECkD-NY8q1YEg" order="1590" ID="59031.100004300" title="Radiologic Finding">
                     <ListField name="lf_59031_1" sGuid="SODcXlInwkOQyK1CsKAHDA" order="1600" maxSelections="0">
                       <List name="lst_59031_2" sGuid="QQ34WjN1WU63CG2iOsmtvQ" order="1610">
-                        <ListItem name="LI_40654" sGuid="lmxweaPWI0W5tUPPegM0Qw" order="1620" ID="40654.100004300" title="Mass or architectural distortion" />
+                        <ListItem name="LI_40654" sGuid="lmxweaPWI0W5tUPPegM0Qw" order="1620" ID="40654.100004300" title="Mass or architectural distortion" >
+                          <Property name="p_reportTe_41284_1" sGuid="XTrF-ziBfESg1AlbrdjNOA" order="560" propName="reportText" val="cT0" />
+                          <ListItemResponseField name="lirf_41284_2" type="---TEST--- responseRequired.true" sGuid="p9t6lqVnTECqwmMy5UsiQQ" order="570" responseRequired="true">
+                            <Response name="rsp_41284_3" sGuid="zgKgOrGRSkWZ28sqQehxrA" order="580">
+                              <int name="int_41284_4" type="---TEST--- allowAPPROX.true quantEnum.GTE maxExclusive.3 minExclusive.0 totalDigits.2" sGuid="B7UAj8c23kury1-mIZWIKw" order="590" quantEnum="GTE" minExclusive="0" maxExclusive="3" totalDigits="2" allowAPPROX="true" />
+                            </Response>
+                          </ListItemResponseField>
+                        </ListItem>
                         <ListItem name="LI_52061" sGuid="CDJfn5EANUyoiBHcUqlk2w" order="1630" ID="52061.100004300" title="Calcifications" />
                         <ListItem name="LI_39698" sGuid="M4ObTM4RaUevCPei1YiQaw" order="1640" ID="39698.100004300" title="Other (specify)">
                           <Property name="p_reportTe_39698_1" sGuid="ND8BsmAAQkS4vbdDvyNN4w" order="1650" propName="reportText" val="{no text}" />
