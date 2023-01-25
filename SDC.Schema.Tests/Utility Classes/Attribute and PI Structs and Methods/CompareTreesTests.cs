@@ -60,14 +60,14 @@ namespace SDC.Schema.Tests.Utils
 		public void ChangeNewVersionTest()
 		{
 			//TODO:
-			//Show Element Names on all nodes, incl subnodes
-			//Changed Atts: False: this does not roll up changes from subnodes; change to true for subnodes?
+			//Show Element Names on all nodes, incl subnodes: DONE
+			//Changed Atts: False: this does not seem to roll up changes from subnodes; change to true if subnodes have changed Atts?
 			//Remove "Deleted Node" - will never be populated
 
 
 
 			InitV1V2();
-			string xNew = Setup.BreastStagingTestV4_XML!;
+			string xNew = Setup.BreastStagingTestV3_XML!;
 			FormDesignType tNew = FormDesignType.DeserializeFromXml(xNew);
 			FormDesignType tPrev = comparer!.PrevVersion;
 			comparer!.NewVersion = tNew;
@@ -78,7 +78,7 @@ namespace SDC.Schema.Tests.Utils
 			Console.WriteLine($"IETnodesAddedInNew.Count: {comparer.GetIETnodesAddedInNew.Count}");
 			Console.WriteLine($"IETattDiffs.Count: {comparer.GetIETattDiffs?.Count}");
 
-			Console.WriteLine("------------------------------------Changed Nodes:------------------------------------");
+			Console.WriteLine("-----------------------------------------------Changed Nodes:-----------------------------------------------");
 
 			IOrderedEnumerable<DifNodeIET> dDifNodeIET = comparer.GetIETattDiffs?.Values.OrderBy(difNodeIET => tNew.Nodes[ShortGuid.Decode(difNodeIET.sGuidIET)].order)!;
 
@@ -91,69 +91,72 @@ namespace SDC.Schema.Tests.Utils
 
 				if (n.isAttListChanged || n.isNew || n.isRemoved || n.isParChanged || n.isMoved || n.hasAddedSubNodes || n.hasRemovedSubNodes)
 				{
-					Console.WriteLine($"IET: {(newNodeIET.ElementName).PadRight(25)}NameNew: {newNodeIET.name}\t\tNamePrev: {prevSubNodeIET?.name}\t\tsGuid: {newNodeIET.sGuid} ");
+					Console.WriteLine($"IET: {(newNodeIET.ElementName).PadRight(30, '=')} Name: {(newNodeIET.name).PadRight(20, '=')} sGuid: {newNodeIET.sGuid}===== NamePrev: {prevSubNodeIET?.name}");
 
 					Console.WriteLine(
-						$"\tChanged Atts:   {n.isAttListChanged}\tNew Node:         {n.isNew}\t\tDeleted Node: {n.isRemoved}\r\n" +
-						$"\tParent Changed: {n.isParChanged}\tMoved:            {n.isMoved}\t\tOrder:        {newNodeIET.order}\r\n" +
-						$"\tNew SubNodes:   {n.hasAddedSubNodes} \tRemoved SubNodes: {n.hasRemovedSubNodes}");
-					
+						$"\tChanged Atts:   {n.isAttListChanged}\tNew Node:         {n.isNew}\r\n" +
+						$"\tParent Changed: {n.isParChanged}\tMoved:            {n.isMoved}\r\n" +
+						$"\tNew SubNodes:   {n.hasAddedSubNodes} \tRemoved SubNodes: {n.hasRemovedSubNodes}\t\tOrder: {newNodeIET.order}");
+
 					if (n.dlaiDif.Values.Count == 0) Console.WriteLine($"\tNo SubNodes present");
 
-					if (n.addedSubNodes is not null)
+					if (n.addedSubNodes is not null) //"added" means added below this IET since the previous version;  If this is a completely new IET node, it will not have added subnodes.
 					{
 						if (n.addedSubNodes.Count > 0)
 						{
 							Console.WriteLine("\r\n\tAdded SubNodes:");
 							foreach (var asn in n.addedSubNodes)
 							{
-								Console.WriteLine($"\t\tSubNode {(asn.ElementName + ":").PadRight(30)}Name: {(asn.name).PadRight(20)}sGuid: {asn.sGuid}");
+								Console.WriteLine($"\t\tSubNode {(asn.ElementName).PadRight(30)}Name: {(asn.name).PadRight(20)}sGuid: {asn.sGuid}");
 							}
 							Console.WriteLine();
 						}
 					}
 
-					if (n.removedSubNodes is not null)
+					if (n.removedSubNodes is not null)//"removed" means removed below this IET since the previous version;  If this is a completely new IET node, it will not have removed subnodes.
 					{
-						if (n.removedSubNodes.Count > 0)
 						{
-							Console.WriteLine("\r\n\tRemoved SubNodes:");
-							foreach (var rsn in n.removedSubNodes)
+							if (n.removedSubNodes.Count > 0)
 							{
-								Console.WriteLine($"\t\tSubNode {(rsn.ElementName + ":").PadRight(30)}Name: {(rsn.name).PadRight(20)}sGuid: {rsn.sGuid}");
+								Console.WriteLine("\r\n\tRemoved SubNodes:");
+								foreach (var rsn in n.removedSubNodes)
+								{
+									Console.WriteLine($"\t\tSubNode {(rsn.ElementName).PadRight(30)}Name: {(rsn.name).PadRight(20)}sGuid: {rsn.sGuid}");
+								}
+								Console.WriteLine();
 							}
-							Console.WriteLine();
 						}
-					}
 
 
-					string subNodesGuid = "";
-					//foreach (var laiDif in n.dlaiDif.Values)
-					foreach (var kvDif in n.dlaiDif)
+						string subNodesGuid = "";
+						//foreach (var laiDif in n.dlaiDif.Values)
+						foreach (var kvDif in n.dlaiDif)
 
-					{
-						var laiDif = kvDif.Value;
+						{
+							var laiDif = kvDif.Value;
 
-						if (laiDif.Count() > 0) 
-							Console.Write("\tSubNodes with Attribute Changes:");
-						foreach (var aiDif in laiDif)
-						{   //retrieve only those subNodes with serialized attributes
+							if (laiDif.Count() > 0)
+								Console.Write("\tSubNodes with Attribute Changes:");
+							foreach (var aiDif in laiDif)
+							{   //retrieve only those subNodes with serialized attributes
 
-							//if (i++ == 0) 
+								//if (i++ == 0) 
 								//Console.WriteLine();
-							var newSubNode = tNew.Nodes[ShortGuid.Decode(aiDif.sGuidSubnode)];
-							tPrev.Nodes.TryGetValue(ShortGuid.Decode(aiDif.sGuidSubnode), out var prevSubNode);
-							//new and changed serialized attributes go here
-							if (subNodesGuid != newSubNode.sGuid)
-								Console.WriteLine($"\r\n\t\tSubNode {newSubNode.ElementName} \tName: {newSubNode.name} \tNamePrev: {prevSubNode?.name}\tsGuid: {newSubNode.sGuid}");
+								var newSubNode = tNew.Nodes[ShortGuid.Decode(aiDif.sGuidSubnode)];
+								tPrev.Nodes.TryGetValue(ShortGuid.Decode(aiDif.sGuidSubnode), out var prevSubNode);
+								//new and changed serialized attributes go here
+								if (subNodesGuid != newSubNode.sGuid)
+									Console.WriteLine($"\r\n\t\tSubNode {(newSubNode.ElementName).PadRight(30)}Name: {(newSubNode.name).PadRight(20)}sGuid: {newSubNode.sGuid}\tNamePrev: {prevSubNode?.name}");
 
-							if (aiDif.aiNew is not null) Console.WriteLine($"\t\t\tNewAtt: {(aiDif.aiNew.Value.Name + "").PadRight(20)} Val: {(aiDif.aiNew.Value.Value + "").PadRight(20)}DefVal: {aiDif.aiNew.Value.DefaultValue}\t\tAttOrder: {aiDif.aiNew.Value.Order}");
-							if (aiDif.aiPrev is not null) Console.WriteLine($"\t\t\tPrevAtt: {(aiDif.aiPrev.Value.Name + "").PadRight(20)} Val: {(aiDif.aiPrev.Value.Value + "").PadRight(20)}DefVal: {aiDif.aiPrev.Value.DefaultValue}\t\tAttOrder: {aiDif.aiPrev.Value.Order}");
+								if (aiDif.aiNew is not null) Console.WriteLine($"\t\t\tNewAtt: {(aiDif.aiNew.Value.Name + "").PadRight(20)} Val: {(aiDif.aiNew.Value.Value + "").PadRight(20)}DefVal: {aiDif.aiNew.Value.DefaultValue}\t\tAttOrder: {aiDif.aiNew.Value.Order}");
+								if (aiDif.aiPrev is not null) Console.WriteLine($"\t\t\tPrevAtt: {(aiDif.aiPrev.Value.Name + "").PadRight(20)} Val: {(aiDif.aiPrev.Value.Value + "").PadRight(20)}DefVal: {aiDif.aiPrev.Value.DefaultValue}\t\tAttOrder: {aiDif.aiPrev.Value.Order}");
 
-							subNodesGuid = newSubNode.sGuid;
+								subNodesGuid = newSubNode.sGuid;
+							}
 						}
+						//Console.WriteLine();
 					}
-					Console.WriteLine();
+
 				}
 			}
 		}
