@@ -24,6 +24,7 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		[TestMethod]
 		public void GetXmlAttributesAllOneNode()
 		{
+			Setup.Reset();
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 
 			var FD = Setup.FD;
@@ -36,6 +37,7 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		[TestMethod]
 		public void GetXmlAttributesFilledOneNode()
 		{
+			Setup.Reset();
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 
 			var FD = Setup.FD;
@@ -303,6 +305,7 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		[TestMethod()]
 		public void GetDotLevelIET()
 		{
+			Setup.Reset();
 			int i = 0;
 			foreach (var n in Setup.FD.IETnodes)
 			{

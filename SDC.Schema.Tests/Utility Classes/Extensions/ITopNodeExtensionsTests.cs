@@ -114,6 +114,7 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		[TestMethod()]
 		public void GetXmlAttributesFilledTest()
 		{
+			Setup.Reset();
 			var fd = Setup.FD;
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 

@@ -36,6 +36,7 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void MoveListItemInList()
 		{
+			Setup.Reset();
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 			//FD.TopNode.ReorderNodes();
 			var li = Setup.FD.Nodes.Where(n =>
@@ -114,6 +115,7 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void MoveListItemToOtherList()
 		{
+			Setup.Reset();
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 			var li = Setup.FD.Nodes.Where(n =>
 				n.Value is ListItemType liTest &&

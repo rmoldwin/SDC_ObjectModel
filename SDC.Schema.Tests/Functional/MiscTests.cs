@@ -49,6 +49,7 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void GetIetNodesTest()
 		{
+			Setup.Reset();
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 			var FD = Setup.FD;
 			Debug.Print((FD.Nodes.Equals(FD.TopNode.Nodes)).ToString());
@@ -63,6 +64,7 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void GetHtmlItems()
 		{
+			Setup.Reset();
 			var fd = Setup.FD;
 			foreach (var iet in fd.IETnodes)
 			{
