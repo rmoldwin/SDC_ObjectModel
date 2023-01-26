@@ -101,7 +101,7 @@ public class SdcTests
 			{
 				foreach (var subNode in sublist)
 				{
-					var lai = SdcUtil.ReflectChildXmlAttributes(subNode);
+					var lai = SdcUtil.ReflectNodeXmlAttributes(subNode);
 					//Log(subNode, lai);
 					dlai.Add(subNode.sGuid, lai);
 				}

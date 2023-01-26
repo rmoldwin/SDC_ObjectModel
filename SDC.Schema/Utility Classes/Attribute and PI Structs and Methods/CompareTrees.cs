@@ -96,6 +96,7 @@ namespace SDC.Schema.Tests.Utils
 			_slAttNew = GetSerializedXmlAttributesFromTree(_newVersion);
 
 			ComputeAddedRemovedNodes();
+			CompareVersionAttributes();
 		}
 
 		#endregion
@@ -151,6 +152,7 @@ namespace SDC.Schema.Tests.Utils
 			var eqAttCompare = new SdcSerializedAttComparer(); //should be thread-safe
 			var locker = new object();
 			if (_slAttNew is null || _slAttPrev is null) return null;
+			_dDifNodeIET.Clear();
 
 			//With _slAttNew and _slAttPrev, we are only looking at nodes that have attributes that will be serialized to XML.  All other nodes are skipped.
 			//Since we are parellelizing the algorith, the results will not be in node order.  They can be sorted later
@@ -170,7 +172,7 @@ namespace SDC.Schema.Tests.Utils
 				bool hasAddedSubNodes = false;
 				bool hasRemovedSubNodes = false;
 				List<BaseType>? addedSubNodes = null;
-				List<BaseType>? removedSubNodes = null;
+				List<BaseType>? removedSubNodes = null;				
 
 				List<AttInfoDif> laiDifSubNodes = new(); //For each IET node, there is one laiDifSubNodes per subnode (including the IET node)
 				Dictionary<string, List<AttInfoDif>> dlaiDifIET = new();  //the key is the IET sGuid; dlaiDifIET will be added later to difNodeIET, which will then be added to **d**DifNodeIET
@@ -194,7 +196,7 @@ namespace SDC.Schema.Tests.Utils
 				{
 					//if (sGuidNewIET == "WhIrlfe5f0-ukxg8DOyZ7w") Debugger.Break(); //Why is this unchanged LI node flagged with new and removed subNodes?
 					//if (sGuidNewIET == "lmxweaPWI0W5tUPPegM0Qw") Debugger.Break(); //LI Node with new/moved subnodes:  Property and LIRF subnodes from t6xPFRjcrkKxwMXRq7H4YA
-					if (sGuidNewIET == "t6xPFRjcrkKxwMXRq7H4YA") Debugger.Break(); //LI Node with removed subnodes: Property and LIRF subnodes
+					//if (sGuidNewIET == "t6xPFRjcrkKxwMXRq7H4YA") Debugger.Break(); //LI Node with removed subnodes: Property and LIRF subnodes
 
 					//Check for added or removed subnodes, by comparing the the matching ietPrev node:
 					lock (locker) removedSubNodes = GetRemovedIETsubNodes(sGuidNewIET);
@@ -235,7 +237,7 @@ namespace SDC.Schema.Tests.Utils
 							//The first sub-node retrieved is the IET node itself
 							//Check for matching Prev subnode here
 
-							var aiHashPrevIET = new HashSet<SdcSerializedAtt>(eqAttCompare); //holds nodes with serialized attribbutes in Prev that match a node in New; This is not a complete collection of Prev nodes 
+							var aiHashPrevIET = new HashSet<SdcSerializedAtt>(eqAttCompare); //holds nodes with serialized attributes in Prev that match a node in New; This is not a complete collection of Prev nodes 
 							var aiHashNewIET = new HashSet<SdcSerializedAtt>(eqAttCompare);  //holds nodes with serialized attributes in New
 
 							dlaiPrevIET.TryGetValue(sGuidNewSubNode, out var laiPrevSubNode); //Find matching subNode in Prev (using sGuidNewSubNode), and retrieve its serializable attributes (laiPrevSubNode)
@@ -371,7 +373,7 @@ namespace SDC.Schema.Tests.Utils
 				{
 					foreach (var subNode in sublist)
 					{
-						var lai = SdcUtil.ReflectChildXmlAttributes(subNode, false);
+						var lai = SdcUtil.ReflectNodeXmlAttributes(subNode, false);
 						//Log(subNode, lai);
 						dlai.Add(subNode.sGuid, lai);
 					}

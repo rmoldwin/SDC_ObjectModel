@@ -94,7 +94,8 @@ namespace SDC.Schema.Extensions
 		}
 
 		/// <summary>
-		/// For the current node, retrieves a <see cref="List&lt;AttributeInfo>"/> containing <see cref="AttributeInfo"/> (AI) definitions for all XML attributes of the current node that will be serialized to XML. <br/>
+		/// For the current node, retrieves a <see cref="List&lt;AttributeInfo>"/> containing <see cref="AttributeInfo"/> (AI) definitions <br/>
+		/// for all XML attributes of the current node that will be serialized to XML. <br/>
 		/// Each AI struct can be used to obtain the type, name and other features of each attribute.<br/>
 		/// Also, each AI can be used to create a reference to the object by calling the underlying PropertyInfo object:<br/>
 		/// AI.AttributePropInfo.GetValue(parentObject)
@@ -103,8 +104,37 @@ namespace SDC.Schema.Extensions
 		/// <returns><b>List&lt;AttributeInfo></b></returns>
 		public static List<AttributeInfo> GetXmlAttributesSerialized(this BaseType bt)
 		{
-			return SdcUtil.ReflectChildXmlAttributes(bt, getAllXmlAttributes: false);
+			return SdcUtil.ReflectNodeXmlAttributes(bt, getAllXmlAttributes: false);
 		}
+
+		/// <summary>
+		/// For the current node, retrieves a <see cref="List&lt;AttributeInfo>"/> containing <see cref="AttributeInfo"/> (AI) definitions <br/>
+		/// for all XML attributes, of the current node and all of its subnodes, until an IET subnode is encounters. <br/>
+		/// Each AI struct can be used to obtain the type, name and other features of each attribute.<br/>
+		/// Also, each AI can be used to create a reference to the object by calling the underlying PropertyInfo object:<br/>
+		/// AI.AttributePropInfo.GetValue(parentObject)
+		/// </summary>
+		/// <param name="bt"></param>
+		/// <returns></returns>
+		public static List<AttributeInfo> GetIETXmlAttributesSerialized(this IdentifiedExtensionType iet)
+		{
+			var lai = new List<AttributeInfo>();
+			foreach(var n in GetSubtreeIETList(iet))
+			{
+				//if (n.ElementName.Intersect(new {"a"}) is not null)
+				lai.AddRange( SdcUtil.ReflectNodeXmlAttributes(n, getAllXmlAttributes: false));
+			}
+			
+			
+			return lai;
+		}
+
+
+
+
+
+
+
 		/// <summary>
 		/// For the current node, retrieves a <see cref="List&lt;AttributeInfo>"/> containing <see cref="AttributeInfo"/> (AI) definitions <br/>
 		/// for all XML attributes of the current node, whether or not the attributes are populated with values. 
@@ -113,7 +143,7 @@ namespace SDC.Schema.Extensions
 		/// <returns><b>List&lt;AttributeInfo></b> </returns>
 		public static List<AttributeInfo> GetXmlAttributesAll(this BaseType bt)
 		{
-			return SdcUtil.ReflectChildXmlAttributes(bt);
+			return SdcUtil.ReflectNodeXmlAttributes(bt);
 		}
 		/// <summary>
 		/// Retrieve the <see cref="PropertyInfoMetadata"/> struct describing the current node

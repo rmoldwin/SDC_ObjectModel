@@ -1402,7 +1402,7 @@ namespace SDC.Schema
 		/// <param name="attributesToExclude">string array containing the names of SDC XML attributes to omit from the returned List</param>
 		/// <param name="attributesToInclude">string array containing the names of SDC XML attributes to include in the returned List</param>
 		/// <returns> <see cref="List{AttributeInfo}"/> containing the child nodes</returns>
-		public static List<AttributeInfo> X_ReflectChildXmlAttributes(BaseType n
+		private static List<AttributeInfo> X_ReflectChildXmlAttributes(BaseType n
 			, bool getAllXmlAttributes = true
 			, bool omitDefaultValues = true
 			, string[]? attributesToExclude = null
@@ -1548,7 +1548,7 @@ namespace SDC.Schema
 
 
 		private static AttributeMethods attMethods = new ();
-		public static List<AttributeInfo> ReflectChildXmlAttributes(BaseType n
+		public static List<AttributeInfo> ReflectNodeXmlAttributes(BaseType n
 			, bool getAllXmlAttributes = true
 			, bool omitDefaultValues = true
 			, string[]? attributesToExclude = null
@@ -1621,7 +1621,7 @@ namespace SDC.Schema
 							if (sspn is bool shouldSerialize && shouldSerialize) //if(_shouldSerializePropertyName is true);	and pVal does not match its DefaultValueAttribute (i.e., attDefVal)
 							{
 								//Make sure the property does not hold a default value (based on DefaultValueAttribute's Value property)
-								//sspn does NOT overide DefaultValueAttribute setting, the serializer will not produce output if DefaultValueAttribute matches the current value.
+								//sspn (shouldSerializePropertyName) does NOT overide DefaultValueAttribute setting, the serializer will not produce output if DefaultValueAttribute matches the current value.
 								//The only easy way to overide it (force XML output) is to remove the DefaultValueAttribute, or create the serializer with an XmlAttributeOverrides instruction in its constructor
 								//see https://stackoverflow.com/questions/28054335/force-xml-serialization-of-xmldefaultvalue-values, and
 								//https://learn.microsoft.com/en-us/dotnet/api/system.xml.serialization.xmlattributes.xmldefaultvalue?view=net-7.0

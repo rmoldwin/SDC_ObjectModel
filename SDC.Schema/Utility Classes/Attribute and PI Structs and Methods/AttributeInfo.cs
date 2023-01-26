@@ -194,6 +194,7 @@ namespace SDC.Schema
 
 	}
 
+
 	/// <summary>
 	/// public readonly record struct DifNodeIET 
 	/// </summary>
@@ -212,8 +213,8 @@ namespace SDC.Schema
 			bool isMoved, //prev sibling node has changed
 			bool isNew, //Node present in V2 only
 			bool isRemoved, //Node present in V1 only
-			bool isAttListChanged,
-			Dictionary<string, List<AttInfoDif>> dlaiDif //in case we need to look up attribute Diffs by subnode sGuid
+			bool isAttListChanged = true,
+			Dictionary<string, List<AttInfoDif>>? dlaiDif = null //in case we need to look up attribute Diffs by subnode sGuid
 			)
 		{
 			this.sGuidIET = sGuidIET;
@@ -223,6 +224,7 @@ namespace SDC.Schema
 			this.isRemoved = isRemoved;
 			this.isAttListChanged = isAttListChanged;
 			this.dlaiDif = dlaiDif;
+			DifNodeIET2 test = new("", true, true, true, true, true, new()); 
 		}
 		/// <summary>
 		/// sGuid of the IET node
@@ -289,18 +291,23 @@ namespace SDC.Schema
 	}
 
 	/// <summary>
-	/// public readonly record struct DifNodeIET 
+	/// Records the differences, if any, between the current (new) IET node (V2), and a <br/>
+	/// previous version (V1) of that same node (which shares the same sGuid).
 	/// </summary>
 	/// <param name="sGuidIET">sGuid of the IET node</param>
-	/// <param name="isParChanged">Tre if the parent node has changed</param>
+	/// <param name="isParChanged">True if the parent node has changed</param>
 	/// <param name="isMoved">True if the prev sibling node has changed</param>
 	/// <param name="isNew">True if the node is present in V2 (new version) only</param>
 	/// <param name="isRemoved">True if the node is present in V1 (previous version) only</param>
 	/// <param name="isAttListChanged">True if the node's list of attributes has changed across versions</param>
-	/// <param name="hasNewSubNodes">True if the node has gained new sub-nodes</param>
+	/// <param name="hasAddedSubNodes">True if the node has gained new sub-nodes</param>
+	/// <param name="hasRemovedSubNodes"></param>
+	/// <param name="addedSubNodes">List&lt;;BaseType> of sub-nodes that were added since the previous version of the IET.<br/>
+	/// If no previous version exists for the IET node, then this list will be empty (Count = 0)</param>
+	/// <param name="removedSubNodes"></param>
 	/// <param name="dlaiDif">This dictionary is used to look up attribute changes (as a <see cref="AttInfoDif"/> struct) <br/> 
 	/// across new and previous node versions, using the subnode sGuid as the dictionary key.</param>
-	public readonly record struct DifNodeIET( //init auto-implemented syntax
+	public readonly record struct DifNodeIET( //using simplified init-only, readonly, auto-implemented property syntax
 			string sGuidIET,
 			bool isParChanged, //parent node has changed
 			bool isMoved, //prev sibling node has changed		
@@ -313,7 +320,117 @@ namespace SDC.Schema
 			List<BaseType>? removedSubNodes,
 			Dictionary<string, List<AttInfoDif>> dlaiDif //in case we need to look up attribute Diffs by subnode sGuid
 			)
+	{
+		//testing of init-only, readonly, auto-implemented props:
+		//readonly string s = sGuidIET;
+		//void testMethod ()
+		//{ 
+		//	var a = hasAddedSubNodes;
+		//	//hasAddedSubNodes = false;
+		//}
+
+		//readonly DifNodeIET2 test = new("", true, true, true, true, true, new());
+
+	};
+
+
+	#region SDC eCP Attribute Rollup Helpers
+
+	public readonly record struct ResponseAttributes<T>
+	( //init auto-implemented syntax
+
+		//ResponseField
+		bool responseRequired,
+
+		//RF.TextAfterResponse
+		string textAfterResponse_val,
+		//RF.ResponseUnits
+		string unitSystem,
+		string responseUnits_val,
+		//RF.Response
+
+		//RF.Response.DataType
+		T response_val,
+		dtQuantEnum quantEnum,
+		//numeric attributes
+		T minInclusive,
+		T maxInclusive,
+		T minExclusive,
+		T maxExclusive,
+		byte fractionDigits,
+		byte totalDigits
+
+
+	) where T : struct, INullable
 	{ };
 
+
+	public readonly record struct QuestionAttributes<T>
+		( //init auto-implemented syntax
+			string sGuid,
+			QuestionEnum QuestionType,
+			//ListField attributes
+			char colTextDelimiter,
+			byte numCols,
+			byte storedCol,
+			uint minSelections,
+			uint maxSelections,
+			bool ordered,
+			ItemChoiceType defaultListItemDataType,
+			//List
+			//RF
+			ResponseAttributes<T> Response
+
+		) where T : struct, INullable
+
+	{ };
+	public readonly record struct ListItemAttributes<T>
+	( //init auto-implemented syntax
+		string sGuid,
+
+		bool selected,
+		bool selectionDisableChildren,
+		bool selectionDeselectsSiblings,
+		bool omitWhenSelected,
+
+		string associatedValue,
+		ItemChoiceType associatedValueType,
+		string[] SelectionActivatesItems,
+		string[] SelectionSelectsListItems,
+
+		//Response Reporting Attributes
+		uint repeat,
+		Guid instanceGuid,
+		Guid parentGuid,
+
+		//List
+		//LIRF
+		ResponseAttributes<T> Response
+
+
+	) where T : struct, INullable
+
+	{ };
+
+	public readonly record struct QuestionAttributesHistory<Tnew, Tprev> 
+		(
+		QuestionAttributes<Tnew> QnewAtt,
+		QuestionAttributes<Tprev> QprevAtt
+
+
+		)where Tnew : struct, INullable
+		where Tprev: struct, INullable
+	{ };
+
+	public readonly record struct ListItemAttributesHistory<Tnew, Tprev>
+	(
+	QuestionAttributes<Tnew> LInewAtt,
+	QuestionAttributes<Tprev> LIprevAtt
+
+
+	) where Tnew : struct, INullable
+	where Tprev : struct, INullable
+	{ };
+	#endregion 
 }
 
