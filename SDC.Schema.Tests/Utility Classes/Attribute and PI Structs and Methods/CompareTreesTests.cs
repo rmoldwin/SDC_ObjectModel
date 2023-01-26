@@ -102,9 +102,9 @@ namespace SDC.Schema.Tests.Utils
 			InitV1V5(); //init "comparer" (class CompareTrees) with 2 SDC XML doc versions: V1 & V5; There is no lineeage check in this code, so ensure that V5 derives from V1
 
 			//Test IET sGuid:
-			Guid sGuidIET = ShortGuid.Decode("Ke_ZH_naV0ui-W7MBuNSHQ");
+			Guid GuidIET = ShortGuid.Decode("Ke_ZH_naV0ui-W7MBuNSHQ");
 			//Find the sGuid's node:
-			IdentifiedExtensionType newNodeIET = (IdentifiedExtensionType)_comparer!.NewVersion.Nodes[sGuidIET];
+			IdentifiedExtensionType newNodeIET = (IdentifiedExtensionType)_comparer!.NewVersion.Nodes[GuidIET];
 
 
 			//-----------------------------------------------------------------------------------------------------
@@ -115,7 +115,7 @@ namespace SDC.Schema.Tests.Utils
 			
 			if (difNodeIET is not null)
 			{
-				var dif = difNodeIET.Value; //extract the struct from its nullable wrapper DifNodeIET?
+				DifNodeIET dif = difNodeIET.Value; //extract the struct from its nullable wrapper DifNodeIET?
 
 				if (dif.isAttListChanged || dif.isNew || dif.isRemoved || dif.isParChanged || dif.isMoved || dif.hasAddedSubNodes || dif.hasRemovedSubNodes)
 				{
@@ -277,10 +277,10 @@ namespace SDC.Schema.Tests.Utils
 							foreach (var aiDif in laiDif)
 							{   //retrieve only those subNodes with serialized attributes
 
-								//if (i++ == 0) 
-								//Console.WriteLine();
 								var newSubNode = tNew.Nodes[ShortGuid.Decode(aiDif.sGuidSubnode)];
 								tPrev.Nodes.TryGetValue(ShortGuid.Decode(aiDif.sGuidSubnode), out var prevSubNode);
+								if (aiDif.sGuidSubnode == "wE2j2CdYYEakySdJvU20IQ") Debugger.Break();
+
 								//new and changed serialized attributes go here
 								if (subNodesGuid != newSubNode.sGuid) //Write the next line only once per node/sGuid
 									Console.WriteLine($"\t\tSubNode {(newSubNode.ElementName).PadRight(27, '=')} Name: {(newSubNode.name??"").PadRight(20, '=')} sGuid: {newSubNode.sGuid}\tNamePrev: {prevSubNode?.name}");
@@ -291,7 +291,6 @@ namespace SDC.Schema.Tests.Utils
 								subNodesGuid = newSubNode.sGuid;
 							}
 						}
-						//Console.WriteLine();
 					}
 
 				}

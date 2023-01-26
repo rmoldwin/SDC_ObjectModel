@@ -100,6 +100,17 @@ namespace SDC.Schema.Tests.Utils
 		}
 
 		#endregion
+		
+		public T NewVersion
+		{
+			get => _newVersion;
+			set => ChangeNewVersion(value);
+		}
+		public T PrevVersion
+		{
+			get => _prevVersion;
+			set => ChangePrevVersion(value);
+		}
 
 		private CompareTrees<T> ChangePrevVersion(T prevVersion)
 		{
@@ -116,17 +127,6 @@ namespace SDC.Schema.Tests.Utils
 			ComputeAddedRemovedNodes();
 			CompareVersionAttributes();
 			return this;
-		}
-		
-		public T NewVersion
-		{
-			get => _newVersion;
-			set => ChangeNewVersion(value);
-		}
-		public T PrevVersion
-		{
-			get => _prevVersion;
-			set => ChangePrevVersion(value);
 		}
 
 		private void ComputeAddedRemovedNodes()
