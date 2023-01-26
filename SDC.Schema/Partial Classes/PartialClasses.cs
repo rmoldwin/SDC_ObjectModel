@@ -257,6 +257,7 @@ namespace SDC.Schema
 		{
 			ElementName = "DataElement";
 			ElementPrefix = "DE";
+			Items = new();
 		}
 
 		[XmlIgnore]
@@ -395,6 +396,7 @@ namespace SDC.Schema
 		{
 			ElementName = "SDCPackage";
 			ElementPrefix = "PKG";
+			this.Items = new();
 		}
 
 		#region ITopNode

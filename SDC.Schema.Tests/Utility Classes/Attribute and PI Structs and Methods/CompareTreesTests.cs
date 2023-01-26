@@ -148,8 +148,8 @@ namespace SDC.Schema.Tests.Utils
 
 		public DifNodeIET? ChangeSummaryIETnode(IdentifiedExtensionType newNodeIET)
 		{
-
-			var dDifNodeIET = _comparer?.GetIETattDiffs;  //dictionary of all attribute difference checks bt the 2 SDC trees, using the DifNodeIET struct for values
+			//Create dictionary (dDifNodeIET) of all attribute difference checks bt the 2 SDC trees, using the DifNodeIET struct for values
+			var dDifNodeIET = _comparer?.GetIETattDiffs;  
 			if (dDifNodeIET is null) throw new Exception("comparer.GetIETattDiffs is null"); 
 
 			var dif = dDifNodeIET[newNodeIET.sGuid];
