@@ -279,15 +279,21 @@ namespace SDC.Schema.Tests.Utils
 
 								var newSubNode = tNew.Nodes[ShortGuid.Decode(aiDif.sGuidSubnode)];
 								tPrev.Nodes.TryGetValue(ShortGuid.Decode(aiDif.sGuidSubnode), out var prevSubNode);
+								//we checked for the existance of prevSubNode anywhere in the tree (using tPrev.Nodes), when prevSubNode could have moved from a different IET parent in tPrev,
+								//The function FindSerializedXmlAttributesIET only fills an AttributeInfo struct (found in aiDif.aiPrev) for subNodes under the SAME IET parent in both Prev and New trees.
+								//Thus, the AI struct (aiDif.aiPrev) for a moved prev subnode (prevSubNode) will be null, even though prevSubNode was actually present in tPrev
+								//but under a different IET parent. This result (a null aiDif.aiPrev object) seems like the most correct behavior for evalulating tPrev->tNew changes, but can be confusing.
+								//The following debugger breakpoint shows an example of moved subnodes having a null aiDif.aiPrev.
 								if (aiDif.sGuidSubnode == "wE2j2CdYYEakySdJvU20IQ") Debugger.Break();
 
 								//new and changed serialized attributes go here
-								if (subNodesGuid != newSubNode.sGuid) //Write the next line only once per node/sGuid
+								if (subNodesGuid != newSubNode.sGuid) //Write the next "SubNode Header" line only once per SubNode/sGuid,
+																	  //but it may be followed by multiple lines for multiple aiNew and aiPrev attribute changes.
 									Console.WriteLine($"\t\tSubNode {(newSubNode.ElementName).PadRight(27, '=')} Name: {(newSubNode.name??"").PadRight(20, '=')} sGuid: {newSubNode.sGuid}\tNamePrev: {prevSubNode?.name}");
 
 								if (aiDif.aiNew is not null) Console.WriteLine($"\t\t\tNewAtt: {(aiDif.aiNew.Value.Name + "").PadRight(20)} Val: {(aiDif.aiNew.Value.Value + "").PadRight(20)}DefVal: {aiDif.aiNew.Value.DefaultValue}\t\tAttOrder: {aiDif.aiNew.Value.Order}");
 								if (aiDif.aiPrev is not null) Console.WriteLine($"\t\t\tPrevAtt:{(aiDif.aiPrev.Value.Name + "").PadRight(20)} Val: {(aiDif.aiPrev.Value.Value + "").PadRight(20)}DefVal: {aiDif.aiPrev.Value.DefaultValue}\t\tAttOrder: {aiDif.aiPrev.Value.Order}");
-
+								else Console.WriteLine($"\t\t\tPrevAtt: The subnode was previously located under this IET parent in the previous version:\r\n\t\t\t         IET parName: {prevSubNode.ParentIETnode?.name}\tIET sGuid: {prevSubNode.ParentIETnode?.sGuid}\tIET ID: {prevSubNode.ParentIETnode?.ID}");
 								subNodesGuid = newSubNode.sGuid;
 							}
 						}
@@ -301,7 +307,7 @@ namespace SDC.Schema.Tests.Utils
 		public void GetSerializedXmlAttributesFromTreeTest()
 		{
 			InitV1V2();
-			_comparer!.GetSerializedXmlAttributesFromTree(_comparer.NewVersion);
+			_comparer!.FindSerializedXmlAttributesFromTree(_comparer.NewVersion);
 
 		}
 

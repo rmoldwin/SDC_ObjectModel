@@ -92,8 +92,8 @@ namespace SDC.Schema.Tests.Utils
 			_prevVersion = prevVersion;
 			_newVersion = newVersion;
 
-			_slAttPrev = GetSerializedXmlAttributesFromTree(_prevVersion);
-			_slAttNew = GetSerializedXmlAttributesFromTree(_newVersion);
+			_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
+			_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
 
 			ComputeAddedRemovedNodes();
 			CompareVersionAttributes();
@@ -115,7 +115,7 @@ namespace SDC.Schema.Tests.Utils
 		private CompareTrees<T> ChangePrevVersion(T prevVersion)
 		{
 			_prevVersion = prevVersion;
-			_slAttPrev = GetSerializedXmlAttributesFromTree(_prevVersion);
+			_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
 			ComputeAddedRemovedNodes();
 			CompareVersionAttributes();
 			return this;
@@ -123,7 +123,7 @@ namespace SDC.Schema.Tests.Utils
 		private CompareTrees<T> ChangeNewVersion(T newVersion)
 		{
 			_newVersion = newVersion;
-			_slAttNew = GetSerializedXmlAttributesFromTree(_newVersion);
+			_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
 			ComputeAddedRemovedNodes();
 			CompareVersionAttributes();
 			return this;
@@ -199,9 +199,9 @@ namespace SDC.Schema.Tests.Utils
 					//if (sGuidNewIET == "t6xPFRjcrkKxwMXRq7H4YA") Debugger.Break(); //LI Node with removed subnodes: Property and LIRF subnodes
 
 					//Check for added or removed subnodes, by comparing the the matching ietPrev node:
-					lock (locker) removedSubNodes = GetRemovedIETsubNodes(sGuidNewIET);
+					lock (locker) removedSubNodes = FindRemovedIETsubNodes(sGuidNewIET);
 					if (removedSubNodes is not null && removedSubNodes.Count > 0) hasRemovedSubNodes = true; 
-					lock (locker) addedSubNodes = GetAddedIETsubNodes(sGuidNewIET);
+					lock (locker) addedSubNodes = FindAddedIETsubNodes(sGuidNewIET);
 					if (addedSubNodes is not null && addedSubNodes.Count > 0) hasAddedSubNodes = true;  //this step is required to flag possibly changed attributes on IET subNodes.																										
 
 					var ietNew = _newVersion.Nodes[GuidIET] as IdentifiedExtensionType;
@@ -267,9 +267,10 @@ namespace SDC.Schema.Tests.Utils
 									{
 										//The Prev subNode does exist here, but all its attributes are at default values.
 										//aiPrevSubNode has default value -  so, the aiPrevSubNode attribute on the Prev subNode is not serialized (i.e., it's missing or at default tvalue) 
-										if (aiNewSubNode.ValueString is not null
-										&& aiNewSubNode.ValueString != aiNewSubNode.DefaultValueString
-										&& aiNewSubNode.Value != aiNewSubNode.DefaultValue)
+										if (//aiNewSubNode.ValueString is not null 
+										aiNewSubNode.ValueString != aiNewSubNode.DefaultValueString //TODO: Can probably shorten these comparisons to just this one line.
+										//&& aiNewSubNode.Value != aiNewSubNode.DefaultValue
+										)
 										{
 											laiDifSubNodes.Add(new AttInfoDif(sGuidNewSubNode, default, aiNewSubNode));
 											isAttListChanged = true;
@@ -352,7 +353,160 @@ namespace SDC.Schema.Tests.Utils
 			}
 		}
 
-		public SortedList<string, Dictionary<string, List<AttributeInfo>>> GetSerializedXmlAttributesFromTree(ITopNode topNode)
+
+		private DifNodeIET CompareIET(IdentifiedExtensionType iet)
+		{
+			var eqAttCompare = new SdcSerializedAttComparer(); //should be thread-safe
+			var locker = new object();
+			if (_slAttNew is null || _slAttPrev is null) throw new InvalidOperationException ("_slAttNew or  is null");
+
+			var lai = SdcUtil.ReflectNodeXmlAttributes(iet, false);
+
+				//Setup IET node data;
+				string sGuidNewIET = iet.sGuid;
+				Dictionary<string, List<AttributeInfo>> dlaiNewIET = FindSerializedXmlAttributesIET(iet); //Contains List<AttributeInfo> for IET node and all non IET descendant nodes. Key is the IET & subnode sGuid
+				
+				Guid GuidIET = ShortGuid.Decode(sGuidNewIET); //may need locking here - check source code
+				bool isParChangedIET = false;
+				bool isMovedIET = false;
+				bool isNewIET = false;
+				bool isRemovedIET = false;
+				bool isAttListChanged = false;
+				bool hasAddedSubNodes = false;
+				bool hasRemovedSubNodes = false;
+				List<BaseType>? addedSubNodes = null;
+				List<BaseType>? removedSubNodes = null;
+
+				List<AttInfoDif> laiDifSubNodes = new(); //For each IET node, there is one laiDifSubNodes per subnode (including the IET node)
+				Dictionary<string, List<AttInfoDif>> dlaiDifIET = new();  //the key is the IET sGuid; dlaiDifIET will be added later to difNodeIET, which will then be added to **d**DifNodeIET
+				dlaiDifIET.Add(sGuidNewIET, laiDifSubNodes); //add the laiDifSubNodes to its dictionary; later we will stuff this laiDiff List object with attribute change data for the IET node and all of its subNodes.
+
+
+				//We now have to populate laiDifSubNodes with with AttInfoDif structs for each changed attribute
+				//We also have to set all the above bool settings for difNodeIET
+				//Then finally, we need to add one new _dDifNodeIET struct entry (difNodeIET) for each New IET.
+				////We can also add difNodeIET structs for Prev IET nodes Prev that were not present in New
+
+
+				IdentifiedExtensionType? ietPrev;
+				if (_prevVersion.Nodes.TryGetValue(GuidIET, out BaseType? btPrev))
+					ietPrev = btPrev as IdentifiedExtensionType;
+				else ietPrev = null;
+
+				if (ietPrev is not null)
+				{
+
+					//Check for added or removed subnodes, by comparing the the matching ietPrev node:
+					lock (locker) removedSubNodes = FindRemovedIETsubNodes(sGuidNewIET);
+					if (removedSubNodes is not null && removedSubNodes.Count > 0) hasRemovedSubNodes = true;
+					lock (locker) addedSubNodes = FindAddedIETsubNodes(sGuidNewIET);
+					if (addedSubNodes is not null && addedSubNodes.Count > 0) hasAddedSubNodes = true;  //this step is required to flag possibly changed attributes on IET subNodes.																										
+
+					var ietNew = _newVersion.Nodes[GuidIET] as IdentifiedExtensionType;
+
+					//If New IET parent node is not the same as Prev parent node, mark as PARENT CHANGED
+					if (ietPrev.ParentNode?.sGuid != ietNew?.ParentNode?.sGuid)
+					{ isParChangedIET = true; }
+
+
+					lock (locker) if (ietPrev.GetNodePreviousSib()?.sGuid != ietNew!.GetNodePreviousSib()?.sGuid)  //static extension method needs locking
+						{ isMovedIET = true; }
+
+					//Look for match in slAttPrev
+					if (_slAttPrev.TryGetValue(sGuidNewIET, out var dlaiPrevIET))  //retrieve serialized attribute dictionary for each New IET node
+					{
+
+						//loop through attributes of each New node under the current IET, test for a mismatched value
+
+						foreach (var sGuidNewSubNode in dlaiNewIET.Keys) //loop through IET subNodes, whose sGuids are the keys to dlaiNewIET
+						{
+							//The first sub-node retrieved is the IET node itself
+							//Check for matching Prev subnode here
+
+							var aiHashPrevIET = new HashSet<SdcSerializedAtt>(eqAttCompare); //holds nodes with serialized attributes in Prev that match a node in New; This is not a complete collection of Prev nodes 
+							var aiHashNewIET = new HashSet<SdcSerializedAtt>(eqAttCompare);  //holds nodes with serialized attributes in New
+
+							dlaiPrevIET.TryGetValue(sGuidNewSubNode, out var laiPrevSubNode); //Find matching subNode in Prev (using sGuidNewSubNode), and retrieve its serializable attributes (laiPrevSubNode)
+
+							foreach (var aiNewSubNode in dlaiNewIET[sGuidNewSubNode]) //Loop through New serialized **attributes** in the currrent New subNode (with subNode key: sGuidNewSubNode)
+							{
+								aiHashNewIET.Add(new(sGuidNewSubNode, aiNewSubNode)); //add the serialized AttributeInfo struct (ai) for NewSubNode
+								if (laiPrevSubNode is not null)
+								{   //look for Prev subNode serialized-attribute match in laiPrevSubNode
+									var aiPrevSubNode = laiPrevSubNode.FirstOrDefault(aiPrevSubNode => aiPrevSubNode.Name == aiNewSubNode.Name);
+
+								//COMPARE ATTRIBUTES
+
+								if (aiPrevSubNode != default)
+								//a matching serialized attribute (represented by aiPrevSubNode) was found on the Prev subNode.  It matches aiNewSubNode
+								{
+									aiHashPrevIET.Add(new(sGuidNewSubNode, aiPrevSubNode)); //add the serialized AttributeInfo struct (ai) for PrevSubNode
+
+									if (aiPrevSubNode.ValueString != aiNewSubNode.ValueString) //See if the attribute values match;  
+									{
+										laiDifSubNodes.Add(new AttInfoDif(sGuidNewSubNode, aiPrevSubNode, aiNewSubNode));
+										isAttListChanged = true;
+									}
+								}
+								else //if (aiPrevSubNode == default) //a matching serialized attribute was NOT found on the Prev subNode
+								{
+									//The Prev subNode does exist here, but all its attributes are at default values.
+									//aiPrevSubNode has default value -  so, the aiPrevSubNode attribute on the Prev subNode is not serialized (i.e., it's missing or at default tvalue) 
+									if (
+									//aiNewSubNode.ValueString is not null && 
+									aiNewSubNode.ValueString != aiNewSubNode.DefaultValueString  //TODO: we probably only need this comparison
+									//&& aiNewSubNode.Value != aiNewSubNode.DefaultValue
+									)
+									{
+										laiDifSubNodes.Add(new AttInfoDif(sGuidNewSubNode, default, aiNewSubNode));
+										isAttListChanged = true;
+									}
+								}
+							}
+							else //laiPrevSubNode is null here //sGuidNewSubNode does not match a list of filled Prev attributes (laiPrevSubNode) on a matching Prev subNode (if it exists);
+								 //we probably have a new New **sub**Node here, without a matching Prev **sub**Node
+								 // (i.e., a New-matching Prev subNode does not exist),
+								 // or maybe? it's a subNode with all default attributes (this should not happen here, as laiPrevSubNode should still exist (not null), but with no values (count = 0))
+							{
+								laiDifSubNodes.Add(new AttInfoDif(sGuidNewSubNode, null, aiNewSubNode));
+									//isAttListChanged = true;
+								}
+							}
+							//Uses SdcSerializedAttComparer eqAttCompare to only look at sGuid and Name;
+							//ai.Value is an object, which requires special handling (convert to string before comparing)
+							var attsRemovedInNew = aiHashPrevIET.Except(aiHashNewIET, eqAttCompare);
+
+							//Document the New removed attributes in the laiDifSubNodes List:
+							//The missing attribute name/value can be found by querying on AttInfoDif.sGuidSubnode, and looking in AttInfoDif.aiPrevSubNode.Name and AttInfoDif.aiPrevSubNode.Value
+							foreach (var rem in attsRemovedInNew)
+							{
+								laiDifSubNodes.Add(new AttInfoDif(rem.sGuid, rem.ai, null));  //note that aiNewSubNode is null ; this indicates that Prev does not exist or  **all** Prev serialized attribute were removed in New
+								isAttListChanged = true;
+							}
+
+						}//looping through IET subNodes ends here
+
+
+					}//retrieve a Prev attribute dictionary for each IET node ends here
+					else //could not retrieve a Prev serialized attribute dictionary (dlaiPrevIET) matching a New IET node, even though the Prev IET node exists;
+						 //It should be present even if it has no Key/Value entries.
+						 //If the Prev subNode was null, we would not be here.  See label **PrevSubNodeIsNull**
+					{
+						Debugger.Break();
+						//throw error here?
+					}
+				}//Find matching Prev IET node ends here			
+					isNewIET = true;
+
+				//finished looking for subNodes with attribute differences, as well as missing subnodes
+
+				DifNodeIET difNodeIET = new(sGuidNewIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged,
+					hasAddedSubNodes, hasRemovedSubNodes, addedSubNodes, removedSubNodes, dlaiDifIET);
+			return difNodeIET;
+
+		}
+
+		public SortedList<string, Dictionary<string, List<AttributeInfo>>> FindSerializedXmlAttributesFromTree(ITopNode topNode)
 		{
 			SortedList<string, Dictionary<string, List<AttributeInfo>>> dictAttr = new();
 			char gt = ">"[0];
@@ -360,25 +514,31 @@ namespace SDC.Schema.Tests.Utils
 
 			foreach (IdentifiedExtensionType iet in topNode.IETnodes)
 			{
-				var en = iet.ElementName;
-				int enLen = 36 - en.Length;
-				int pad = (enLen > 0) ? enLen : 0;
+				//var en = iet.ElementName;
+				//int enLen = 36 - en.Length;
+				//int pad = (enLen > 0) ? enLen : 0;
 				//Debug.Print($"<<<<<<<<<<<<<<<<<<<<<<<  IET Node: {en}   {"".PadRight(pad, gt)}");
+				
 
-				Dictionary<string, List<AttributeInfo>> dlai = new();
+				{//DELETE THIS BLOCK
+					//Dictionary<string, List<AttributeInfo>> dlai = new();
 
-				//process iet's child nodes and their attributes
-				var sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1, 0, false);
-				if (sublist is not null)
-				{
-					foreach (var subNode in sublist)
-					{
-						var lai = SdcUtil.ReflectNodeXmlAttributes(subNode, false);
-						//Log(subNode, lai);
-						dlai.Add(subNode.sGuid, lai);
-					}
-					dictAttr.Add(iet.sGuid, dlai);
+					////process iet's child nodes and their attributes
+					//var sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1, 0, false);
+					//if (sublist is not null)
+					//{
+					//	foreach (var subNode in sublist)
+					//	{
+					//		var lai = SdcUtil.ReflectNodeXmlAttributes(subNode, false);
+					//		//Log(subNode, lai);
+					//		dlai.Add(subNode.sGuid, lai);
+					//	}
+					//	dictAttr.Add(iet.sGuid, dlai);
+					//}
 				}
+
+				//Log(subNode, lai);
+				dictAttr.Add(iet.sGuid, FindSerializedXmlAttributesIET(iet));
 			}
 			return dictAttr;
 			//  ------------------------------------------------------------------------------------
@@ -393,11 +553,24 @@ namespace SDC.Schema.Tests.Utils
 					Debug.Print($"{ai.Name.PadRight(24)}|{(ai.DefaultValue?.ToString() ?? string.Empty).PadRight(13)}| {ai.Value?.ToString()}");
 			}
 		}
+		/// <summary>
+		/// Retrieve all XML attributes that will be serialized to XML from the input IET node, <br/>
+		/// and from all of its non-IET descendant nodes.
+		/// </summary>
+		/// <param name="iet">Input IET node</param>
+		/// <returns>Dictionary of <see cref="AttributeInfo"/> structs, one struct per node, starting with the input IET node </returns>
+		public Dictionary<string, List<AttributeInfo>> FindSerializedXmlAttributesIET(IdentifiedExtensionType iet)
+		{
+			Dictionary<string, List<AttributeInfo>> dlai = new();
 
-		public ReadOnlyCollection<IdentifiedExtensionType> GetIETnodesRemovedInNew
-		{ get => new (_IETnodesRemovedInNew); }
-		public ReadOnlyCollection<IdentifiedExtensionType> GetIETnodesAddedInNew
-		{ get => new (_IETnodesAddedInNew); }
+			List<BaseType> sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1, 0, false);
+			foreach (var subNode in sublist)
+			{
+				List<AttributeInfo> lai = SdcUtil.ReflectNodeXmlAttributes(subNode, false);
+				dlai.Add(subNode.sGuid, lai);
+			}
+			return dlai;
+		}
 
 		/// <summary>
 		/// Find IET sub-nodes from <see cref="PrevVersion"/> that were added in <see cref="NewVersion"/>.<br/>
@@ -410,7 +583,7 @@ namespace SDC.Schema.Tests.Utils
 		/// Empty List&lt;BaseType>, if a matching previous IET node exists in <see cref="PrevVersion"/>, but no added nodes were found.<br/>
 		/// Otherwise, returns List&lt;BaseType> containing added IET sub-nodes that were not present in <see cref="PrevVersion"/>.
 		/// </returns>
-		public List<BaseType>? GetAddedIETsubNodes(ShortGuid sGuidIETnew)
+		public List<BaseType>? FindAddedIETsubNodes(ShortGuid sGuidIETnew)
 		{
 			//Get added nodes:
 			//Get ietNew node from sGuidIETnew
@@ -448,7 +621,7 @@ namespace SDC.Schema.Tests.Utils
 		/// Empty List&lt;BaseType>, if a matching previous IET node exists in <see cref="PrevVersion"/>, but no removed nodes were found.<br/>
 		/// Otherwise, returns List&lt;BaseType> containing removed IET sub-nodes that were present in <see cref="PrevVersion"/>.
 		/// </returns>
-		public List<BaseType>? GetRemovedIETsubNodes(ShortGuid sGuidIETnew)
+		public List<BaseType>? FindRemovedIETsubNodes(ShortGuid sGuidIETnew)
 		{
 			//Get removed nodes:
 			//Get matching ietPrev node from sGuidIETnew
@@ -474,6 +647,10 @@ namespace SDC.Schema.Tests.Utils
 				}
 			return null; //no matching ietPrev node was present in _prevVersion			
 		}
+		public ReadOnlyCollection<IdentifiedExtensionType> GetIETnodesRemovedInNew
+		{ get => new (_IETnodesRemovedInNew); }
+		public ReadOnlyCollection<IdentifiedExtensionType> GetIETnodesAddedInNew
+		{ get => new (_IETnodesAddedInNew); }
 
 
 
@@ -493,12 +670,12 @@ namespace SDC.Schema.Tests.Utils
 		public bool IsPrevNodeRemoved(BaseType prevNode, out BaseType? newNode)
 		=> _newVersion.Nodes.TryGetValue(prevNode.ObjectGUID, out newNode);
 
+
+
 		void test()
 		{
 			var t = GetIETnodesRemovedInNew.Append(new SectionItemType(null));
 			//var d = GetIETattDiffs.Values.Append(new(GetIETattributes("A")));
-
-
 		}
 	}
 }
