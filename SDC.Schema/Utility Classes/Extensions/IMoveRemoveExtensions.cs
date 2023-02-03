@@ -339,9 +339,18 @@ namespace SDC.Schema.Extensions
 		/// The default is false - add to the end of the collection.</param>
 		internal static BaseType RegisterNodeAndParent(this BaseType node, BaseType? parentNode = null, bool childNodesSort = true, bool isMoving = false)
 		{
+			//if node was initially created with a null parent node, even if the parent node was assigned later, 
+			//the node may still have a null ITopNode.  We can fix it here, so that we can register the node.
+			if (node.TopNode is null)	
+				node.TopNode = parentNode?.TopNode;
+
 			if (node.TopNode is not null)
 			{
-				parentNode??= node.ParentNode;
+				//if ObjectID was not set previously (usually because the node was created without a TopNode or parent node),
+				//we can set it here
+				if (node.ObjectID == -1) node.ObjectID = ((_ITopNode)node.TopNode)._MaxObjectID++;
+
+				parentNode ??= node.ParentNode;
 				_ITopNode? _topNode = (_ITopNode)node.TopNode;
 
 				if (_topNode is null)
@@ -464,7 +473,14 @@ namespace SDC.Schema.Extensions
 				}
 				else
 				{
-					kids.Add(btSource);
+					//if btSource should live inside an inParentNode List<> object, but has not yet been added to that list,
+					//then we can't sort the _ChildNodes dictionary List<> yet, because we can't reflect the order of the new node,
+					//and also, we don't have its intended List position available here
+					//These are attached to the SDC tree with a List<>: ListItem, DisplayedTypes, and all IChildItemsMember nodes.
+					//Also need to check rules, Events, Actions, and Admin objects, as well as things in other ITopNode trees
+					//We may need to add a new Interface: IHasListParent for all nodes that are attached to an Items object,
+					//so that these nodes can be easily identified.
+					kids.Add(btSource);					
 					if (kids.Count > 1 && childNodesSort)
 					{
 							kids.Sort(treeSibComparer); //sort by reflecting the object tree							

@@ -1546,8 +1546,21 @@ namespace SDC.Schema
 
 		}
 
+		private static AttributeMethods attMethods = new();
 
-		private static AttributeMethods attMethods = new ();
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="n">The see<see cref="BaseType"/> node for which attribtues will be determined</param>
+		/// <param name="getAllXmlAttributes"></param>
+		/// <param name="omitDefaultValues"></param>
+		/// <param name="attributesToExclude">By default, "name", "sGuid", and "order" attributes are excluded and will not be returned. <br/>
+		/// By default, the values of these attribtues are assifned by the SDC object model, and need not be changed manually<br/>
+		/// To include these nodes, pass an empty string array: string[], or any other non-null string array<br/>
+		/// Excluded attributes takes precedence over included attributes</param>
+		/// <param name="attributesToInclude"></param>
+		/// <returns></returns>
+		/// <exception cref="NullReferenceException"></exception>
 		public static List<AttributeInfo> ReflectNodeXmlAttributes(BaseType n
 			, bool getAllXmlAttributes = true
 			, bool omitDefaultValues = true
@@ -1560,7 +1573,7 @@ namespace SDC.Schema
 			IEnumerable<PropertyInfo>? piIE = null;
 			int nodeIndex = -1; 
 			IList<AttributeInfo>? atts;
-			var excludedAtts = new string[] { "name", "sGuid", "order" };
+			attributesToExclude??= new string[] { "name", "sGuid", "order" };
 
 			//Create a LIFO stack of the targetNode inheritance hierarchy.  The stack's top level type will always be BaseType
 			//For most non-datatype SDC objects, it could be a bit more efficient to use ExtensionBaseType - we can test this another time
@@ -1582,7 +1595,7 @@ namespace SDC.Schema
 
 				//Look in filled attributes in hard-coded SDC types
 				if (t == typeof(BaseType))
-					atts = attMethods.GetTypeFilledAttributes(t, n, excludedAtts);
+					atts = attMethods.GetTypeFilledAttributes(t, n, attributesToExclude);
 				else
 					atts = attMethods.GetTypeFilledAttributes(t, n);
 				if (atts is not null)
@@ -1604,7 +1617,7 @@ namespace SDC.Schema
 					nodeIndex++;
 					if (getAllXmlAttributes) AddAttribute(p, n);
 					else
-					{
+					{	
 						var sspn = t.GetMethod("ShouldSerialize" + p.Name)?.Invoke(n, null); //sspn == ShouldSerialize*PropertyName*
 
 						var pVal = p.GetValue(n);
@@ -2128,8 +2141,8 @@ namespace SDC.Schema
 			if (newParent.IsDescendantOf(item)) return false;
 
 			Type itemType = item.GetType();
-			var thisPi = SdcUtil.GetElementPropertyInfoMeta(item);
-			string? itemName = thisPi.XmlElementName;
+			//var thisPi = SdcUtil.GetElementPropertyInfoMeta(item); //This will throw if item is not currently referenced to some tree node
+			//string? itemName = thisPi.XmlElementName;
 
 			foreach (var p in newParent.GetType().GetProperties())
 			{
@@ -2139,8 +2152,8 @@ namespace SDC.Schema
 				{
 					foreach (var a in pAtts)
 					{
-						if (a.ElementName == itemName)
-						{
+						//if (a.ElementName == itemName)
+						//{
 							if (a.Type == itemType)
 								return true; //if type matches, then ElementName will match, unless XmlChoiceIdentifierAttribute exists on the property.  This is the most common case.
 
@@ -2158,29 +2171,30 @@ namespace SDC.Schema
 									|| p.PropertyType.GetElementType()!.IsAssignableFrom(itemType))
 								)//e.g., like: ExtensionBaseType[] Items, with [XmlElement("ValidateForm", typeof(ActValidateFormType), Order=0)]
 								return true;
-						}
+						//}
 					}
 				}
 				//TODO: Also try matching element names found in the ItemChoiceType enums.  This is more reliable that using data types.
 
 				//if none of the XmlElementAttributes had a matching Type an ElementName, perhaps the property Type will match directly
-				if (p.Name == itemName)
-				{
-					if (p.PropertyType == itemType)
-						return true;
+				//if (p.Name == itemName)
+				//{
+				if (p.PropertyType == itemType)
+					return true; 
 
-					if (p.PropertyType.IsGenericType &&
-						(p.PropertyType.GetGenericArguments()[0] == itemType //this may not work unless it's an exact type match
-							|| p.PropertyType.GetGenericArguments()[0].IsAssignableFrom(itemType))
-						) //e.g., like: List<ExtensionBaseType> Items, with [XmlElement("SelectionTest", typeof(PredSelectionTestType), Order=0)]
-						return true;
+				if (p.PropertyType.IsGenericType &&
+					(p.PropertyType.GetGenericArguments()[0] == itemType //this may not work unless it's an exact type match
+						|| p.PropertyType.GetGenericArguments()[0].IsAssignableFrom(itemType))
+					) //e.g., like: List<ExtensionBaseType> Items, with [XmlElement("SelectionTest", typeof(PredSelectionTestType), Order=0)]
+					return true;
 
-					if (p.PropertyType.IsArray &&
-						(p.PropertyType.GetElementType() == itemType //this may not work unless it's an exact type match
-							|| p.PropertyType.GetElementType()!.IsAssignableFrom(itemType))
-						)//e.g., like: ExtensionBaseType[] Items, with [XmlElement("ValidateForm", typeof(ActValidateFormType), Order=0)]
-						return true;
-				}
+
+				if (p.PropertyType.IsArray &&
+					(p.PropertyType.GetElementType() == itemType //this may not work unless it's an exact type match
+						|| p.PropertyType.GetElementType()!.IsAssignableFrom(itemType))
+					)//e.g., like: ExtensionBaseType[] Items, with [XmlElement("ValidateForm", typeof(ActValidateFormType), Order=0)]
+					return true;
+				//}
 
 			}
 			pObj = null;

@@ -11,12 +11,15 @@ using System.Collections.Generic;
 
 namespace SDC.Schema.Tests.Utils
 {
-	public class CompareTrees<T> where T : ITopNode
+	public sealed class CompareTrees<T> where T : ITopNode
 	{
 		private T _prevVersion;
 		private T _newVersion;
 
-		//Key for the SortedList is IET sGuid, Key for internal Dict is subNode sGuid; holds serializable attribute List for individual subNodes
+		//SortedList objects for the previous SDC tree (_slAttPrev) and the new SDC tree. (_slAttNew)
+		//Key for the SortedList is IET sGuid;
+		//Key for internal Dict is subNode sGuid;
+		//Holds a list of serializable attributes (properties that will be written to SDC XML for individual SDC subNodes
 		private SortedList<string, Dictionary<string, List<AttributeInfo>>> _slAttPrev;
 		private SortedList<string, Dictionary<string, List<AttributeInfo>>> _slAttNew;
 
@@ -40,7 +43,7 @@ namespace SDC.Schema.Tests.Utils
 			CtorCompareTrees(prevVersion, newVersion);
 		}
 		/// <summary>
-		/// 
+		/// Compare newVersion XML to preVersion XML.  Each XML file will be converted to an SDC object model. 
 		/// </summary>
 		/// <param name="prevXml">The older version of an SDC XML template</param>
 		/// <param name="newXml">The newer version of an SDC XML template</param>
@@ -98,7 +101,7 @@ namespace SDC.Schema.Tests.Utils
 			CtorCompareTrees(_prevVersion, _newVersion);
 		}
 		/// <summary>
-		/// 
+		/// Compare newVersion SDC Object model to preVersion SDC Object model. 
 		/// </summary>
 		/// <param name="prevVersion">The older version of an SDC Object MOdel(OM)</param>
 		/// <param name="newVersion">The newer version of an SDC Object MOdel(OM)</param>
@@ -117,7 +120,7 @@ namespace SDC.Schema.Tests.Utils
 		#endregion
 
 		/// <summary>
-		/// The newer version of an SDC Object MOdel(OM) 
+		/// The newer version of an SDC Object Model(OM) 
 		/// </summary>
 		public T NewVersion
 		{
@@ -125,7 +128,7 @@ namespace SDC.Schema.Tests.Utils
 			set => ChangeNewVersion(value);
 		}
 		/// <summary>
-		/// The older version of an SDC Object MOdel(OM)
+		/// The older version of an SDC Object Model(OM)
 		/// </summary>
 		public T PrevVersion
 		{
@@ -134,7 +137,7 @@ namespace SDC.Schema.Tests.Utils
 		}
 
 		/// <summary>
-		/// Cgange the older version of an SDC Object MOdel(OM)
+		/// Change the older version of an SDC Object Model(OM)
 		/// </summary>
 		/// <param name="prevVersion"></param>
 		/// <returns></returns>
@@ -147,7 +150,7 @@ namespace SDC.Schema.Tests.Utils
 			return this;
 		}
 		/// <summary>
-		/// Change the newer version of an SDC Object MOdel(OM)
+		/// Change the newer version of an SDC Object Model (OM)
 		/// </summary>
 		/// <param name="newVersion"></param>
 		/// <returns>A reference to this CompareTrees object</returns>
@@ -161,7 +164,7 @@ namespace SDC.Schema.Tests.Utils
 		}
 
 		/// <summary>
-		/// Compute added and removed nodes by comparing the older and newer versions of an SDC object model (newVersion and prevVesion)
+		/// Compute added and removed nodes by comparing the older and newer versions of an SDC object model (NewVersion and PrevVesion)
 		/// </summary>
 		private void ComputeAddedRemovedNodes()
 		{
@@ -389,8 +392,8 @@ namespace SDC.Schema.Tests.Utils
 
 
 		/// <summary>
-		/// Starting from an <see cref="IdentifiedExtensionType"/> node (<paramref name="ietNew"/>) from the newer version of an SDC object model <see cref="NewVersion"/>, <br/>
-		/// this method determines all of the node, subnode and attribute differences from the old version of <paramref name="ietNew"/>, if present in <see cref="PrevVersion"/>.
+		/// Starting from an <see cref="IdentifiedExtensionType"/> node (<paramref name="ietNew"/>) from the newer version of an SDC object model (<see cref="NewVersion"/>), <br/>
+		/// this method determines all of the node, subnode and attribute differences from the old version of <paramref name="ietNew"/>, if it's sGuid is present in <see cref="PrevVersion"/>.
 		/// </summary>
 		/// <returns></returns>
 		private DifNodeIET CompareIET(IdentifiedExtensionType ietNew)
@@ -529,7 +532,7 @@ namespace SDC.Schema.Tests.Utils
 					}//retrieve a Prev attribute dictionary for each IET node ends here
 					else //could not retrieve a Prev serialized attribute dictionary (dlaiPrevIET) matching a New IET node, even though the Prev IET node exists;
 						 //It should be present even if it has no Key/Value entries.
-						 //If the Prev subNode was null, we would not be here.  See label **PrevSubNodeIsNull**
+						 //If the Prev subNode was null, we would not be here.
 					{
 						Debugger.Break();
 						//throw error here?
@@ -545,6 +548,12 @@ namespace SDC.Schema.Tests.Utils
 
 		}
 
+		/// <summary>
+		/// Find all XML attributes that will be serialized to XML from the input <see cref="ITopNode"/> node, <br/>
+		/// and from all of its descendant nodes. 
+		/// </summary>
+		/// <param name="topNode"></param>
+		/// <returns></returns>
 		public SortedList<string, Dictionary<string, List<AttributeInfo>>> FindSerializedXmlAttributesFromTree(ITopNode topNode)
 		{
 			SortedList<string, Dictionary<string, List<AttributeInfo>>> dictAttr = new();
@@ -593,7 +602,7 @@ namespace SDC.Schema.Tests.Utils
 			}
 		}
 		/// <summary>
-		/// Retrieve all XML attributes that will be serialized to XML from the input IET node, <br/>
+		/// Find all XML attributes that will be serialized to XML from the input <see cref="IdentifiedExtensionType"/> (IET) node, <br/>
 		/// and from all of its non-IET descendant nodes.
 		/// </summary>
 		/// <param name="iet">Input IET node</param>

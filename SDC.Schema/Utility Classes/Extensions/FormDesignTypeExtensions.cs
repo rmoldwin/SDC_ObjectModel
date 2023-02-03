@@ -44,7 +44,13 @@ namespace SDC.Schema.Extensions
 		/// <returns></returns>
 		/// <exception cref="NotImplementedException"></exception>
 		public static RulesType AddRule_(this FormDesignType fd)
-		{ throw new NotImplementedException(); }
+		{ 
+			if(fd.Rules is null)
+			{
+				fd.Rules = new RulesType(fd);
+			}
+			return fd.Rules;
+		}
 
 	}
 }

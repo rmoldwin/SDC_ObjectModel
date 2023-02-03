@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FormDesign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" sGuid="Sw7HfyF9YkGRvJPHz9tygQ" order="0" ID="Adrenal.Bx.Res.129_3.003.001.REL_sdcFDF" baseURI="www.cap.org/eCC" formTitle="ADRENAL GLAND" filename="Adrenal.Bx.Res.129_3.003.001.REL_sdcFDF.xml" fullURI="_baseURI=www.cap.org/eCC&amp;_lineage=Adrenal.Bx.Res.129&amp;_version=3.003.001.REL&amp;_docType=sdcFDF" version="3.003.001.REL" lineage="Adrenal.Bx.Res.129" xmlns="urn:ihe:qrph:sdc:2016">
+  <Property name="Copyright" type="CAPeCC_static_text" styleClass="copyright" sGuid="fAxbrcw5Y0qhDmSKZqLU4A" order="10" propName="Copyright" val="(c) 2019 College of American Pathologists.  All rights reserved.  License required for use." />
+  <Property name="GenericHeaderText" type="CAPeCC_static_text" sGuid="M-E-nIDdI0yQzxMsndjXAg" order="20" propName="GenericHeaderText" val="Surgical Pathology Cancer Case Summary" />
+  <Property name="Category" type="CAPeCC_meta" sGuid="Et0eWtS70EqArKGk1GA01A" order="30" propName="Category" val="Endocrine" />
+  <Property name="OfficialName" type="CAPeCC_meta" sGuid="gu9Beoy2PEeBCJAP4GLpzQ" order="40" propName="OfficialName" val="ADRENAL GLAND" />
+  <Property name="CAP_ProtocolName" type="CAPeCC_meta" sGuid="tM4Z5Ml4fECAmpsEh7AUqg" order="50" propName="CAP_ProtocolName" val="Adrenal Gland" />
+  <Property name="CAP_ProtocolShortName" type="CAPeCC_meta" sGuid="cZccpOm8zk6A0QE2cZmw1A" order="60" propName="CAP_ProtocolShortName" val="Adrenal" />
+  <Property name="CAP_ProtocolVersion" type="CAPeCC_meta" sGuid="6q_NDGyUjUKVszEiq1ta7g" order="70" propName="CAP_ProtocolVersion" val="4.0.2.0" />
+  <Property name="TemplateID" type="CAPeCC_meta" sGuid="BQvfDMogpUiz2KsQBGYKQA" order="80" propName="TemplateID" val="129.100004300" />
+  <Property name="Restrictions" type="CAPeCC_meta" sGuid="3mCwl5O_7Eqn8pS_AhNHbQ" order="90" propName="Restrictions" val="Please refer to the cancer protocol cover page (www.cap.org/cancerprotocols) for information about which tumor types and procedures can be reported using this template." />
+  <Property name="CAP_Required" type="CAPeCC_meta" sGuid="cNaIDjpq-EmcDC3Am9uZtg" order="100" propName="CAP_Required" val="true" />
+  <Property name="AccreditationDate" type="CAPeCC_meta dt.dateTime" sGuid="kP-uUEa1WUeW9BSN7Ajbbw" order="110" propName="AccreditationDate" val="11/1/2019" />
+  <Property name="WebPostingDate" type="CAPeCC_meta dt.dateTime" sGuid="wKsHBJ-Lc0uAjB9o_qSwJg" order="120" propName="WebPostingDate" val="2/27/2019" />
+  <Property name="ApprovalStatus" type="CAPeCC_meta" sGuid="ZQqsmWf7ikGvVaNOBINsOg" order="130" propName="ReleaseStatus" val="REL" />
+  <Property name="AJCC_Version" type="CAPeCC_meta" sGuid="MAS9bHv5CkaRtyXTXvD2BA" order="140" propName="AJCC_Version" val="8th Edition" />
+  <Body name="Body" sGuid="oqDeiX0pDkyu1BALLUMgpg" order="150" ID="Adrenal.Bx.Res.129_3.003.001.REL_sdcFDF_Body">
+    <ChildItems name="ch_Body" sGuid="DCM45SlB0U6bznzJVRW9Rw" order="160">
+      <Section name="S_4257" sGuid="SXrElHeYcESvkVD9OkFAQQ" order="170" ID="4257.100004300" minCard="0">
+        <ChildItems name="ch_4257_1" sGuid="VEGZuhVmhEigpyKR-6rAXA" order="180">
+          <DisplayedItem name="DI_39617" sGuid="z76JfGaajUeepWpWjzKrCw" order="190" ID="39617.100004300" title="# This checklist applies principally to adrenal carcinomas in adults. Pediatric adrenal cortical tumors have different criteria for malignancy and are, in general, treated under protocols that may differ significantly from the recommendations for adult- type tumors.">
+            <Property name="p_rptTxt_39617_1" sGuid="Q4wRL0yj7UmD_4CdehGhag" order="200" propName="reportText" val="{no text}" />
+          </DisplayedItem>
+          <Section name="S_17537" sGuid="X9Tz2CVUq0CJzggORdKplw" order="210" ID="17537.100004300" title="CLINICAL" mustImplement="false" minCard="0">
+            <ChildItems name="ch_17537_1" sGuid="WKkjv1npjkOGQgys297n9g" order="220">
+              <Question name="Q_4156" sGuid="41N0dTjuvkehudRyz9NNXg" order="230" ID="4156.100004300" title="Clinical History (specify)" mustImplement="false" minCard="0">
+                <Property name="p_rptTxt_4156_1" sGuid="_jaEJKGz20SfOmwqHDAZaA" order="240" propName="reportText" val="Clinical History" />
+                <ResponseField name="rf_4156_2" sGuid="JF9DNOUzcEGxU_D-hylH9Q" order="250">
+                  <Response name="rsp_4156_3" sGuid="oQsH_QOTlUKS5UNv70xCPw" order="260">
+                    <string name="str_4156_4" sGuid="FlNt-93NXE6d1y3BE-zPIQ" order="270" />
+                  </Response>
+                </ResponseField>
+              </Question>
+              <Question name="Q_53772" sGuid="U315XUMkSECKcXL-I52UCg" order="280" ID="53772.100004300" title="Functional Status (Notes J and K)" mustImplement="false" minCard="0">
+                <Property name="p_rptTxt_53772_1" sGuid="6hPqsaCIWEKelbLr5hXAXw" order="290" propName="reportText" val="Functional Status" />
+                <ListField name="lf_53772_2" sGuid="ViZUi1lZAkaJMa_LktaWJA" order="300" maxSelections="0">
+                  <List name="lst_53772_3" sGuid="ZD1e3Dbsxk2YOzOiz8Ns0g" order="310" />
+                </ListField>
+              </Question>
+            </ChildItems>
+          </Section>
+          <Section name="S_17875" sGuid="bqGL5BaL3UWiuLO3EwvH3A" order="320" ID="17875.100004300" title="SPECIMEN">
+            <ChildItems name="ch_17875_1" sGuid="yJoo7wDLNEuuof-F_6x7Bw" order="330">
+              <Question name="Q_42554" sGuid="vmljfpWDRkGW0Ki7zojHUQ" order="340" ID="42554.100004300" title="Procedure">
+                <ListField name="lf_42554_1" sGuid="dIf14asqakqEySoHDJ4b8w" order="350">
+                  <List name="lst_42554_2" sGuid="DvYeTZDsZ020GxMmuRFbcg" order="360">
+                    <ListItem name="LI_50809" sGuid="fXIbPzCOzUuKn_W3-xLzzA" order="370" ID="50809.100004300" title="Percutaneous needle biopsy" />
+                    <ListItem name="LI_46633" sGuid="oC9_bLseC06WbZcFP3GeoQ" order="380" ID="46633.100004300" title="Endoscopic directed biopsy (specify radiographic technique)">
+                      <Property name="p_rptTxt_46633_1" sGuid="KIXgFjV0DU2_cd7A7Ltk2A" order="390" propName="reportText" val="Endoscopic directed biopsy" />
+                      <ListItemResponseField name="lirf_46633_2" sGuid="1QulFHiDfEK7jI789xfIjw" order="400" responseRequired="true">
+                        <Response name="rsp_46633_3" sGuid="zFADpl633U2ifb-IKkJNKw" order="410">
+                          <string name="str_46633_4" sGuid="tdeYso389kSaauS6BtVMAA" order="420" />
+                        </Response>
+                      </ListItemResponseField>
+                    </ListItem>
+                    <ListItem name="LI_2122" sGuid="qjtJTJvSJUuxmq7G44kshw" order="430" ID="2122.100004300" title="Adrenalectomy, total" />
+                    <ListItem name="LI_2121" sGuid="oSv39A29LEqla4KjZmDeNg" order="440" ID="2121.100004300" title="Adrenalectomy, partial" />
+                    <ListItem name="LI_2123" sGuid="MiydonbLWUiVenzgk5bShw" order="450" ID="2123.100004300" title="Other (specify)">
+                      <Property name="p_rptTxt_2123_1" sGuid="mAeIAiALsECw0J8Z9o0kug" order="460" propName="reportText" val="{no text}" />
+                      <ListItemResponseField name="lirf_2123_2" sGuid="NrkRBAGFE029d5O19pw_qw" order="470" responseRequired="true">
+                        <Response name="rsp_2123_3" sGuid="yV9AlMbtzEuACAea5y2HEw" order="480">
+                          <string name="str_2123_4" sGuid="BxLQOwdGQ0Wjihj2D-WZww" order="490" />
+                        </Response>
+                      </ListItemResponseField>
+                    </ListItem>
+                    <ListItem name="LI_2124" sGuid="qiaHkTGO_ECyVNimZ0EglQ" order="500" ID="2124.100004300" title="Not specified" />
+                  </List>
+                </ListField>
+              </Question>
+              <Question name="Q_52756" sGuid="LRiXEsMcfkOb6XbN_oWuVQ" order="510" ID="52756.100004300" title="Specimen Laterality">
+                <ListField name="lf_52756_1" sGuid="Gs01km3jRkiwIArFt_89YA" order="520">
+                  <List name="lst_52756_2" sGuid="kZXPhPmSNEurZGzj_Nz_0Q" order="530">
+                    <ListItem name="LI_2126" sGuid="Robuhspg5UWBxyU-5gM0Vg" order="540" ID="2126.100004300" title="Right" />
+                    <ListItem name="LI_2127" sGuid="lF7Zf1IOu0KtW6MJEX-0vA" order="550" ID="2127.100004300" title="Left" />
+                    <ListItem name="LI_56812" sGuid="HFXBzc7_vkmhwRDdy0cg9Q" order="560" ID="56812.100004300" title="Bilateral" />
+                    <ListItem name="LI_2128" sGuid="Oxfa9Z8GbEKkR0etJTDpMA" order="570" ID="2128.100004300" title="Not specified" />
+                    <ListItem name="LI_20866" sGuid="v9oWYv1cOkWuS55i4tE0CA" order="580" ID="20866.100004300" title="Other (specify)">
+                      <Property name="p_rptTxt_20866_1" sGuid="pdGAPRDydUeYHitF-Cl4BA" order="590" propName="reportText" val="{no text}" />
+                      <ListItemResponseField name="lirf_20866_2" sGuid="LrORlveIbEuSK5KE68Gxmw" order="600" responseRequired="true">
+                        <Response name="rsp_20866_3" sGuid="x7DZh70XFkOAph9sMuzmoQ" order="610">
+                          <string name="str_20866_4" sGuid="z0YFjlMWhkiIBb4ElR_HIA" order="620" />
+                        </Response>
+                      </ListItemResponseField>
+                    </ListItem>
+                  </List>
+                </ListField>
+              </Question>
+            </ChildItems>
+          </Section>
+          <Question name="Q_2168" sGuid="oPuUIcURxU-e0Gcjkv6vUQ" order="630" ID="2168.100004300" title="?Comment(s)" minCard="0">
+            <Property name="p_rptTxt_2168_1" sGuid="SBX7vuKFDkyWPBrol788Vg" order="640" propName="reportText" val="Comment(s)" />
+            <ResponseField name="rf_2168_2" sGuid="QV3LV_goPEehEZMxO_NwbQ" order="650">
+              <Response name="rsp_2168_3" sGuid="N7VAhP-I_EeyVHpE1Qj_Lw" order="660">
+                <string name="str_2168_4" sGuid="sJPw8x7y20KFONPDXK_qOQ" order="670" />
+              </Response>
+            </ResponseField>
+          </Question>
+          <DisplayedItem name="DI_57980" sGuid="XAER9dkvz06WOEQaOdb0Tw" order="680" ID="57980.100004300" title="# Note: Generally due to core needle biopsy, with insufficient viable tumor to count 50 HPFs.">
+            <Property name="p_rptTxt_57980_1" sGuid="qNcJviiJdEu5QQnFPPDTew" order="690" propName="reportText" val="{no text}" />
+          </DisplayedItem>
+          <Question name="Q_2118" sGuid="euiX9YWT7US_1cqGk-Tdbg" order="700" ID="2118.100004300" minCard="0" readOnly="true">
+            <Property name="p_altTxt_2118_1" sGuid="NfDOyQAWOk2b4SjZNtC5Iw" order="710" propName="altText" val="Tumor Site" />
+            <ListField name="lf_2118_2" sGuid="ooggLJgxKUCOnVLt5cdn6Q" order="720">
+              <List name="lst_2118_3" sGuid="lYXagUVnrUWbxf-H_HPQ2w" order="730">
+                <ListItem name="LI_2119" sGuid="kmEkzkZn7k6Yxc9LbjuKPQ" order="740" ID="2119.100004300" title="Adrenal gland" selected="true">
+                  <Property name="p_rptTxt_2119_1" sGuid="-gPUKOlMRU-ZrhZS9JwJbw" order="750" propName="reportText" val="{no text}" />
+                </ListItem>
+              </List>
+            </ListField>
+          </Question>
+        </ChildItems>
+      </Section>
+      <Question name="Q_49275" sGuid="2F03lsQhFkC866T22gqfAA" order="760" ID="49275.100004300" title="Histologic Grade (Notes C through E)">
+        <Property name="p_rptTxt_49275_1" sGuid="F3VKwbJ9BEC80zBlhZ6bkg" order="770" propName="reportText" val="Histologic Grade" />
+        <ListField name="lf_49275_2" sGuid="JaknoigQPEy-SUaQQgflsQ" order="780">
+          <List name="lst_49275_3" sGuid="XbH-ghb1XEOJdbmXR-M6WA" order="790">
+            <DisplayedItem name="DI_39617_1" sGuid="hHza1KommUuu7ytq77AF3Q" order="800" ID="39617.100004301" title="# This checklist applies principally to adrenal carcinomas in adults. Pediatric adrenal cortical tumors have different criteria for malignancy and are, in general, treated under protocols that may differ significantly from the recommendations for adult- type tumors.">
+              <Property name="p_rptTxt_39617_11" sGuid="CBh-t8-wmE2PXTLaT5ewbg" order="810" propName="reportText" val="{no text}" />
+            </DisplayedItem>
+            <ListItem name="LI_53603" sGuid="K_YBXn06CUGztjn5ocM3bw" order="820" ID="53603.100004300" title="Low grade (&lt;= 20 mitoses / 50 high-power fields)">
+              <Property name="p_rptTxt_53603_1" sGuid="R9pL6vZY1Eu2eYaT-2pkZQ" order="830" propName="reportText" val="Low grade" />
+            </ListItem>
+            <ListItem name="LI_48634" sGuid="UDzGCJNeSE66KI32f76uOg" order="840" ID="48634.100004300" title="High grade (&gt; 20 mitoses / 50 high-power fields)">
+              <Property name="p_rptTxt_48634_1" sGuid="ljUpCF4DbE2tFOfP5ESBrg" order="850" propName="reportText" val="High grade" />
+            </ListItem>
+            <ListItem name="LI_54648" sGuid="UuJbsy5LMEStanJyqCK8gw" order="860" ID="54648.100004300" title="Cannot be assessed (explain)#">
+              <Property name="p_rptTxt_54648_1" sGuid="0TSrC2sBUEmbH-uJLsROsg" order="870" propName="reportText" val="Cannot be assessed" />
+              <ListItemResponseField name="lirf_54648_2" sGuid="VjUKL9SCO0KUwigqci740A" order="880" responseRequired="true">
+                <Response name="rsp_54648_3" sGuid="RHHppkj9q0Ck4IYZk0ZxNw" order="890">
+                  <string name="str_54648_4" sGuid="faeIn9AJi0GNb_k6Ayphsg" order="900" />
+                </Response>
+              </ListItemResponseField>
+            </ListItem>
+          </List>
+        </ListField>
+      </Question>
+    </ChildItems>
+  </Body>
+  <Footer name="footer" sGuid="OkPdLN-Bkk2LDYCnkpiRkw" order="910" ID="Footer.Adrenal.Bx.Res.129_3.003.001.REL_sdcFDF">
+    <Property type="meta" styleClass="copyright" sGuid="_knOuLrrBkGL9J3xJgYQHQ" order="920" propName="CopyrightFooter" val="(c) 2019 College of American Pathologists.  All rights reserved.  License required for use." />
+  </Footer>
+</FormDesign>

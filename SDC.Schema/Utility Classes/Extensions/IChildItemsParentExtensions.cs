@@ -46,20 +46,20 @@ namespace SDC.Schema.Extensions
 			switch (qType)
 			{
 				case QuestionEnum.QuestionSingle:
-					qNew.AddListFieldToQuestion().AddList();
+					qNew.GetListField().GetList();
 					break;
 				case QuestionEnum.QuestionMultiple:
-					qNew.AddListFieldToQuestion().AddList();
+					qNew.GetListField().GetList();
 					qNew.ListField_Item.maxSelections = 0;
 					break;
 				case QuestionEnum.QuestionFill:
 					qNew.AddQuestionResponseField(out DataTypes_DEType dtDE);
 					break;
 				case QuestionEnum.QuestionLookupSingle:
-					qNew.AddListFieldToQuestion().AddEndpoint();
+					qNew.GetListField().AddEndpoint();
 					break;
 				case QuestionEnum.QuestionLookupMultiple:
-					qNew.AddListFieldToQuestion().AddEndpoint();
+					qNew.GetListField().AddEndpoint();
 
 					break;
 				default:

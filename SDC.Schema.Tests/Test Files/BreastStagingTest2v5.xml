@@ -1,11 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <FormDesign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="urn:ihe:qrph:sdc:2016 ../../../sdc-schema-package/SDCFormDesign.xsd" xmlns="urn:ihe:qrph:sdc:2016"
- xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="FD_ydYyII" sGuid="ydYyIIaYx06C9NlTO6ZVfA" order="0"
- ID="Breast.Invasive.Bx.Res.359_.CTP9_sdcFDF" baseURI="cap.org" formTitle="Breast Cancer Staging Calculator"
+ xsi:schemaLocation="urn:ihe:qrph:sdc:2016 ../../../../Desktop/SDC%20Schema%20Files/SDCFormDesign.xsd"
+ xmlns="urn:ihe:qrph:sdc:2016" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="FD_ydYyII"
+ sGuid="ydYyIIaYx06C9NlTO6ZVfA" order="0" ID="Breast.Invasive.Bx.Res.359_.CTP9_sdcFDF"
+ baseURI="cap.org" formTitle="Breast Cancer Staging Calculator"
  filename="Breast.Ca.Stg.Calc.359_CTP9_sdcFDF.xml"
- fullURI="_baseURI=cap.org&amp;_lineage=Breast.Ca.Stg.Calc.359&amp;_version=.CTP9&amp;_docType=sdcFDF" version="CTP9"
- lineage="Breast.Ca.Stg.Calc.359">
+ fullURI="_baseURI=cap.org&amp;_lineage=Breast.Ca.Stg.Calc.359&amp;_version=.CTP9&amp;_docType=sdcFDF"
+ version="CTP9" lineage="Breast.Ca.Stg.Calc.359">
   <Property name="p_SaveStat_ydYyII_1" sGuid="7U4Qwj2zBESIMa8eKKfKnA" order="10" propName="SaveState" val="New" />
   <Property name="p_Copyrigh_ydYyII_2" type="CAPeCC_static_text" styleClass="copyright" sGuid="U5LsMI4VFkSxxqBIfDMv2A" order="20" propName="Copyright" val="(c) 2018 College of American Pathologists. All rights reserved. License required for use." />
   <Property name="p_GenericH_ydYyII_3" type="CAPeCC_static_text" sGuid="i93Fq-hFbE-g4IVMA-TGtg" order="30" propName="GenericHeaderText" val="Breast Cancer Staging Calculator" />
@@ -22,181 +23,191 @@
   <Property name="p_ReleaseS_ydYyII_14" type="CAPeCC_meta" sGuid="EvXQgRNMJkGsrRS3m118YQ" order="140" propName="ReleaseStatus" val="CTP9" />
   <Body name="S_ZSyWij" sGuid="ZS-y-Wij0Eqc8ojScbyGfw" order="150" ID="Breast.Ca.Stg.Calc.359_sdcFDF_Body">
     <ChildItems name="ch_ZSyWij_1" sGuid="S1vC-p7pGUqfz8okKdoUVw" order="160">
-      <Section name="S_43969" sGuid="7YwfT3jcx0qtwaoZO4cz-w" order="170" ID="43969.100004300" title="ONCOLOGIST: Initial Clinical Staging Assessment">
-        <ChildItems name="ch_43969_1" sGuid="3I5Fr_xeKEaoTkYdgR-dXw" order="180">
-          <Question name="QS_52167" type="cT ---TEST--- readOnly.true showInReport.True.def enabled.false visible.false" sGuid="toBx7CdMgUKC_E5Q9cAgrQ" order="190" ID="52167.100004300" title="Primary Tumor (Invasive Carcinoma) (cT)" enabled="false" visible="false" readOnly="true">
-            <ListField name="lf_52167_1" type="---TEST--- maxSelections.1.def minSelections.1.def numCols.1.def storedCol.1.def colTextDelimiter.bar.def" sGuid="SAx4N_9O_0mj-inoBEaJ-w" order="200">
-              <List name="lst_52167_2" sGuid="p4lubStRqkW-N4_d5f3dbQ" order="210">
-                <ListItem name="LI_44567" sGuid="e5YmqksLiUOQPzKy55HTUw" order="220" ID="44567.100004300" title="cTX: Primary tumor cannot be assessed" associatedValue="cTx">
-                  <Property name="p_reportTe_44567_1" sGuid="3rv4F_0LrUyiftLKr1sYAA" order="230" propName="reportText" val="cTX" />
-                  <ChildItems name="ch_44567_2" sGuid="TMTXjyd-UE2RXrvCcKjJHA" order="240">
-                    <Question name="QM_lfK8UX" sGuid="lfK8UX0mu0eeQ46R5Wd2ag" order="250" ID="Q1" title="Q1">
-                      <ListField name="lf_lfK8UX_1" type="---TEST--- maxSelections.0 minSelections.2 numCols.2 storedCol.2 colTextDelimiter.sc" sGuid="rqeu7r1tIUySHU-UiJ5JKw" order="260" colTextDelimiter=";" numCols="2" storedCol="2" minSelections="2" maxSelections="0">
-                        <List name="lst_lfK8UX_2" sGuid="ZpU3dzvaZEWbG0tqgsUypg" order="270">
-                          <ListItem name="LI_R5Bxzj" type="mustImplement.false omitWhenSelected.true" sGuid="R5Bxzjm3KUuPxyMTUVZ4pQ" order="280" ID="testLI1" mustImplement="false" omitWhenSelected="true">
-                            <ListItemResponseField name="lirf_R5Bxzj_1" type="---TEST---responseRequired.true" sGuid="MGAmUtysa0OXsaUAQ51LCA" order="290" responseRequired="true">
-                              <Response name="rsp_R5Bxzj_2" sGuid="AoPluR2HE0y5o1vvdCr5ig" order="300">
-                                <byte name="sbyte_R5Bxzj_3" type="---TEST--- allowAPPROX.false.def quantEnum.EQ.def maxExclusive.0 minExclusive.1 totalDigits.2" sGuid="VhwNNwn3jkSl9Lw6KNNrGg" order="310" minExclusive="1" maxExclusive="0" totalDigits="2" />
-                              </Response>
-                              <ResponseUnits name="un_R5Bxzj_4" type="---TEST--- val.ml unitSystem.custom" sGuid="v0yy3dSXokuZmtHi7atKUw" order="320" val="ml" unitSystem="custom" />
-                            </ListItemResponseField>
-                          </ListItem>
-                        </List>
-                      </ListField>
-                    </Question>
-                    <Question name="QS_cuvVvG" type="---TEST--- readOnly.false.def enabled.true.def showInReport.False" sGuid="cuvVvGCltEWDQh-E4aBERA" order="330" ID="Q2" title="Q2" showInReport="False">
-                      <Link name="link_cuvVvG_1" sGuid="XEYbScs6ckOZYyt0d5Vtzw" order="340">
-                        <Property name="p_iconText_cuvVvG_2" sGuid="FC7A8UZoYkeS0_lMBrqh9g" order="350" propName="iconText" val="A" />
-                        <LinkText name="rtt_cuvVvG_3" sGuid="gvEgGLI1hEGnmwPzSY3WKw" order="360" val="VIC Test Note Title" />
-                        <LinkURI name="uri_cuvVvG_4" sGuid="oYssn5Lyfk6LO31CslGs5g" order="370" val="https://www.cap.org/protocols-and-guidelines/cancer-reporting-tools/cancer-protocol-templates#!%40%40%3F_afrLoop%3D1699561962668457%26_adf.ctrl-state%3Dlc02jycg8_25/" />
-                      </Link>
-                      <ListField name="lf_cuvVvG_5" type="---TEST--- colTextDelimiter.semicolon numCols.2 storedCol.2" sGuid="dQXE7qISUkqTP8VttxJicQ" order="380" colTextDelimiter=";" numCols="2" storedCol="2">
-                        <List name="lst_cuvVvG_6" sGuid="JFn-j-STn0SjTCW3WQzmjQ" order="390">
-                          <ListItem name="LI_WhIrlf" type="---TEST--- mustImplement.true.def omitWhenSelected.false.def" sGuid="WhIrlfe5f0-ukxg8DOyZ7w" order="400" ID="testLI2">
-                            <ListItemResponseField name="lirf_WhIrlf_1" type="---TEST--- responseRequired.false.def" sGuid="9mptzGD680qnVUljHiLUrA" order="410">
-                              <Response name="rsp_WhIrlf_2" sGuid="p-WbJKmuE0mhBc-_Y_JDNw" order="420" >
-                                <string sGuid="CTwqVTiuCUyx2eiYjXb-Ag" />
-                              </Response>
-                              <CallSetValue name="callFunc_WhIrlf_3" type="---TEST--- allowNull.true.def listDelimiter.bar.def dataType.string.def returnVal.1" sGuid="HMuRhZQ0KkCGEf__9jVpiQ" order="430" returnVal="1">
-                                <LocalFunctionName name="uri_WhIrlf_4" type="---TEST--- val" sGuid="tEVDTRpF-0SoQBHeqVDgJA" order="440" val="#AJCC_CalcPathStage" />
-                                <ParameterValue name="DataTypes_WhIrlf_5" type="---TEST--- paramName" sGuid="A07eAFk1N0Cq7Zjc-4Flrg" order="450" paramName="myParam">
-                                  <string name="str_WhIrlf_6" sGuid="zLf-Qp0eGE6XWP2aMBLkFA" order="460" />
-                                </ParameterValue>
-                              </CallSetValue>
-                              <TextAfterResponse name="rtt_WhIrlf_7" type="---TEST--- val.ml" sGuid="4orgB2lT60iQt-g-og7lQg" order="470" val="ml" />
-                              <ResponseUnits name="un_WhIrlf_8" type="---TEST--- val.ml unitSystem.UCUM.def" sGuid="rtAPpZqO602eKrzsDYuKJA" order="480" val="ml" />
-                            </ListItemResponseField>
-                            <OnDeselect name="evnt_WhIrlf_9" sGuid="8wtOwdU1D0KAEAs5AzuiVQ" order="490">
-                              <CallBoolFunc name="callFuncBool_WhIrlf_10" type="---TEST--- listDelimiter.semicolon returnList.false.def" sGuid="2q0ew9FrMkqQD8r7rbfOAw" order="500" listDelimiter=";">
-                                <LocalFunctionName name="uri_WhIrlf_11" type="---TEST--- val" sGuid="TZtquo2CbECRhfWy0IB7ng" order="510" val="#Body" />
-                              </CallBoolFunc>
-                            </OnDeselect>
-                            <SelectIf name="predGrd_WhIrlf_12" type="---TEST--- boolOp.AND.def" sGuid="CHMQBaDj0UqN9D1stRkBSw" order="520">
-                              <AttributeEval name="predEvAttVal_WhIrlf_13" type="---TEST---itemNames hasAssociatedValueEQ.EQ hasResponse.true" sGuid="HtYBPaU_rkS6aym8sEBUPQ" order="530" itemNames="LI_cT0_41284" hasResponse="true" hasAssociatedValueEQ="EQ" />
-                              <AttributeEval name="predEvAttVal_WhIrlf_14" type="---TEST---itemNames hasAssociatedValueEQ.GTE hasResponse.false" sGuid="fcmr3ZVTw06VLOHNNU_aDw" order="540" itemNames="LI_cT0_41284" hasResponse="false" hasAssociatedValueEQ="GTE" />
-                            </SelectIf>
-                          </ListItem>
-                        </List>
-                      </ListField>
-                    </Question>
-                  </ChildItems>
-                </ListItem>
-                <ListItem name="LI_41284" sGuid="t6xPFRjcrkKxwMXRq7H4YA" order="550" ID="41284.100004300" title="cT0: No evidence of primary tumor" associatedValue="cT0">
-                  <Property name="p_reportTe_41284_1" sGuid="XTrF-ziBfESg1AlbrdjNOA" order="560" propName="reportText" val="cT0" />
-                  <ListItemResponseField name="lirf_41284_2" type="---TEST--- responseRequired.true" sGuid="p9t6lqVnTECqwmMy5UsiQQ" order="570" responseRequired="true">
-                    <Response name="rsp_41284_3" sGuid="zgKgOrGRSkWZ28sqQehxrA" order="580">
-                      <int name="int_41284_4" type="---TEST--- allowAPPROX.true quantEnum.GTE maxExclusive.3 minExclusive.0 totalDigits.2" sGuid="B7UAj8c23kury1-mIZWIKw" order="590" quantEnum="GTE" minExclusive="0" maxExclusive="3" totalDigits="2" allowAPPROX="true" />
-                    </Response>
-                  </ListItemResponseField>
+      <Section name="S_4257" sGuid="OHCt9rzsMUe2nZI2xCgscg" order="19" ID="4257.100004300" minCard="0">
+        <ChildItems name="ch_4257_1" sGuid="0DPz8k0hR0619ioBb05dGQ" order="20">
+          <Question name="Q_2118" sGuid="AjzADSxlUUefkcaQ5mPMZQ" order="21" ID="2118.100004300" minCard="0" readOnly="true">
+            <Property name="p_altTxt_2118_1" sGuid="HZxn0wSkVkWWMRAUvlzR_w" order="22" propName="altText" val="Tumor Site" />
+            <ListField name="lf_2118_2" sGuid="LOA3YNrJbkmkj6TyQMtr8Q" order="23">
+              <List name="lst_2118_3" sGuid="gC8Q4Sdqt06rkGXrzg2CnA" order="24">
+                <ListItem name="LI_2119" sGuid="unKu0iIUL0uNS8UmvjqRlQ" order="25" ID="2119.100004300" title="Adrenal gland" selected="true">
+                  <Property name="p_rptTxt_2119_1" sGuid="v343AAtrjkmzGXEiwTQbhw" order="26" propName="reportText" val="{no text}" />
                 </ListItem>
               </List>
             </ListField>
           </Question>
-          <Question name="QS_58427" type="cN" sGuid="396gU4jQr0y8ESfKRYO8Yg" order="600" ID="58427.100004300" title="Regional Lymph Nodes (cN)">
-            <ListField name="lf_58427_1" sGuid="zUT0JTxs3kK7VYbV97Ystg" order="610">
-              <List name="lst_58427_2" sGuid="jMaLLFndPkmQPQHLMc7HlA" order="620">
-                <ListItem name="LI_47627" sGuid="k_dE3BTPHEy6GzrDtLu1dQ" order="630" ID="47627.100004300" title="cNX: Regional lymph nodes cannot be assessed (e.g., previously removed )" associatedValue="cNX">
-                  <Property name="p_reportTe_47627_1" sGuid="LEySKbCppEKzYu8RWELMXQ" order="640" propName="reportText" val="cNX" />
-                </ListItem>
-                <ListItem name="LI_47730" sGuid="zzWowTOQuU-jF8EunnhAoA" order="650" ID="47730.100004300" title="cN0: No regional lymph node metastases (by imaging or clinical examination)" associatedValue="cN0">
-                  <Property name="p_reportTe_47730_1" sGuid="zrUzKXyElUaTGRoR80TORQ" order="660" propName="reportText" val="cN0" />
-                </ListItem>
-                <ListItem name="LI_56495" sGuid="T3tHNcW-fEqNxJgUuJlgtw" order="670" ID="56495.100004300" title="cN1: Metastases to movable ipsilateral Level I, II axillary lymph node(s)" associatedValue="cN1">
-                  <Property name="p_reportTe_56495_1" sGuid="d-fsfIU-VkSUiQMv_BEEhA" order="680" propName="reportText" val="cN1" />
-                </ListItem>
-                <ListItem name="LI_46840" sGuid="jKz8xHyJA0mKc-N-IYEOSw" order="690" ID="46840.100004300" title="cN1mi: Micrometastases (approximately 200 cells, larger than 0.2 mm, but none larger than 2.0 mm)" associatedValue="cN1mi">
-                  <Property name="p_reportTe_46840_1" sGuid="fnciim4F_0mFLgvrl42P2Q" order="700" propName="reportText" val="cN1mi" />
-                </ListItem>
-                <ListItem name="LI_49897" sGuid="qfo6T7jCgEKfEJe-V1V2KA" order="710" ID="49897.100004300" title="cN2: Metastases in ipsilateral Level I, II axillary lymph nodes that are clinically fixed or matted; or in ipsilateral internal mammary nodes in the absence of axillary lymph node metastases" associatedValue="cN2">
-                  <Property name="p_reportTe_49897_1" sGuid="-_SD4euJ00C-1e3xu3Yw8Q" order="720" propName="reportText" val="cN2" />
-                </ListItem>
-                <ListItem name="LI_44424" sGuid="WM3yybgT0UiY6LBw9pqSkg" order="730" ID="44424.100004300" title="cN2a: Metastases in ipsilateral Level I, II axillary lymph nodes fixed to one another (matted) or to other structures" associatedValue="cN2a">
-                  <Property name="p_reportTe_44424_1" sGuid="q37Hh2leEUeVKfbOInAENg" order="740" propName="reportText" val="cN2a" />
-                </ListItem>
-                <ListItem name="LI_48772" sGuid="vbekHau5XU62RpFRXBsSxQ" order="750" ID="48772.100004300" title="cN2b: Metastases only in ipsilateral internal mammary nodes in the absence of axillary lymph node metastases" associatedValue="cN2b">
-                  <Property name="p_reportTe_48772_1" sGuid="Ze8T8w9CUk-Ke4tjFudt6w" order="760" propName="reportText" val="cN2b" />
-                </ListItem>
-                <ListItem name="LI_49651" sGuid="ftTQZ34hBk-Acw6_FgsmXQ" order="770" ID="49651.100004300" title="cN3: Metastases in ipsilateral infraclavicular (Level III axillary) lymph node(s) with or without Level I, II axillary lymph node involvement; or in ipsilateral internal mammary lymph node(s) with Level I, II axillary lymph node metastases; or metastases in ipsilateral supraclavicular lymph node(s) with or without axillary or internal mammary lymph node involvement" associatedValue="cN3">
-                  <Property name="p_reportTe_49651_1" sGuid="s7-E-2KJzE-XQQx47lzM3w" order="780" propName="reportText" val="cN3" />
-                </ListItem>
-                <ListItem name="LI_50916" sGuid="UZczNtS2PE6CwHGUO0oJYg" order="790" ID="50916.100004300" title="cN3a: Metastases in ipsilateral infraclavicular lymph node(s)" associatedValue="cN3a">
-                  <Property name="p_reportTe_50916_1" sGuid="crjQbFMSG0W04MA6ObABCw" order="800" propName="reportText" val="cN3a" />
-                </ListItem>
-                <ListItem name="LI_39077" sGuid="ezcj6eKhu0S0IRzCFX67Qw" order="810" ID="39077.100004300" title="cN3b: Metastases in ipsilateral internal mammary lymph node(s) and axillary lymph node(s)" associatedValue="cN3b">
-                  <Property name="p_reportTe_39077_1" sGuid="Wd7YkNkJm0-aaoqrvWS7_g" order="820" propName="reportText" val="cN3b" />
-                </ListItem>
-                <ListItem name="LI_43405" sGuid="WrPs7UWVWESAx-A3q_7T5Q" order="830" ID="43405.100004300" title="cN3c: Metastases in ipsilateral supraclavicular lymph nodes" associatedValue="cN3c">
-                  <Property name="p_reportTe_43405_1" sGuid="c-RYWKa2fku0X_lSTC7cKg" order="840" propName="reportText" val="cN3c" />
-                </ListItem>
-              </List>
-            </ListField>
-          </Question>
-          <Question name="QS_52058" type="cM" sGuid="1W-N5FnHW0KpI1BVzmRVnQ" order="850" ID="52058.100004300" title="Distant Metastasis (cM)">
-            <ListField name="lf_52058_1" sGuid="8-tVmYZrx0ysCq_alSfLrg" order="860">
-              <List name="lst_52058_2" sGuid="_ZvVWWzLO0-sEYudjbc3Ww" order="870">
-                <ListItem name="LI_44570" sGuid="qNf6G_lwjUaG2r-agECu1Q" order="880" ID="44570.100004300" title="cM0: No clinical or radiographic evidence of distant metastases" associatedValue="cM0">
-                  <Property name="p_reportTe_44570_1" sGuid="-BNusxVoiku9evcRbAo2EA" order="890" propName="reportText" val="cM0" />
-                </ListItem>
-                <ListItem name="LI_53226" sGuid="cvSvPYmA60O8pCiIq5R-WQ" order="900" ID="53226.100004300" title="cM0(i+): No clinical or radiographic evidence of distant metastases in the presence of tumor cells or deposits no larger than 0.2 mm detected microscopically or by molecular techniques in circulating blood, bone marrow, or other nonregional nodal tissue in a patient without symptoms or signs of metastases" associatedValue="cM0(i+)">
-                  <Property name="p_reportTe_53226_1" sGuid="RbFGNtKVSk6h8_7sZZXb7w" order="910" propName="reportText" val="cM0(i+)" />
-                </ListItem>
-                <ListItem name="LI_42555" sGuid="4FL-Bqj3Uk6ZeTyoTXHCiw" order="920" ID="42555.100004300" title="cM1: Distant metastases detected by clinical and radiographic means" associatedValue="cM1">
-                  <Property name="p_reportTe_42555_1" sGuid="d2dYwIgg5U69_jkupmMRmg" order="930" propName="reportText" val="cM1" />
-                </ListItem>
-                <ListItem name="LI_48878" sGuid="4QkdB8DOD0SeXJnnupPN1w" order="940" ID="48878.100004300" title="pM1: Any histologically proven metastases in distant organs; or if in non-regional nodes, metastases greater than 0.2 mm" associatedValue="pM1">
-                  <Property name="p_reportTe_48878_1" sGuid="-uNTb4C-LUWprigp9mwmgQ" order="950" propName="reportText" val="pM1" />
-                </ListItem>
-              </List>
-            </ListField>
-          </Question>
-          <Section name="S_57517" sGuid="8d8APHkBGU6Cdy-qVaRdTQ" order="960" ID="57517.100004300" title="Initial Non-Surgical Therapy">
-            <ChildItems name="ch_57517_1" sGuid="KX7fMsPw30icZayf2AN-Cg" order="970">
-              <Question name="QS_51809" type="TxApproach" sGuid="aj4mGTsRbEmMVeRUjiXvdw" order="980" ID="51809.100004300" title="Initial Treatment Approach">
-                <ListField name="lf_51809_1" sGuid="LD5KUbLxYEucd7QHybQDLg" order="990">
-                  <List name="lst_51809_2" sGuid="6YS9vbnw_02nUDYJYOF8Og" order="1000">
-                    <ListItem name="LI_36873" sGuid="10oOPUN3BUCy4GcvOE7fRg" order="1010" ID="36873.100004300" title="Surgical (use pTNM and p stage after surgery)" associatedValue="p" />
-                    <ListItem name="LI_36950" sGuid="WGeyUEoZ_EinFeZhg_Oflg" order="1020" ID="36950.100004300" title="Neoadjuvant (use ypTNM after surgery to record residual tumor, no p stage)" associatedValue="yp">
-                      <OnSelect name="evnt_36950_1" sGuid="j0fNiqnWy0iF9x7gjdOQSw" order="1030">
-                        <Actions name="act_36950_2" sGuid="DmHCJSYGeEy8u-lAgE3puw" order="1040">
-                          <SetAttributeValue name="actSetAttVal_36950_3" sGuid="Wax_pGLeQUWxb-yVgYIE_w" order="1050" targetNames="LI_NS_56851" actSelect="true" />
-                        </Actions>
-                      </OnSelect>
+        </ChildItems>
+      </Section>
+      <Section name="S_49193" sGuid="Ke_ZH_naV0ui-W7MBuNSHQ" order="1220" ID="49193.100004300" title="PATHOLOGY: Anatomic and Biomarker Reports" enabled="true">
+        <ChildItems name="ch_49193_1" sGuid="FyHIswsUBk6iu4lToaWAOg" order="1230">
+          <Section name="S_43969" sGuid="7YwfT3jcx0qtwaoZO4cz-w" order="170" ID="43969.100004300" title="ONCOLOGIST: Initial Clinical Staging Assessment">
+            <ChildItems name="ch_43969_1" sGuid="3I5Fr_xeKEaoTkYdgR-dXw" order="180">
+              <Question name="QS_52167" type="cT ---TEST--- readOnly.true showInReport.True.def enabled.false visible.false" sGuid="toBx7CdMgUKC_E5Q9cAgrQ" order="190" ID="52167.100004300" title="Primary Tumor (Invasive Carcinoma) (cT)" enabled="false" visible="false" readOnly="true">
+                <ListField name="lf_52167_1" type="---TEST--- maxSelections.1.def minSelections.1.def numCols.1.def storedCol.1.def colTextDelimiter.bar.def" sGuid="SAx4N_9O_0mj-inoBEaJ-w" order="200">
+                  <List name="lst_52167_2" sGuid="p4lubStRqkW-N4_d5f3dbQ" order="210">
+                    <ListItem name="LI_44567" sGuid="e5YmqksLiUOQPzKy55HTUw" order="220" ID="44567.100004300" title="cTX: Primary tumor cannot be assessed" associatedValue="cTx">
+                      <Property name="p_reportTe_44567_1" sGuid="3rv4F_0LrUyiftLKr1sYAA" order="230" propName="reportText" val="cTX" />
+                      <ChildItems name="ch_44567_2" sGuid="TMTXjyd-UE2RXrvCcKjJHA" order="240">
+                        <Question name="QM_lfK8UX" sGuid="lfK8UX0mu0eeQ46R5Wd2ag" order="250" ID="Q1" title="Q1">
+                          <ListField name="lf_lfK8UX_1" type="---TEST--- maxSelections.0 minSelections.2 numCols.2 storedCol.2 colTextDelimiter.sc" sGuid="rqeu7r1tIUySHU-UiJ5JKw" order="260" colTextDelimiter=";" numCols="2" storedCol="2" minSelections="2" maxSelections="0">
+                            <List name="lst_lfK8UX_2" sGuid="ZpU3dzvaZEWbG0tqgsUypg" order="270">
+                              <ListItem name="LI_R5Bxzj" type="mustImplement.false omitWhenSelected.true" sGuid="R5Bxzjm3KUuPxyMTUVZ4pQ" order="280" ID="testLI1" mustImplement="false" omitWhenSelected="true">
+                                <ListItemResponseField name="lirf_R5Bxzj_1" type="---TEST---responseRequired.true" sGuid="MGAmUtysa0OXsaUAQ51LCA" order="290" responseRequired="true">
+                                  <Response name="rsp_R5Bxzj_2" sGuid="AoPluR2HE0y5o1vvdCr5ig" order="300">
+                                    <byte name="sbyte_R5Bxzj_3" type="---TEST--- allowAPPROX.false.def quantEnum.EQ.def maxExclusive.0 minExclusive.1 totalDigits.2" sGuid="VhwNNwn3jkSl9Lw6KNNrGg" order="310" minExclusive="1" maxExclusive="0" totalDigits="2" />
+                                  </Response>
+                                  <ResponseUnits name="un_R5Bxzj_4" type="---TEST--- val.ml unitSystem.custom" sGuid="v0yy3dSXokuZmtHi7atKUw" order="320" val="ml" unitSystem="custom" />
+                                </ListItemResponseField>
+                              </ListItem>
+                            </List>
+                          </ListField>
+                        </Question>
+                        
+                        <Question name="QS_cuvVvG" type="---TEST--- readOnly.false.def enabled.true.def showInReport.False" sGuid="cuvVvGCltEWDQh-E4aBERA" order="330" ID="Q2" title="Q2" showInReport="False">
+                          <Link name="link_cuvVvG_1" sGuid="XEYbScs6ckOZYyt0d5Vtzw" order="340">
+                            <Property name="p_iconText_cuvVvG_2" sGuid="FC7A8UZoYkeS0_lMBrqh9g" order="350" propName="iconText" val="A" />
+                            <LinkText name="rtt_cuvVvG_3" sGuid="gvEgGLI1hEGnmwPzSY3WKw" order="360" val="VIC Test Note Title" />
+                            <LinkURI name="uri_cuvVvG_4" sGuid="oYssn5Lyfk6LO31CslGs5g" order="370" val="https://www.cap.org/protocols-and-guidelines/cancer-reporting-tools/cancer-protocol-templates#!%40%40%3F_afrLoop%3D1699561962668457%26_adf.ctrl-state%3Dlc02jycg8_25/" />
+                          </Link>
+                          <ListField name="lf_cuvVvG_5" type="---TEST--- colTextDelimiter.semicolon numCols.2 storedCol.2" sGuid="dQXE7qISUkqTP8VttxJicQ" order="380" colTextDelimiter=";" numCols="2" storedCol="2">
+                            <List name="lst_cuvVvG_6" sGuid="JFn-j-STn0SjTCW3WQzmjQ" order="390">
+                              <ListItem name="LI_WhIrlf" type="---TEST--- mustImplement.true.def omitWhenSelected.false.def" sGuid="WhIrlfe5f0-ukxg8DOyZ7w" order="400" ID="testLI2">
+                                <ListItemResponseField name="lirf_WhIrlf_1" type="---TEST--- responseRequired.false.def" sGuid="9mptzGD680qnVUljHiLUrA" order="410">
+                                  <Response name="rsp_WhIrlf_2" sGuid="p-WbJKmuE0mhBc-_Y_JDNw" order="420" >
+                                    <string sGuid="CTwqVTiuCUyx2eiYjXb-Ag"/>
+                                  </Response>
+                                  <CallSetValue name="callFunc_WhIrlf_3" type="---TEST--- allowNull.true.def listDelimiter.bar.def dataType.string.def returnVal.1" sGuid="HMuRhZQ0KkCGEf__9jVpiQ" order="430" returnVal="1">
+                                    <LocalFunctionName name="uri_WhIrlf_4" type="---TEST--- val" sGuid="tEVDTRpF-0SoQBHeqVDgJA" order="440" val="#AJCC_CalcPathStage" />
+                                    <ParameterValue name="DataTypes_WhIrlf_5" type="---TEST--- paramName" sGuid="A07eAFk1N0Cq7Zjc-4Flrg" order="450" paramName="myParam">
+                                      <string name="str_WhIrlf_6" sGuid="zLf-Qp0eGE6XWP2aMBLkFA" order="460" />
+                                    </ParameterValue>
+                                  </CallSetValue>
+                                  <TextAfterResponse name="rtt_WhIrlf_7" type="---TEST--- val.ml" sGuid="4orgB2lT60iQt-g-og7lQg" order="470" val="ml" />
+                                  <ResponseUnits name="un_WhIrlf_8" type="---TEST--- val.ml unitSystem.UCUM.def" sGuid="rtAPpZqO602eKrzsDYuKJA" order="480" val="ml" />
+                                </ListItemResponseField>
+                                <OnDeselect name="evnt_WhIrlf_9" sGuid="8wtOwdU1D0KAEAs5AzuiVQ" order="490">
+                                  <CallBoolFunc name="callFuncBool_WhIrlf_10" type="---TEST--- listDelimiter.semicolon returnList.false.def" sGuid="2q0ew9FrMkqQD8r7rbfOAw" order="500" listDelimiter=";">
+                                    <LocalFunctionName name="uri_WhIrlf_11" type="---TEST--- val" sGuid="TZtquo2CbECRhfWy0IB7ng" order="510" val="#Body" />
+                                  </CallBoolFunc>
+                                </OnDeselect>
+                                <SelectIf name="predGrd_WhIrlf_12" type="---TEST--- boolOp.AND.def" sGuid="CHMQBaDj0UqN9D1stRkBSw" order="520">
+                                  <AttributeEval name="predEvAttVal_WhIrlf_13" type="---TEST---itemNames hasAssociatedValueEQ.EQ hasResponse.true" sGuid="HtYBPaU_rkS6aym8sEBUPQ" order="530" itemNames="LI_cT0_41284" hasResponse="true" hasAssociatedValueEQ="EQ" />
+                                  <AttributeEval name="predEvAttVal_WhIrlf_14" type="---TEST---itemNames hasAssociatedValueEQ.GTE hasResponse.false" sGuid="fcmr3ZVTw06VLOHNNU_aDw" order="540" itemNames="LI_cT0_41284" hasResponse="false" hasAssociatedValueEQ="GTE" />
+                                </SelectIf>
+                              </ListItem>
+                            </List>
+                          </ListField>
+                        </Question>
+                      </ChildItems>
                     </ListItem>
-                    <ListItem name="LI_38058" sGuid="blLJGcRutEe_MLVCC51g6A" order="1060" ID="38058.100004300" title="Non-surgical (may use ycTNM after treatment, no p stage)" associatedValue="yc">
-                      <OnSelect name="evnt_38058_1" sGuid="hfM_iQtwKku93lmmBqu4Yg" order="1070">
-                        <Actions name="act_38058_2" sGuid="b3GcnyaRCkeWOSrve0iR8Q" order="1080">
-                          <SetAttributeValue name="actSetAttVal_38058_3" sGuid="mkGmMgOTiU2Xc8VkXRaexw" order="1090" targetNames="LI_NS_56851" actSelect="true" />
-                        </Actions>
-                      </OnSelect>
-                    </ListItem>
-                    <ListItem name="LI_45154" sGuid="R9oiI5meEUOR3XKbckzPaQ" order="1100" ID="45154.100004300" title="No treatment (no yp or yc for TNM, no p stage)" associatedValue="NA">
-                      <OnSelect name="evnt_45154_1" sGuid="cK7qTCUkaUSdnZi9zTJVRg" order="1110">
-                        <Actions name="act_45154_2" sGuid="U_UFMyEecUKrR_iqWCulvQ" order="1120">
-                          <SetAttributeValue name="actSetAttVal_45154_3" sGuid="ZQdvxowsNE2pdv9EB8aj0g" order="1130" targetNames="LI_NS_56851" actSelect="true" />
-                        </Actions>
-                      </OnSelect>
+                    <ListItem name="LI_41284" sGuid="t6xPFRjcrkKxwMXRq7H4YA" order="550" ID="41284.100004300" title="cT0: No evidence of primary tumor" associatedValue="cT0">
+                      
                     </ListItem>
                   </List>
                 </ListField>
               </Question>
+              <Question name="QS_58427" type="cN" sGuid="396gU4jQr0y8ESfKRYO8Yg" order="600" ID="58427.100004300" title="Regional Lymph Nodes (cN)">
+                <ListField name="lf_58427_1" sGuid="zUT0JTxs3kK7VYbV97Ystg" order="610">
+                  <List name="lst_58427_2" sGuid="jMaLLFndPkmQPQHLMc7HlA" order="620">
+
+                    <ListItem name="LI_47730" sGuid="zzWowTOQuU-jF8EunnhAoA" order="650" ID="47730.100004300" title="cN0: No regional lymph node metastases (by imaging or clinical examination)" associatedValue="cN0">
+                      <Property name="p_reportTe_47730_1" sGuid="zrUzKXyElUaTGRoR80TORQ" order="660" propName="reportText" val="cN0" />
+                    </ListItem>
+                    <ListItem name="LI_47627" sGuid="k_dE3BTPHEy6GzrDtLu1dQ" order="630" ID="47627.100004300" title="cNX: Regional lymph nodes cannot be assessed (e.g., previously removed )" associatedValue="cNX">
+                      <Property name="p_reportTe_47627_1" sGuid="LEySKbCppEKzYu8RWELMXQ" order="640" propName="reportText" val="cNX" />
+                    </ListItem>
+                    <ListItem name="LI_56495" sGuid="T3tHNcW-fEqNxJgUuJlgtw" order="670" ID="56495.100004300" title="cN1: Metastases to movable ipsilateral Level I, II axillary lymph node(s)" associatedValue="cN1">
+                      <Property name="p_reportTe_56495_1" sGuid="d-fsfIU-VkSUiQMv_BEEhA" order="680" propName="reportText" val="cN1" />
+                    </ListItem>
+                    <ListItem name="LI_12345" sGuid="jKz8xHyJA0mKc-N-IYEOSw" order="690" ID="46840.100004300" title="cN1mi: Micrometastases (approximately 200 cells, larger than 0.2 mm, but none larger than 2.0 mm)" associatedValue="cN1mi">
+                      <Property name="p_reportTe_46840_1" sGuid="fnciim4F_0mFLgvrl42P2Q" order="700" propName="reportText" val="cN1mi" />
+                    </ListItem>
+                    <ListItem name="LI_49897" sGuid="qfo6T7jCgEKfEJe-V1V2KA" order="710" ID="49897.100004300" title="cN2: Metastases in ipsilateral Level I, II axillary lymph nodes that are clinically fixed or matted; or in ipsilateral internal mammary nodes in the absence of axillary lymph node metastases" associatedValue="cN2">
+                      <Property name="p_reportTe_49897_1" sGuid="-_SD4euJ00C-1e3xu3Yw8Q" order="720" propName="reportText" val="cN2" />
+                    </ListItem>
+                    <ListItem name="LI_44424" sGuid="WM3yybgT0UiY6LBw9pqSkg" order="730" ID="44424.100004300" title="cN2a: Metastases in ipsilateral Level I, II axillary lymph nodes fixed to one another (matted) or to other structures" associatedValue="cN2a">
+                      <Property name="p_reportTe_44424_1" sGuid="q37Hh2leEUeVKfbOInAENg" order="740" propName="reportText" val="cN2a" />
+                    </ListItem>
+                    <ListItem name="LI_48772" sGuid="vbekHau5XU62RpFRXBsSxQ" order="750" ID="48772.100004300" title="cN2b: Metastases only in ipsilateral internal mammary nodes in the absence of axillary lymph node metastases" associatedValue="cN2b">
+                      <Property name="p_reportTe_48772_1" sGuid="Ze8T8w9CUk-Ke4tjFudt6w" order="760" propName="reportText" val="cN2b" />
+                    </ListItem>
+                    <ListItem name="LI_49651" sGuid="ftTQZ34hBk-Acw6_FgsmXQ" order="770" ID="49651.100004300" title="cN3: Metastases in ipsilateral infraclavicular (Level III axillary) lymph node(s) with or without Level I, II axillary lymph node involvement; or in ipsilateral internal mammary lymph node(s) with Level I, II axillary lymph node metastases; or metastases in ipsilateral supraclavicular lymph node(s) with or without axillary or internal mammary lymph node involvement" associatedValue="cN3">
+                      <Property name="p_reportTe_49651_1" sGuid="s7-E-2KJzE-XQQx47lzM3w" order="780" propName="reportText" val="cN3" />
+                    </ListItem>
+                    <ListItem name="LI_50916" sGuid="UZczNtS2PE6CwHGUO0oJYg" order="790" ID="50916.100004300" title="cN3a: Metastases in ipsilateral infraclavicular lymph node(s)" associatedValue="cN3a">
+                      <Property name="p_reportTe_50916_1" sGuid="crjQbFMSG0W04MA6ObABCw" order="800" propName="reportText" val="cN3a" />
+                    </ListItem>
+                    <ListItem name="LI_39077" sGuid="ezcj6eKhu0S0IRzCFX67Qw" order="810" ID="39077.100004300" title="cN3b: Metastases in ipsilateral internal mammary lymph node(s) and axillary lymph node(s)" associatedValue="cN3b">
+                      <Property name="p_reportTe_39077_1" sGuid="Wd7YkNkJm0-aaoqrvWS7_g" order="820" propName="reportText" val="cN3b" />
+                    </ListItem>
+                    <ListItem name="LI_43405" sGuid="WrPs7UWVWESAx-A3q_7T5Q" order="830" ID="43405.100004300" title="cN3c: Metastases in ipsilateral supraclavicular lymph nodes" associatedValue="cN3c">
+                    </ListItem>
+                  </List>
+                </ListField>
+              </Question>
+              <Question name="QS_52058" type="cM" sGuid="1W-N5FnHW0KpI1BVzmRVnQ" order="850" ID="52058.100004300" title="Distant Metastasis (cM)">
+                <ListField name="lf_52058_1" sGuid="8-tVmYZrx0ysCq_alSfLrg" order="860">
+                  <List name="lst_52058_2" sGuid="_ZvVWWzLO0-sEYudjbc3Ww" order="870">
+                    <ListItem name="LI_44570" sGuid="qNf6G_lwjUaG2r-agECu1Q" order="880" ID="44570.100004300" title="cM0: No clinical or radiographic evidence of distant metastases" associatedValue="cM0">
+                      <Property name="p_reportTe_44570_1" sGuid="-BNusxVoiku9evcRbAo2EA" order="890" propName="reportText" val="cM0" />
+                    </ListItem>
+                    <ListItem name="LI_53226" sGuid="cvSvPYmA60O8pCiIq5R-WQ" order="900" ID="53226.100004300" title="cM0(i+): No clinical or radiographic evidence of distant metastases in the presence of tumor cells or deposits no larger than 0.2 mm detected microscopically or by molecular techniques in circulating blood, bone marrow, or other nonregional nodal tissue in a patient without symptoms or signs of metastases" associatedValue="cM0(i+)">
+                      <Property name="p_reportTe_53226_1" sGuid="RbFGNtKVSk6h8_7sZZXb7w" order="910" propName="reportText" val="cM0(i+)" />
+                    </ListItem>
+                    <ListItem name="LI_42555" sGuid="4FL-Bqj3Uk6ZeTyoTXHCiw" order="920" ID="42555.100004300" title="cM1: Distant metastases detected by clinical and radiographic means" associatedValue="cM1">
+                      <Property name="p_reportTe_42555_1" sGuid="d2dYwIgg5U69_jkupmMRmg" order="930" propName="reportText" val="cM1" />
+                    </ListItem>
+                    <ListItem name="LI_48878" sGuid="4QkdB8DOD0SeXJnnupPN1w" order="940" ID="48878.100004300" title="pM1: Any histologically proven metastases in distant organs; or if in non-regional nodes, metastases greater than 0.2 mm" associatedValue="pM1">
+                      <Property name="p_reportTe_48878_1" sGuid="-uNTb4C-LUWprigp9mwmgQ" order="950" propName="reportText" val="pM1" />
+                    </ListItem>
+                  </List>
+                </ListField>
+              </Question>
+              <Section name="S_57517" sGuid="8d8APHkBGU6Cdy-qVaRdTQ" order="960" ID="57517.100004300" title="Initial Non-Surgical Therapy">
+                <ChildItems name="ch_57517_1" sGuid="KX7fMsPw30icZayf2AN-Cg" order="970">
+                  <Question name="QS_51809" type="TxApproach" sGuid="aj4mGTsRbEmMVeRUjiXvdw" order="980" ID="51809.100004300" title="Initial Treatment Approach">
+                    <ListField name="lf_51809_1" sGuid="LD5KUbLxYEucd7QHybQDLg" order="990">
+                      <List name="lst_51809_2" sGuid="6YS9vbnw_02nUDYJYOF8Og" order="1000">
+                        <ListItem name="LI_36873" sGuid="10oOPUN3BUCy4GcvOE7fRg" order="1010" ID="36873.100004300" title="Surgical (use pTNM and p stage after surgery)" associatedValue="p" />
+                        <ListItem name="LI_36950" sGuid="WGeyUEoZ_EinFeZhg_Oflg" order="1020" ID="36950.100004300" title="Neoadjuvant (use ypTNM after surgery to record residual tumor, no p stage)" associatedValue="yp">
+                          <OnSelect name="evnt_36950_1" sGuid="j0fNiqnWy0iF9x7gjdOQSw" order="1030">
+                            <Actions name="act_36950_2" sGuid="DmHCJSYGeEy8u-lAgE3puw" order="1040">
+                              <SetAttributeValue name="actSetAttVal_36950_3" sGuid="Wax_pGLeQUWxb-yVgYIE_w" order="1050" targetNames="LI_NS_56851" actSelect="true" />
+                            </Actions>
+                          </OnSelect>
+                        </ListItem>
+                        <ListItem name="LI_38058" sGuid="blLJGcRutEe_MLVCC51g6A" order="1060" ID="38058.100004300" title="Non-surgical (may use ycTNM after treatment, no p stage)" associatedValue="yc">
+                          <OnSelect name="evnt_38058_1" sGuid="hfM_iQtwKku93lmmBqu4Yg" order="1070">
+                            <Actions name="act_38058_2" sGuid="b3GcnyaRCkeWOSrve0iR8Q" order="1080">
+                              <SetAttributeValue name="actSetAttVal_38058_3" sGuid="mkGmMgOTiU2Xc8VkXRaexw" order="1090" targetNames="LI_NS_56851" actSelect="true" />
+                            </Actions>
+                          </OnSelect>
+                        </ListItem>
+                        <ListItem name="LI_45154" sGuid="R9oiI5meEUOR3XKbckzPaQ" order="1100" ID="45154.100004300" title="No treatment (no yp or yc for TNM, no p stage)" associatedValue="NA">
+                          <OnSelect name="evnt_45154_1" sGuid="cK7qTCUkaUSdnZi9zTJVRg" order="1110">
+                            <Actions name="act_45154_2" sGuid="U_UFMyEecUKrR_iqWCulvQ" order="1120">
+                              <SetAttributeValue name="actSetAttVal_45154_3" sGuid="ZQdvxowsNE2pdv9EB8aj0g" order="1130" targetNames="LI_NS_56851" actSelect="true" />
+                            </Actions>
+                          </OnSelect>
+                        </ListItem>
+                      </List>
+                    </ListField>
+                  </Question>
+                </ChildItems>
+              </Section>
+              <ButtonAction name="B_izYj8k" sGuid="izYj8kpkU0WIqdwUcNQ5sw" order="1140" ID="SubmitInitClinAssess" title="Submit Initial Clinical Assessment">
+                <OnClick name="evnt_izYj8k_1" sGuid="t9QwWxQIW0-ViDPqeIGZMA" order="1150">
+                  <Actions name="act_izYj8k_2" sGuid="-g4vdITzx0C1WHJa48xaug" order="1160">
+                    <SetAttributeValue name="actSetAttVal_izYj8k_3" sGuid="RkeeMODgIkyi8PUOnLM0qg" order="1170" targetNames="S_Onc_Clin_Assess_43969" actEnable="false" />
+                    <SetAttributeValue name="actSetAttVal_izYj8k_4" sGuid="hvLYh48cXEWSvbDblcYLTg" order="1180" targetNames="SaveState" actSetVal="ClinAssess" />
+                    <SetAttributeValue name="actSetAttVal_izYj8k_5" sGuid="WbVAOJb5fkOUNM5WjCxJPg" order="1190" targetNames="S_PathReport_49193" actEnable="true" />
+                    <CallFunction name="callFunc_izYj8k_6" sGuid="gAlkPw4GiUi-V3bt30BuyA" order="1200">
+                      <LocalFunctionName name="uri_izYj8k_7" type="submit" sGuid="1x3xZghJ9k-qym_Coxkktg" order="1210" val="SubmitIntClinAssessment" />
+                    </CallFunction>
+                  </Actions>
+                </OnClick>
+              </ButtonAction>
             </ChildItems>
           </Section>
-          <ButtonAction name="B_izYj8k" sGuid="izYj8kpkU0WIqdwUcNQ5sw" order="1140" ID="SubmitInitClinAssess" title="Submit Initial Clinical Assessment">
-            <OnClick name="evnt_izYj8k_1" sGuid="t9QwWxQIW0-ViDPqeIGZMA" order="1150">
-              <Actions name="act_izYj8k_2" sGuid="-g4vdITzx0C1WHJa48xaug" order="1160">
-                <SetAttributeValue name="actSetAttVal_izYj8k_3" sGuid="RkeeMODgIkyi8PUOnLM0qg" order="1170" targetNames="S_Onc_Clin_Assess_43969" actEnable="false" />
-                <SetAttributeValue name="actSetAttVal_izYj8k_4" sGuid="hvLYh48cXEWSvbDblcYLTg" order="1180" targetNames="SaveState" actSetVal="ClinAssess" />
-                <SetAttributeValue name="actSetAttVal_izYj8k_5" sGuid="WbVAOJb5fkOUNM5WjCxJPg" order="1190" targetNames="S_PathReport_49193" actEnable="true" />
-                <CallFunction name="callFunc_izYj8k_6" sGuid="gAlkPw4GiUi-V3bt30BuyA" order="1200">
-                  <LocalFunctionName name="uri_izYj8k_7" type="submit" sGuid="1x3xZghJ9k-qym_Coxkktg" order="1210" val="SubmitIntClinAssessment" />
-                </CallFunction>
-              </Actions>
-            </OnClick>
-          </ButtonAction>
-        </ChildItems>
-      </Section>
-      <Section name="S_49193" sGuid="Ke_ZH_naV0ui-W7MBuNSHQ" order="1220" ID="49193.100004300" title="PATHOLOGY: Anatomic and Biomarker Reports" enabled="false">
-        <ChildItems name="ch_49193_1" sGuid="FyHIswsUBk6iu4lToaWAOg" order="1230">
           <Section name="S_39641" sGuid="Awolo8mKokibReAXANUHcg" order="1240" ID="39641.100004300" title="Anatomic Pathology - Invasive Breast Cancer">
             <ChildItems name="ch_39641_1" sGuid="3ST2vUsAEUuBErErHWYpcw" order="1250">
               <DisplayedItem name="DI_50996" sGuid="vUL3ct1Abkq3uuV3AxfA0g" order="1260" ID="50996.100004300" title="Note: If there are multiple invasive carcinomas, size, grade, histologic type, and the results of studies for estrogen receptor (ER), progesterone receptor (PR), and HER2 should pertain to the largest invasive carcinoma. If smaller invasive carcinomas differ in any of these features, this information may be included in the &quot;Comments&quot; section.">
@@ -254,7 +265,10 @@
                   <Question name="QM_59031" sGuid="6HDe9sGOTECkD-NY8q1YEg" order="1590" ID="59031.100004300" title="Radiologic Finding">
                     <ListField name="lf_59031_1" sGuid="SODcXlInwkOQyK1CsKAHDA" order="1600" maxSelections="0">
                       <List name="lst_59031_2" sGuid="QQ34WjN1WU63CG2iOsmtvQ" order="1610">
-                        <ListItem name="LI_40654" sGuid="lmxweaPWI0W5tUPPegM0Qw" order="1620" ID="40654.100004300" title="Mass or architectural distortion" />
+                        <ListItem name="LI_40654" sGuid="lmxweaPWI0W5tUPPegM0Qw" order="1620" ID="40654.100004300" title="Mass or architectural distortion" >
+                         <Property name="p_reportTe_41284_1" sGuid="XTrF-ziBfESg1AlbrdjNOA" order="560" propName="reportText" val="cT0" />
+
+                        </ListItem>
                         <ListItem name="LI_52061" sGuid="CDJfn5EANUyoiBHcUqlk2w" order="1630" ID="52061.100004300" title="Calcifications" />
                         <ListItem name="LI_39698" sGuid="M4ObTM4RaUevCPei1YiQaw" order="1640" ID="39698.100004300" title="Other (specify)">
                           <Property name="p_reportTe_39698_1" sGuid="ND8BsmAAQkS4vbdDvyNN4w" order="1650" propName="reportText" val="{no text}" />
@@ -538,11 +552,7 @@
                                     </OnSelect>
                                   </ListItem>
                                   <ListItem name="LI_51417" sGuid="jnb9qNa4PESoNw1KjZ5FGA" order="3570" ID="51417.100004300" title="Grade 2 (scores of 6 or 7)" associatedValue="G2">
-                                    <OnSelect name="evnt_51417_1" sGuid="LBoXVsVQbkigVLP7o4fLLg" order="3580">
-                                      <Actions name="act_51417_2" sGuid="mumwDX-pS0CrafJN4IL2Kw" order="3590">
-                                        <SetAttributeValue name="actSetAttVal_51417_3" sGuid="PjJDQSPxSU--92JW16kBjw" order="3600" targetNames="LI_Grd_2_59300" actSelect="true" />
-                                      </Actions>
-                                    </OnSelect>
+
                                   </ListItem>
                                   <ListItem name="LI_43760" sGuid="nsGTKgKJjEaJFRAuALNHRA" order="3610" ID="43760.100004300" title="Grade 3 (scores of 8 or 9)" associatedValue="G3">
                                     <OnSelect name="evnt_43760_1" sGuid="7fXKgd4aHkaxn7BVq25KWw" order="3620">
@@ -564,11 +574,7 @@
                                         <string name="str_38782_3" sGuid="GemvBG8O_0yzRlgixvH_kw" order="3720" />
                                       </Response>
                                     </ListItemResponseField>
-                                    <OnSelect name="evnt_38782_4" sGuid="tLF7THgGe0WOT7YjBtjftg" order="3730">
-                                      <Actions name="act_38782_5" sGuid="XY9DOYdZMkypdIBVdJ_29Q" order="3740">
-                                        <SetAttributeValue name="actSetAttVal_38782_6" sGuid="O-K0wz94DkCgC_NIzXfM0A" order="3750" targetNames="LI_Score_CBD_55247" actSelect="true" />
-                                      </Actions>
-                                    </OnSelect>
+
                                   </ListItem>
                                 </List>
                               </ListField>
@@ -581,8 +587,7 @@
                       </List>
                     </ListField>
                   </Question>
-                  <Question name="QS_37394" sGuid="giHwGLa7CU6o9VCdsivL_w" order="3780" ID="37394.100004300" title="?Tumor Size (Note D)">
-                    <Property name="p_reportTe_37394_1" sGuid="QWYergZf6kC4YLMJh6JBaQ" order="3790" propName="reportText" val="Tumor Size" />
+                  <Question name="QS_50358" sGuid="JYZEh3VUOkKQWVxBjosgXw" order="4160" ID="50358.100004300" title="Tumor Focality (Note G)">
                     <ListField name="lf_37394_2" sGuid="wE2j2CdYYEakySdJvU20IQ" order="3800">
                       <List name="lst_37394_3" sGuid="DyThjxOweEC5_LaLqQrUNA" order="3810">
                         <DisplayedItem name="DI_38722" sGuid="Uh_iPGHpVUe5Y0GW7nMcdQ" order="3820" ID="38722.100004300" title="Note: The size of the invasive carcinoma should take into consideration the gross findings correlated with the microscopic examination. If multiple foci of invasion are present, the size listed is the size of the largest contiguous area of invasion. The size of multiple invasive carcinomas should not be added together. The size does not include adjacent ductal carcinoma in situ (DCIS). For any carcinoma larger than 1.0 mm but less than 1.5 mm, the size should not be rounded down to 1.0 mm, but rather rounded up to 2.0 mm, to ensure that the tumor is not miscategorized as pT1mi.">
@@ -607,8 +612,14 @@
                             <TextAfterResponse name="rtt_59343_5" sGuid="ia2xhseW-k-eIm0fvpbWxg" order="3960" val="Millimeters (mm)" />
                             <ResponseUnits name="un_59343_6" sGuid="Awm7lXA-cUGhs99tUE8aWw" order="3970" val="mm" unitSystem="UCOM" />
                           </ListItemResponseField>
+                          <OnSelect name="evnt_38782_4" sGuid="tLF7THgGe0WOT7YjBtjftg" order="3730">
+                            <Actions name="act_38782_5" sGuid="XY9DOYdZMkypdIBVdJ_29Q" order="3740">
+                              <SetAttributeValue name="actSetAttVal_38782_6" sGuid="O-K0wz94DkCgC_NIzXfM0A" order="3750" targetNames="LI_Score_CBD_55247" actSelect="true" />
+                            </Actions>
+                          </OnSelect>
                           <ChildItems name="ch_59343_7" sGuid="q60ZD_H5hUmt1CCvP1y9yA" order="3980">
                             <Question name="QR_52044" sGuid="rtKafvKu20q2zVDCmAug4A" order="3990" ID="52044.100004300" title="Additional Dimension in Millimeters (mm)">
+                              <Property name="p_reportTe_37394_1" sGuid="QWYergZf6kC4YLMJh6JBaQ" order="3790" propName="reportText" val="Tumor Size" />
                               <ResponseField name="rf_52044_1" sGuid="zYJj7hcWx06LoEfHxy3q9A" order="4000">
                                 <Response name="rsp_52044_2" sGuid="wjfcsbGkZk-1DpmNU8nf_A" order="4010">
                                   <decimal name="dec_52044_3" sGuid="Gb3ng03-I0u9OvM0Ilf5aA" order="4020" />
@@ -629,8 +640,8 @@
                           </ChildItems>
                         </ListItem>
                         <ListItem name="LI_51958" sGuid="dtXv33QPqEqXwHejYfI_1w" order="4110" ID="51958.100004300" title="Size of largest invasive focus cannot be determined (explain)">
-                          <Property name="p_reportTe_51958_1" sGuid="-tvnHMtfvkaQe0NjQxw2ew" order="4120" propName="reportText" val="Size of largest invasive focus cannot be determined" />
-                          <ListItemResponseField name="lirf_51958_2" sGuid="s0pBjHdjAkGjpjHUo5XwrQ" order="4130" responseRequired="true">
+
+                          <ListItemResponseField name="lirf_51958_2" sGuid="s0pBjHdjAkGjpjHUo5XwrQ" order="4130">
                             <Response name="rsp_51958_3" sGuid="ivuqhdFgBEG3DHJG3na1NA" order="4140">
                               <string name="str_51958_4" sGuid="OsrtYgG5yE-u1eQcc-zYew" order="4150" />
                             </Response>
@@ -639,14 +650,18 @@
                       </List>
                     </ListField>
                   </Question>
-                  <Question name="QS_50358" sGuid="JYZEh3VUOkKQWVxBjosgXw" order="4160" ID="50358.100004300" title="Tumor Focality (Note G)">
+                  <Question name="QS_37394" sGuid="giHwGLa7CU6o9VCdsivL_w" order="3780" ID="37394.100004300" title="?Tumor Size (Note D)">
+
                     <Property name="p_reportTe_50358_1" sGuid="FWhM-lGGpUaYth2sk_2xkA" order="4170" propName="reportText" val="Tumor Focality" />
                     <ListField name="lf_50358_2" sGuid="7-EIATQldEmSGHbW7bcGmQ" order="4180">
                       <List name="lst_50358_3" sGuid="gYdOyZwtekOnOYBG3imRHA" order="4190">
                         <DisplayedItem name="DI_59014" sGuid="onLjmtCfB0uYQFTQMFuA5w" order="4200" ID="59014.100004300" title="Note: If there are multiple invasive carcinomas, size, grade, histologic type, and the results of studies for estrogen receptor (ER), progesterone receptor (PgR), and HER2 should pertain to the largest invasive carcinoma. If smaller invasive carcinomas differ in any of these features, this information may be included in the “Comments” section.">
                           <Property name="p_reportTe_59014_1" sGuid="6ZUMrDnEc0G16LiclPm7dg" order="4210" propName="reportText" val="{no text}" />
                         </DisplayedItem>
-                        <ListItem name="LI_41467" sGuid="RtFTEle-sEiRhIuOy4oKpA" order="4220" ID="41467.100004300" title="Single focus of invasive carcinoma" />
+                        <ListItem name="LI_41467" sGuid="RtFTEle-sEiRhIuOy4oKpA" order="4220" ID="41467.100004300" title="Single focus of invasive carcinoma" >
+                          <Property name="p_reportTe_51958_1" sGuid="-tvnHMtfvkaQe0NjQxw2ew" order="4120" propName="reportText" val="Size of largest invasive focus cannot be determined" />
+                        </ListItem>
+                        
                         <ListItem name="LI_56286" sGuid="ezpRVLX1-EagzWhWS_cwiQ" order="4230" ID="56286.100004300" title="Multiple foci of invasive carcinoma">
                           <ChildItems name="ch_56286_1" sGuid="zvrcY914y0i1t0TcPpHoXA" order="4240">
                             <Question name="QR_39993" sGuid="vVAxlQawg0qti0hK3G4GQA" order="4250" ID="39993.100004300" title="Number of Foci">
@@ -929,7 +944,7 @@
                       </Question>
                       <Question name="QM_49107" sGuid="V1vLoUHlc0irpHFremHYOQ" order="5980" ID="49107.100004300" title="Microcalcifications (Note O)">
                         <Property name="p_reportTe_49107_1" sGuid="t-KodaAJCEyEL373Vc4nTA" order="5990" propName="reportText" val="Microcalcifications" />
-                        <ListField name="lf_49107_2" sGuid="f7y-PVOLlkmfzXUIzrm8BA" order="6000" maxSelections="0">
+                        <ListField name="lf_49107_2" sGuid="f7y-PVOLlkmfzXUIzrm8BA" order="6000" maxSelections="1">
                           <List name="lst_49107_3" sGuid="0s2aAbieLUSAHfF-0VEB7w" order="6010">
                             <ListItem name="LI_56684" sGuid="Krus_g52PU2B9qm8nXiFHg" order="6020" ID="56684.100004300" title="Not identified" selectionDeselectsSiblings="true" />
                             <ListItem name="LI_59927" sGuid="ytp3_ojDcEuKq4yvJus3Og" order="6030" ID="59927.100004300" title="Present in DCIS" />

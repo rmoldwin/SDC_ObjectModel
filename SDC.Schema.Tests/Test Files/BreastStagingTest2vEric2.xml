@@ -59,7 +59,7 @@
                               <ListItem name="LI_WhIrlf" type="---TEST--- mustImplement.true.def omitWhenSelected.false.def" sGuid="WhIrlfe5f0-ukxg8DOyZ7w" order="400" ID="testLI2">
                                 <ListItemResponseField name="lirf_WhIrlf_1" type="---TEST--- responseRequired.false.def" sGuid="9mptzGD680qnVUljHiLUrA" order="410">
                                   <Response name="rsp_WhIrlf_2" sGuid="p-WbJKmuE0mhBc-_Y_JDNw" order="420" >
-                                    <string />
+                                    <string sGuid="CTwqVTiuCUyx2eiYjXb-Ag"/>
                                   </Response>
                                   <CallSetValue name="callFunc_WhIrlf_3" type="---TEST--- allowNull.true.def listDelimiter.bar.def dataType.string.def returnVal.1" sGuid="HMuRhZQ0KkCGEf__9jVpiQ" order="430" returnVal="1">
                                     <LocalFunctionName name="uri_WhIrlf_4" type="---TEST--- val" sGuid="tEVDTRpF-0SoQBHeqVDgJA" order="440" val="#AJCC_CalcPathStage" />

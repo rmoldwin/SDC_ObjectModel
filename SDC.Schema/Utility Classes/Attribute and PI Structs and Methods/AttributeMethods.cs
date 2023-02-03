@@ -11,7 +11,7 @@ namespace SDC.Schema
 	public class AttributeMethods
 	{
 		private IList<AttributeInfo> _attributes { get; set; }
-		protected delegate IList<AttributeInfo>? dlgMethod(Type t, BaseType n, string[]? attributesToExclude = null);
+		private delegate IList<AttributeInfo>? dlgMethod(Type t, BaseType n, string[]? attributesToExclude = null);
 		private static readonly Dictionary<Type, dlgMethod> _actions = new();
 
 		public AttributeMethods()
@@ -53,7 +53,7 @@ namespace SDC.Schema
 		}
 		//private readonly Dictionary<Type, Func<Type, BaseType, string[], IList<AttributeInfo>?>> _actions2 = new();
 
-		protected void AddMethod(Type t, dlgMethod method)
+		private void AddMethod(Type t, dlgMethod method)
 		{
 			_actions.Add(t, method);
 		}

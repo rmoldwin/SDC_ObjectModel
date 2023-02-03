@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace SDC.Schema.Tests.Functional
 {
 	[TestClass()]
-	public class SdcUtilTests
+	public class _SdcUtilTests
 	{
 		[TestMethod()]
 		public void IsGenericListTest()

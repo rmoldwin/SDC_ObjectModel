@@ -378,7 +378,7 @@ namespace SDC.Schema.Tests.Functional
 						if (targetTest is null)
 						{
 							Debugger.Break(); //We should never get here
-							qsqmTarget.AddListFieldToQuestion().AddList();
+							qsqmTarget.GetListField().GetList();
 						}
 						targetAttachementSite = qsqmTarget.ListField_Item?.List;
 						if (targetAttachementSite is null) throw new NullReferenceException("targetAttachementSite (qsqmTarget.ListField_Item) cannot be null");

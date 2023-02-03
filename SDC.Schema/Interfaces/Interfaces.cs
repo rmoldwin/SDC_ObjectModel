@@ -29,12 +29,12 @@ namespace SDC.Schema
     }
     public interface IListField
     {
-        ListType List { get; set; }
-        LookupEndPointType LookupEndpoint { get; set; }
+        ListType? List { get; set; }
+        LookupEndPointType? LookupEndpoint { get; set; }
     }
     public interface IQuestionBase
     {
-        ResponseFieldType ResponseField_Item { get; set; }
+        ResponseFieldType? ResponseField_Item { get; set; }
     }
     #region Values    
     /// <summary>
@@ -109,6 +109,10 @@ namespace SDC.Schema
     /// </summary>
     /// 
     public interface IChildItemsMember<Tchild> where Tchild : IdentifiedExtensionType, IChildItemsMember<Tchild> { }  //Marks SectionItemType, QuestionItemType, DisplayedType, ButtonItemType, InjectFormType    
+    /// <summary>
+    /// Items with this interface attach to to a List&lt;> object in the SDC tree.
+    /// </summary>
+    public interface IListMember { } //
     public interface IQuestionItem : IQuestionList { }
 
     //bool ConvertToButton(); //abort if LIs or children present

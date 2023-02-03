@@ -28,7 +28,7 @@ namespace SDC.Schema.Extensions
 		/// <param name="lf"></param>
 		/// <returns></returns>
 		/// <exception cref="InvalidOperationException"></exception>
-		public static ListType AddList(this ListFieldType lf)
+		public static ListType GetList(this ListFieldType lf)
 		{
 			if(lf.LookupEndpoint is not null)
 				throw new InvalidOperationException
@@ -39,7 +39,11 @@ namespace SDC.Schema.Extensions
 				list = new ListType(lf);
 				lf.List = list;
 			}
-			else list = lf.List;
+			else
+			{
+				if (lf.List.Items is null) lf.List.Items = new();
+				list = lf.List;
+			}
 
 			//The "list" item contains a list<DisplayedType>, to which the ListItems and ListNotes (DisplayedItems) are added.
 			list.QuestionListMembers ??= new List<DisplayedType>();

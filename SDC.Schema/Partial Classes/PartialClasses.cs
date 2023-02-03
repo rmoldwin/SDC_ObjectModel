@@ -264,9 +264,16 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public List<IdentifiedExtensionType> DataElement_Items
 		{
-			get { return Items; }		
-			set { Items = value; }
-
+			get { return Items; }
+			set
+			{
+				if (Items is null) Items = new();
+				else
+				{
+					foreach (BaseType n in Items) n.RemoveRecursive();
+					Items = value;
+				}
+			}
 		}
 
 		#region ITopNode
@@ -315,7 +322,7 @@ namespace SDC.Schema
 
 		}
 		/// <summary>
-		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
+		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to new(). <br/>
 		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
 		/// </summary>
 		public void ResetRootNode()
@@ -323,11 +330,11 @@ namespace SDC.Schema
 			BaseType.ResetRootNode();
 			((_ITopNode)this).ClearDictionaries();
 			//((_ITopNode)this)._MaxObjectIDint = 0;
-			Property = null;
-			Extension = null;
-			Comment = null;
+			Property = new();
+			Extension = new();
+			Comment = new();
 
-			Items = null;
+			Items = new();
 		}
 
 		#region _ITopNode
@@ -397,6 +404,9 @@ namespace SDC.Schema
 			ElementName = "SDCPackage";
 			ElementPrefix = "PKG";
 			this.Items = new();
+			this.SubmissionRule = new();
+			this.ComplianceRule = new();
+			this.SDCPackage = new();
 		}
 
 		#region ITopNode
@@ -445,7 +455,7 @@ namespace SDC.Schema
 			topNode._IETnodes.Clear();
 		}
 		/// <summary>
-		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
+		/// Clears all dictionaries, sets top level objects to new(). <br/>
 		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
 		/// </summary>
 		public void ResetRootNode()
@@ -453,12 +463,14 @@ namespace SDC.Schema
 			BaseType.ResetRootNode();
 			((_ITopNode)this).ClearDictionaries();
 			((_ITopNode)this)._MaxObjectID = 0;
-			Property = null;
-			Extension = null;
-			Comment = null;
+			Property = new();
+			Extension = new();
+			Comment = new();
 
-			Items = null;
-			SDCPackage = null;
+			Items = new();
+			SubmissionRule = new();
+			ComplianceRule = new();
+			SDCPackage = new();
 		}
 		#endregion
 
@@ -843,7 +855,10 @@ namespace SDC.Schema
 		public ChildItemsType ChildItemsNode
 		{
 			get { return this.Item; }
-			set { this.Item = value; }
+			set
+			{
+				Item = ItemMutator(Item, value);
+			}
 		}
 		#endregion
 	}
@@ -874,7 +889,12 @@ namespace SDC.Schema
 		{
 			get 
 			{ return Item1;	}
-			set { this.Item1 = value; }
+			set 
+			{ 
+
+				this.Item1 = value; 
+			
+			}
 		}
 		#endregion
 
@@ -893,7 +913,7 @@ namespace SDC.Schema
 
 		[XmlIgnore]
 		[JsonIgnore]
-		public ListFieldType ListField_Item
+		public ListFieldType? ListField_Item
 		{
 			get
 			{
@@ -901,13 +921,20 @@ namespace SDC.Schema
 					return (ListFieldType)this.Item;
 				else return null;
 			}
-			set { this.Item = value; }
+			set
+			{ 
+				if(Item is not null) Item.RemoveRecursive();				
+				Item = value;
+				
+				//if (!value.Move(this)) //should set Item = value;
+				//	throw new InvalidOperationException($"An invalid data type ({value.GetType().Name}) was passed to the setter");
+			}
 		}
 
 
-		[XmlIgnore]
+	[XmlIgnore]
 		[JsonIgnore]
-		public ResponseFieldType ResponseField_Item
+		public ResponseFieldType? ResponseField_Item
 		{
 			get
 			{
@@ -915,7 +942,11 @@ namespace SDC.Schema
 					return (ResponseFieldType)this.Item;
 				else return null;
 			}
-			set { this.Item = value; }
+			set
+			{
+				Item.RemoveRecursive();
+				Item = value;
+			}
 		}
 	}
 	#endregion
@@ -933,6 +964,7 @@ namespace SDC.Schema
 		private void Init()
 		{
 			ElementPrefix = "lst";  // tag:#IsThisCorrect
+			Items = new();
 		}
 
 		/// <summary>
@@ -940,10 +972,22 @@ namespace SDC.Schema
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		public List<DisplayedType> QuestionListMembers
+		internal List<DisplayedType> QuestionListMembers
 		{
-			get { return this.Items; }
-			set { this.Items = value; }
+			get 
+			{
+				if (Items is null) return new();
+				return this.Items; 
+			}
+			set
+			{
+				if (Items is null) Items = new();
+				else
+				{
+					foreach (BaseType n in Items) n.RemoveRecursive();
+					Items = value;
+				}
+			}
 		}
 	}
 
@@ -977,7 +1021,11 @@ namespace SDC.Schema
 					return (ListType)this.Item;
 				else return null;
 			}
-			set { this.Item = value; }
+			set
+			{
+				Item?.RemoveRecursive();
+				Item = value;
+			}
 		}
 		/// <summary>
 		/// Replaces Item
@@ -992,7 +1040,11 @@ namespace SDC.Schema
 					return (LookupEndPointType)this.Item;
 				else return null;
 			}
-			set { this.Item = value; } //TODO: should be internal scope to prevent changing/removing/nulling the node
+			set
+			{
+				Item?.RemoveRecursive();
+				Item = value;
+			} //TODO: should this setter be internal scope to prevent changing/removing/nulling the node?
 		}
 
 	}
@@ -1000,7 +1052,7 @@ namespace SDC.Schema
 	public partial class ListItemType : IChildItemsParent //, IListItem //, IQuestionListMember
 	{
 		protected ListItemType() { Init(); }
-		public ListItemType(ListType parentNode, string id = "", string elementName = "", string elementPrefix = "") : base(parentNode, id)
+		public ListItemType(ListType? parentNode, string id = "", string elementName = "", string elementPrefix = "") : base(parentNode, id)
 		{
 			Init();
 		}
@@ -1025,7 +1077,11 @@ namespace SDC.Schema
 		public ChildItemsType ChildItemsNode
 		{
 			get { return this.Item; }
-			set { this.Item = value; }
+			set
+			{
+				Item?.RemoveRecursive();
+				Item = value;
+			}
 		}
 
 		#endregion
@@ -1036,7 +1092,7 @@ namespace SDC.Schema
 	public partial class ListItemBaseType
 	{
 		protected ListItemBaseType() { Init(); }
-		public ListItemBaseType(ListType parentNode, string id = "") : base(parentNode, id)
+		public ListItemBaseType(ListType? parentNode, string id = "") : base(parentNode, id)
 		{
 			Init();
 		}
@@ -1131,7 +1187,8 @@ namespace SDC.Schema
 		/// This constructor is used only to deserialize SDC classes with the SDC.Schema serializers.
 		///		Parent Nodes cannot be assigned through this constructor.  
 		///		Node dictionaries cannot be populated here either.
-		///		After the SDC object tree is created, parent nodes and other metadata can be assigned using <see cref="SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?)"/>
+		///		After the SDC object tree is created, parent nodes and other metadata can be assigned using 
+		///		<see cref="InitBaseType"/> and/or <see cref="SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?)"/>
 		/// </summary>
 		protected BaseType()
 		{			
@@ -1174,11 +1231,17 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="parentNode"></param>
 		protected BaseType(BaseType? parentNode)
-		{ 
+		{
+			InitBaseType(this, parentNode);
+			return;
+		}
+
+		internal void InitBaseType (BaseType node, BaseType? parentNode)
+		{
 			//+Assign this.TopNode
-			if (this is ITopNode tn)
+			if (node is ITopNode tn)
 			{
-				if (parentNode is null) TopNode = tn;
+				if (parentNode is null) node.TopNode = tn;
 				else //if (parentNode is not null)
 				{
 					if (parentNode.TopNode is not null)
@@ -1189,45 +1252,52 @@ namespace SDC.Schema
 							par_ITopNode = ptn;//only occurs in RetrieveFormPackage under RetrieveFormPackage
 						else par_ITopNode = (_ITopNode)parentNode.TopNode; //par_ITopNode could still be null here
 
-						TopNode = par_ITopNode;
+						node.TopNode = par_ITopNode;
 					}
-					else { } //this node descends form a non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode
-							 //throw new InvalidOperationException("ParentNode is not null, but ParentNode.TopNode is null");
+					else { ObjectID = -1; } //this node descends form a non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode
+											//throw new InvalidOperationException("ParentNode is not null, but ParentNode.TopNode is null");
 				}
 			}//not ITopNode here
 			else if (parentNode is not null)
 			{
 				if (parentNode is ITopNode ptn)
 				{
-					TopNode = (_ITopNode)parentNode;
-					ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
+					node.TopNode = (_ITopNode)parentNode;
+					node.ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
 				}
 				else if (parentNode.TopNode is not null)
 				{
-					TopNode = (_ITopNode)parentNode.TopNode;
-					ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
+					node.TopNode = (_ITopNode)parentNode.TopNode;
+					node.ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
 				}
-				else { //this node descends form an "illegal" non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode,
-						 //but we can still process it, as long as we check for null TopNode everywhere we need it (mainly in Dictionaries).
-						 //later, this "illegal" tree will need to be grafted onto a legal tree and TopNodes will need to be assigned during
-						 //the grafting/moving process, based on the target tree's TopNodes.
-					ObjectID = -1;
-				} 
+				else
+				{ //this node descends form an "illegal" non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode,
+				  //but we can still process it, as long as we check for null TopNode everywhere we need it (mainly in Dictionaries).
+				  //later, this "illegal" tree will need to be grafted onto a legal tree and TopNodes will need to be assigned during
+				  //the grafting/moving process, based on the target tree's TopNodes.
+					node.ObjectID = -1;
+				}
 			}
-			else if (parentNode is null) { }//the caller is trying to instantiate a standalone root node that is not a proper ITopNode.  TopNode is thus null here
+			else if (parentNode is null)
+			{ node.ObjectID = -1; }//the caller is trying to instantiate a standalone root node that is not a proper ITopNode.
+							  //TopNode is thus null here
+							  //Object ID is unassigned
 
 			//!________Assign default sGuid, BaseName, ObjectGUID, ObjectID, @order, @name & populate dictionaries___________________
 
-			SdcUtil.AssignGuid_sGuid_BaseName(this);			
+			SdcUtil.AssignGuid_sGuid_BaseName(node);
 
-			this.RegisterNodeAndParent(parentNode);
+			if (node.TopNode is not null)
+			{	//a node with a null TopNode will not be registered in any TopNode dictionaries.
+				node.RegisterNodeAndParent(parentNode); 
 
-			//The following code requires that the current node is first added
-			//to the ParentNodes dictionary.  Thus, these statements must come
-			//*after* the dictionaries are populated (in RegisterNodeAndParent)
-			
-			this.AssignOrder(orderGap: 10);
-			this.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
+				//The following code requires that the current node is first added
+				//to the ParentNodes dictionary.  Thus, these statements must come
+				//*after* the dictionaries are populated (in RegisterNodeAndParent)
+
+				node.AssignOrder(orderGap: 10);
+				node.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
+			}
 		}
 
 		#region     Init Methods
@@ -1548,6 +1618,48 @@ namespace SDC.Schema
 			LastTopNode = null;
 			//LastObjectID = 0;
 		}
+		/// <summary>
+		/// A method to update ITopNode dictionaries, if needed, when setting values the value of an SDC property.<br/>
+		/// If an existing property (<b><paramref name="item"/></b>) is going to be replaced with a new object (<b><paramref name="value"/></b>),<br/> 
+		/// then <b><paramref name="item"/></b> will be removed from ITopNode dictionaries. <br/>
+		/// In addition, if <b><paramref name="item"/></b> has descendant nodes, they will also be removed from the dictionaries.<br/>
+		/// The method then simply returns the replacement <b><paramref name="value"/></b> object, so that it may be used to assign to <b><paramref name="item"/></b> as its new object value.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="item">The source object to be repaced by <b><paramref name="value"/></b>></param>
+		/// <param name="value">The incoming object to replace <b><paramref name="item"/></b></param>
+		protected T? ItemMutator<T>(T? item, T? value) where T : BaseType?
+		{
+			if (item is not null) item.RemoveRecursive();
+			return value;
+		}
+		/// <summary>
+		/// A method to update ITopNode dictionaries, if needed, when setting values in SDC property lists.
+		/// 
+		/// </summary>
+		/// <typeparam name="L">A generic List type for <b><paramref name="itemsListOld"/></b> and <b><paramref name="valueListNew"/></b></typeparam>
+		/// <typeparam name="T">The type held by <paramref name="itemsListOld"/> and <paramref name="valueListNew"/></typeparam>
+		/// <param name="itemsListOld">The current source List to be repaced by <paramref name="valueListNew"/>.  This List is often named "Items"</param>
+		/// <param name="valueListNew">The incoming List to replace <paramref name="itemsListOld"/></param>
+		protected L? ItemsMutator<L, T>(L? itemsListOld, L? valueListNew)
+			where L : List<T>?  //the List is often null
+			where T : BaseType  //we do not allow nulls in the list
+		{
+			if (itemsListOld is not null  && itemsListOld.Count > 0)
+				foreach (T n in itemsListOld) n.RemoveRecursive();
+
+			if (valueListNew is not null)
+			{
+				if (valueListNew.Count > 0)
+				{
+					foreach (T n in valueListNew) n.Move(this); //We may wish to use RemoveRecursive instead
+					return valueListNew;
+				}
+				throw new InvalidOperationException($"The supplied {nameof(valueListNew)} could not be used to set {nameof(itemsListOld)}.");
+			}
+			return null; //value could have a null value until compiler null-checking is enabled globally, and we can reliably exclude all nulls from this method at compile time and runtime
+		}
+
 
 		[XmlIgnore]
 		[JsonIgnore]
@@ -1780,6 +1892,7 @@ namespace SDC.Schema
 		{
 			ElementName = "ChildItems";
 			ElementPrefix = "ch";
+			Items = new();
 		}
 
 		[XmlIgnore]
@@ -1787,7 +1900,15 @@ namespace SDC.Schema
 		public List<IdentifiedExtensionType> ChildItemsList
 		{
 			get { return this.Items; }
-			set { this.Items = value; }
+			set
+			{
+				if (Items is null) Items = new();
+				else
+				{
+					foreach (BaseType n in Items) n.RemoveRecursive();
+					Items = value;
+				}
+			}
 		}
 
 		bool Remove(int NodeIndex)
@@ -1930,9 +2051,16 @@ namespace SDC.Schema
 		public BaseType DataTypeDE_Item
 		{
 			get { return this.Item; }
-			set { this.Item = value; }
+			set
+			{
+				//DataTypeDE_Item = value;
+				Item = ItemMutator(Item, value);
+			}
 		}
 	}
+
+
+
 
 	public partial class anyType_DEtype
 	{
@@ -1968,7 +2096,16 @@ namespace SDC.Schema
 		public BaseType DataTypeS_Item
 		{
 			get { return this.Item; }
-			set { this.Item = value; }
+			set
+			{
+				Item?.RemoveRecursive();
+				if (value is not null)
+				{
+					if (!value.Move(this)) //should set Item = value;
+						throw new InvalidOperationException($"An invalid data type ({value.GetType().Name}) was passed to the setter");
+				}
+				Item = null;  //value could have a null value until compiler null-checking is enabled globally
+			}
 		}
 	}
 
@@ -3913,18 +4050,22 @@ namespace SDC.Schema
 		{
 			ElementName = "Action";
 			ElementPrefix = "actAct";
+			Items = new();
 		}
 		[XmlIgnore]
 		public List<ExtensionBaseType> ActAction_Items
 		{
-			get 
+			get
 			{ return Items; }
 			set
 			{
-				if (Items == value)
-					return;
-				Items = value;
-				OnPropertyChanged(nameof(ActAction_Items), this);
+				if (Items is null) Items = new();
+				else
+				{
+					foreach (BaseType n in Items) n.RemoveRecursive();
+					Items = value;
+				}
+				//OnPropertyChanged(nameof(ActAction_Items), this);
 			}
 		}
 	}
@@ -3991,12 +4132,21 @@ namespace SDC.Schema
 		{
 			ElementName = "SendReport";
 			ElementPrefix = "actSndRep";
+			Items = new();
 		}
 
 		internal List<ExtensionBaseType> Email_Phone_WebSvc_List
 		{
 			get { return this.Items; }
-			set { this.Items = value; }
+			set
+			{
+				if (Items is null) Items = new();
+				else
+				{
+					foreach (BaseType n in Items) n.RemoveRecursive();
+					Items = value;
+				}
+			}
 		}
 	}
 	public partial class ActSendMessageType
@@ -4010,6 +4160,7 @@ namespace SDC.Schema
 		{
 			ElementName = "SendMessage";
 			ElementPrefix = "actSndMsg";
+			Items = new();
 		}
 
 		/// <summary>
@@ -4018,7 +4169,15 @@ namespace SDC.Schema
 		internal List<ExtensionBaseType> Email_Phone_WebSvc_List
 		{
 			get { return this.Items; }
-			set { this.Items = value; }
+
+			set
+			{
+				if (Items is null) Items = new();
+				else {
+					foreach (BaseType n in Items) n.RemoveRecursive();
+					Items = value;
+				}
+			}
 		}
 	}
 	public partial class ActSetAttributeType

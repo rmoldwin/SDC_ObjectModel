@@ -46,16 +46,17 @@ namespace SDC.Schema
 		/// <param name="insertPosition"></param>
 		/// <returns></returns>
 		/// <exception cref="InvalidOperationException"></exception>
-		public static ListItemType AddListItem(this QuestionItemType q, string id, string? defTitle = null, int insertPosition = -1)
+		private static ListItemType X_AddListItem(this QuestionItemType q, string id, string? defTitle = null, int insertPosition = -1)
 		{  //Check for QS/QM first!
 			if (q.GetQuestionSubtype() == QuestionEnum.QuestionMultiple ||
 				q.GetQuestionSubtype() == QuestionEnum.QuestionSingle ||
 				q.GetQuestionSubtype() == QuestionEnum.QuestionRaw)
 			{
-				var lf = q.AddListFieldToQuestion();
-				var list = lf.AddList();  //AddList checks for pre-existing List object
+				var lf = q.GetListField();
+				var list = lf.GetList();  //AddList checks for pre-existing List object
 
 				ListItemType li = new ListItemType(list, id);
+				//ListItemType li = new ListItemType(null, id);
 				li.title = defTitle;
 				int count = list?.QuestionListMembers.Count ?? 0;
 				if (insertPosition < 0 || insertPosition > count) insertPosition = count;
@@ -70,10 +71,48 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="q"></param>
 		/// <param name="id"></param>
-		/// <param name="deType"></param>
 		/// <param name="defTitle"></param>
 		/// <param name="insertPosition"></param>
-		/// <param name="dt"></param>
+		/// <returns></returns>
+		/// <exception cref="InvalidOperationException"></exception>
+		public static ListItemType AddListItem(this QuestionItemType q, string id, string? defTitle = null, int insertPosition = -1)
+		{  //Check for QS/QM first!
+			if (q.GetQuestionSubtype() == QuestionEnum.QuestionMultiple ||
+				q.GetQuestionSubtype() == QuestionEnum.QuestionSingle ||
+				q.GetQuestionSubtype() == QuestionEnum.QuestionRaw)
+			{
+				ListFieldType lf = q.GetListField();
+				ListType list = lf.GetList(); 
+
+				//ListItemType li = new ListItemType(list, id);
+				ListItemType li = new ListItemType(null, id);  //register node with null parent.  This prevents the node from being registered in any TopNode dictionaries
+				li.title = defTitle;
+				int count = list.QuestionListMembers.Count;
+				if (insertPosition < 0 || insertPosition > count) insertPosition = count;
+				list.QuestionListMembers.Insert(insertPosition, li);
+
+				li.RegisterNodeAndParent(list);
+				return li;
+			}
+			else throw new InvalidOperationException("You can only add a ListItem to a QuestionSingle or QuestionMultiple");
+		}
+
+
+
+
+
+
+
+		/// <summary>
+		/// Add a new ListItemResponse (LIR) to a Question.  <br/>
+		/// The supplied Question (<paramref name="q"/>) must be a QuestionSingle or QuestionMultiple.
+		/// </summary>
+		/// <param name="q"></param>
+		/// <param name="id"></param>
+		/// <param name="deType">An out parameter containing the added SDC datatype object, e.g., a <see cref="string_DEtype"/> object.</param>
+		/// <param name="defTitle">The title attribute of the LIR</param>
+		/// <param name="insertPosition"></param>
+		/// <param name="dt">The datatype for the LIR.</param>
 		/// <param name="responseRequired"></param>
 		/// <param name="textAfterResponse"></param>
 		/// <param name="units"></param>
@@ -82,6 +121,37 @@ namespace SDC.Schema
 		/// <returns></returns>
 		/// <exception cref="InvalidOperationException"></exception>
 		public static ListItemType AddListItemResponse(this QuestionItemType q,
+			string id,
+			out DataTypes_DEType deType,
+			string defTitle = "",
+			int insertPosition = -1,
+			ItemChoiceType dt = ItemChoiceType.@string,
+			bool responseRequired = false,
+			string textAfterResponse = null,
+			string units = null,
+			dtQuantEnum dtQuant = dtQuantEnum.EQ,
+			object valDefault = null
+			)
+		{
+			if (q.GetQuestionSubtype() == QuestionEnum.QuestionMultiple ||
+				q.GetQuestionSubtype() == QuestionEnum.QuestionSingle ||
+				q.GetQuestionSubtype() == QuestionEnum.QuestionRaw) //TODO: handle the last case
+			{
+				var li = q.AddListItem(id, defTitle, insertPosition);
+				var lirf = li.AddListItemResponseField();
+				var rsp = lirf.AddDataType(dt, dtQuant, valDefault);
+
+				lirf.responseRequired = responseRequired;
+				lirf.AddResponseUnits(units);
+				lirf.AddTextAfterResponse(textAfterResponse);
+
+				deType = IDataHelpers.AddDataTypesDE(lirf, dt, dtQuant, valDefault);
+				return li;
+
+			}
+			else throw new InvalidOperationException("You can only add a ListItem to a QuestionSingle or QuestionMultiple");
+		}
+		private static ListItemType X_AddListItemResponse(this QuestionItemType q,
 			string id,
 			out DataTypes_DEType deType,
 			string defTitle = null,
@@ -121,9 +191,9 @@ namespace SDC.Schema
 				q.GetQuestionSubtype() == QuestionEnum.QuestionSingle ||
 				q.GetQuestionSubtype() == QuestionEnum.QuestionRaw)//TODO: handle the last case
 			{
-				if (q.ListField_Item is null) q.AddListFieldToQuestion();
+				if (q.ListField_Item is null) q.GetListField();
 				ListType? list = q.ListField_Item!.List;
-				list ??= q.ListField_Item.AddList();
+				list ??= q.ListField_Item.GetList();
 
 				return list.AddDisplayedType(id, title, insertPosition);
 			}
@@ -158,11 +228,11 @@ namespace SDC.Schema
 		}
 
 		/// <summary>
-		/// 
+		/// This method returns the non-null ListField of the supplied question.
 		/// </summary>
 		/// <param name="q"></param>
 		/// <returns></returns>
-		public static ListFieldType AddListFieldToQuestion(this QuestionItemType q)
+		public static ListFieldType GetListField(this QuestionItemType q)
 		{
 			if (q.ListField_Item == null)
 			{
@@ -172,10 +242,14 @@ namespace SDC.Schema
 			return q.ListField_Item; //TODO: handle error if not Qraw
 		}
 		/// <summary>
-		/// In a QuestionSingle (QS) or QuestionMultiple (QR), retrieve an ordered List&lt;DisplayedType> of all ListItems and DisplayedItems owned by the QS or QM.
+		/// In a QuestionSingle (QS) or QuestionMultiple (QM), retrieves an ordered List&lt;DisplayedType> of all ListItems and DisplayedItems owned by the QS or QM. <br/>
+		/// If the List&lt;DisplayedType> object was null, a new empty List&lt;DisplayedType> is created and returned.<br/>
+		/// If the List&lt;DisplayedType> object contained no elements, the empty List&lt;DisplayedType> is returned.<br/>
+		/// If the supplied Question object (<paramref name="q"/> ) was not a QS, or QM (i.e., it did not contain a ListField child object), <br/>
+		/// then null will be returned.
 		/// </summary>
 		/// <param name="q"></param>
-		/// <returns>Ordered List&lt;DisplayedType> or null if the Question has no child ListItem or DisplayedType nodes</returns>
+		/// <returns>Sorted List&lt;DisplayedType> or null if the Question has no ListField object</returns>
 		public static List<DisplayedType>? GetListItems(this QuestionItemType q)
 		{
 			return q?.ListField_Item?.List?.GetChildNodes()?.Cast<DisplayedType>().ToList();

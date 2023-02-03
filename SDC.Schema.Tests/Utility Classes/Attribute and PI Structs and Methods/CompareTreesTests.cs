@@ -134,12 +134,12 @@ namespace SDC.Schema.Tests.Utils
 				Assert.AreEqual(dif.isMoved, true);
 				Assert.AreEqual(dif.hasAddedSubNodes, false);
 				Assert.AreEqual(dif.hasRemovedSubNodes, false);
-				Assert.AreEqual(newNodeIET.order, 170m);
+				Assert.AreEqual(newNodeIET.order, 250m);
 				//Expected:
 				//IET: Section =================== Name: S_49193 ============= sGuid: Ke_ZH_naV0ui - W7MBuNSHQ ===== NamePrev: S_49193
 				//		Changed Atts:	True		New Node:			False
 				//		Parent Changed: False		Moved:				True
-				//		New SubNodes:	False		Removed SubNodes:	False		Order: 170
+				//		New SubNodes:	False		Removed SubNodes:	False		Order: 250
 
 				return;
 			}
@@ -162,6 +162,7 @@ namespace SDC.Schema.Tests.Utils
 		public void ChangeSummaryTest()
 		{
 			//TODO:
+			//Add infor on PreviousIETnodeChanged, PreviousIETNode; For Moved: Current/Previous List positions, 
 			//xTODO:Show Element Names on all nodes, incl subnodes: DONE
 			//TODO: BUG? - Changed Atts = False: this does not seem to roll up changes from subnodes;
 			//	This may be because it only reflects changes from the Previous Version

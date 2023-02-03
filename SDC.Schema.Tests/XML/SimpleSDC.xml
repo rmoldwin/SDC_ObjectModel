@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="sdctemplate.xslt"?>
+<FormDesign xmlns="urn:ihe:qrph:sdc:2016" lineage="Test123" filename="Test123_20200803201554974_sdcFDF.xml" baseURI="www.cap.org/eCC" formTitle="Test123" ID="Test123_20200803201554974_sdcFDF" fullURI="_baseURI=www.cap.org/eCC&amp;amp;_lineage=Test123&amp;amp;_version=20200803201554974&amp;amp;docType=sdcFDF" version="20200803201554974" order="0">
+	<Property val="(c) 2020 College of American Pathologists.  All rights reserved.  License required for use." name="Copyright" type="CAPeCC_static_text" styleClass="copyright" propName="Copyright" order="1" />
+	<Property val="Surgical Pathology Cancer Case Summary" name="GenericHeaderText" type="CAPeCC_static_text" propName="GenericHeaderText" order="2" />
+	<Property val="Stub3" name="Category" type="CAPeCC_meta" propName="Category" order="3" />
+	<Property val="Stub4" name="OfficialName" type="CAPeCC_meta" propName="OfficialName" order="4" />
+	<Property val="Stub5" name="CAP_ProtocolName" type="CAPeCC_meta" propName="CAP_ProtocolName" order="5" />
+	<Property val="Stub6" name="CAP_ProtocolShortName" type="CAPeCC_meta" propName="CAP_ProtocolShortName" order="6" />
+	<Property val="Stub7" name="CAP_ProtocolVersion" type="CAPeCC_meta" propName="CAP_ProtocolVersion" order="7" />
+	<Property val="Stub8" name="TemplateID" type="CAPeCC_meta" propName="TemplateID" order="8" />
+	<Property val="Stub9" name="Restrictions" type="CAPeCC_meta" propName="Restrictions" order="9" />
+	<Property val="Stub10" name="CAP_Required" type="CAPeCC_meta" propName="CAP_Required" order="10" />
+	<Property val="Stub11" name="AccreditationDate" type="CAPeCC_meta dt.dateTime" propName="AccreditationDate" order="11" />
+	<Property val="Stub12" name="WebPostingDate" type="CAPeCC_meta dt.dateTime" propName="WebPostingDate" order="12" />
+	<Property val="MOD" name="ApprovalStatus" type="CAPeCC_meta" propName="ReleaseStatus" order="13" />
+	<Property val="Stub14" name="AJCC_Version" type="CAPeCC_meta" propName="AJCC_Version" order="14" />
+	<Body name="Body" ID="-300" order="15">
+		<ChildItems name="ch_Body" order="16">
+			<Section mustImplement="true" name="S_-1" ID="-1.1000043" title="S1" order="17">
+				<ChildItems name="ch_-1_1" order="18">
+					<Question mustImplement="true" name="Q_-5" readOnly="false" ID="-5.1000043" title="S1_C1" order="19">
+						<ListField name="lf_-5_1" maxSelections="1" order="20">
+							<List name="lst_-5_2" order="21">
+								<ListItem mustImplement="true" omitWhenSelected="false" selectionDeselectsSiblings="false" name="LI_-10" ID="-10.1000043" title="S1_C1_GC1" order="22" selectionDisablesChildren="false" />
+							</List>
+						</ListField>
+					</Question>
+					<Question mustImplement="true" name="Q_-6" readOnly="false" ID="-6.1000043" title="S1_C2" order="23">
+						<ListField name="lf_-6_1" maxSelections="1" order="24">
+							<List name="lst_-6_2" order="25">
+								<ListItem mustImplement="true" omitWhenSelected="false" selectionDeselectsSiblings="false" name="LI_-11" ID="-11.1000043" title="S1_C2_GC1" order="26" selectionDisablesChildren="false" />
+							</List>
+						</ListField>
+					</Question>
+					<Question mustImplement="true" name="Q_-7" readOnly="false" ID="-7.1000043" title="S1_C3" order="27">
+						<ListField name="lf_-7_1" maxSelections="1" order="28">
+							<List name="lst_-7_2" order="29">
+								<ListItem mustImplement="true" omitWhenSelected="false" selectionDeselectsSiblings="false" name="LI_-12" ID="-12.1000043" title="S1_C3_GC1" order="30" selectionDisablesChildren="false" />
+							</List>
+						</ListField>
+					</Question>
+					<Question mustImplement="true" name="Q_-8" readOnly="false" ID="-8.1000043" title="S1_C4" order="31">
+						<ListField name="lf_-8_1" maxSelections="1" order="32">
+							<List name="lst_-8_2" order="33">
+								<ListItem mustImplement="true" omitWhenSelected="false" selectionDeselectsSiblings="false" name="LI_-13" ID="-13.1000043" title="S1_C4_GC1" order="34" selectionDisablesChildren="false" />
+							</List>
+						</ListField>
+						<ChildItems name="ch_-8_1" order="35">
+							<DisplayedItem mustImplement="true" name="DI_-3" ID="-3.1000043" title="S1_C4_GC2" order="36" />
+							<DisplayedItem mustImplement="true" name="DI_-2" ID="-2.1000043" title="S1_C4_GC3" order="37" />
+						</ChildItems>
+					</Question>
+					<Question mustImplement="true" name="Q_-9" readOnly="false" ID="-9.1000043" title="S1_C5" order="38">
+						<ListField name="lf_-9_1" maxSelections="1" order="39">
+							<List name="lst_-9_2" order="40">
+								<ListItem mustImplement="true" omitWhenSelected="false" selectionDeselectsSiblings="false" name="LI_-14" ID="-14.1000043" title="S1_C5_GC1" order="41" selectionDisablesChildren="false" />
+							</List>
+						</ListField>
+						<ChildItems name="ch_-9_1" order="42">
+							<DisplayedItem mustImplement="true" name="DI_-4" ID="-4.1000043" title="S1_C5_GC2" order="43" />
+						</ChildItems>
+					</Question>
+				</ChildItems>
+			</Section>
+		</ChildItems>
+	</Body>
+	<Footer name="footer" ID="-200" order="44">
+		<Property val="(c) 2020 College of American Pathologists.  All rights reserved.  License required for use." type="meta" styleClass="copyright" propName="CopyrightFooter" order="45" />
+	</Footer>
+</FormDesign>
