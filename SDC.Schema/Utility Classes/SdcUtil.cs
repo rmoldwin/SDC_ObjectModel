@@ -48,7 +48,7 @@ namespace SDC.Schema
 		{ return Get_ITopNode(n)._ParentNodes; }
 		internal static ObservableCollection<IdentifiedExtensionType> Get_IETnodes(BaseType n)
 		{ return Get_ITopNode(n)._IETnodes; }
-		internal static HashSet<string> UniqueBaseNames = new(); //key is BaseName, value is sGuid; ensure that all BaseNames are unique
+		private static HashSet<string> UniqueBaseNames = new(); //key is BaseName, value is sGuid; ensure that all BaseNames are unique
 
 
 		/// <summary>
@@ -680,7 +680,7 @@ namespace SDC.Schema
 		//!Should not need sorting of child nodes
 		//
 		/// <summary>
-		/// Traverse an SDC tree by reflection to optionally reset @order and/or to refresh the TopNode dictionaries encounterd in the tree
+		/// Traverse an SDC tree by reflection to optionally reset @order and/or to refresh the TopNode dictionaries encountered in the tree
 		/// More tree traversal changes can be added by proving delagates to nodeWorker functions.
 		/// </summary>
 		/// <param name="startNode">The root of the subtree to modify</param>
@@ -720,7 +720,7 @@ namespace SDC.Schema
 			Func<BaseType, bool>? nodeWorkerFirst = null,
 			Func<BaseType, bool>? nodeWorkerLast = null)
 		{
-			if (startNode is null) throw new InvalidOperationException("Parameter 'startNode' cannot be null");
+			if (startNode is null) throw new InvalidOperationException($"Parameter '{nameof(startNode)}' cannot be null");
 			//if(resetNodeIdentity is true && createNodeName is null) throw new InvalidOperationException("If resetName is true, then createNodeName cannot be null");
 
 			var i = startReorder;
@@ -769,12 +769,13 @@ namespace SDC.Schema
 					//Reset node identity: ObjectGUID, sGuid, BaseName, @name and ID
 					if (resetNodeIdentity)
 					{
-						n.ObjectGUID = Guid.NewGuid();
-						n.sGuid = ShortGuid.Encode(n.ObjectGUID);
-						n.BaseName = CreateBaseNameFromsGuid(n.sGuid);
+						//n.ObjectGUID = Guid.NewGuid();
+						//n.sGuid = ShortGuid.Encode(n.ObjectGUID);
+						//n.BaseName = CreateBaseNameFromsGuid(n.sGuid);
+						SdcUtil.AssignGuid_sGuid_BaseName(n);
 
 						if (n is IdentifiedExtensionType iet)
-							iet.ID = $"->{n.sGuid}";
+							iet.ID = $"->{n.BaseName}";
 
 						if (createNodeName is not null)
 							n.name = createNodeName(node: n);
@@ -2137,7 +2138,9 @@ namespace SDC.Schema
 
 			if (newParent is null) return false;
 			//make sure that item and target are not null and are part of the same tree
-			if (Get_Nodes(item)[newParent.ObjectGUID] is null) return false;
+			//we'll allow moving from one tree to another, so the following line is commented out.
+			//if (Get_Nodes(item)[newParent.ObjectGUID] is null) return false;
+
 			if (newParent.IsDescendantOf(item)) return false;
 
 			Type itemType = item.GetType();
@@ -2583,8 +2586,10 @@ namespace SDC.Schema
 			if (baseName.IsNullOrWhitespace())
 				if (bt.sGuid is not null)
 				{
-					baseName = CreateBaseNameFromsGuid(bt.sGuid);
-					bt.BaseName = baseName;
+					//baseName = CreateBaseNameFromsGuid(bt.sGuid);
+					//baseName = 
+					AssignGuid_sGuid_BaseName(bt);
+					//bt.BaseName = baseName;
 				}
 				else
 					throw new InvalidOperationException("supplied node did not have sGuid assigned.");
@@ -2605,21 +2610,22 @@ namespace SDC.Schema
 
 		/// <summary>
 		/// Process the characters in a node's short Guid (sGuid) to create a alphanumeric string suiatable for use 
-		/// as a programming variable name, or for part of such a name, or for us as part/all of an <see cref="IdentifiedExtensionType.ID"/>.
+		/// as a programming variable name, or for part of such a name, or for use as part/all of an <see cref="IdentifiedExtensionType.ID"/>.
 		/// </summary>
-		/// <param name="sGuid">Supply a shortGuid as a 22 character string</param>
-		/// <param name="nameBaseLength">The length of the alphanumeric string to return.
-		/// In some cases, the string may be shorter than this length, due to removal of illegal characters (0, -, and _), 
-		/// as well as any numbers at the first character of the string.</param>
-		/// <param name="allLowerCase">If set to true, the method returns a lower case alphanumeric string.  
-		/// If false (the default), the method returns an alphanumeric string not converted to lower case</param>
-		/// <returns></returns>
+		/// <param name="sGuid">Supply a <see cref="ShortGuid"/> encoded as a 22 character string</param>
+		/// <param name="minNameBaseLength">The length of the alphanumeric string to return.<br/>
+		/// In some cases, the string may be shorter or longer than this length, due to removal of illegal characters (0, -, and _), <br/>
+		/// as well as removal of any numbers at the first character of the string.  <br/>
+		/// In addition, if a name collision occurs in the hashtable <see cref="UniqueBaseNames"/>, sGuid characters will be added <br/>
+		/// until there is no longer a collision, and thus the returned BaseName string may be longer than  <paramref name="minNameBaseLength"/></param>
+		/// <returns>The method tries to find an sGuid-derived string of length <paramref name="minNameBaseLength" />, more or less, that does not contain unusual characters.<br/>
+		/// May rarely return an empty string or a string shorter or longer than <paramref name="minNameBaseLength" /> if a name collision occurs in the hashtable <see cref="UniqueBaseNames"/>.</returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static string CreateBaseNameFromsGuid(string sGuid, int nameBaseLength = 6, bool allLowerCase = false)
-		{
-			//Basec check for sGuid validity
-			if (nameBaseLength > 22 || nameBaseLength < 1)
-				throw new ArgumentException("nameBaseLength must be > 0 and < 23");
+		public static string CreateBaseNameFromsGuid(string sGuid, int minNameBaseLength = 6)
+		{ //TODO: change to private after all testing complete
+			//Basic check for sGuid validity
+			//if (nameBaseLength > 22 || nameBaseLength < 1)
+			//	throw new ArgumentException("nameBaseLength must be > 0 and < 23");
 
 			//Regex pattern = new("^[a-zA-Z0-9-_]{22}");
 			//if (!pattern.IsMatch(sGuid))
@@ -2639,7 +2645,7 @@ namespace SDC.Schema
 				if ((c >= '0' && c <= '9') || c == '_' || c == '-')
 					sgl.RemoveAt(0);
 				else break;
-			} while (i < sgl.Count - 1);
+			} while (i < sgl.Count);
 
 			i = 0;
 			do
@@ -2649,72 +2655,74 @@ namespace SDC.Schema
 					sgl.RemoveAt(i);
 				else i++;
 
-			} while (i <= nameBaseLength && i < sgl.Count);
+			} while (i < sgl.Count);
+			// while (i <= minNameBaseLength && i<sgl.Count);
+			//++-----------------------------
 
-			var sb = new StringBuilder();
-			foreach (var c in sgl.Take(nameBaseLength)) sb.Append(c);
-			if (allLowerCase) return sb.ToString().ToLower();
+			var sb = new StringBuilder().Append(sgl.ToArray()[0..minNameBaseLength]);
+			//foreach (var c in sgl.Take(minNameBaseLength)) sb.Append(c);
 
-			return sb.ToString();
+			string newBaseName = sb.ToString();
 
+
+			if (! UniqueBaseNames.TryGetValue(newBaseName, out _))
+			{
+				UniqueBaseNames.Add(newBaseName);
+				return newBaseName;
+			}
+
+			//add to newBaseName one char at a time until it is unique within UniqueBaseNames
+			//it's unlikely that we'll get here
+			while (sb.Length < sgl.Count)
+			{
+				
+				sb.Append(sgl[minNameBaseLength]);
+				newBaseName = sb.ToString();
+				if (! UniqueBaseNames.TryGetValue(newBaseName, out _))
+				{
+					UniqueBaseNames.Add(newBaseName);
+					return newBaseName;
+				}
+				minNameBaseLength++;
+			}
+			return "";  //hopefully, we'll never get here
 
 		}
+
 		/// <summary>
-		/// Create a GUID, ShortGuid and BaseName from a new Guid, without any external sGuid or Guid input.
+		/// Assign <see cref="BaseType.sGuid"/>, <see cref="BaseType.ObjectGUID"/>, <see cref="BaseType.BaseName"/> and <see cref="BaseType.ObjectID"/><br/>
+		/// and return a BaseName, based on an existing sGuid, if present.<br/>
+		/// If <see cref="BaseType.sGuidl"/>  is null, assigns <see cref="BaseType.sGuid"/>, <see cref="BaseType.ObjectGUID"/>, <see cref="BaseType.BaseName"/> and <see cref="BaseType.ObjectID"/>
 		/// </summary>
-		/// <param name="sGuid"></param>
-		/// <param name="newGuid"></param>
-		/// <param name="nameBaseLength"></param>
-		/// <param name="allLowerCase"></param>
+		/// <param name="bt">The input node for which we want to assiggn, if needed, <see cref="BaseType.sGuid"/>, <see cref="BaseType.ObjectGUID"/>, <see cref="BaseType.BaseName"/> and <see cref="BaseType.ObjectID"/>.</param>
+		/// <param name="forceNewGuid">If true, this method will assign new <see cref="BaseType.sGuid"/>, <see cref="BaseType.ObjectGUID"/>, <see cref="BaseType.BaseName"/> and <see cref="BaseType.ObjectID"/>, even if an sGuid already exists for <paramref name="bt"/>.</param>
+		/// <param name="minNameBaseLength">If a new sGuid wil be created, <paramref name="minNameBaseLength"/> is the requested length of BaseName that is derived from the sGuid</param>
 		/// <returns>BaseName</returns>
-		public static string CreateGuidAndBaseName(out string sGuid, out Guid newGuid, int nameBaseLength = 6, bool allLowerCase = false)
+		internal static string AssignGuid_sGuid_BaseName(BaseType bt, bool forceNewGuid = false, int minNameBaseLength = 6)
 		{
-			string baseName = "";
-			int i = 0;
-			newGuid = default(Guid);
+			string tempName;
+			if (bt.ObjectID == -1 && bt.TopNode is not null && bt is not ITopNode) 
+				bt.ObjectID = ((_ITopNode)bt.TopNode)._MaxObjectID++;
+
+			if (! forceNewGuid && ShortGuid.TryParse(bt.sGuid, out Guid guid))
+			{
+				bt.ObjectGUID = guid;
+				bt.BaseName = CreateBaseNameFromsGuid(bt.sGuid);//TODO: Add all BaseNames to UniqueBaseNames for all new nodes, and after deserializing an SDC tree
+				return bt.BaseName;
+			}
+			//!+-------------------------------------------------------------------
+			Guid newGuid;
+			string sGuid;
 			do
 			{ //make sure ObjectGuid results is a nice tempName string; this should take only 1 iteration thru the loop
 				newGuid = Guid.NewGuid();
 				sGuid = ShortGuid.Encode(newGuid);
-				baseName = SdcUtil.CreateBaseNameFromsGuid(sGuid, 6);
-
-				if (baseName.Length == 6 && !UniqueBaseNames.TryGetValue(baseName, out _))
-				{//TODO: test for undesirable sGuid words and sequences here...
-					UniqueBaseNames.Add(baseName);
-					if(allLowerCase) baseName = baseName.ToLower();
-					return baseName;					
-				}
-				i++;
-			} while (i < 1000);
-			throw new InvalidOperationException("Could not generate acceptable GUID/sGuid");
-		}
-		/// <summary>
-		/// Assign ObjectGUID and sGuid, and return a BaseName, based on an existing sGuid, if present. from a new Guid, without any external sGuid or Guid input.
-		/// </summary>
-		/// <param name="bt"></param>
-		/// <returns>BaseName</returns>
-		public static string AssignGuid_sGuid_BaseName(BaseType bt)
-		{
-			string tempName;
-
-			if (ShortGuid.TryParse(bt.sGuid, out Guid guid))
-			{
-				bt.ObjectGUID = guid;
-				bt.BaseName = CreateBaseNameFromsGuid(bt.sGuid);
-				return bt.BaseName;
-			}
-
-			Guid newGuid;
-			do
-			{ //make sure ObjectGuid results is a nice tempName string; this should take only 1 iteration thru the loop
-
-				newGuid = Guid.NewGuid();
-				bt.ObjectGUID = newGuid;
-				bt.sGuid = ShortGuid.Encode(newGuid);
-				//TODO: test for undesirable sGuid words and sequences here...
-				tempName = CreateBaseNameFromsGuid(bt.sGuid);
-			} while (tempName.Length < 6);
+				tempName = CreateBaseNameFromsGuid(sGuid, 6);
+			} while (tempName.Length != minNameBaseLength);  //pick an sGuid that is capable of producing a BaseName of the requested length (minNameBaseLength)
+			bt.ObjectGUID = newGuid;
+			bt.sGuid = sGuid;
 			bt.BaseName = tempName;
+			//UniqueBaseNames.Add(tempName); //TODO: Add all BaseNames to UniqueBaseNames for all new nodes, and after deserializing an SDC tree
 			return tempName;
 		}
 

@@ -85,13 +85,13 @@ namespace SDC.Schema
 				ListType list = lf.GetList(); 
 
 				//ListItemType li = new ListItemType(list, id);
-				ListItemType li = new ListItemType(null, id);  //register node with null parent.  This prevents the node from being registered in any TopNode dictionaries
+				ListItemType li = new ListItemType(list, id);  //register node with null parent.  This prevents the node from being registered in any TopNode dictionaries
 				li.title = defTitle;
 				int count = list.QuestionListMembers.Count;
 				if (insertPosition < 0 || insertPosition > count) insertPosition = count;
 				list.QuestionListMembers.Insert(insertPosition, li);
 
-				li.RegisterNodeAndParent(list);
+				//li.RegisterNodeAndParent(list);
 				return li;
 			}
 			else throw new InvalidOperationException("You can only add a ListItem to a QuestionSingle or QuestionMultiple");
@@ -249,10 +249,11 @@ namespace SDC.Schema
 		/// then null will be returned.
 		/// </summary>
 		/// <param name="q"></param>
-		/// <returns>Sorted List&lt;DisplayedType> or null if the Question has no ListField object</returns>
-		public static List<DisplayedType>? GetListItems(this QuestionItemType q)
+		/// <returns>Sorted ImmutableList&lt;DisplayedType> or null if the Question has no ListField object</returns>
+		public static ImmutableList<DisplayedType>? GetListItems(this QuestionItemType q)
 		{
-			return q?.ListField_Item?.List?.GetChildNodes()?.Cast<DisplayedType>().ToList();
+			//return q?.ListField_Item?.List?.GetChildNodes()?.Cast<DisplayedType>().ToList();
+			return q?.ListField_Item?.List?.Items.ToImmutableList();
 		}
 		/// <summary>
 		/// In a QuestionResponse (QR) node, retrieve the DataTypeDE_Item (e.g., &lt;string/>, &lt;decimal/>)

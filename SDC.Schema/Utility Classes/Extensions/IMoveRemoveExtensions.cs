@@ -64,7 +64,7 @@ namespace SDC.Schema.Extensions
 		/// <returns>True if node removal was successful; false if unsuccessful</returns>
 		public static bool RemoveRecursive(this BaseType btSource, bool cancelIfChildNodes = true)
 		{
-			if (cancelIfChildNodes && !btSource.TryGetChildNodes(out _))
+			if (cancelIfChildNodes && !btSource.TryGetChildNodes(out var roc) && roc!.Count > 0)
 				return false;
 			if (btSource is null)
 				throw new InvalidOperationException($"{nameof(btSource)} cannot be null.");
@@ -76,7 +76,7 @@ namespace SDC.Schema.Extensions
 
 
 			bool result = RemoveNodesRecursively(btSource); //remove node from TopNode dictionaries
-			if (result is true)  //remove teh btSource nodde
+			if (result is true)  //remove the btSource node
 			{
 				result = RemoveNodeObject(btSource); //Remove from object tree
 				if (result) btSource.UnRegisterNodeAndParent(); //Remove from dictionaries
@@ -165,11 +165,14 @@ namespace SDC.Schema.Extensions
 			throw new InvalidOperationException($"{nameof(RemoveNodeObject)}: unable to remove node: {nameof(nodeToRemove)}.");
 		}
 		/// <summary>
-		/// Move an SDC node from one parent node to another. 
+		/// Move an SDC node from one parent node to another. <br/>
 		/// A check is performed for illegal moves using <see cref="IsParentNodeAllowed(BaseType, BaseType)"/>. <br/>
-		/// Illegal moves are not performed, causing this method to return false
+		/// Illegal moves are not performed, causing this method to return false.<br/>
+		/// TopNode is updated for the moved subtree, if necessary.<br/><br/>
+		/// If the top-level subtree node derives from a different TopNode, all <see cref="sGuid"/>, see<see cref="ObjectID"/>, <see cref="name"/>, and dictionary entries will be updated automatically.<br/>
+		/// The caller may force updating of the above metadata by setting <paramref name="updateMetadata"/> to true.
 		/// </summary>
-		/// <param name="btSource">THe node to move.</param>
+		/// <param name="btSource">The node to move.</param>
 		/// <param name="newParent">The parent node destination to which btSource should be attached</param>
 		/// <param name="newListIndex">If newParent supports IList, newListIndex holds the intended destination index in the list.
 		/// All negative values will place btSource at the first IList position (index 0).
@@ -180,15 +183,18 @@ namespace SDC.Schema.Extensions
 		/// <b><paramref name="btSource"/></b> is moved.  If <b><paramref name="deleteEmptyParentNode"/></b> is true 
 		/// and also the parent node is childless, the parent node will be removed.<br/>
 		/// This is useful for removing a childless (empty) empty ChildItems, after moving its last child node  to a different parent node.</param>
+		/// <param name="updateMetadata">If the top-level subtree node derives from a different TopNode, all <see cref="BaseType.sGuid"/>, see<see cref="BaseType.ObjectID"/>, <see cref="BaseType.name"/>, <see cref="IdentifiedExtensionType.ID"/> and dictionary entries will be updated automatically.<br/>
+		/// The caller may force updating of <see cref="BaseType.sGuid"/>, see<see cref="BaseType.ObjectID"/>, <see cref="BaseType.name"/>, <see cref="IdentifiedExtensionType.ID"/> and dictionary entries by setting <paramref name="updateMetadata"/> to true</param>
 		/// <returns>true if the move was successful; false if the move was not allowed</returns>
 		/// <exception cref="NullReferenceException"/>
 		///<exception cref="Exception"/>
-		public static bool Move(this BaseType btSource, BaseType newParent, int newListIndex = -1, bool deleteEmptyParentNode = false)
+		public static bool Move(this BaseType btSource, BaseType newParent, int newListIndex = -1
+			, bool deleteEmptyParentNode = false
+			, bool updateMetadata = false)
 		{
 			if (btSource is null) 
 				throw new NullReferenceException("btSource must not be null.");
-			if (newParent is null) 
-				
+			if (newParent is null) 				
 				throw new NullReferenceException("newParent must not be null.");
 			//if (btSource.ParentNode is null) throw new NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved");
 			if (newParent.TopNode is null) throw new NullReferenceException("newParent.TopNode must not be null.");
@@ -199,11 +205,9 @@ namespace SDC.Schema.Extensions
 				//Do btSource and newParent share the same root node? (Are they from the same SDC tree?)
 				bool sameRoot = false;  //Do source and target share the same root node?
 				var sourceRoot = btSource.FindRootNode();
-				if (sourceRoot is null) 
-					throw new NullReferenceException("The root node of btSource could not be determined.");
+				if (sourceRoot is null) throw new NullReferenceException("The root node of btSource could not be determined.");
 				var newParentRoot = newParent.FindRootNode();
-				if (sourceRoot is null) 
-					throw new NullReferenceException("The root node of newParent could not be determined.");
+				if (sourceRoot is null) throw new NullReferenceException("The root node of newParent could not be determined.");
 
 				if (sourceRoot.Equals(newParentRoot)) sameRoot = true;
 				else //!+Process btSource tree with different root node
@@ -215,9 +219,10 @@ namespace SDC.Schema.Extensions
 					BaseType? nextNode;
 					int i = 0;
 					n = btSource;
+					if (btSource.TopNode != newParent.TopNode) updateMetadata = true;
 					_ITopNode currentTopNode = (_ITopNode)newParent.TopNode;
 
-					for (; ; ) //Set TopNodes in btSource tree until we hit a new ITopNode
+					for (; ; ) //Set TopNodes in btSource tree (possibly we could stop when we hit a new ITopNode)
 					{
 						i++;
 						if (i > 1000000) 
@@ -229,15 +234,28 @@ namespace SDC.Schema.Extensions
 
 						if (n is _ITopNode itn)
 						{
-							if (nextNode.TopNode is not null) break; //we assume the rest of the tree has correct TopNode assignments
+							//if (nextNode.TopNode is not null) break; //we assume the rest of the tree has correct TopNode assignments
 							currentTopNode = itn;
 						}
 						n = nextNode;
 					}
+					var nodeWorkerFirstObjectID = (BaseType node) =>
+						{
+							if (node is ITopNode tn)
+							{
+								((_ITopNode)node)._MaxObjectID = 0;
+								node.ObjectID = 0;
+								return true;
+							}
+							node.ObjectID = ((_ITopNode)node)._MaxObjectID++;
+							return true;							
+						};
+
 					//Re-create dictionaries, ID, BaseName, @name, sGuid/ObjectGUID, etc for all btSource nodes.
 					var sourceNodeList =
 						SdcUtil.ReflectRefreshSubtreeList(btSource,false,false,true,
-						0,1, true, SdcUtil.CreateCAPname);
+						0,1, true, SdcUtil.CreateCAPname, nodeWorkerFirstObjectID);
+
 				}//TODO: process donor node/branch: ObjectID, sGuid, ObjectID, @name, ID, baseURI?, Link?, events?, rule targets?
 
 				bool isSourceParentChildless = false;
@@ -279,7 +297,7 @@ namespace SDC.Schema.Extensions
 
 										//sourceParent was not previously removed in dictionaries, we only removed its last child node
 										//Since it's now "childless," we can remove this orphan node from both the dictionaries and the SDC OM
-										isSourceParentChildless = true;								
+										isSourceParentChildless = true;
 									}
 								}
 							}

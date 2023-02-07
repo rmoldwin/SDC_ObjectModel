@@ -58,10 +58,13 @@ namespace SDC.Schema
         string ValXmlString { get; set; }
 
     }
-    public interface IValNumericDE : IVal 
+   /// <summary>
+   /// Numbers, including byte, ubyte, decimal, etc., which share attributes like minInclusive, etc.
+   /// </summary>
+   public interface IValNumeric : IVal 
     {
         //decimal ValDec { get; set; }
-        bool IsValid(out string message);
+       // bool IsValid(out string message);
 
 
     } //Implemented by numeric data types, which have a strongly-type val attribute.
@@ -76,11 +79,20 @@ namespace SDC.Schema
         bool IsValid(out string message);
     } //Implemented by DateTime data types, which have a strongly-type val attribute.
 
-
-    public interface IValInteger : IVal
+    /// <summary>
+    /// Used to flag data types that are able to represent integers (does not include float, double, decimal)
+    /// </summary>
+    public interface IInteger : IVal
     { 
-        long ValLong { get; set; } 
+        //long ValLong { get; set; } 
     } //Implemented by Integer data, which have a strongly-typed val attribute.  Includes byte, short, long, positive, no-positive, negative and non-negative types
+
+	/// <summary>
+	/// /// Used to flag data types that are able to represent real numbers, i.e., that include fractional values (includes float, double, decimal)
+	/// </summary>
+	public interface IFraction { }
+
+
     #endregion
     #region Empty Interfaces
 
@@ -310,6 +322,17 @@ namespace SDC.Schema
     public interface IValidationTests { }
     public interface IClone { }
     public interface IHtmlPackage { }//On SDCPackage.HTMLPackage
+    public interface INumeric { }
+	///<summary>
+    ///Flags all SDC data type Data Entry (DE) objects that may attach to the Item node of a <see cref="DataTypes_DEType"/> (Response) object.
+    ///</summary>
+	public interface IDataType_DEType { }
+	/// <summary>
+	/// Flags all SDC data type Static (S) objects that may attach to the Item node of a <see cref="DataTypes_SType"/> (Response) object.
+	/// </summary>
+	public interface IDataType_SType { }
+
+
     #endregion
 
 }

@@ -1,8 +1,11 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using CommandLine.Text;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 //using SDC.Type.Interfaces;
 using SDC.Schema;
 using SDC.Schema.Extensions;
 using System.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace SDC.Schema.Tests.OMTests
 {
@@ -102,15 +105,16 @@ namespace SDC.Schema.Tests.OMTests
         public void QuestionItemTypeTest_AddQuestionResponse()
         {
 			var de = new DataElementType(null);
-			QuestionItemType qi = new QuestionItemType(de);
-			de.DataElement_Items.Add(qi);
+			QuestionItemType q1 = new QuestionItemType(de);
+			de.DataElement_Items.Add(q1);
 
-			var question = new QuestionItemType(null)
+			var q2 = new QuestionItemType(de)
             {
                 ID = "QuestionResponseId",
                 title = "This is a test question"
             };
-            var qr = qi.AddChildQuestionResponse("myQ1", out _, "myTitle", 1, ItemChoiceType.@string, "textAfter", "units", dtQuantEnum.EQ, "default");
+			de.Items.Add(q2);
+            var qr = q1.AddChildQuestionResponse("myQ1", out _, "myTitle", 1, ItemChoiceType.@string, "textAfter", "units", dtQuantEnum.EQ, "default");
             Assert.IsNotNull(qr);
         }
 
@@ -127,10 +131,12 @@ namespace SDC.Schema.Tests.OMTests
         }
 		
         [TestMethod]
-		public void AddListItemResponsetoQuestionTest()
+		public void QuestionItemTypeTest_SRS521_AddListItemResponsetoQuestion()
 		{
 			var de = new DataElementType(null, "DE1");
+            
 			var q = new QuestionItemType(de, "q1", "q1");
+            de.Items.Add(q);
 			q.AddListItem("li0", "li0"); //first
 			q.AddListItem("li10", "li10"); //last
 			q.AddListItem("li9", "li9", 1);
@@ -149,5 +155,100 @@ namespace SDC.Schema.Tests.OMTests
 			Assert.AreEqual(q.GetListItems()?.First().title, "li0");
 			Assert.AreEqual(q.GetListItems()?[4].title, "li4");
 		}
-	}
+		[TestMethod]
+		public void QuestionItemTypeTest_SRS519_Add3LIRsToQuestion()
+		{
+			var de = new DataElementType(null, "DE1");
+
+			var q = new QuestionItemType(de, "q1", "q1");
+			de.Items.Add(q);
+			var li0 = q.AddListItem("li0", "li0"); //first
+			var li10 = q.AddListItem("li10", "li10"); //last
+			var li9 = q.AddListItem("li9", "li9", 1);
+			var li1 = q.AddListItem("li1", "li1", 1);
+			var li2 = q.AddListItem("li2", "li2", 2);
+			var lir3 = q.AddListItemResponse("lir3", out var dt3string, "lir3", 3
+				, ItemChoiceType.@string, true, "text After"
+				, "myUnits", dtQuantEnum.GT, "myDefaultValue");
+			var lir4 = q.AddListItemResponse("lir4", out var dt4bool, "lir4", 4
+				, ItemChoiceType.boolean, true, "text After"
+				, "myUnits", dtQuantEnum.GT, "myDefaultValue");
+			var lir5 = q.AddListItemResponse("lir5", out var dt5int, "lir5", 5
+				, ItemChoiceType.@int, true, "text After"
+				, "myUnits", dtQuantEnum.GT, "myDefaultValue");
+			var li6 = q.AddListItem("li6", "li6", 6);
+			var li7 = q.AddListItem("li7", "li7", 7);
+			var li8 = q.AddListItem("li8", "li8", 8);
+
+			Assert.AreEqual(q.GetListItems()?.Last().title, "li10");
+			Assert.AreEqual(q.GetListItems()?.First().title, "li0");
+			Assert.AreEqual(q.GetListItems()?[4].title, "lir4");
+
+			lir3.title = "lir3 title";
+			dt3string.Item.As<string_DEtype>().maxLength = 4000;
+			
+			lir4.title = "lir4 title";
+			dt4bool.Item.As<boolean_DEtype>().val = true;
+
+			string s = lir5.ListItemResponseField.BaseName;
+
+
+
+
+
+			//Step to repro the error:
+			//Add a QM to the template tree
+			//Add multiple LIR(I added 3 in this example) to the QM
+			//Edit the LI and LIR template tree items
+			//After editing first LIR , I went to the second LIR
+			//When I clicked on the “Title” text box for the second LIR, the pop - up error message appeared
+			/*BUG:
+			LIR SetResponseDataType [String]: InvalidOperation_IComparerFailed 
+			at System.Collections.Generic.ArraySortHelper'1 [[SDC.Schema.BaseType, SDC.Schema, Version=2.2023.1.26, Culture=neutral, PublicKeyToken=null]].Sort(Span'1 , IComparer‘1 )
+			at System.Array.Sort[BaseType](BaseType[] array, Int32 index, Int32 length, IComparer‘1 comparer)
+			at System.Collections.Generic.List‘1 [[SDC.Schema.BaseType, SDC.Schema, Version=2.2023.1.26, Culture=neutral, PublicKeyToken=null]].Sort(lnt32 , Int32 , IComparer‘1 ) 
+			at System.Collections.Generic.List‘1 [[SDC.Schema.BaseType, SDC.Schema, Version=2.2023.1.26, Culture=neutral, PublicKeyToken=null]].Sort(IComparer'1 )
+
+			at SDC.Schema.Extensions.IMoveRemoveExtensions.<RegisterParent>g__RegisterParentNode|9_0(BaseType btSource, BaseType inParentNode, JTopNode tn, Boolean childNodesSort) 
+			at SDC.Schema.Extensions.IMoveRemoveExtensions.RegisterParent(BaseType node, BaseType inParentNode, Boolean childNodesSort) 
+			at SDC.Schema.Extensions.IMoveRemoveExtensions.RegisterNodeAndParentfBaseType node, BaseType parentNode, Boolean childNodesSort, Boolean isMoving) 
+			at SDC.Schema.BaseType..ctor(BaseType parentNode) 
+			at SDC.Schema.ExtensionBaseType..ctor(BaseType parentNode) 
+			at SDC.Schema.DataTypes_DEType..ctor(ResponseFieldType parentNode) 
+			at SDC.Schema.IDataHelpers.AddDataTypesDEfResponseFieldType rfParent, ItemChoiceType dataTypeEnum, dtQuantEnum quantifierEnum, Object value) 
+			at SDC.Schema.Extensions.IResponseFieldExtensions.AddDataType(ResponseFieldType rf, ItemChoiceType dataType, dtQuantEnum dtQuant, Object valDefault) 
+			at Template.Editor.Library.Helpers.UpdateHelper.SetResponseDataType(ITreeltem treeltem, ListltemResponseFieldType listltemResponseField)
+			*/
+
+
+
+		}
+		[TestMethod]
+        public void QuestionResponseTest_SRS524_ChangeDatatype()
+        {
+			var de = new DataElementType(null, "DE1");
+			var q1 = new QuestionItemType(de, "q1", "q1");
+			de.Items.Add(q1); //must explicitly add q1 to Items before creating q2 - will throw if this is not done - due to error in sorting.  
+                                //Need to fix this in "Items" override code
+			var q2 = new QuestionItemType(de, "q2", "q2");			
+            de.Items.Add(q2);
+
+            var rf1 = q1.AddQuestionResponseField(out var dt1, ItemChoiceType.date);
+            var rf2 = q2.AddQuestionResponseField(out var dt2, ItemChoiceType.@int);
+
+            var response1 = rf1.Response;
+            var response2 = rf2.Response;
+            //response1.Item = new string_DEtype(null); //error - does not run ItemMutator
+			//response1.DataTypeDE_Item = new string_DEtype(null); //note the null parent - this node is not completely initialized
+			response1.DataTypeDE_Item = new string_DEtype(response1); //
+			Assert.ReferenceEquals(response1.Item.ParentNode, response1); //Check that ItemMutator detected and fixed the parent node for Item
+            Assert.IsTrue(de.GetChildNodes()?[0] == q1); //Show the the _ChildNodes dict has an entry for Item
+			response1.DataTypeDE_Item = new boolean_DEtype(response2); //response2 is the wrong parent - this will test if it's detected and fixed by ItemMutator
+			Assert.ReferenceEquals(response1.Item.ParentNode, response1);
+
+
+
+
+        }
+    }
 }

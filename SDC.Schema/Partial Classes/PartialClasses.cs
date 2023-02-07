@@ -264,15 +264,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public List<IdentifiedExtensionType> DataElement_Items
 		{
-			get { return Items; }
+			get
+			{ return Items; }
 			set
 			{
-				if (Items is null) Items = new();
-				else
-				{
-					foreach (BaseType n in Items) n.RemoveRecursive();
-					Items = value;
-				}
+				Items = ItemsMutator(Items, value);
 			}
 		}
 
@@ -922,12 +918,8 @@ namespace SDC.Schema
 				else return null;
 			}
 			set
-			{ 
-				if(Item is not null) Item.RemoveRecursive();				
-				Item = value;
-				
-				//if (!value.Move(this)) //should set Item = value;
-				//	throw new InvalidOperationException($"An invalid data type ({value.GetType().Name}) was passed to the setter");
+			{
+				Item = ItemMutator(Item, value);
 			}
 		}
 
@@ -944,8 +936,7 @@ namespace SDC.Schema
 			}
 			set
 			{
-				Item.RemoveRecursive();
-				Item = value;
+				Item = ItemMutator(Item, value);
 			}
 		}
 	}
@@ -975,18 +966,10 @@ namespace SDC.Schema
 		internal List<DisplayedType> QuestionListMembers
 		{
 			get 
-			{
-				if (Items is null) return new();
-				return this.Items; 
-			}
+			{return this.Items; }
 			set
 			{
-				if (Items is null) Items = new();
-				else
-				{
-					foreach (BaseType n in Items) n.RemoveRecursive();
-					Items = value;
-				}
+				Items = ItemsMutator(Items, value);
 			}
 		}
 	}
@@ -1013,7 +996,7 @@ namespace SDC.Schema
 
 		[XmlIgnore]
 		[JsonIgnore]
-		public ListType? List
+		public ListType? List //this is SDC.Schema.List, not a .NET List<> type
 		{
 			get
 			{
@@ -1023,8 +1006,7 @@ namespace SDC.Schema
 			}
 			set
 			{
-				Item?.RemoveRecursive();
-				Item = value;
+				Item = ItemMutator(Item, value);
 			}
 		}
 		/// <summary>
@@ -1042,8 +1024,7 @@ namespace SDC.Schema
 			}
 			set
 			{
-				Item?.RemoveRecursive();
-				Item = value;
+				Item = ItemMutator(Item, value);
 			} //TODO: should this setter be internal scope to prevent changing/removing/nulling the node?
 		}
 
@@ -1052,7 +1033,7 @@ namespace SDC.Schema
 	public partial class ListItemType : IChildItemsParent //, IListItem //, IQuestionListMember
 	{
 		protected ListItemType() { Init(); }
-		public ListItemType(ListType? parentNode, string id = "", string elementName = "", string elementPrefix = "") : base(parentNode, id)
+		public ListItemType(ListType parentNode, string id = "", string elementName = "", string elementPrefix = "") : base(parentNode, id)
 		{
 			Init();
 		}
@@ -1079,8 +1060,7 @@ namespace SDC.Schema
 			get { return this.Item; }
 			set
 			{
-				Item?.RemoveRecursive();
-				Item = value;
+				Item = ItemMutator(Item, value);
 			}
 		}
 
@@ -1092,7 +1072,7 @@ namespace SDC.Schema
 	public partial class ListItemBaseType
 	{
 		protected ListItemBaseType() { Init(); }
-		public ListItemBaseType(ListType? parentNode, string id = "") : base(parentNode, id)
+		public ListItemBaseType(ListType parentNode, string id = "") : base(parentNode, id)
 		{
 			Init();
 		}
@@ -1152,7 +1132,7 @@ namespace SDC.Schema
 		{
 			ElementName = "ResponseField";
 			ElementPrefix = "rf";
-			this.Item = null; // #NeedsTest
+			//this.Item = null; // #NeedsTest
 		}
 	}
 
@@ -1184,28 +1164,32 @@ namespace SDC.Schema
 	public partial class BaseType : IBaseType //IBaseType inherits IMoveRemove and INavigate
 	{
 		/// <summary>
-		/// This constructor is used only to deserialize SDC classes with the SDC.Schema serializers.
-		///		Parent Nodes cannot be assigned through this constructor.  
-		///		Node dictionaries cannot be populated here either.
-		///		After the SDC object tree is created, parent nodes and other metadata can be assigned using 
-		///		<see cref="InitBaseType"/> and/or <see cref="SdcUtil.ReflectRefreshTree(ITopNode, out string?, bool, bool, SdcUtil.CreateName?)"/>
+		/// This constructor is used only to deserialize SDC classes with the SDC.Schema serializers.<br/>
+		///		Parent Nodes cannot be assigned through this constructor. <br/>
+		///		Node dictionaries cannot be populated here either.<br/>
+		///		After the SDC object tree is created, parent nodes and other metadata can be assigned using:<br/>
+		///		<see cref="InitBaseType"/> to refresh individual nodes, or<br/>
+		///		<see cref="SdcUtil.ReflectRefreshTree"/> to reflect node metadata for the entire tree.
 		/// </summary>
 		protected BaseType()
 		{			
 
 			if (this is ITopNode tn)
 			{
+				this.ObjectID = 0;
+				((_ITopNode)this)._MaxObjectID = 1;
+
 				if (LastTopNode is null)
 				{
 					LastTopNode = tn; //Point to myself as the TopNode
 					TopNode = tn;
-					ObjectID = ((_ITopNode)this)._MaxObjectID++;
+					//ObjectID = ((_ITopNode)this)._MaxObjectID++;
 				}
 				else
 				{
 					TopNode = LastTopNode; //Point to LastTopNode as the TopNode
 					LastTopNode = tn;
-					ObjectID = ((_ITopNode)this)._MaxObjectID++;
+					//ObjectID = ((_ITopNode)this)._MaxObjectID++;
 				}
 			}//not ITopNode below here
 			else if (LastTopNode is not null)
@@ -1218,30 +1202,31 @@ namespace SDC.Schema
 				//ObjectID will need to be incremented if & when the node is grafted onto another node that is ITopNode, or has an ITopNode ancestor
 				ObjectID = -1;
 			}
-
-
-			//ObjectID = BaseType.LastObjectID++;
-
 		}
 
 		/// <summary>
 		/// This parameterized constructor is NOT used to Deserialize SDC classes.
-		/// LastTopNode is not needed here to find the previous TopNode.
-		/// Instead, TopNode should be retrieved from the parent node, if it exists, and used to set the current TopNode.
+		/// TopNode is retrieved from the parent node, if it exists, and used to set the current TopNode.
 		/// </summary>
 		/// <param name="parentNode"></param>
 		protected BaseType(BaseType? parentNode)
 		{
-			InitBaseType(this, parentNode);
+			if (parentNode is null && this is not ITopNode)
+				throw new NullReferenceException($"{nameof(parentNode)} can only be null if this object implements ITopNode.");
+			InitBaseType(parentNode);
 			return;
 		}
 
-		internal void InitBaseType (BaseType node, BaseType? parentNode)
+		internal void InitBaseType (BaseType? parentNode)
 		{
+			//TopNode is retrieved from parentNode, if it exists, and used to set the current TopNode.
 			//+Assign this.TopNode
-			if (node is ITopNode tn)
+			if (this is ITopNode tn)
 			{
-				if (parentNode is null) node.TopNode = tn;
+				this.ObjectID = 0;
+				((_ITopNode)this)._MaxObjectID = 1;
+
+				if (parentNode is null)this.TopNode = tn;
 				else //if (parentNode is not null)
 				{
 					if (parentNode.TopNode is not null)
@@ -1252,9 +1237,9 @@ namespace SDC.Schema
 							par_ITopNode = ptn;//only occurs in RetrieveFormPackage under RetrieveFormPackage
 						else par_ITopNode = (_ITopNode)parentNode.TopNode; //par_ITopNode could still be null here
 
-						node.TopNode = par_ITopNode;
+					this.TopNode = par_ITopNode;
 					}
-					else { ObjectID = -1; } //this node descends form a non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode
+					else { } //{ObjectID = -1; } //this node descends form a non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode
 											//throw new InvalidOperationException("ParentNode is not null, but ParentNode.TopNode is null");
 				}
 			}//not ITopNode here
@@ -1262,41 +1247,41 @@ namespace SDC.Schema
 			{
 				if (parentNode is ITopNode ptn)
 				{
-					node.TopNode = (_ITopNode)parentNode;
-					node.ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
+					this.TopNode = (_ITopNode)parentNode;
+					this.ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
 				}
 				else if (parentNode.TopNode is not null)
 				{
-					node.TopNode = (_ITopNode)parentNode.TopNode;
-					node.ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
+					this.TopNode = (_ITopNode)parentNode.TopNode;
+					this.ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
 				}
 				else
 				{ //this node descends form an "illegal" non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode,
 				  //but we can still process it, as long as we check for null TopNode everywhere we need it (mainly in Dictionaries).
 				  //later, this "illegal" tree will need to be grafted onto a legal tree and TopNodes will need to be assigned during
 				  //the grafting/moving process, based on the target tree's TopNodes.
-					node.ObjectID = -1;
+					this.ObjectID = -1;
 				}
 			}
 			else if (parentNode is null)
-			{ node.ObjectID = -1; }//the caller is trying to instantiate a standalone root node that is not a proper ITopNode.
+			{ this.ObjectID = -1; }//the caller is trying to instantiate a standalone root node that is not a proper ITopNode.
 							  //TopNode is thus null here
 							  //Object ID is unassigned
 
 			//!________Assign default sGuid, BaseName, ObjectGUID, ObjectID, @order, @name & populate dictionaries___________________
 
-			SdcUtil.AssignGuid_sGuid_BaseName(node);
+			SdcUtil.AssignGuid_sGuid_BaseName(this);
 
-			if (node.TopNode is not null)
+			if (this.TopNode is not null)
 			{	//a node with a null TopNode will not be registered in any TopNode dictionaries.
-				node.RegisterNodeAndParent(parentNode); 
+				this.RegisterNodeAndParent(parentNode); 
 
 				//The following code requires that the current node is first added
 				//to the ParentNodes dictionary.  Thus, these statements must come
 				//*after* the dictionaries are populated (in RegisterNodeAndParent)
 
-				node.AssignOrder(orderGap: 10);
-				node.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
+				this.AssignOrder(orderGap: 10);
+				this.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
 			}
 		}
 
@@ -1620,18 +1605,36 @@ namespace SDC.Schema
 		}
 		/// <summary>
 		/// A method to update ITopNode dictionaries, if needed, when setting values the value of an SDC property.<br/>
-		/// If an existing property (<b><paramref name="item"/></b>) is going to be replaced with a new object (<b><paramref name="value"/></b>),<br/> 
+		/// If an existing property (<b><paramref name="item"/></b>) is going to be replaced with a new object (<b><paramref name="valueNew"/></b>),<br/> 
 		/// then <b><paramref name="item"/></b> will be removed from ITopNode dictionaries. <br/>
 		/// In addition, if <b><paramref name="item"/></b> has descendant nodes, they will also be removed from the dictionaries.<br/>
-		/// The method then simply returns the replacement <b><paramref name="value"/></b> object, so that it may be used to assign to <b><paramref name="item"/></b> as its new object value.
+		/// The method then simply returns the replacement <b><paramref name="valueNew"/></b> object, so that it may be used to assign to <b><paramref name="item"/></b> as its new object value.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="item">The source object to be repaced by <b><paramref name="value"/></b>></param>
-		/// <param name="value">The incoming object to replace <b><paramref name="item"/></b></param>
-		protected T? ItemMutator<T>(T? item, T? value) where T : BaseType?
+		/// <param name="item">The source object to be repaced by <b><paramref name="valueNew"/></b>></param>
+		/// <param name="valueNew">The incoming object to replace <b><paramref name="item"/></b></param>
+		protected T? ItemMutator<T>(T? item, T? valueNew) where T : BaseType?
 		{
-			if (item is not null) item.RemoveRecursive();
-			return value;
+			if (item is not null)
+			{
+				item.RemoveRecursive(false);
+
+			}
+			if (valueNew is not null)
+			{
+				if (true || valueNew.TopNode is not null)
+				{
+					if (valueNew.TopNode != this.TopNode)
+					{
+						//we have a node or subtree that is being grafted from a different SDC tree.
+						//in most cases like this, we will want new sGuid, ObjectID, ObjectGUID, name, ID
+						//Later, we can also reorder the entire tree.
+						valueNew.Move(this);
+					}
+				}
+
+			}
+			return valueNew;
 		}
 		/// <summary>
 		/// A method to update ITopNode dictionaries, if needed, when setting values in SDC property lists.
@@ -1641,12 +1644,12 @@ namespace SDC.Schema
 		/// <typeparam name="T">The type held by <paramref name="itemsListOld"/> and <paramref name="valueListNew"/></typeparam>
 		/// <param name="itemsListOld">The current source List to be repaced by <paramref name="valueListNew"/>.  This List is often named "Items"</param>
 		/// <param name="valueListNew">The incoming List to replace <paramref name="itemsListOld"/></param>
-		protected L? ItemsMutator<L, T>(L? itemsListOld, L? valueListNew)
-			where L : List<T>?  //the List is often null
+		protected List<T>? ItemsMutator<T> (List<T>? itemsListOld, List<T>? valueListNew)
+			//where L : List<T>?  //the List is often null
 			where T : BaseType  //we do not allow nulls in the list
 		{
 			if (itemsListOld is not null  && itemsListOld.Count > 0)
-				foreach (T n in itemsListOld) n.RemoveRecursive();
+				foreach (T n in itemsListOld) n.RemoveRecursive(false);
 
 			if (valueListNew is not null)
 			{
@@ -1657,7 +1660,8 @@ namespace SDC.Schema
 				}
 				throw new InvalidOperationException($"The supplied {nameof(valueListNew)} could not be used to set {nameof(itemsListOld)}.");
 			}
-			return null; //value could have a null value until compiler null-checking is enabled globally, and we can reliably exclude all nulls from this method at compile time and runtime
+
+			return null; //value will be allowed to have a null value until compiler null-checking is enabled globally, and we can reliably exclude all nulls from this method at compile time and runtime
 		}
 
 
@@ -1899,22 +1903,17 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public List<IdentifiedExtensionType> ChildItemsList
 		{
-			get { return this.Items; }
+			get { return this.Items; } 
 			set
 			{
-				if (Items is null) Items = new();
-				else
-				{
-					foreach (BaseType n in Items) n.RemoveRecursive();
-					Items = value;
-				}
+				Items = ItemsMutator(Items, value);
 			}
 		}
 
 		bool Remove(int NodeIndex)
 		{
 			var node = ChildItemsList[NodeIndex];
-			if (node != null) return node.RemoveRecursive();
+			if (node != null) return node.RemoveRecursive(false);
 			return false;
 
 		}
@@ -2031,7 +2030,7 @@ namespace SDC.Schema
 	#endregion
 
 	#region DataTypes
-	public partial class DataTypes_DEType
+	public partial class DataTypes_DEType //This is the Response element
 	{
 		protected DataTypes_DEType() { Init(); }
 		public DataTypes_DEType(ResponseFieldType parentNode) : base(parentNode)
@@ -2053,16 +2052,12 @@ namespace SDC.Schema
 			get { return this.Item; }
 			set
 			{
-				//DataTypeDE_Item = value;
 				Item = ItemMutator(Item, value);
 			}
 		}
 	}
 
-
-
-
-	public partial class anyType_DEtype
+	public partial class anyType_DEtype: IDataType_DEType
 	{
 		protected anyType_DEtype() { Init(); }
 		public anyType_DEtype(BaseType parentNode) : base(parentNode)
@@ -2098,18 +2093,12 @@ namespace SDC.Schema
 			get { return this.Item; }
 			set
 			{
-				Item?.RemoveRecursive();
-				if (value is not null)
-				{
-					if (!value.Move(this)) //should set Item = value;
-						throw new InvalidOperationException($"An invalid data type ({value.GetType().Name}) was passed to the setter");
-				}
-				Item = null;  //value could have a null value until compiler null-checking is enabled globally
+				Item = ItemMutator(Item, value);
 			}
 		}
 	}
 
-	public partial class anyURI_DEtype
+	public partial class anyURI_DEtype : IDataType_DEType
 	{
 		protected anyURI_DEtype() { Init(); }
 		public anyURI_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2154,7 +2143,7 @@ namespace SDC.Schema
 
 	}
 
-	public partial class base64Binary_DEtype
+	public partial class base64Binary_DEtype : IDataType_DEType
 	{
 		protected base64Binary_DEtype() { Init(); }
 		public base64Binary_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2198,7 +2187,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class boolean_DEtype
+	public partial class boolean_DEtype : IDataType_DEType
 	{
 		protected boolean_DEtype() { Init(); }
 		public boolean_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2239,7 +2228,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class byte_DEtype
+	public partial class byte_DEtype : IDataType_DEType
 	{
 		protected byte_DEtype() { Init(); }
 		public byte_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2258,7 +2247,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class byte_Stype : IVal
+	public partial class byte_Stype : IVal, IValNumeric, IInteger
 	{
 		protected byte_Stype() { Init(); }
 		public byte_Stype(BaseType parentNode) : base(parentNode)
@@ -2283,7 +2272,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class date_DEtype
+	public partial class date_DEtype : IDataType_DEType
 	{
 		protected date_DEtype() { Init(); }
 		public date_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2327,7 +2316,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class dateTime_DEtype
+	public partial class dateTime_DEtype : IDataType_DEType
 	{
 		protected dateTime_DEtype() { Init(); }
 		public dateTime_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2371,7 +2360,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class dateTimeStamp_DEtype
+	public partial class dateTimeStamp_DEtype : IDataType_DEType
 	{
 		protected dateTimeStamp_DEtype() { Init(); }
 		public dateTimeStamp_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2410,7 +2399,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class dayTimeDuration_DEtype
+	public partial class dayTimeDuration_DEtype : IDataType_DEType
 	{
 		protected dayTimeDuration_DEtype() { Init(); }
 		public dayTimeDuration_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2454,7 +2443,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class decimal_DEtype
+	public partial class decimal_DEtype : IDataType_DEType
 	{
 		protected decimal_DEtype() { Init(); }
 		public decimal_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2473,7 +2462,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class decimal_Stype : IVal
+	public partial class decimal_Stype : IVal, IValNumeric, IFraction
 	{
 		protected decimal_Stype() { Init(); }
 		public decimal_Stype(BaseType parentNode) : base(parentNode)
@@ -2498,7 +2487,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class double_DEtype
+	public partial class double_DEtype : IDataType_DEType
 	{
 		protected double_DEtype() { Init(); }
 		public double_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2517,7 +2506,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class double_Stype : IVal
+	public partial class double_Stype : IVal, IValNumeric, IFraction
 	{
 		protected double_Stype() { Init(); }
 		public double_Stype(BaseType parentNode) : base(parentNode)
@@ -2542,7 +2531,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class duration_DEtype
+	public partial class duration_DEtype : IDataType_DEType
 	{
 		protected duration_DEtype() { Init(); }
 		public duration_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2586,7 +2575,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class float_DEtype
+	public partial class float_DEtype : IDataType_DEType
 	{
 		protected float_DEtype() { Init(); }
 		public float_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2605,7 +2594,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class float_Stype : IVal
+	public partial class float_Stype : IVal, IValNumeric, IFraction
 	{
 		protected float_Stype() { Init(); }
 		public float_Stype(BaseType parentNode) : base(parentNode)
@@ -2630,7 +2619,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class gDay_DEtype
+	public partial class gDay_DEtype : IDataType_DEType
 	{
 		protected gDay_DEtype() { Init(); }
 		public gDay_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2674,7 +2663,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class gMonth_DEtype
+	public partial class gMonth_DEtype : IDataType_DEType
 	{
 		protected gMonth_DEtype() { Init(); }
 		public gMonth_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2718,7 +2707,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class gMonthDay_DEtype
+	public partial class gMonthDay_DEtype : IDataType_DEType
 	{
 		protected gMonthDay_DEtype() { Init(); }
 		public gMonthDay_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2763,7 +2752,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class gYear_DEtype
+	public partial class gYear_DEtype : IDataType_DEType
 	{
 		protected gYear_DEtype() { Init(); }
 		public gYear_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2807,7 +2796,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class gYearMonth_DEtype
+	public partial class gYearMonth_DEtype : IDataType_DEType
 	{
 		protected gYearMonth_DEtype() { Init(); }
 		public gYearMonth_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2850,7 +2839,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class hexBinary_DEtype
+	public partial class hexBinary_DEtype : IDataType_DEType
 	{
 		protected hexBinary_DEtype() { Init(); }
 		public hexBinary_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2898,7 +2887,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class HTML_DEtype
+	public partial class HTML_DEtype : IDataType_DEType
 	{
 		protected HTML_DEtype() { Init(); }
 		public HTML_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2944,7 +2933,7 @@ namespace SDC.Schema
 	}
 
 
-	public partial class int_DEtype
+	public partial class int_DEtype : IDataType_DEType
 	{
 		protected int_DEtype() { Init(); }
 		public int_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -2963,7 +2952,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class int_Stype : IVal
+	public partial class int_Stype : IVal, IValNumeric, IInteger
 	{
 		protected int_Stype() { Init(); }
 		public int_Stype(BaseType parentNode) : base(parentNode)
@@ -2988,7 +2977,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class integer_DEtype
+	public partial class integer_DEtype : IDataType_DEType
 	{
 		protected integer_DEtype() { Init(); }
 		public integer_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -3006,7 +2995,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class integer_Stype : IVal
+	public partial class integer_Stype : IVal, IValNumeric, IInteger
 	{
 		protected integer_Stype() { Init(); }
 		public integer_Stype(BaseType parentNode) : base(parentNode)
@@ -3064,7 +3053,7 @@ namespace SDC.Schema
 
 	}
 
-	public partial class long_DEtype
+	public partial class long_DEtype : IDataType_DEType
 	{
 		protected long_DEtype() { Init(); }
 		public long_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -3083,7 +3072,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class long_Stype : IVal
+	public partial class long_Stype : IVal, IValNumeric, IInteger
 	{
 		protected long_Stype() { Init(); }
 		public long_Stype(BaseType parentNode) : base(parentNode)
@@ -3108,7 +3097,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class negativeInteger_DEtype
+	public partial class negativeInteger_DEtype : IDataType_DEType
 	{
 		protected negativeInteger_DEtype() { Init(); }
 		public negativeInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -3127,7 +3116,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class negativeInteger_Stype : IVal
+	public partial class negativeInteger_Stype : IVal, IValNumeric, IInteger
 	{
 		protected negativeInteger_Stype() { Init(); }
 		public negativeInteger_Stype(BaseType parentNode) : base(parentNode)
@@ -3152,7 +3141,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class nonNegativeInteger_DEtype
+	public partial class nonNegativeInteger_DEtype : IDataType_DEType
 	{
 		protected nonNegativeInteger_DEtype() { Init(); }
 		public nonNegativeInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -3171,7 +3160,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class nonNegativeInteger_Stype : IVal
+	public partial class nonNegativeInteger_Stype : IVal, IValNumeric, IInteger
 	{
 		protected nonNegativeInteger_Stype() { Init(); }
 		public nonNegativeInteger_Stype(BaseType parentNode) : base(parentNode)
@@ -3196,7 +3185,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class nonPositiveInteger_DEtype
+	public partial class nonPositiveInteger_DEtype : IDataType_DEType
 	{
 		protected nonPositiveInteger_DEtype() { Init(); }
 		public nonPositiveInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -3215,7 +3204,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class nonPositiveInteger_Stype : IVal
+	public partial class nonPositiveInteger_Stype : IVal, IValNumeric, IInteger
 	{
 		protected nonPositiveInteger_Stype() { Init(); }
 		public nonPositiveInteger_Stype(BaseType parentNode) : base(parentNode)
@@ -3240,7 +3229,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class positiveInteger_DEtype
+	public partial class positiveInteger_DEtype : IDataType_DEType
 	{
 		protected positiveInteger_DEtype() { Init(); }
 		public positiveInteger_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -3259,7 +3248,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class positiveInteger_Stype : IVal
+	public partial class positiveInteger_Stype : IVal, IValNumeric, IInteger
 	{
 		protected positiveInteger_Stype() { Init(); }
 		public positiveInteger_Stype(BaseType parentNode) : base(parentNode)
@@ -3284,7 +3273,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class short_DEtype
+	public partial class short_DEtype : IDataType_DEType
 	{
 		protected short_DEtype() { Init(); }
 		public short_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -3313,7 +3302,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class short_Stype : IVal
+	public partial class short_Stype : IVal, IValNumeric, IFraction, IInteger
 	{
 		protected short_Stype() { Init(); }
 		public short_Stype(BaseType parentNode) : base(parentNode)
@@ -3338,7 +3327,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class string_DEtype
+	public partial class string_DEtype : IDataType_DEType
 	{
 		protected string_DEtype() { Init(); }
 		public string_DEtype(BaseType parentNode) : base(parentNode)
@@ -3373,7 +3362,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class time_DEtype
+	public partial class time_DEtype : IDataType_DEType
 	{
 		protected time_DEtype() { Init(); }
 		public time_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -3417,7 +3406,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class unsignedByte_DEtype
+	public partial class unsignedByte_DEtype : IDataType_DEType
 	{
 		protected unsignedByte_DEtype() { Init(); }
 		public unsignedByte_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -3436,7 +3425,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class unsignedByte_Stype : IVal
+	public partial class unsignedByte_Stype : IVal, IValNumeric, IInteger
 	{
 		protected unsignedByte_Stype() { Init(); }
 		public unsignedByte_Stype(BaseType parentNode) : base(parentNode)
@@ -3461,7 +3450,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class unsignedInt_DEtype
+	public partial class unsignedInt_DEtype : IDataType_DEType
 	{
 		protected unsignedInt_DEtype() { Init(); }
 		public unsignedInt_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -3481,7 +3470,7 @@ namespace SDC.Schema
 
 	}
 
-	public partial class unsignedInt_Stype : IVal
+	public partial class unsignedInt_Stype : IVal, IValNumeric, IInteger
 	{
 		protected unsignedInt_Stype() { Init(); }
 		public unsignedInt_Stype(BaseType parentNode) : base(parentNode)
@@ -3506,7 +3495,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class unsignedLong_DEtype
+	public partial class unsignedLong_DEtype : IDataType_DEType
 	{
 		protected unsignedLong_DEtype() { Init(); }
 		public unsignedLong_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -3525,7 +3514,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class unsignedLong_Stype : IVal
+	public partial class unsignedLong_Stype : IVal, IValNumeric, IInteger
 	{
 		protected unsignedLong_Stype() { Init(); }
 		public unsignedLong_Stype(BaseType parentNode) : base(parentNode)
@@ -3550,7 +3539,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class unsignedShort_DEtype
+	public partial class unsignedShort_DEtype : IDataType_DEType
 	{
 		protected unsignedShort_DEtype() { Init(); }
 		public unsignedShort_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -3569,7 +3558,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class unsignedShort_Stype : IVal
+	public partial class unsignedShort_Stype : IVal, IValNumeric, IInteger
 	{
 		protected unsignedShort_Stype() { Init(); }
 		public unsignedShort_Stype(BaseType parentNode) : base(parentNode)
@@ -3594,7 +3583,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class XML_DEtype
+	public partial class XML_DEtype : IDataType_DEType
 	{
 		protected XML_DEtype() { Init(); }//this.Any = new List<XmlElement>(); }
 		public XML_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -3636,7 +3625,7 @@ namespace SDC.Schema
 		}
 	}
 
-	public partial class yearMonthDuration_DEtype
+	public partial class yearMonthDuration_DEtype : IDataType_DEType
 	{
 		protected yearMonthDuration_DEtype() { Init(); }
 		public yearMonthDuration_DEtype(DataTypes_DEType parentNode) : base(parentNode)
@@ -3678,6 +3667,8 @@ namespace SDC.Schema
 				throw new NotImplementedException();
 			}
 		}
+
+
 	}
 	#endregion
 
@@ -4056,16 +4047,10 @@ namespace SDC.Schema
 		public List<ExtensionBaseType> ActAction_Items
 		{
 			get
-			{ return Items; }
+			{ return Items; } 
 			set
 			{
-				if (Items is null) Items = new();
-				else
-				{
-					foreach (BaseType n in Items) n.RemoveRecursive();
-					Items = value;
-				}
-				//OnPropertyChanged(nameof(ActAction_Items), this);
+				Items = ItemsMutator(Items, value);
 			}
 		}
 	}
@@ -4136,18 +4121,13 @@ namespace SDC.Schema
 		}
 
 		internal List<ExtensionBaseType> Email_Phone_WebSvc_List
+	{
+		get { return this.Items; }
+		set
 		{
-			get { return this.Items; }
-			set
-			{
-				if (Items is null) Items = new();
-				else
-				{
-					foreach (BaseType n in Items) n.RemoveRecursive();
-					Items = value;
-				}
-			}
+			Items = ItemsMutator(Items, value);
 		}
+	}
 	}
 	public partial class ActSendMessageType
 	{
@@ -4172,11 +4152,7 @@ namespace SDC.Schema
 
 			set
 			{
-				if (Items is null) Items = new();
-				else {
-					foreach (BaseType n in Items) n.RemoveRecursive();
-					Items = value;
-				}
+				Items = ItemsMutator(Items, value);
 			}
 		}
 	}

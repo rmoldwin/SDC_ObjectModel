@@ -12,7 +12,8 @@ namespace SDC.Schema.Tests.OMTests
         public void ListItemTypeTest_AddButtonAction()
 		{
 			var de = new DataElementType(null);
-            QuestionItemType q = new(de, "q");            
+            QuestionItemType q = new(de, "q");
+            de.Items.Add(q);
 			var li = q.AddListItem("li");
 
 			var btn = li.AddChildButtonAction("test_item", "", 1);
@@ -25,6 +26,7 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null);
 			QuestionItemType q = new(de, "q");
+			de.Items.Add(q);
 			var li = q.AddListItem("li");
 			var dsi = li.AddDeSelectIf();
             Assert.AreNotEqual(dsi, null);
@@ -35,6 +37,7 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null);
 			QuestionItemType q = new(de, "q");
+			de.Items.Add(q);
 			var li = q.AddListItem("li");
 			var dsi = li.AddChildDisplayedItem("test_item", "", 1);
             Assert.AreNotEqual(dsi, null);
@@ -46,6 +49,7 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null);
 			QuestionItemType q = new(de, "q");
+			de.Items.Add(q);
 			var li = q.AddListItem("li");
 			var injectedForm = li.AddChildInjectedForm("test_item", 1);
             Assert.AreNotEqual(injectedForm, null);
@@ -57,6 +61,7 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null);
 			QuestionItemType q = new(de, "q");
+			de.Items.Add(q);
 			var li = q.AddListItem("li");
 			var rf = li.AddListItemResponseField();
             Assert.IsNotNull(rf);

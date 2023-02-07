@@ -246,7 +246,7 @@ namespace SDC.Schema.Tests.Functional
 
 			Move(LI_16218, LI_40307, DropPosition.After);
 			Assert.IsTrue(Q_58807?.GetListItems()?.Count == 7);
-			Assert.IsTrue(Q_16214?.GetListItems() is null);
+			Assert.IsTrue(Q_16214?.GetListItems().Count == 0);
 
 			Move(LI_16218, Q_16214, DropPosition.Over); //Move LI_16218 back home to Q_16214
 			Assert.IsTrue(Q_16214?.GetListItems()?.Count == 1);
