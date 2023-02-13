@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<FormDesign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" order="0" ID="Test123_20200803201554974_sdcFDF" baseURI="www.cap.org/eCC" lineage="Test123" version="20200803201554974" fullURI="_baseURI=www.cap.org/eCC&amp;amp;_lineage=Test123&amp;amp;_version=20200803201554974&amp;amp;docType=sdcFDF" filename="Test123_20200803201554974_sdcFDF.xml" formTitle="Test123" xmlns="urn:ihe:qrph:sdc:2016">
+	<Property name="Copyright" type="CAPeCC_static_text" styleClass="copyright" order="1" propName="Copyright" val="(c) 2020 College of American Pathologists.  All rights reserved.  License required for use." />
+	<Property name="GenericHeaderText" type="CAPeCC_static_text" order="2" propName="GenericHeaderText" val="Surgical Pathology Cancer Case Summary" />
+	<Property name="Category" type="CAPeCC_meta" order="3" propName="Category" val="Stub3" />
+	<Property name="OfficialName" type="CAPeCC_meta" order="4" propName="OfficialName" val="Stub4" />
+	<Property name="CAP_ProtocolName" type="CAPeCC_meta" order="5" propName="CAP_ProtocolName" val="Stub5" />
+	<Property name="CAP_ProtocolShortName" type="CAPeCC_meta" order="6" propName="CAP_ProtocolShortName" val="Stub6" />
+	<Property name="CAP_ProtocolVersion" type="CAPeCC_meta" order="7" propName="CAP_ProtocolVersion" val="Stub7" />
+	<Property name="TemplateID" type="CAPeCC_meta" order="8" propName="TemplateID" val="Stub8" />
+	<Property name="Restrictions" type="CAPeCC_meta" order="9" propName="Restrictions" val="Stub9" />
+	<Property name="CAP_Required" type="CAPeCC_meta" order="10" propName="CAP_Required" val="Stub10" />
+	<Property name="AccreditationDate" type="CAPeCC_meta dt.dateTime" order="11" propName="AccreditationDate" val="Stub11" />
+	<Property name="WebPostingDate" type="CAPeCC_meta dt.dateTime" order="12" propName="WebPostingDate" val="Stub12" />
+	<Property name="ApprovalStatus" type="CAPeCC_meta" order="13" propName="ReleaseStatus" val="MOD" />
+	<Property name="AJCC_Version" type="CAPeCC_meta" order="14" propName="AJCC_Version" val="Stub14" />
+	<Body name="Body" order="15" ID="b6a534d4-cb3c-431f-95a9-4f51d3a24df1" title="***">
+		<ChildItems name="ch_Body" order="16">
+			<Section name="S_-1" order="17" ID="573d0345-a104-4646-bfa3-526eb7586379" title="S1">
+				<ChildItems name="ch_-1_1" order="18">
+					<Question name="Q_-5" order="19" ID="062dcf84-b07b-4fa1-81e2-7535bf7972fd" title="S1_C1">
+						<ListField name="lf_-5_1" order="20">
+							<List name="lst_-5_2" order="21">
+								<ListItem name="LI_-10" order="22" ID="22a2fe9d-687a-45f7-aa54-7083c68ea4b1" title="S1_C1_GC1" />
+							</List>
+						</ListField>
+						<ChildItems order="0">
+							<DisplayedItem order="0" ID="e3cb6da9-4831-4cc6-9a46-8a8a78b58cb8" title="***" />
+						</ChildItems>
+					</Question>
+					<Question name="Q_-8" order="31" ID="a0448ad1-9366-4eb5-8218-35e1274642c3" title="S1_C4">
+						<ListField name="lf_-8_1" order="32">
+							<List name="lst_-8_2" order="33">
+								<ListItem name="LI_-13" order="34" ID="d8942d6e-7744-42e8-affe-e0c4e966f4af" title="S1_C4_GC1" />
+							</List>
+						</ListField>
+						<ChildItems name="ch_-8_1" order="35">
+							<DisplayedItem name="DI_-2" order="37" ID="a4e3c73a-50bb-4803-a0cf-55a6ba317ae9" title="S1_C4_GC3" />
+						</ChildItems>
+					</Question>
+					<DisplayedItem order="0" ID="90f04d9d-0831-4c2f-833c-7b5344332f81" title="***" />
+				</ChildItems>
+			</Section>
+			<DisplayedItem order="0" ID="66ddf6df-e251-4ce2-aea4-b8cb92a8cc70" title="***" />
+		</ChildItems>
+	</Body>
+	<Footer name="footer" order="44" ID="-200" title="***">
+		<Property type="meta" styleClass="copyright" order="45" propName="CopyrightFooter" val="(c) 2020 College of American Pathologists.  All rights reserved.  License required for use." />
+	</Footer>
+</FormDesign>

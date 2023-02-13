@@ -77,7 +77,7 @@ namespace SDC.Schema.Tests.Functional
         {
             return File.ReadAllText(
                 Path.Combine(AppDomain.CurrentDomain.BaseDirectory
-                .Split("SDC.Schema.Tests")[0], "SDC.Schema.Tests","XML", fileName)
+                .Split("SDC.Schema.Tests")[0], "SDC.Schema.Tests", "Test Files", fileName)
                 ,Encoding.UTF8
             );
         }

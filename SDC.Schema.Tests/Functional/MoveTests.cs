@@ -251,18 +251,12 @@ namespace SDC.Schema.Tests.Functional
 			Move(LI_16218, Q_16214, DropPosition.Over); //Move LI_16218 back home to Q_16214
 			Assert.IsTrue(Q_16214?.GetListItems()?.Count == 1);
 
-
-
-
 			Assert.IsTrue(S_16182?.ChildItemsNode.ChildItemsList.Count == 2);
 			Move(S_16249, S_16182, DropPosition.Over);  //Drop Tumor onto Specimen node to make Tumor a child section
 			Assert.IsTrue(S_16182?.ChildItemsNode.ChildItemsList.Count == 3);
 
 			Move(S_16249, S_16182, DropPosition.After);  //Drop Tumor onto Specimen node to make Tumor a child section
 			Assert.IsTrue(S_16182?.ChildItemsNode.ChildItemsList.Count == 2);
-
-
-
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 			Setup.Reset(); //reset after moving nodes.

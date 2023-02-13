@@ -53,7 +53,7 @@ namespace SDC.Schema.Tests
 			Setup.BreastStagingTestV1_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "BreastStagingTest2v1.xml"));
 			Setup.BreastStagingTestV2_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "BreastStagingTest2v2.xml"));
 			Setup.BreastStagingTestV3_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "BreastStagingTest2v3.xml"));
-			Setup.BreastStagingTestV4_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "BreastStagingTest2vEric.xml"));
+			Setup.BreastStagingTestV4_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "BreastStagingTest2v4.xml"));
 			Setup.BreastStagingTestV5_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "BreastStagingTest2v5.xml"));
 
 			Setup.DefaultValsV1_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "DefaultValsTest2v1.xml"));

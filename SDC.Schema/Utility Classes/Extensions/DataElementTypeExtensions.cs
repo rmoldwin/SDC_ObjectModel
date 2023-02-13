@@ -26,6 +26,7 @@ namespace SDC.Schema.UtilityClasses.Extensions
 			de.DataElement_Items ??= new();
 			var deList = de.DataElement_Items;
 			var qNew = new QuestionItemType(de, id);
+			
 			//ListFieldType lf;
 			var count = deList.Count;
 			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
@@ -37,8 +38,8 @@ namespace SDC.Schema.UtilityClasses.Extensions
 					qNew.GetListField().GetList();
 					break;
 				case QuestionEnum.QuestionMultiple:
-					qNew.GetListField().GetList();
-					qNew.ListField_Item.maxSelections = 0;
+					//qNew.GetListField().GetList();
+					qNew.GetListField().maxSelections = 0;
 					break;
 				case QuestionEnum.QuestionFill:
 					qNew.AddQuestionResponseField(out DataTypes_DEType dtDE);

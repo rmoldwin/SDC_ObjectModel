@@ -22,12 +22,13 @@ namespace SDC.Schema.Extensions
 		/// <returns></returns>
 		public static UnitsType? AddResponseUnits(this ResponseFieldType rf, string units)
 		{
-			if (rf != null && units != null)
+			if (rf is not null && units is not null)
 			{
-				var u = new UnitsType(rf);
-				rf.ResponseUnits = u;
-				u.val = units;
-				return u;
+				rf.ResponseUnits ??= new(rf);
+				//var u = new UnitsType(rf);
+				//rf.ResponseUnits = u;
+				rf.ResponseUnits.val = units;
+				return rf.ResponseUnits;
 			}
 			return null;
 		}
@@ -40,10 +41,11 @@ namespace SDC.Schema.Extensions
 		/// <returns></returns>
 		public static RichTextType? AddTextAfterResponse(this ResponseFieldType rf, string? asciiText)
 		{
-			if (rf != null && asciiText != null)
+			if (rf is not null && asciiText is not null)
 			{
-				var rt = new RichTextType(rf);
-				rf.TextAfterResponse = rt;
+				rf.TextAfterResponse ??= new(rf);
+				var rt = rf.TextAfterResponse;
+				//rf.TextAfterResponse = rt;
 				rt.val = asciiText;
 				return rt;
 			}

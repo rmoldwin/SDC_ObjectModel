@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 //using SDC.Type.Interfaces;
 using SDC.Schema;
 using SDC.Schema.Extensions;
+using SDC.Schema.UtilityClasses.Extensions;
 using System.Linq;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -163,7 +164,7 @@ namespace SDC.Schema.Tests.OMTests
 			var q = new QuestionItemType(de, "q1", "q1");
 			de.Items.Add(q);
 			var li0 = q.AddListItem("li0", "li0"); //first
-			var li10 = q.AddListItem("li10", "li10"); //last
+			var li10 = q.AddListItem("li10", "li10"); //should finish up in last position [10]
 			var li9 = q.AddListItem("li9", "li9", 1);
 			var li1 = q.AddListItem("li1", "li1", 1);
 			var li2 = q.AddListItem("li2", "li2", 2);
@@ -220,6 +221,54 @@ namespace SDC.Schema.Tests.OMTests
 			at Template.Editor.Library.Helpers.UpdateHelper.SetResponseDataType(ITreeltem treeltem, ListltemResponseFieldType listltemResponseField)
 			*/
 
+
+
+		}
+		[TestMethod]
+		public void QuestionItemTypeTest__AddLItoPosition0()
+		{
+			var de = new DataElementType(null, "DE1");
+			var q2 = de.AddQuestion(QuestionEnum.QuestionSingle, "q2", "q2", 0);//should finish in pos.[2]
+			Assert.ReferenceEquals(de.IETnodes[1], q2); //[1] is the first q node under de (which is the [0] node]
+			var q1 = de.AddQuestion(QuestionEnum.QuestionSingle, "q1", "q1", 0);//should finish in pos.[1]
+			Assert.ReferenceEquals(de.IETnodes[1], q1);
+			Assert.ReferenceEquals(de.IETnodes[2], q2);
+			var q0 = de.AddQuestion(QuestionEnum.QuestionSingle, "q0", "q0", 0);//should finish in pos.[0]
+			Assert.ReferenceEquals(de.IETnodes[1], q0);
+			Assert.ReferenceEquals(de.IETnodes[2], q1);
+			Assert.ReferenceEquals(de.IETnodes[3], q2);
+			var q3 = de.AddQuestion(QuestionEnum.QuestionSingle, "q3", "q3", 3);//should finish in pos.[3]
+			Assert.ReferenceEquals(de.IETnodes[1], q0);
+			Assert.ReferenceEquals(de.IETnodes[2], q1);
+			Assert.ReferenceEquals(de.IETnodes[3], q2);
+			Assert.ReferenceEquals(de.IETnodes[4], q3);
+
+
+
+			var li2 = q0.AddListItem("li2", "li2"); //should finish up in position [2]
+			Assert.ReferenceEquals(de.IETnodes[2], li2);
+			var li1 = q0.AddListItem("li1", "li1", 0); //should finish up in position [1]
+			Assert.ReferenceEquals(de.IETnodes[2], li1);
+			Assert.ReferenceEquals(de.IETnodes[3], li2);
+			var li0 = q0.AddListItem("li0", "li0", 0);//should finish up in position [0]
+			Assert.ReferenceEquals(de.IETnodes[2], li0);
+			Assert.ReferenceEquals(de.IETnodes[3], li1);
+			Assert.ReferenceEquals(de.IETnodes[4], li2);
+
+			Assert.ReferenceEquals(de.IETnodes[2], q0);
+			Assert.ReferenceEquals(de.IETnodes[5], q1);
+			Assert.ReferenceEquals(de.IETnodes[6], q2);
+			Assert.ReferenceEquals(de.IETnodes[7], q3);
+
+
+			Assert.AreEqual(de.DataElement_Items.Last().As<DisplayedType>().title, "q3");
+			Assert.AreEqual(de.DataElement_Items[1].As<DisplayedType>().title, "q1");
+			Assert.AreEqual(de.DataElement_Items.First().As<DisplayedType>().title, "q0");
+			Assert.AreEqual(de.DataElement_Items[2].As<DisplayedType>().title, "q2");
+
+			Assert.AreEqual(q0.GetListItems()?.Last().title, "li2");
+			Assert.AreEqual(q0.GetListItems()?[1].title, "li1");
+			Assert.AreEqual(q0.GetListItems()?.First().title, "li0");
 
 
 		}

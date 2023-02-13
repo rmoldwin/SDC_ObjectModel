@@ -127,10 +127,10 @@ namespace SDC.Schema
 			int insertPosition = -1,
 			ItemChoiceType dt = ItemChoiceType.@string,
 			bool responseRequired = false,
-			string textAfterResponse = null,
-			string units = null,
+			string? textAfterResponse = null,
+			string? units = null,
 			dtQuantEnum dtQuant = dtQuantEnum.EQ,
-			object valDefault = null
+			object? valDefault = null
 			)
 		{
 			if (q.GetQuestionSubtype() == QuestionEnum.QuestionMultiple ||
@@ -142,8 +142,8 @@ namespace SDC.Schema
 				var rsp = lirf.AddDataType(dt, dtQuant, valDefault);
 
 				lirf.responseRequired = responseRequired;
-				lirf.AddResponseUnits(units);
-				lirf.AddTextAfterResponse(textAfterResponse);
+				if(units is not null)lirf.AddResponseUnits(units);
+				if(textAfterResponse is not null)lirf.AddTextAfterResponse(textAfterResponse);
 
 				deType = IDataHelpers.AddDataTypesDE(lirf, dt, dtQuant, valDefault);
 				return li;

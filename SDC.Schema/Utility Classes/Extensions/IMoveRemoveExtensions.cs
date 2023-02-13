@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Xml.Linq;
+using static System.Collections.Specialized.BitVector32;
 
 
 
@@ -34,8 +35,10 @@ namespace SDC.Schema.Extensions
 		}
 
 		/// <summary>
-		/// Reflect the object tree to determine if <paramref name="btSource"/> can be attached to <paramref name="newParent"/>.   
-		/// We must find an <em>exact</em> match for <paramref name="btSource"/>'s element name and the data type in <paramref name="newParent"/> to allow the move.
+		/// Reflect the object tree to determine if <paramref name="btSource"/> can be attached to <paramref name="newParent"/>.<br/>   
+		/// We must find a match for <paramref name="btSource"/>'s data type in <paramref name="newParent"/> to allow the move.<br/><br/>
+		/// If the caller passes the current SDC parent object (<em>btSource.ParentNode</em>) as <paramref name="newParent"/>, this method can also be used<br/>
+		/// to return the attachment point object (e.g., an inner List&lt;BaseType>) of <paramref name="btSource"/> in the SDC object tree.
 		/// </summary>
 		/// <param name="btSource">The SDC node to test for its ability to be attached to the <paramref name="newParent"/> node.</param>
 		/// <param name="newParent">The node to which the <paramref name="btSource"/> node should be moved.</param>
@@ -165,27 +168,44 @@ namespace SDC.Schema.Extensions
 			throw new InvalidOperationException($"{nameof(RemoveNodeObject)}: unable to remove node: {nameof(nodeToRemove)}.");
 		}
 		/// <summary>
-		/// Move an SDC node from one parent node to another. <br/>
+		/// Move an SDC node from one parent node to another. <br/>  
+		/// The source tree (home of node <paramref name="btSource"/>) may be different from the target tree (home of node <paramref name="newParent"/>).<br/><br/>
 		/// A check is performed for illegal moves using <see cref="IsParentNodeAllowed(BaseType, BaseType)"/>. <br/>
 		/// Illegal moves are not performed, causing this method to return false.<br/>
-		/// TopNode is updated for the moved subtree, if necessary.<br/><br/>
-		/// If the top-level subtree node derives from a different TopNode, all <see cref="sGuid"/>, see<see cref="ObjectID"/>, <see cref="name"/>, and dictionary entries will be updated automatically.<br/>
-		/// The caller may force updating of the above metadata by setting <paramref name="updateMetadata"/> to true.
+		/// <see cref="BaseType.TopNode"/> is updated for all nodes in the moved subtree, as needed.<br/>
+		/// All dictionaries are updated in the source <paramref name="btSource"/>'s and target <paramref name="newParent"/>'s <see cref="ITopNode"/> objects, as needed.<br/><br/>
+		/// If the top-level source subtree node (<paramref name="btSource"/>) derives from a different <see cref="BaseType.TopNode"/> than the target (<paramref name="newParent"/>) node, <br/>
+		/// all <see cref="BaseType.sGuid"/>, <see cref="BaseType.ObjectID"/>, <see cref="BaseType.name"/>, <see cref="IdentifiedExtensionType.ID"/> and dictionary entries will be updated automatically.<br/>  
+		/// This behavior cannot be suppressed.<br/><br/>
+		/// 
+		/// TODO: If a subtree is being moved from a <see cref="FormDesignType"/> tree to a parent node in another <see cref="FormDesignType"/> tree with the same <see cref="FormDesignType.lineage"/> value, then<br/>
+		/// by default, all <see cref="BaseType.sGuid"/> and <see cref="IdentifiedExtensionType.ID"/> values will be preserved during the move, unless <paramref name="updateMetadata"/> is set to "true".<br/>
+		/// The same is the case for moving nodes between <see cref="DemogFormDesignType"/> trees and between <see cref="DataElementType"/> trees of the same lineage.
+		/// <br/><br/>
+		/// TODO: If a source <see cref="ITopNode"/> object (<paramref name="btSource"/>) is moved to any other target location at <paramref name="newParent"/>, <br/>
+		/// no changes will be made to that subtree's <see cref="BaseType.sGuid"/> and <see cref="IdentifiedExtensionType.ID"/> values.<br/>
+		/// However, if the same subtree is copied more than once to a given target subtree, duplicate <see cref="BaseType.sGuid"/>s and <see cref="IdentifiedExtensionType.ID"/>s<br/>
+		/// would be present in the target subtree.  These duplicates will be detected and replaced with new values.<br/>
+		/// Both source (<paramref name="btSource"/>) and target (<paramref name="newParent"/>) <see cref="ITopNode"/> dictionaries will be updated.<br/><br/>
+		/// 
+		/// The caller may force updating of <see cref="BaseType.sGuid"/>, <see cref="IdentifiedExtensionType.ID"/>, <see cref="BaseType.ObjectID"/>, and <see cref="BaseType.name"/> metadata by setting <paramref name="updateMetadata"/> to true.
 		/// </summary>
 		/// <param name="btSource">The node to move.</param>
-		/// <param name="newParent">The parent node destination to which btSource should be attached</param>
-		/// <param name="newListIndex">If newParent supports IList, newListIndex holds the intended destination index in the list.
-		/// All negative values will place btSource at the first IList position (index 0).
+		/// <param name="newParent">The parent node destination to which <paramref name="btSource"/> should be attached</param>
+		/// <param name="newListIndex">If <paramref name="newParent"/> supports IList, newListIndex holds the intended destination index in the list.
+		/// All negative values will place <paramref name="btSource"/> at the first IList position (index 0).
 		/// All values greater than the current last IList index will be added to the end of the list.
-		/// The default value is -1, which will place btSource at the start of the list</param>
+		/// The default value is -1, which will place <paramref name="btSource"/> at the start of the list</param>
 		/// <param name="deleteEmptyParentNode">If <b><paramref name="deleteEmptyParentNode"/></b> is true (default is false) 
 		/// then the method will check to see if the parent node of <b><paramref name="btSource"/></b> (the moved node) has no child nodes after
 		/// <b><paramref name="btSource"/></b> is moved.  If <b><paramref name="deleteEmptyParentNode"/></b> is true 
 		/// and also the parent node is childless, the parent node will be removed.<br/>
-		/// This is useful for removing a childless (empty) empty ChildItems, after moving its last child node  to a different parent node.</param>
-		/// <param name="updateMetadata">If the top-level subtree node derives from a different TopNode, all <see cref="BaseType.sGuid"/>, see<see cref="BaseType.ObjectID"/>, <see cref="BaseType.name"/>, <see cref="IdentifiedExtensionType.ID"/> and dictionary entries will be updated automatically.<br/>
-		/// The caller may force updating of <see cref="BaseType.sGuid"/>, see<see cref="BaseType.ObjectID"/>, <see cref="BaseType.name"/>, <see cref="IdentifiedExtensionType.ID"/> and dictionary entries by setting <paramref name="updateMetadata"/> to true</param>
-		/// <returns>true if the move was successful; false if the move was not allowed</returns>
+		/// This is useful for removing a childless (empty) <see cref="ChildItemsType"/> node, after moving its last child node  to a different parent node.</param>
+		/// <param name="updateMetadata">If the top-level subtree node derives from a different TopNode, all <see cref="BaseType.sGuid"/>, <see cref="BaseType.ObjectID"/>,<br/>
+		/// <see cref="BaseType.name"/>, <see cref="IdentifiedExtensionType.ID"/> and dictionary entries will be updated automatically.<br/>
+		/// The caller may force updating of <see cref="BaseType.sGuid"/>, <see cref="IdentifiedExtensionType.ID"/>, <see cref="BaseType.ObjectID"/>, <see cref="BaseType.name"/>, <br/>
+		/// and dictionary entries by setting <paramref name="updateMetadata"/> to true.</param>
+		/// <returns>True if the move was successful; false if the move was not allowed.</returns>
 		/// <exception cref="NullReferenceException"/>
 		///<exception cref="Exception"/>
 		public static bool Move(this BaseType btSource, BaseType newParent, int newListIndex = -1
@@ -193,21 +213,21 @@ namespace SDC.Schema.Extensions
 			, bool updateMetadata = false)
 		{
 			if (btSource is null) 
-				throw new NullReferenceException("btSource must not be null.");
+				throw new NullReferenceException($"{nameof(btSource)} must not be null.");
 			if (newParent is null) 				
-				throw new NullReferenceException("newParent must not be null.");
+				throw new NullReferenceException($"{nameof(newParent)} must not be null.");
 			//if (btSource.ParentNode is null) throw new NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved");
-			if (newParent.TopNode is null) throw new NullReferenceException("newParent.TopNode must not be null.");
+			if (newParent.TopNode is null) throw new NullReferenceException($"{nameof(newParent.TopNode)} must not be null.");
 
-			if (btSource.IsParentNodeAllowed(newParent, out object? targetObj))
-			{
+			if (! btSource.IsParentNodeAllowed(newParent, out object? targetObj)) return false;
+
 				//!Set SameRoot
 				//Do btSource and newParent share the same root node? (Are they from the same SDC tree?)
 				bool sameRoot = false;  //Do source and target share the same root node?
 				var sourceRoot = btSource.FindRootNode();
-				if (sourceRoot is null) throw new NullReferenceException("The root node of btSource could not be determined.");
+				if (sourceRoot is null) throw new NullReferenceException($"The root node of {nameof(btSource)} could not be determined.");
 				var newParentRoot = newParent.FindRootNode();
-				if (sourceRoot is null) throw new NullReferenceException("The root node of newParent could not be determined.");
+				if (sourceRoot is null) throw new NullReferenceException($"The root node of {nameof(newParent)} could not be determined.");
 
 				if (sourceRoot.Equals(newParentRoot)) sameRoot = true;
 				else //!+Process btSource tree with different root node
@@ -226,7 +246,7 @@ namespace SDC.Schema.Extensions
 					{
 						i++;
 						if (i > 1000000) 
-							throw new InvalidOperationException("Could not assign TopNode to nodes in btSource tree, due to inability to walk its SDC tree");
+							throw new InvalidOperationException($"Could not assign {nameof(btSource.TopNode)} to nodes in {nameof(btSource)} tree, due to inability to walk its SDC tree");
 
 						n.TopNode = currentTopNode; //currentTopNode can't be null
 						nextNode = btSource.GetNodeReflectNext();
@@ -239,7 +259,10 @@ namespace SDC.Schema.Extensions
 						}
 						n = nextNode;
 					}
-					var nodeWorkerFirstObjectID = (BaseType node) =>
+					//TODO: Refactor node Workers to methods as needed
+					//This is a nodeWorkerFirst lambda designed for us in ReflectRefreshSubtreeList
+					//TODO: We may need to modify this nodeWorker to detect and update duplicate sGuids and IDs (on IET nodes) in the target tree.
+					var UpdateObjectID = (BaseType node) =>
 						{
 							if (node is ITopNode tn)
 							{
@@ -248,13 +271,16 @@ namespace SDC.Schema.Extensions
 								return true;
 							}
 							node.ObjectID = ((_ITopNode)node)._MaxObjectID++;
-							return true;							
+							return true;
 						};
 
 					//Re-create dictionaries, ID, BaseName, @name, sGuid/ObjectGUID, etc for all btSource nodes.
+					//TODO: Will this work for a source tree that differs from the target tree??
+					//It also may create errors if duplicate sGuids and IDs are found.
+					//This may require ReflectRefreshSubtreeList to quietly fix these things.
 					var sourceNodeList =
-						SdcUtil.ReflectRefreshSubtreeList(btSource,false,false,true,
-						0,1, true, SdcUtil.CreateCAPname, nodeWorkerFirstObjectID);
+						SdcUtil.ReflectRefreshSubtreeList(btSource, false, false, true,
+						0, 1, true, SdcUtil.CreateCAPname, UpdateObjectID);
 
 				}//TODO: process donor node/branch: ObjectID, sGuid, ObjectID, @name, ID, baseURI?, Link?, events?, rule targets?
 
@@ -269,6 +295,7 @@ namespace SDC.Schema.Extensions
 					return true;
 				}
 				else if (targetObj is IList propList) //btSource can be attached to a member of a List
+					//TODO: refactor block: bool AttachSourceNodetoList() 
 				{
 					var sourceParent = btSource.ParentNode;
 					//par can be null if we are grafting from the btSource tree to another SDC object tree, and btSource is the root node of its tree
@@ -317,6 +344,7 @@ namespace SDC.Schema.Extensions
 
 
 					//!Remove deleted nodes from _ITop Node dictionaries
+					//
 					btSource.MoveInDictionaries(targetParent: newParent);
 					btSource.AssignOrder(); //Requires that dictionaries are first populated
 
@@ -329,8 +357,6 @@ namespace SDC.Schema.Extensions
 				else 
 					throw new InvalidOperationException("Invalid targetObj: targetObj must be BaseType or IList");
 				
-			}
-			else return false; //invalid Move
 		}
 
 
@@ -374,38 +400,70 @@ namespace SDC.Schema.Extensions
 				if (_topNode is null)
 					throw new NullReferenceException($"{nameof(node.TopNode)} cannot be null.");
 
-				RegisterNode(_topNode, isMoving);
-				//Populate the _ChildNodes and _ParentNodes dictionaries:
-				if (parentNode is not null) node.RegisterParent(parentNode, childNodesSort);
+				//Add to _Nodes
+				node.RegisterNode();
+				//Add to _ChildNodes
+				if (parentNode is not null) 
+					node.RegisterParent(parentNode, childNodesSort);
+				//Add to _IETnodes
+				RegisterIETnode(_topNode, isMoving);
 
-
-				if (node is _ITopNode _topTopNode && _topTopNode != _topNode) //if we did not already do this... 
-				{   //also register this ITopNode object in its own dictionaries.
-					_topTopNode = (_ITopNode)node;
-					RegisterNode(_topTopNode, isMoving);
-				}
-
-				void RegisterNode(_ITopNode tn, bool isMoving = false)
-				{
-					tn._Nodes.Add(node.ObjectGUID, node);
-
+				void RegisterIETnode(_ITopNode tn, bool isMoving = false)
+				{	
 					if (node is IdentifiedExtensionType iet)
+					{
+						var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our moved node
+						int ietPrevPosition = -1;
+						if (ietPrev is not null)
+							ietPrevPosition = tn._IETnodes.IndexOf(ietPrev);  //TODO: this collection scan may be inefficient; we may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) or ConditionalWeakTable instead (using sGuid or the object ref as Key).
+
 						if (isMoving)
 						{
-							var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our moved node
-							int ietPrevPosition = -1;
-							if (ietPrev is not null) ietPrevPosition = tn._IETnodes.IndexOf(ietPrev);  //TODO: this collection scan may be inefficient; we may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) or ConditionalWeakTable instead (using sGuid or the object ref as Key).
-
 							foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
+							{
 								tn._IETnodes.Insert(++ietPrevPosition, n);
+							}
 						}
-						else
-							tn._IETnodes.Add(iet); //add to end of collection
+						else 
+							iet.AddTo_IETnodes(); 
+					}
 					return;
 				}
 			}
 			else { } //There is no TopNode to hold our dictionaries, so we can't register the node
 			return node;
+		}
+
+		private static void RegisterNode(this BaseType node)
+		{
+			_ITopNode _topNode = ((_ITopNode)node.TopNode!);
+			_topNode._Nodes.Add(node.ObjectGUID, node);
+
+			if (node is _ITopNode _meTopNode && _meTopNode != _topNode) //if we did not already do this... 
+			{   //also register this ITopNode object in its own dictionaries.
+				_meTopNode._Nodes.TryAdd(node.ObjectGUID, node);
+			}
+		}
+		private static void AddTo_IETnodes(this IdentifiedExtensionType iet)
+		{
+			//Populate ITopNode._IETnodes
+			var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our moved node	
+			var itn = (iet.TopNode as _ITopNode);
+			if (itn is not null)
+			{
+				if (ietPrev is not null)
+				{
+					int insertPosition = itn._IETnodes.IndexOf(ietPrev) + 1;  //TODO: this collection scan may be inefficient; we may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) or ConditionalWeakTable instead (using sGuid or the object ref as Key).
+					itn._IETnodes.Insert(insertPosition, iet);
+				}
+				else
+					itn._IETnodes.Insert(0, iet);
+			}
+			if (iet is _ITopNode meTopNode && (meTopNode._IETnodes is null || meTopNode._IETnodes.Count == 0))
+			{
+				meTopNode._IETnodes!.Add(iet);
+			}
+
 		}
 
 		/// <summary>
@@ -471,9 +529,9 @@ namespace SDC.Schema.Extensions
 
 				RegisterParentNode(node, inParentNode, _topNode, childNodesSort);
 
-				if (node is _ITopNode _topTopNode && _topTopNode != _topNode) //if we did not already do this... 
+				if (node is _ITopNode _meTopNode && _meTopNode != _topNode) //if we did not already do this... 
 				{   //also register this ITopNode object in its own dictionaries.
-					RegisterParentNode(node, inParentNode, _topTopNode, childNodesSort);
+					RegisterParentNode(node, inParentNode, _meTopNode, childNodesSort);
 				}
 			}
 

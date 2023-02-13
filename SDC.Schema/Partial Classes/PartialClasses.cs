@@ -1312,7 +1312,7 @@ namespace SDC.Schema
 			{
 				if (this is IdentifiedExtensionType || this is ITopNode) return 0;
 				if (TopNode?.Nodes is null)
-					throw new Exception("Could not find SubIETcounter because T.Get_Nodes is null");
+					throw new Exception("Could not find SubIETcounter because TopNode?.Nodes is null");
 				if (ParentNode is null)
 					throw new Exception("Could not find SubIETcounter because ParentNode is null");
 
@@ -1783,7 +1783,7 @@ namespace SDC.Schema
 		protected IdentifiedExtensionType(BaseType? parentNode, string id = "") : base(parentNode)
 		{
 			if (id.IsNullOrWhitespace())
-				ID = $"->{BaseName}"; //BaseName was based on the sGuid and assigned in the BaseType ctor
+				ID = $"___{BaseName}"; //BaseName was based on the sGuid and assigned in the BaseType ctor
 			else ID = id;
 			Init();
 		}
@@ -1793,7 +1793,6 @@ namespace SDC.Schema
 				this.ID = this.ObjectGUID.ToString();// #IsThisCorrect 
 		}
 
-		//!TODO: Move to IET class
 		/// <summary>
 		///  Hierarchical level using nested dot notation.<br/>
 		///  Only includes <see cref="IdentifiedExtensionType"/> nodes in the hierarchy.

@@ -425,7 +425,7 @@ namespace SDC.Schema
 					if (btProp is IdentifiedExtensionType iet)
 					{
 						if (iet.ID.IsNullOrEmpty()) 
-							iet.ID = $"->{iet.sGuid}";
+							iet.ID = $"___{iet.sGuid}";
 					}
 					if (createNodeName is not null)
 						btProp.name = createNodeName(btProp) ?? btProp.name;
@@ -775,7 +775,7 @@ namespace SDC.Schema
 						SdcUtil.AssignGuid_sGuid_BaseName(n);
 
 						if (n is IdentifiedExtensionType iet)
-							iet.ID = $"->{n.BaseName}";
+							iet.ID = $"___{n.BaseName}";
 
 						if (createNodeName is not null)
 							n.name = createNodeName(node: n);

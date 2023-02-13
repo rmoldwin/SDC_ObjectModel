@@ -35,7 +35,7 @@ namespace SDC.Schema
             List<Exception> exList = new();
 
             //if (rfParent.Response != null) throw new InvalidOperationException("A DataTypes_DEType object already exists on the rfParent parameter (ResponseFieldType)");
-            rfParent.Response = new DataTypes_DEType(rfParent);
+            rfParent.Response??= new DataTypes_DEType(rfParent);
 
             switch (dataTypeEnum)
             {
@@ -48,8 +48,7 @@ namespace SDC.Schema
                         }
                         dt.AnyAttr = new List<XmlAttribute>();
                         
-                        rfParent.Response.DataTypeDE_Item = dt;
-                       
+                        rfParent.Response.DataTypeDE_Item = dt;                       
                     }
                     break;
                 case ItemChoiceType.XML: //TODO: Need to be able to add custom attributes to first wrapper element - see anyType; in fact, do we even need XML as a separate type?
