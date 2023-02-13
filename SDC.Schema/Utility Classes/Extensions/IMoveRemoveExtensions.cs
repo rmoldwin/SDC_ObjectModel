@@ -24,6 +24,8 @@ namespace SDC.Schema.Extensions
 		private static void MoveInDictionaries(this BaseType btSource, BaseType targetParent = null!)
 		{
 			//Remove from ParentNodes and ChildNodes as needed
+			//BUG: We need to also remove and reregister entries from IETnodes,
+			//BUG: and also from "meTopNode" dictionaries when the nodes are ITopNode and have entries in their own ITopNode dicts.
 			btSource.UnRegisterParent();
 
 			//Re-register item node under new parent
@@ -385,13 +387,11 @@ namespace SDC.Schema.Extensions
 		{
 			//if node was initially created with a null parent node, even if the parent node was assigned later, 
 			//the node may still have a null ITopNode.  We can fix it here, so that we can register the node.
-			if (node.TopNode is null)	
-				node.TopNode = parentNode?.TopNode;
+			if (node.TopNode is null) node.TopNode = parentNode?.TopNode;
 
 			if (node.TopNode is not null)
 			{
-				//if ObjectID was not set previously (usually because the node was created without a TopNode or parent node),
-				//we can set it here
+				//if ObjectID was not set previously (usually because the node was created without a TopNode or parent node), we can set it here
 				if (node.ObjectID == -1) node.ObjectID = ((_ITopNode)node.TopNode)._MaxObjectID++;
 
 				parentNode ??= node.ParentNode;
@@ -406,29 +406,8 @@ namespace SDC.Schema.Extensions
 				if (parentNode is not null) 
 					node.RegisterParent(parentNode, childNodesSort);
 				//Add to _IETnodes
-				RegisterIETnode(_topNode, isMoving);
-
-				void RegisterIETnode(_ITopNode tn, bool isMoving = false)
-				{	
-					if (node is IdentifiedExtensionType iet)
-					{
-						var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our moved node
-						int ietPrevPosition = -1;
-						if (ietPrev is not null)
-							ietPrevPosition = tn._IETnodes.IndexOf(ietPrev);  //TODO: this collection scan may be inefficient; we may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) or ConditionalWeakTable instead (using sGuid or the object ref as Key).
-
-						if (isMoving)
-						{
-							foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
-							{
-								tn._IETnodes.Insert(++ietPrevPosition, n);
-							}
-						}
-						else 
-							iet.AddTo_IETnodes(); 
-					}
-					return;
-				}
+				if (node is IdentifiedExtensionType iet)
+					iet.RegisterIETnodes(isMoving);
 			}
 			else { } //There is no TopNode to hold our dictionaries, so we can't register the node
 			return node;
@@ -443,72 +422,6 @@ namespace SDC.Schema.Extensions
 			{   //also register this ITopNode object in its own dictionaries.
 				_meTopNode._Nodes.TryAdd(node.ObjectGUID, node);
 			}
-		}
-		private static void AddTo_IETnodes(this IdentifiedExtensionType iet)
-		{
-			//Populate ITopNode._IETnodes
-			var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our moved node	
-			var itn = (iet.TopNode as _ITopNode);
-			if (itn is not null)
-			{
-				if (ietPrev is not null)
-				{
-					int insertPosition = itn._IETnodes.IndexOf(ietPrev) + 1;  //TODO: this collection scan may be inefficient; we may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) or ConditionalWeakTable instead (using sGuid or the object ref as Key).
-					itn._IETnodes.Insert(insertPosition, iet);
-				}
-				else
-					itn._IETnodes.Insert(0, iet);
-			}
-			if (iet is _ITopNode meTopNode && (meTopNode._IETnodes is null || meTopNode._IETnodes.Count == 0))
-			{
-				meTopNode._IETnodes!.Add(iet);
-			}
-
-		}
-
-		/// <summary>
-		/// Create a new @order value for the current node, and all its distal nodes in the same tree
-		/// </summary>
-		/// <param name="node"></param>
-		/// <param name="orderGap"></param>
-		/// <param name="reorderToEnd">If false, reorders nodes until the method encounters an order value larger than the previous node's order value<br/>
-		/// If true, reorders all nodes until the end of the object tree.</param>
-		/// <returns></returns>
-		/// <exception cref="IndexOutOfRangeException"></exception>
-		/// <exception cref="InvalidOperationException"></exception>
-		internal static decimal AssignOrder(this BaseType node, int orderGap = 1, bool reorderToEnd = false)
-
-		{
-			BaseType? curNode = node;
-
-			var prevNode = curNode.GetNodePrevious();
-			if (prevNode is null)
-			{
-				curNode.order = 0;
-				return 0;
-			}
-			else
-				curNode.order = prevNode.order + orderGap;
-
-			//make sure that lower nodes have sequentially-numbered IDs
-			int i = 0;
-			do
-			{
-				prevNode = curNode;
-				curNode = curNode.GetNodeNext();
-				if (curNode is null) 
-					return prevNode.order;
-				else if(!reorderToEnd && prevNode.order < curNode.order)
-					//all nodes are sequential now, so we can return now
-					return prevNode.order;
-				else
-					curNode.order = prevNode.order + orderGap;
-
-				i++; 
-				if (i > 100000) 
-					throw new IndexOutOfRangeException($"Too many cycles (100000) to walk down SDC object tree.  Run {nameof(SdcUtil.ReflectRefreshTree)} to fix.");
-			} while (true);
-			throw new InvalidOperationException("Could not assign @order to node.");
 		}
 
 		/// <summary>
@@ -564,6 +477,71 @@ namespace SDC.Schema.Extensions
 				}
 			}
 		}
+		private static void RegisterIETnodes(this IdentifiedExtensionType iet, bool isMoving = false)
+		{
+			_ITopNode itn = (_ITopNode)iet.TopNode!;
+			var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our moved node	
+			
+			int insertPosition = -1;
+			
+			if (ietPrev is not null)
+				insertPosition = itn._IETnodes.IndexOf(ietPrev);  //TODO: this collection scan may be inefficient; we may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) or ConditionalWeakTable instead (using sGuid or the object ref as Key).
+			
+			if (isMoving)
+				foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
+					itn._IETnodes.Insert(++insertPosition, n);
+			else //we are just adding a node here, not moving
+				itn._IETnodes.Insert(++insertPosition, iet);
+
+			if (iet is _ITopNode meTopNode && (meTopNode._IETnodes is null || meTopNode._IETnodes.Count == 0))
+				meTopNode._IETnodes!.Insert(0, iet);
+
+		}
+
+		/// <summary>
+		/// Create a new @order value for the current node, and all its distal nodes in the same tree
+		/// </summary>
+		/// <param name="node"></param>
+		/// <param name="orderGap"></param>
+		/// <param name="reorderToEnd">If false, reorders nodes until the method encounters an order value larger than the previous node's order value<br/>
+		/// If true, reorders all nodes until the end of the object tree.</param>
+		/// <returns></returns>
+		/// <exception cref="IndexOutOfRangeException"></exception>
+		/// <exception cref="InvalidOperationException"></exception>
+		internal static decimal AssignOrder(this BaseType node, int orderGap = 1, bool reorderToEnd = false)
+
+		{
+			BaseType? curNode = node;
+
+			var prevNode = curNode.GetNodePrevious();
+			if (prevNode is null)
+			{
+				curNode.order = 0;
+				return 0;
+			}
+			else
+				curNode.order = prevNode.order + orderGap;
+
+			//make sure that lower nodes have sequentially-numbered IDs
+			int i = 0;
+			do
+			{
+				prevNode = curNode;
+				curNode = curNode.GetNodeNext();
+				if (curNode is null) 
+					return prevNode.order;
+				else if(!reorderToEnd && prevNode.order < curNode.order)
+					//all nodes are sequential now, so we can return now
+					return prevNode.order;
+				else
+					curNode.order = prevNode.order + orderGap;
+
+				i++; 
+				if (i > 100000) 
+					throw new IndexOutOfRangeException($"Too many cycles (100000) to walk down SDC object tree.  Run {nameof(SdcUtil.ReflectRefreshTree)} to fix.");
+			} while (true);
+			throw new InvalidOperationException("Could not assign @order to node.");
+		}
 
 		/// <summary>
 		/// UnRegister <b><paramref name="node"/></b> in _ParentNodes and _ChildNodes dictionaries.  
@@ -582,9 +560,9 @@ namespace SDC.Schema.Extensions
 
 			UnRegisterParentNode(_topNode);
 
-			if (node is _ITopNode _topTopNode && _topTopNode != _topNode) //if we did not already do this... 
+			if (node is _ITopNode _meTopNode && _meTopNode != _topNode) //if we did not already do this... 
 			{   //also register this ITopNode object in its own dictionaries.
-				UnRegisterParentNode(_topTopNode);
+				UnRegisterParentNode(_meTopNode);
 			}
 
 			void UnRegisterParentNode(_ITopNode tn)
@@ -620,18 +598,22 @@ namespace SDC.Schema.Extensions
 				throw new NullReferenceException($"{nameof(node.TopNode)} cannot be null.");
 			UnRegister(_topNode);
 
-			if (node is _ITopNode _topTopNode && _topTopNode != _topNode) //if we did not already do this... 
+			if (node is _ITopNode _meTopNode && _meTopNode != _topNode) //if we did not already do this... 
 			{   //also register this ITopNode object in its own dictionaries.
-				UnRegister(_topTopNode);
+				UnRegister(_meTopNode);
 			}
 
 			void UnRegister(_ITopNode tn)
 			{
+				//Unregister _Nodes
 				bool success = tn?._Nodes.Remove(node.ObjectGUID) ?? false;
 				if (!success)
 					throw new Exception($"Could not remove object from {nameof(tn._Nodes)} dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
+				
+				//Unregister _ChildNodes
 				node.UnRegisterParent();
 
+				//Unregister _IETnodes
 				if (node is IdentifiedExtensionType iet)
 				{
 					var inb = tn!._IETnodes;
