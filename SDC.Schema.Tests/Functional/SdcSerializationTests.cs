@@ -19,7 +19,7 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void DeserializeDEFromPath()
 		{
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			//string path = @".\Test files\DE sample.xml";
 			string path = Path.Combine("..", "..", "..", "Test files", "DE sample.xml");
 			//string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
@@ -33,7 +33,7 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void DeserializeDEFromXml()
 		{
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			//string path = @".\Test files\DE sample.xml";
 			string path = Path.Combine("..", "..", "..", "Test files", "DE sample.xml");
 			string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
@@ -48,7 +48,7 @@ namespace SDC.Schema.Tests.Functional
 			Setup.TimerStart("==>[] Started");
 
 
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			//string path = @".\Test files\Demog CCO Lung Surgery.xml";
 
 			string path = Path.Combine("..", "..", "..", "Test files", "Demog CCO Lung Surgery.xml");
@@ -69,7 +69,7 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void DeserializeFormDesignFromPathSimple()
 		{
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
 			string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);
 			var FD = FormDesignType.DeserializeFromXmlPath(path);
@@ -82,7 +82,7 @@ namespace SDC.Schema.Tests.Functional
 		[ExpectedException(typeof(InvalidOperationException))]
 		public void DeserializeFormDesignFromPath()
 		{
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			//string path = @".\Test files\CCO Lung Surgery.xml";
 			//string path = @".\Test files\Breast.Invasive.Staging.359_.CTP9_sdcFDF.xml";
 			string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
@@ -205,7 +205,7 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void DeserializePkgFromPath()
 		{
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			//string path = @".\Test files\..Sample SDCPackage.xml";
 			string path = Path.Combine("..", "..", "..", "Test files", "..Sample SDCPackage.xml");
 			//string sdcFile = File.ReadAllText(path, System.Text.Encoding.UTF8);

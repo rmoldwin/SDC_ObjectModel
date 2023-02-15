@@ -76,7 +76,7 @@ namespace SDC.Schema.Tests
 
 
 			Setup.TimerStart("==>Setup starting----------");
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			_Xml = System.IO.File.ReadAllText(_XmlPath);
 			FD = FormDesignType.DeserializeFromXml(_Xml);
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==Setup finished----------\r\n");

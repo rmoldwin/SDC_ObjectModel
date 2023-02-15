@@ -500,7 +500,7 @@ namespace SDC.Schema.Tests.Functional
 		{
 
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "Adrenal.Bx.Res.129_3.004.001.REL_sdcFDF_test.xml");
 			var FDbad = FormDesignType.DeserializeFromXmlPath(path); //used to compare nodes in another tree
 			var adr = FDbad.Nodes.Values.ToArray(); //this creates shallow copies with do not retain ParentNode refs, etc.
@@ -580,7 +580,7 @@ namespace SDC.Schema.Tests.Functional
 		public void RefreshParentNodesFromXml()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "Adrenal.Bx.Res.129_3.004.001.REL_sdcFDF_test.xml");
 			var FDbad = FormDesignType.DeserializeFromXmlPath(path); //used to compare nodes in another tree
 			var adr = FDbad.Nodes.Values.ToArray<BaseType>();

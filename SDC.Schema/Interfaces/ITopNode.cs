@@ -117,13 +117,19 @@ namespace SDC.Schema
 		Dictionary<Guid, List<BaseType>> _ChildNodes { get; }
 
 		/// <summary>
-		/// This HashSet contains the ObjectID of each node that has been sorted by ITreeSibComparer.  
-		/// Each entry in this HashSet indicates that nodes child nodes have already been sorted.  
+		/// This HashSet contains the ObjectID of each parent node that has had its child nodes sorted by ITreeSibComparer.  
+		/// Each entry in this HashSet indicates that parent node's child nodes have already been sorted.  
 		/// Checking for a parent node in this HashSet is used to bypass the resorting of child nodes during a tree sorting operation.  
-		/// The SortedList is cleared after the conclusion of the sorting operation, using TreeSort_ClearNodeIds().
+		/// The HashSet may be cleared using TreeSort_ClearNodeIds().  This will cause all parent nodes to resort their child nodes when 
+		/// a request is made for the parent node's _ChildItems entries.
 		/// </summary>
 		HashSet<int> _TreeSort_NodeIds { get; }
-		protected internal void ClearDictionaries();
+
+		/// <summary>
+		/// Ensure that all BaseNames are unique. The key is a node's BaseName, The value is a node's sGuid; 
+		/// </summary>
+		internal HashSet<string> _UniqueBaseNames { get; }
+		protected internal void _ClearDictionaries();
 	}
 }
 

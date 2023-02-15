@@ -248,7 +248,7 @@ namespace SDC.Schema.Tests.Functional
 				var de = new DataElementType(null);
 				var q = new QuestionItemType(de);
 				de.Items.Add(q);
-				Debug.WriteLine($"sGuid: {SdcUtil.CreateBaseNameFromsGuid(q.sGuid, 6)}, sGuid: {q.sGuid}, Guid: {q.ObjectGUID}");
+				Debug.WriteLine($"sGuid: {SdcUtil.CreateBaseNameFromsGuid(q, 6)}, sGuid: {q.sGuid}, Guid: {q.ObjectGUID}");
 			}
 		}
 	}

@@ -25,7 +25,7 @@ namespace SDC.Schema.Tests.Functional
 
 		public MiscTests()
 		{
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
 			fd = FormDesignType.DeserializeFromXmlPath(path);
 		}

@@ -75,9 +75,9 @@ namespace SDC.Schema
             obj = default(T);
             try
             {
-				BaseType.ResetRootNode();
+				BaseType.ResetLastTopNode();
 				obj = DeserializeMsgPack(input);
-				BaseType.ResetRootNode();
+				BaseType.ResetLastTopNode();
 				return true;
             }
             catch (System.Exception ex)
@@ -90,9 +90,9 @@ namespace SDC.Schema
         public static bool DeserializeMsgPack(byte[] input, out T obj)
         {
             System.Exception exception = null;
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			bool result = DeserializeMsgPack(input, out obj, out exception);
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
             return result;
         }
 
@@ -105,9 +105,9 @@ namespace SDC.Schema
             try
 			{
 				byteStream = new System.IO.MemoryStream(input);
-				BaseType.ResetRootNode();
+				BaseType.ResetLastTopNode();
 				T obj = ((T)(SerializerMsgPack.Unpack(byteStream)));
-				BaseType.ResetRootNode();
+				BaseType.ResetLastTopNode();
 				return obj;
 			}
             finally
@@ -149,9 +149,9 @@ namespace SDC.Schema
                 buffer = new byte[file.Length];
                 file.Read(buffer, 0, ((int)(file.Length)));
 
-                BaseType.ResetRootNode();
+                BaseType.ResetLastTopNode();
 				T obj = DeserializeMsgPack(buffer);
-				BaseType.ResetRootNode();
+				BaseType.ResetLastTopNode();
 
 				return obj;
             }

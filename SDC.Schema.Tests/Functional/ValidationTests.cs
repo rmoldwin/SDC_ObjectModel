@@ -21,7 +21,7 @@ namespace SDC.Schema.Tests.Functional
 
 		public ValidationTests()
 		{
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "BreastStagingTest.xml");
 			fd = TopNodeSerializer<FormDesignType>.DeserializeFromXmlPath(path);
 

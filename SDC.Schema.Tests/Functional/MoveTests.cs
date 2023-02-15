@@ -142,7 +142,7 @@ namespace SDC.Schema.Tests.Functional
 		public void ClearChildItemsAfterDropOver()
 		{
 			Setup.TimerStart("==>[] Started");
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 
 			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
 
@@ -191,7 +191,7 @@ namespace SDC.Schema.Tests.Functional
 		public void CountNodesAfterDropAfter()
 		{
 			Setup.TimerStart("==>[] Started");
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 
 			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
 

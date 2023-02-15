@@ -87,7 +87,7 @@ namespace SDC.Schema.Tests
         public static void Reset()
         {
             Setup.TimerStart("==>Setup starting----------");
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			_Xml = System.IO.File.ReadAllText(_XmlPath);
             FD = TopNodeSerializer<FormDesignType>.DeserializeFromXml(_Xml);
             Setup.TimerPrintSeconds("  seconds: ", "\r\n<==Setup finished----------\r\n");

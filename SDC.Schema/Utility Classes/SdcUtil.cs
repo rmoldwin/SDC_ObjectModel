@@ -48,7 +48,7 @@ namespace SDC.Schema
 		{ return Get_ITopNode(n)._ParentNodes; }
 		internal static ObservableCollection<IdentifiedExtensionType> Get_IETnodes(BaseType n)
 		{ return Get_ITopNode(n)._IETnodes; }
-		private static HashSet<string> UniqueBaseNames = new(); //key is BaseName, value is sGuid; ensure that all BaseNames are unique
+		private static HashSet<string> xUniqueBaseNames = new(); //key is BaseName, value is sGuid; ensure that all BaseNames are unique
 
 
 		/// <summary>
@@ -440,7 +440,7 @@ namespace SDC.Schema
 
 			_ITopNode Init_ITopNode(_ITopNode new_ITopNode)
 			{
-				new_ITopNode.ClearDictionaries();
+				new_ITopNode._ClearDictionaries();
 				return new_ITopNode;
 			}
 
@@ -2472,54 +2472,7 @@ namespace SDC.Schema
 			string nameSuffix = "";
 
 			if (node.name?.Length > 0 && node.name.AsSpan(0, 1) == initialTextToSkip) return node.name;  //Return the existing name, if it starts with "_"
-			//!namePrefix
-			{
-				//!Question Prefix
-				if (node is QuestionItemType Q)
-				{
-					var st = Q.GetQuestionSubtype();
-					switch (st)
-					{
-						case QuestionEnum.QuestionRaw:
-							namePrefix = "Q";
-							break;
-						case QuestionEnum.QuestionSingle:
-							namePrefix = "QS";
-							break;
-						case QuestionEnum.QuestionMultiple:
-							namePrefix = "QM";
-							break;
-						case QuestionEnum.QuestionSingleOrMultiple:
-							namePrefix = "QSM";
-							break;
-						case QuestionEnum.QuestionFill:
-							namePrefix = "QR";
-							break;
-						case QuestionEnum.QuestionLookup:
-							namePrefix = "QL";
-							break;
-						case QuestionEnum.QuestionLookupSingle:
-							namePrefix = "QLS";
-							break;
-						case QuestionEnum.QuestionLookupMultiple:
-							namePrefix = "QLM";
-							break;
-						case QuestionEnum.QuestionGroup:
-							throw new InvalidOperationException("Could not determine Question Subtype (QuestionEnum.QuestionGroup)");
-						default:
-							throw new InvalidOperationException("Could not determine Question Subtype");
-					}
-				}
-				else //!Property Prefix
-				if (node is PropertyType pt )
-						namePrefix = $"{pt.ElementPrefix}_{pt.propName.AsSpan(0, Math.Min(8, pt.propName.Length)).ToString()}";
-				else //!Other Prefix
-				{
-					namePrefix = node.ElementPrefix ??
-						$"{node.ElementName.TakeWhile(c => Char.IsUpper(c)).ToString()?.ToLower()}"; //backup method for ElementPrefix: use uppercase letters in ElementName
-				}
-			}
-
+			namePrefix = GetNamePrefix(node);
 			//!nameBody
 			{
 				//Try using the closest IdentifiedExtensionType node's Ckey-formatted (decimal format) ID to generate nameBody
@@ -2531,7 +2484,7 @@ namespace SDC.Schema
 				{
 					if (iet.ID.Contains(nameSpace)) //&& iet.ID.Length > 10)
 						nameBody = Regex.Replace(iet.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
-					else nameBody = node.BaseName ?? CreateBaseNameFromsGuid(node.sGuid);
+					else nameBody = node.BaseName ?? CreateBaseNameFromsGuid(node);
 
 					if (iet.name?.ToLower() == "body") nameBody = $"body.{nameBody}";
 					else if (iet.name?.ToLower() == "footer") nameBody = $"footer{nameBody}";
@@ -2544,11 +2497,11 @@ namespace SDC.Schema
 					{
 						if (ancestorIet.ID?.Contains(nameSpace) ?? false)
 							nameBody = Regex.Replace(node.ParentIETnode?.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
-						else if(ancestorIet.BaseName is not null) nameBody = ancestorIet.BaseName ?? CreateBaseNameFromsGuid(node.sGuid);
-						else nameBody = node.BaseName ?? CreateBaseNameFromsGuid(node.sGuid);
+						else if(ancestorIet.BaseName is not null) nameBody = ancestorIet.BaseName ?? CreateBaseNameFromsGuid(node);
+						else nameBody = node.BaseName ?? CreateBaseNameFromsGuid(node);
 					}
 					else //ancestorIet is null
-						nameBody = node.BaseName ?? CreateBaseNameFromsGuid(node.sGuid);
+						nameBody = node.BaseName ?? CreateBaseNameFromsGuid(node);
 				}
 			}
 			
@@ -2558,6 +2511,69 @@ namespace SDC.Schema
 			else 
 				return $"{namePrefix}_{nameBody}_{nameSuffix}";
 		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="node"></param>
+		/// <returns></returns>
+		/// <exception cref="InvalidOperationException"></exception>
+		public static string GetNamePrefix(BaseType node)
+		{
+			string namePrefix;
+			//!Question Prefix
+			if (node is QuestionItemType Q)
+			{
+				var st = Q.GetQuestionSubtype();
+				switch (st)
+				{
+					case QuestionEnum.QuestionRaw:
+						namePrefix = "Q";
+						break;
+					case QuestionEnum.QuestionSingle:
+						namePrefix = "QS";
+						break;
+					case QuestionEnum.QuestionMultiple:
+						namePrefix = "QM";
+						break;
+					case QuestionEnum.QuestionSingleOrMultiple:
+						namePrefix = "QSM";
+						break;
+					case QuestionEnum.QuestionFill:
+						namePrefix = "QR";
+						break;
+					case QuestionEnum.QuestionLookup:
+						namePrefix = "QL";
+						break;
+					case QuestionEnum.QuestionLookupSingle:
+						namePrefix = "QLS";
+						break;
+					case QuestionEnum.QuestionLookupMultiple:
+						namePrefix = "QLM";
+						break;
+					case QuestionEnum.QuestionGroup:
+						throw new InvalidOperationException("Could not determine Question Subtype (QuestionEnum.QuestionGroup)");
+					default:
+						throw new InvalidOperationException("Could not determine Question Subtype");
+				}
+			}
+			else //!Property Prefix
+			if (node is PropertyType pt)
+				namePrefix = $"{pt.ElementPrefix}_{pt.propName.AsSpan(0, Math.Min(8, pt.propName.Length)).ToString()}";
+			else //!Other Prefix
+			{
+				namePrefix = node.ElementPrefix??"";
+				if (!namePrefix.IsNullOrWhitespace()) return namePrefix;
+
+				string elementName = node.ElementName ?? "";
+				if (elementName.IsNullOrWhitespace()) elementName = node.GetType().Name;
+				namePrefix = $"{elementName.TakeWhile(c => Char.IsUpper(c)).ToString()?.ToLower()}"; //backup method for ElementPrefix: use uppercase letters in ElementName
+				if (namePrefix.Length < 3) namePrefix = elementName.Substring(0, 6).ToLower();
+			}
+			return namePrefix ?? "";
+		}
+
+
 		//
 		/// <summary>
 		/// Create a consistent unique name for the passed SDC node. The name is formatted like:<code><br/>
@@ -2612,7 +2628,8 @@ namespace SDC.Schema
 		/// Process the characters in a node's short Guid (sGuid) to create a alphanumeric string suiatable for use 
 		/// as a programming variable name, or for part of such a name, or for use as part/all of an <see cref="IdentifiedExtensionType.ID"/>.
 		/// </summary>
-		/// <param name="sGuid">Supply a <see cref="ShortGuid"/> encoded as a 22 character string</param>
+		/// <param name="sGuid">A ShortGuid used to generate a BaseName</param>
+		/// <param name="node">The <see cref="BaseType"/>node for which we want to create a BaseName.  This node must have a valid sGuid. </param>
 		/// <param name="minNameBaseLength">The length of the alphanumeric string to return.<br/>
 		/// In some cases, the string may be shorter or longer than this length, due to removal of illegal characters (0, -, and _), <br/>
 		/// as well as removal of any numbers at the first character of the string.  <br/>
@@ -2621,22 +2638,26 @@ namespace SDC.Schema
 		/// <returns>The method tries to find an sGuid-derived string of length <paramref name="minNameBaseLength" />, more or less, that does not contain unusual characters.<br/>
 		/// May rarely return an empty string or a string shorter or longer than <paramref name="minNameBaseLength" /> if a name collision occurs in the hashtable <see cref="UniqueBaseNames"/>.</returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static string CreateBaseNameFromsGuid(string sGuid, int minNameBaseLength = 6)
+		public static string CreateBaseNameFromsGuid(BaseType node, int minNameBaseLength = 6)
 		{ //TODO: change to private after all testing complete
-			//Basic check for sGuid validity
-			//if (nameBaseLength > 22 || nameBaseLength < 1)
-			//	throw new ArgumentException("nameBaseLength must be > 0 and < 23");
+		  //Basic check for sGuid validity
+		  //if (nameBaseLength > 22 || nameBaseLength < 1)
+		  //	throw new ArgumentException("nameBaseLength must be > 0 and < 23");
 
 			//Regex pattern = new("^[a-zA-Z0-9-_]{22}");
 			//if (!pattern.IsMatch(sGuid))
 			//	if (sGuid.IsNullOrWhitespace() || sGuid.Length != 22 || !pattern.IsMatch(sGuid)) 
 			//		throw new ArgumentException("The supplied sGuid is not valid");
+			//var newGuid = Guid.NewGuid();
+			//var sGuid = ShortGuid.Encode(newGuid);
+
+			string sGuid = node.sGuid;
 
 			if (!ShortGuid.TryParse(sGuid, out ShortGuid _))
 				throw new ArgumentException("The supplied sGuid is not valid");
 
-
 			var sgl = sGuid.ToList();
+			var UniqueBaseNames = ((_ITopNode)node.TopNode!)._UniqueBaseNames;
 			int i = -1;
 			do
 			{ //remove any integer, -, or _ in the first position, as these are illegal for variable names
@@ -2696,10 +2717,12 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="bt">The input node for which we want to assiggn, if needed, <see cref="BaseType.sGuid"/>, <see cref="BaseType.ObjectGUID"/>, <see cref="BaseType.BaseName"/> and <see cref="BaseType.ObjectID"/>.</param>
 		/// <param name="forceNewGuid">If true, this method will assign new <see cref="BaseType.sGuid"/>, <see cref="BaseType.ObjectGUID"/>, <see cref="BaseType.BaseName"/> and <see cref="BaseType.ObjectID"/>, even if an sGuid already exists for <paramref name="bt"/>.</param>
-		/// <param name="minNameBaseLength">If a new sGuid wil be created, <paramref name="minNameBaseLength"/> is the requested length of BaseName that is derived from the sGuid</param>
+		/// <param name="minNameBaseLength">If a new sGuid wil be created, <paramref name="minNameBaseLength"/> is the requested length of BaseName that is derived from the sGuid.<br/>
+		/// If the value is less then 4, a value of 4 will be used.  If the value is greater than 10, 10 will be used</param>
 		/// <returns>BaseName</returns>
 		internal static string AssignGuid_sGuid_BaseName(BaseType bt, bool forceNewGuid = false, int minNameBaseLength = 6)
 		{
+			if (minNameBaseLength < 4) minNameBaseLength = 4;
 			string tempName;
 			if (bt.ObjectID == -1 && bt.TopNode is not null && bt is not ITopNode) 
 				bt.ObjectID = ((_ITopNode)bt.TopNode)._MaxObjectID++;
@@ -2707,20 +2730,21 @@ namespace SDC.Schema
 			if (! forceNewGuid && ShortGuid.TryParse(bt.sGuid, out Guid guid))
 			{
 				bt.ObjectGUID = guid;
-				bt.BaseName = CreateBaseNameFromsGuid(bt.sGuid);//TODO: Add all BaseNames to UniqueBaseNames for all new nodes, and after deserializing an SDC tree
+				bt.BaseName = CreateBaseNameFromsGuid(bt, minNameBaseLength);
 				return bt.BaseName;
 			}
-			//!+-------------------------------------------------------------------
-			Guid newGuid;
+			//!+------We need a new GUID, sGuid and BaseName-------------------------------------------------------------
+			Guid newGuid; 
 			string sGuid;
 			do
 			{ //make sure ObjectGuid results is a nice tempName string; this should take only 1 iteration thru the loop
 				newGuid = Guid.NewGuid();
 				sGuid = ShortGuid.Encode(newGuid);
-				tempName = CreateBaseNameFromsGuid(sGuid, 6);
+				bt.ObjectGUID = newGuid;
+				bt.sGuid = sGuid;
+				tempName = CreateBaseNameFromsGuid(bt, minNameBaseLength);
 			} while (tempName.Length != minNameBaseLength);  //pick an sGuid that is capable of producing a BaseName of the requested length (minNameBaseLength)
-			bt.ObjectGUID = newGuid;
-			bt.sGuid = sGuid;
+
 			bt.BaseName = tempName;
 			//UniqueBaseNames.Add(tempName); //TODO: Add all BaseNames to UniqueBaseNames for all new nodes, and after deserializing an SDC tree
 			return tempName;

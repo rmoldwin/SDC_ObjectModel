@@ -144,9 +144,9 @@ namespace SDC.Schema
                 sr.Close();
                 file.Close();
 
-				BaseType.ResetRootNode();
+				BaseType.ResetLastTopNode();
 				T obj = DeserializeBson(dataString);
-				BaseType.ResetRootNode();
+				BaseType.ResetLastTopNode();
 				return obj;
 			}
             finally

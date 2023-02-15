@@ -104,9 +104,9 @@ namespace SDC.Schema
 				sr.Close();
 				file.Close();
 
-				BaseType.ResetRootNode();
+				BaseType.ResetLastTopNode();
 				T output = DeserializeJson<T>(xmlString);
-				BaseType.ResetRootNode();
+				BaseType.ResetLastTopNode();
 				return output;
 			}
 			finally

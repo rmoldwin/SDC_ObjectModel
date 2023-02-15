@@ -93,9 +93,9 @@ namespace SDC.Schema
 			obj = default(T);
 			try
 			{
-				BaseType.ResetRootNode();
+				BaseType.ResetLastTopNode();
 				obj = Deserialize(input);
-				BaseType.ResetRootNode();
+				BaseType.ResetLastTopNode();
 				return true;
 			}
 			catch (System.Exception ex)
@@ -108,9 +108,9 @@ namespace SDC.Schema
 		public static bool Deserialize(string input, out T obj)
 		{
 			System.Exception exception = null;
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			bool result =  Deserialize(input, out obj, out exception);
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			return result;
 		}
 
@@ -121,9 +121,9 @@ namespace SDC.Schema
 			try
 			{
 				stringReader = new System.IO.StringReader(input);
-				BaseType.ResetRootNode();
+				BaseType.ResetLastTopNode();
 				T obj = ((T)(Serializer.Deserialize(XmlReader.Create(stringReader))));
-				BaseType.ResetRootNode();
+				BaseType.ResetLastTopNode();
 				return obj;
 			}
 			finally
@@ -137,9 +137,9 @@ namespace SDC.Schema
 
 		public static T Deserialize(System.IO.Stream s)
 		{
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			var obj = ((T)(Serializer.Deserialize(s)));
-			BaseType.ResetRootNode();
+			BaseType.ResetLastTopNode();
 			return obj;
 		}
 		#endregion
