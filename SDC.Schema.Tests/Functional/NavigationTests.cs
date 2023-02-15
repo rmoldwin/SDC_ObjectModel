@@ -437,7 +437,7 @@ namespace SDC.Schema.Tests.Functional
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
 		[TestMethod]
-		public void IsList()
+		public void _IsList()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 
@@ -445,7 +445,7 @@ namespace SDC.Schema.Tests.Functional
 		}
 
 		[TestMethod]
-		public void GetNamedItem()
+		public void _GetNamedItem()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 
@@ -577,7 +577,7 @@ namespace SDC.Schema.Tests.Functional
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
 		[TestMethod]
-		public void RefreshParentNodesFromXml()
+		public void _RefreshParentNodesFromXml()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 			BaseType.ResetLastTopNode();
@@ -593,7 +593,7 @@ namespace SDC.Schema.Tests.Functional
 		}
 
 		[TestMethod]
-		public void GetEventParent()
+		public void _GetEventParent()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 
@@ -601,7 +601,7 @@ namespace SDC.Schema.Tests.Functional
 		}
 
 		[TestMethod]
-		public void IsItemChangeAllowed()
+		public void _IsItemChangeAllowed()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 
@@ -630,7 +630,7 @@ namespace SDC.Schema.Tests.Functional
 		}
 
 		[TestMethod]
-		public void Misc()
+		public void _Misc()
 		{
 			//SectionItemType S;
 			//need AddActionNode

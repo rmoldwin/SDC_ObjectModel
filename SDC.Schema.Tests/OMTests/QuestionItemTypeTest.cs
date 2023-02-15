@@ -56,9 +56,9 @@ namespace SDC.Schema.Tests.OMTests
         public void QuestionItemTypeTest_AddInjectedForm()
         {
 			var de = new DataElementType(null);
-			QuestionItemType qi = new QuestionItemType(de);
-			de.DataElement_Items.Add(qi);
-
+			//QuestionItemType qi = new QuestionItemType(de);
+			//de.DataElement_Items.Add(qi);
+			var qi = de.AddQuestion(QuestionEnum.QuestionSingle, "qi","qi" );
 			var testItem = qi.AddChildInjectedForm("test_id", 1);
             Assert.IsNotNull(testItem);
             Assert.AreEqual("test_id", testItem.ID);
@@ -68,11 +68,11 @@ namespace SDC.Schema.Tests.OMTests
         public void QuestionItemTypeTest_AddListItem()
         {
 			var de = new DataElementType(null);
-			QuestionItemType qi = new QuestionItemType(de);
-			de.DataElement_Items.Add(qi);
-
-			var rf = qi.AddQuestionResponseField(out _);  // (qi as QuestionItemType).ResponseField_Item = new ListItemResponseFieldType(null);
-			qi.GetListField().maxSelections = 1; //(qi as QuestionItemType).ListField_Item = new ListFieldType(null) { maxSelections = 1 };
+			//QuestionItemType qi = new QuestionItemType(de);
+			//de.DataElement_Items.Add(qi);
+			var qi = de.AddQuestion(QuestionEnum.QuestionSingle, "qi", "qi");
+			//var rf = qi.AddQuestionResponseField(out _);  // (qi as QuestionItemType).ResponseField_Item = new ListItemResponseFieldType(null);
+			//qi.GetListField().maxSelections = 1; //(qi as QuestionItemType).ListField_Item = new ListFieldType(null) { maxSelections = 1 };
             var testItem = qi.AddListItem("test_id", "", 1);
             Assert.IsNotNull(testItem);
             Assert.AreEqual("test_id", testItem.ID);
@@ -82,10 +82,10 @@ namespace SDC.Schema.Tests.OMTests
         public void QuestionItemTypeTest_AddListItemResponse()
         {
 			var de = new DataElementType(null);
-			QuestionItemType qi = new QuestionItemType(de);
-			de.DataElement_Items.Add(qi);
-
-			var testItem = qi.AddListItemResponse("test_id", out _,  "", 1);
+			//QuestionItemType qi = new QuestionItemType(de);
+			//de.DataElement_Items.Add(qi);
+			var qi = de.AddQuestion(QuestionEnum.QuestionSingle, "qi", "qi");
+			var testItem = qi.AddListItemResponse("test_id", out _, "test_id", 1);
             Assert.IsNotNull(testItem);
             Assert.AreEqual("test_id", testItem.ID);
         }
@@ -94,8 +94,9 @@ namespace SDC.Schema.Tests.OMTests
         public void QuestionItemTypeTest_AddQuestion()
         {
 			var de = new DataElementType(null);
-			QuestionItemType qi = new QuestionItemType(de);
-			de.DataElement_Items.Add(qi);
+			//QuestionItemType qi = new QuestionItemType(de);
+			//de.DataElement_Items.Add(qi);
+			var qi = de.AddQuestion(QuestionEnum.QuestionSingle, "qi", "qi");
 
 			var q = qi.AddChildQuestion(QuestionEnum.QuestionSingle, "q1");
             Assert.IsNotNull(q);
@@ -106,15 +107,16 @@ namespace SDC.Schema.Tests.OMTests
         public void QuestionItemTypeTest_AddQuestionResponse()
         {
 			var de = new DataElementType(null);
-			QuestionItemType q1 = new QuestionItemType(de);
-			de.DataElement_Items.Add(q1);
+			//QuestionItemType q1 = new QuestionItemType(de);
+			//de.DataElement_Items.Add(q1);
+			var q1 = de.AddQuestion(QuestionEnum.QuestionSingle, "qi", "qi");
+			//var q2 = new QuestionItemType(de)
+   //         {
+   //             ID = "QuestionResponseId",
+   //             title = "This is a test question"
+   //         };
+			//de.Items.Add(q2);
 
-			var q2 = new QuestionItemType(de)
-            {
-                ID = "QuestionResponseId",
-                title = "This is a test question"
-            };
-			de.Items.Add(q2);
             var qr = q1.AddChildQuestionResponse("myQ1", out _, "myTitle", 1, ItemChoiceType.@string, "textAfter", "units", dtQuantEnum.EQ, "default");
             Assert.IsNotNull(qr);
         }
@@ -123,9 +125,9 @@ namespace SDC.Schema.Tests.OMTests
         public void QuestionItemTypeTest_AddSection()
         {
 			var de = new DataElementType(null);
-			QuestionItemType qi = new QuestionItemType(de);
-			de.DataElement_Items.Add(qi);
-
+			//QuestionItemType qi = new QuestionItemType(de);
+			//de.DataElement_Items.Add(qi);
+			var qi = de.AddQuestion(QuestionEnum.QuestionSingle, "qi", "qi");
 			var s = qi.AddChildSection("test_id", "", 1);
             Assert.IsNotNull(s);
             Assert.AreEqual("test_id", s.ID);
@@ -136,8 +138,11 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null, "DE1");
             
-			var q = new QuestionItemType(de, "q1", "q1");
-            de.Items.Add(q);
+			//var q = new QuestionItemType(de, "q1", "q1");
+            //de.Items.Add(q);
+			var q = de.AddQuestion(QuestionEnum.QuestionSingle, "qi", "qi");
+
+
 			q.AddListItem("li0", "li0"); //first
 			q.AddListItem("li10", "li10"); //last
 			q.AddListItem("li9", "li9", 1);
@@ -161,8 +166,10 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null, "DE1");
 
-			var q = new QuestionItemType(de, "q1", "q1");
-			de.Items.Add(q);
+			//var q = new QuestionItemType(de, "q1", "q1");
+			//de.Items.Add(q);
+			var q = de.AddQuestion(QuestionEnum.QuestionSingle, "qi", "qi");
+
 			var li0 = q.AddListItem("li0", "li0"); //first
 			var li10 = q.AddListItem("li10", "li10"); //should finish up in last position [10]
 			var li9 = q.AddListItem("li9", "li9", 1);
@@ -276,13 +283,17 @@ namespace SDC.Schema.Tests.OMTests
         public void QuestionResponseTest_SRS524_ChangeDatatype()
         {
 			var de = new DataElementType(null, "DE1");
-			var q1 = new QuestionItemType(de, "q1", "q1");
-			de.Items.Add(q1); //must explicitly add q1 to Items before creating q2 - will throw if this is not done - due to error in sorting.  
-                                //Need to fix this in "Items" override code
-			var q2 = new QuestionItemType(de, "q2", "q2");			
-            de.Items.Add(q2);
+			//var q1 = new QuestionItemType(de, "q1", "q1");
+			//de.Items.Add(q1); //must explicitly add q1 to Items before creating q2 - will throw if this is not done - due to error in sorting.  
+			//Need to fix this in "Items" override code
+			var q1 = de.AddQuestion(QuestionEnum.QuestionSingle, "q1", "q1");
 
-            var rf1 = q1.AddQuestionResponseField(out var dt1, ItemChoiceType.date);
+			//var q2 = new QuestionItemType(de, "q2", "q2");			
+			//de.Items.Add(q2);
+			var q2 = de.AddQuestion(QuestionEnum.QuestionSingle, "q2", "q2");
+
+
+			var rf1 = q1.AddQuestionResponseField(out var dt1, ItemChoiceType.date);
             var rf2 = q2.AddQuestionResponseField(out var dt2, ItemChoiceType.@int);
 
             var response1 = rf1.Response;

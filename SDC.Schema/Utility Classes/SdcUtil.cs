@@ -172,18 +172,19 @@ namespace SDC.Schema
 		/// The caller can supply a method for generating the @name property of each SDC node.  <br/>
 		/// The following methods are available:
 		/// <br/>
-		/// <br/><see cref="SdcUtil.CreateCAPname(BaseType, string)"/><br/>
+		/// <br/><see cref="SdcUtil.CreateCAPname"/><br/>
 		/// A method that generates a CKey/ID aware name for CAP use.  Names reference a parent <see cref="IdentifiedExtensionType"/> (IET) node when applicable.<br/>
 		/// <br/>
-		/// <see cref="SdcUtil.CreateSimpleName(BaseType)"/><br/>
+		/// <see cref="SdcUtil.CreateSimpleName"/><br/>
 		/// A generic name generation method that uses the sGuid of each node.<br/><br/>
 		/// Users may create their own method that returns a name value and matches the <see cref="SdcUtil.CreateName"/> delegate.
 		/// </summary>
 		/// <param name="node">The SDC node for which a name will be generated. </param>
-		/// <param name="initialStringToSkip">If an existing name value starts with this string, the existing name will be reused, and will not be replaced with a new value.</param>
+		/// <param name="initialTextToSkip">If an existing name value starts with this string, the existing name will be reused, and will not be replaced with a new value.</param>
+		/// <param name="changeType">Enum value contolling how new names are assigned. See <see cref="NameChangeEnum"/> for values.</param>		
 		/// <returns>The new name that will be used to refresh <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
-
-		public delegate string CreateName(BaseType node, string initialStringToSkip = "_");
+		public delegate string CreateName(BaseType node, string initialTextToSkip = "", NameChangeEnum changeType = NameChangeEnum.Normal);
+		//public delegate string CreateName(BaseType node, string initialStringToSkip = "");
 
 		/// <summary>
 		/// Reserved for future use. <paramref name=""/>
@@ -2455,6 +2456,28 @@ namespace SDC.Schema
 		#endregion
 
 		/// <summary>
+		/// Enum used in <see cref="CreateCAPname"/> to control the  way that new SDC node names are assigned.
+		/// </summary>
+		public enum NameChangeEnum {
+			/// <summary>
+			/// Rename all auto-generated and null names, preserving all custom names.<br/>
+			/// Auto-generated names start with the default ElementPrefix, followed by "_", <br/>
+			/// e.g., the prefix "p_" is used for PropertyType nodes.<br/>
+			/// Auto-generated Question names begin with 1-3 letters specific to the question type, <br/>
+			/// (e.g., Q, QS, QR, QLS, QLM), followed by "_". 
+			/// </summary>
+			Normal, 
+			/// <summary>
+			/// Give every node a new name.
+			/// </summary>
+			RenameAll,
+			/// <summary>
+			/// Preserve all existing names.<br/>
+			/// Assign new names if the current name is null or empty.
+			/// </summary>
+			PreserveAll
+		}
+		/// <summary>
 		/// This is a method for creating a new <see cref="BaseType.name"/> value for the designated <paramref name="node"/>.<br/>
 		/// For each SDC node, the CAP Ckey-formatted ID of the closest <see cref="IdentifiedExtensionType"/> ancestor is used to create a "nameBody" <br/>
 		/// for all of its non-<see cref="IdentifiedExtensionType"/> child elements.  <br/>
@@ -2465,14 +2488,48 @@ namespace SDC.Schema
 		/// If the input node name begins with "_", the method will bypass new name creation and just return teh existting node.name with no modifications
 		/// </summary>
 		/// <returns>A consistent, CKey-aware value, for <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
-		public static string CreateCAPname(this BaseType node, string initialTextToSkip = "_")
+		public static string CreateCAPname(this BaseType node, string initialTextToSkip = "", NameChangeEnum changeType = NameChangeEnum.Normal)
 		{
-			string namePrefix = "";
-			string nameBody = "";
-			string nameSuffix = "";
-
-			if (node.name?.Length > 0 && node.name.AsSpan(0, 1) == initialTextToSkip) return node.name;  //Return the existing name, if it starts with "_"
+			string nodeName = node.name ?? "";
+			string nodeBaseName = node.BaseName ?? "";
+			string nodePrefix = node.ElementPrefix ?? "";
+			
+			string namePrefix;
+			string nameBody;
+			string nameSuffix;
+			Type nodeType = node.GetType();
 			namePrefix = GetNamePrefix(node);
+
+			if (changeType == NameChangeEnum.PreserveAll
+				&& ! nodeName.IsNullOrWhitespace())
+				return nodeName;
+
+
+			if (changeType == NameChangeEnum.Normal)
+			{
+				int nodePrefixLength = nodePrefix.Length + 1;
+				int namePrefixLength = namePrefix.Length + 1;
+
+				//Check for a custom node name that should be preserved unchanged.
+				//Custom node names are strings that do not start with node.ElementPrefix + "_"
+				if (nodeType != typeof(QuestionItemType)
+					&& nodeName.Length > nodePrefixLength
+					&& nodeName[..nodePrefixLength] != $"{nodePrefix}_")
+					return nodeName;
+				//Check for a custom Question node name that should be preserved unchanged.
+				//Auto-generated QuestionItemType nodes have the namePrefix morphed according to the type of question (e.g., "QM", QS", "QR")
+				//so we can't rely on the original nodePrefix ("Q" by default).
+				//If we don't detect an auto-generated name (i.e., one that uses the auto-generated namePrefix), then it's a custom name and we'll preserve it unchanged.
+				else if ( //it's a QuestionItemType here...
+					nodeName.Length > namePrefixLength
+					&& nodeName[..namePrefixLength] != $"{namePrefix}_")
+					return nodeName;
+
+				//check for initialTextToSkip
+				int len = initialTextToSkip.Length;
+				if (node.name?.Length > 0 && node.name.AsSpan(0, len) == initialTextToSkip)
+					return nodeName;  //Return the existing name, if it starts with "_"
+			}
 			//!nameBody
 			{
 				//Try using the closest IdentifiedExtensionType node's Ckey-formatted (decimal format) ID to generate nameBody
@@ -2484,24 +2541,25 @@ namespace SDC.Schema
 				{
 					if (iet.ID.Contains(nameSpace)) //&& iet.ID.Length > 10)
 						nameBody = Regex.Replace(iet.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
-					else nameBody = node.BaseName ?? CreateBaseNameFromsGuid(node);
+					else nameBody = (nodeBaseName != "") ? nodeBaseName : CreateBaseNameFromsGuid(node);
 
-					if (iet.name?.ToLower() == "body") nameBody = $"body.{nameBody}";
-					else if (iet.name?.ToLower() == "footer") nameBody = $"footer{nameBody}";
-					else if (iet.name?.ToLower() == "header") nameBody = $"header.{nameBody}";
+					if (nodeName.ToLower() == "body") nameBody = $"body.{nameBody}";
+					else if (nodeName.ToLower() == "footer") nameBody = $"footer{nameBody}";
+					else if (nodeName.ToLower() == "header") nameBody = $"header.{nameBody}";
 				}
 				else //not IdentifiedExtensionType
 				{
 					IdentifiedExtensionType? ancestorIet = node.ParentIETnode;
 					if (ancestorIet is not null)
 					{
+						string ancBaseName = ancestorIet.BaseName ?? "";
 						if (ancestorIet.ID?.Contains(nameSpace) ?? false)
 							nameBody = Regex.Replace(node.ParentIETnode?.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
-						else if(ancestorIet.BaseName is not null) nameBody = ancestorIet.BaseName ?? CreateBaseNameFromsGuid(node);
-						else nameBody = node.BaseName ?? CreateBaseNameFromsGuid(node);
+						else if (ancBaseName != "") nameBody = ancBaseName;
+						else nameBody = (nodeBaseName != "") ? nodeBaseName : CreateBaseNameFromsGuid(node);
 					}
 					else //ancestorIet is null
-						nameBody = node.BaseName ?? CreateBaseNameFromsGuid(node);
+						nameBody = (nodeBaseName != "") ? nodeBaseName : CreateBaseNameFromsGuid(node);
 				}
 			}
 			
@@ -2521,6 +2579,8 @@ namespace SDC.Schema
 		public static string GetNamePrefix(BaseType node)
 		{
 			string namePrefix;
+			string nodeName = node.name ?? "";
+			string nodePrefix = node.ElementPrefix ?? "";
 			//!Question Prefix
 			if (node is QuestionItemType Q)
 			{
@@ -2528,47 +2588,48 @@ namespace SDC.Schema
 				switch (st)
 				{
 					case QuestionEnum.QuestionRaw:
-						namePrefix = "Q";
-						break;
+						return "Q";
 					case QuestionEnum.QuestionSingle:
-						namePrefix = "QS";
-						break;
+						return "QS";
 					case QuestionEnum.QuestionMultiple:
-						namePrefix = "QM";
-						break;
+						return "QM";
 					case QuestionEnum.QuestionSingleOrMultiple:
-						namePrefix = "QSM";
-						break;
+						return "QSM";
 					case QuestionEnum.QuestionFill:
-						namePrefix = "QR";
-						break;
+						return "QR";
 					case QuestionEnum.QuestionLookup:
-						namePrefix = "QL";
-						break;
+						return "QL";
 					case QuestionEnum.QuestionLookupSingle:
-						namePrefix = "QLS";
-						break;
+						return "QLS";
 					case QuestionEnum.QuestionLookupMultiple:
-						namePrefix = "QLM";
-						break;
+						return "QLM";
 					case QuestionEnum.QuestionGroup:
+						//return "Q";
 						throw new InvalidOperationException("Could not determine Question Subtype (QuestionEnum.QuestionGroup)");
 					default:
+						//return "Q";
 						throw new InvalidOperationException("Could not determine Question Subtype");
 				}
 			}
 			else //!Property Prefix
-			if (node is PropertyType pt)
-				namePrefix = $"{pt.ElementPrefix}_{pt.propName.AsSpan(0, Math.Min(8, pt.propName.Length)).ToString()}";
+			if (node is PropertyType pt)				
+			{
+				string propName = pt.propName ?? "";
+				//special cases:
+				if (nodeName.Length > 1 && nodeName.Substring(0, 2) != $"{nodePrefix}_") return "";
+				else if (propName == "reportText") return "p_rptText";
+				else if (propName == "altText") return "p_altText";
+				else return $"{nodePrefix}_{propName.AsSpan(0, Math.Min(8, propName.Length)).ToString()}";
+			}
 			else //!Other Prefix
 			{
-				namePrefix = node.ElementPrefix??"";
+				namePrefix = node.ElementPrefix ?? "";
 				if (!namePrefix.IsNullOrWhitespace()) return namePrefix;
 
 				string elementName = node.ElementName ?? "";
 				if (elementName.IsNullOrWhitespace()) elementName = node.GetType().Name;
 				namePrefix = $"{elementName.TakeWhile(c => Char.IsUpper(c)).ToString()?.ToLower()}"; //backup method for ElementPrefix: use uppercase letters in ElementName
-				if (namePrefix.Length < 3) namePrefix = elementName.Substring(0, 6).ToLower();
+				if (namePrefix.Length < 3) return elementName.Substring(0, Math.Min(6, elementName.Length)).ToLower();
 			}
 			return namePrefix ?? "";
 		}
@@ -2583,8 +2644,9 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="bt">The node for which the name will be created.</param>
 		/// <param name="initialTextToSkip">If an existing name value starts with this string, the existing name will be reused, and will not be replaced with a new value. </param>
+		/// <param name="changeType">The value is ignored</param>
 		/// <returns>A consistent value for the @name attribute.</returns>
-		public static string CreateSimpleName(BaseType bt, string initialTextToSkip = "")
+		public static string CreateSimpleName(BaseType bt, string initialTextToSkip = "", NameChangeEnum changeType = NameChangeEnum.Normal)
 		{
 			if (bt.name?.Length > 0 && bt.name.AsSpan(0, 1) == initialTextToSkip) return bt.name;  //Return the existing name, if it starts with "_"
 			string baseName = "";

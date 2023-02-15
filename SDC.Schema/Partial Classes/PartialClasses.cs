@@ -248,7 +248,7 @@ namespace SDC.Schema
 	{
 		protected DataElementType() : base()
 		{ Init(); }
-		public DataElementType(XMLPackageType? parentNode, string id = "") : base(parentNode, id)
+		public DataElementType(XMLPackageType? parentNode, string id = "", int position = -1) : base(parentNode, id, position)
 		{
 			Init();
 		}
@@ -1217,7 +1217,38 @@ namespace SDC.Schema
 			InitBaseType(parentNode);
 			return;
 		}
+		/// <summary>
+		/// This parameterized constructor is NOT used to Deserialize SDC classes.
+		/// TopNode is retrieved from the parent node, if it exists, and used to set the current TopNode.
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position">location of this new node in its parent node's list (if applicable)</param>
+		protected BaseType(BaseType? parentNode, int position = -1)
+		{
+			if (parentNode is null && this is not ITopNode)
+				throw new NullReferenceException($"{nameof(parentNode)} can only be null if this object implements ITopNode.");
+			InitBaseType(parentNode);
+			if(parentNode is not null)
+			{
+				if (SdcUtil.IsParentNodeAllowed(this, parentNode, out var target))
+				{
+					if (target is IList targetList)
+					{
+						if (position == -1 || position > targetList.Count - 1)
+							position = targetList.Count - 1;
+						targetList.Insert(position, this);
+					}
+					else target = this;
+				}
+				else throw new InvalidOperationException($"This object ({this.GetType().Name}) cannot be attached to the provided {nameof(parentNode)} type ({parentNode.GetType().Name}) ");
+			}
+			
+			InitAfterTreeAdd(); //Register this node, assign this.order, assign this.name
+			return;
+		}
 
+
+		#region     Init 
 		internal void InitBaseType (BaseType? parentNode)
 		{
 			//TopNode is retrieved from parentNode, if it exists, and used to set the current TopNode.
@@ -1273,22 +1304,38 @@ namespace SDC.Schema
 
 			SdcUtil.AssignGuid_sGuid_BaseName(this);
 
+			//if (this.TopNode is not null)
+			//{	//a node with a null TopNode will not be registered in any TopNode dictionaries.
+			//	this.RegisterNodeAndParent(parentNode); 
+
+			//	//The following code requires that the current node is first added
+			//	//to the ParentNodes dictionary.  Thus, these statements must come
+			//	//*after* the dictionaries are populated (in RegisterNodeAndParent)
+
+			//	this.AssignOrder(orderGap: 10);
+			//	//SdcUtil.CreateCAPname(this,"",SdcUtil.NameChangeEnum.Normal); //This won't work until the node is fully initialized, after adding it to the SDC tree.
+			//	this.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
+			//}
+		}
+
+		internal void InitAfterTreeAdd()
+		{
 			if (this.TopNode is not null)
-			{	//a node with a null TopNode will not be registered in any TopNode dictionaries.
-				this.RegisterNodeAndParent(parentNode); 
+			{   //a node with a null TopNode will not be registered in any TopNode dictionaries.
+				this.RegisterNodeAndParent(this.ParentNode);
 
 				//The following code requires that the current node is first added
 				//to the ParentNodes dictionary.  Thus, these statements must come
 				//*after* the dictionaries are populated (in RegisterNodeAndParent)
 
 				this.AssignOrder(orderGap: 10);
-				this.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
+				SdcUtil.CreateCAPname(this,"",SdcUtil.NameChangeEnum.Normal); //This won't work until the node is fully initialized, after adding it to the SDC tree.
+				//this.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
 			}
 		}
+		
 
-		#region     Init Methods
-
-		#endregion Local methods
+		#endregion Init
 
 		#region  Local Members
 		//internal static int LastObjectID { get => lastObjectID; private set => lastObjectID = value; }
@@ -1480,30 +1527,18 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ElementPrefix
 		{
-			get
-			{ //assign default prefix from the ElementName
-				
-				return SdcUtil.GetNamePrefix(this);
+			get => _elementPrefix;
+			set => _elementPrefix = value;
+		}
 
-				if (_elementPrefix.IsNullOrWhitespace())
-				{
-					if (_elementName.IsNullOrWhitespace()) return "";
-					_elementPrefix = _elementName;
-					
-					//make sure first letter is lower case for non-IET types:
-					//if (!(this.GetType().IsSubclassOf(typeof(IdentifiedExtensionType)))) _elementPrefix = _elementPrefix.Substring(0, 1).ToLower() + _elementPrefix.Substring(1);
-					//if (!this.GetType().IsSubclassOf(typeof(IdentifiedExtensionType))) //TODO: Improve element prefix generation
-					//	_elementPrefix = string.Concat(_elementPrefix.Substring(0, 1).ToLower(), _elementPrefix.AsSpan(1));
-					_elementPrefix = SdcUtil.GetNamePrefix(this);
-				}
-				//if (this is QuestionItemType && _elementPrefix != "Q") Debugger.Break();
-				return _elementPrefix;
-			}
-			set
-			{
-				//if (this is QuestionItemType && _elementPrefix != "Q") Debugger.Break();
-				_elementPrefix = value;
-			}
+		/// <summary>
+		/// Returns a calculated prefix for the first part of the <see cref="BaseType.name"/> attribute.<br/>
+		/// This value may not match <see cref="BaseType.ElementPrefix"/>.
+		/// </summary>
+		/// <returns></returns>
+		public string GetNamePrefix()
+		{
+			return SdcUtil.GetNamePrefix(this);
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -1712,7 +1747,7 @@ namespace SDC.Schema
 	public partial class ExtensionBaseType : IExtensionBase
 	{
 		protected ExtensionBaseType() { }
-		public ExtensionBaseType(BaseType? parentNode) : base(parentNode)
+		public ExtensionBaseType(BaseType? parentNode, int position = -1) : base(parentNode, position)
 		{ }
 	}
 
@@ -1787,7 +1822,7 @@ namespace SDC.Schema
 	public partial class IdentifiedExtensionType : IIdentifiedExtensionType
 	{
 		protected IdentifiedExtensionType() { Init(); }
-		protected IdentifiedExtensionType(BaseType? parentNode, string id = "") : base(parentNode)
+		protected IdentifiedExtensionType(BaseType? parentNode, string id = "", int position = -1) : base(parentNode, position)
 		{
 			if (id.IsNullOrWhitespace())
 				ID = $"___{BaseName}"; //BaseName was based on the sGuid and assigned in the BaseType ctor

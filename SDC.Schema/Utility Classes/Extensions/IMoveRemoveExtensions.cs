@@ -480,7 +480,7 @@ namespace SDC.Schema.Extensions
 		private static void RegisterIETnodes(this IdentifiedExtensionType iet, bool isMoving = false)
 		{
 			_ITopNode itn = (_ITopNode)iet.TopNode!;
-			var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our moved node	
+			var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our new/moved node	
 			
 			int insertPosition = -1;
 			

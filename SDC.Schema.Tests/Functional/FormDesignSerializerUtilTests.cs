@@ -20,7 +20,6 @@ namespace SDC.Schema.Tests.Functional
         [TestMethod]
         public void DeserializeTest()
         {
-
             string contents = FileUtils.ReadXMLFile("Adrenal_partial.xml");
             Console.WriteLine(contents.Substring(0, 500));
             FormDesignType FD;
@@ -35,14 +34,8 @@ namespace SDC.Schema.Tests.Functional
             foreach(BaseType n in FD.Nodes.Values)
             { Console.WriteLine(n.GetType().ToString()); } //Only IET nodes are included in Nodes.Values.  This is a serious problem with deep ramifications.
            
-
-
             foreach (BaseType n in FD.Nodes.Values) System.Diagnostics.Debug.WriteLine(n.GetType().Name +", name:"+ n.name + " , Order: " + n.order 
                 + " , ObjectID: " + n.ObjectID);
-
-            xxstop:;
-
-
 
         }
         //[TestMethod]

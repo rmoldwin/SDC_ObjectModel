@@ -8,235 +8,235 @@ namespace SDC.Schema.Tests.Functional
 	public class _SdcUtilTests
 	{
 		[TestMethod()]
-		public void IsGenericListTest()
+		public void _IsGenericListTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void GetFirstNullArrayIndexTest()
+		public void _GetFirstNullArrayIndexTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void GetObjectFromIEnumerableObjectTest()
+		public void _GetObjectFromIEnumerableObjectTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void GetObjectFromIEnumerableIndexTest()
+		public void _GetObjectFromIEnumerableIndexTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void GetListIndexTest()
+		public void _GetListIndexTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void IndexOfTest()
+		public void _IndexOfTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ObjectAtIndexTest()
+		public void _ObjectAtIndexTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void IEnumerableCopyTest()
+		public void _IEnumerableCopyTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ArrayAddItemReturnArrayTest()
+		public void _ArrayAddItemReturnArrayTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ArrayAddReturnItemTest()
+		public void _ArrayAddReturnItemTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void RemoveArrayNullsNewTest()
+		public void _RemoveArrayNullsNewTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void PrevElementTest()
+		public void _PrevElementTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void NextElement2Test()
+		public void _NextElement2Test()
 		{
 
 		}
 
 		[TestMethod()]
-		public void NextElementTest()
+		public void _NextElementTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void GetLastSibTest()
+		public void _GetLastSibTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ReflectLastSibTest()
+		public void _ReflectLastSibTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void GetFirstSibTest()
+		public void _GetFirstSibTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ReflectFirstSibTest()
+		public void _ReflectFirstSibTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void GetNextSibTest()
+		public void _GetNextSibTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ReflectNextSibTest()
+		public void _ReflectNextSibTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void GetPrevSibTest()
+		public void _GetPrevSibTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ReflectPrevSibTest()
+		public void _ReflectPrevSibTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void GetLastChildTest()
+		public void _GetLastChildTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ReflectLastChildTest()
+		public void _ReflectLastChildTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void GetFirstChildTest()
+		public void _GetFirstChildTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ReflectFirstChildTest()
+		public void _ReflectFirstChildTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void GetLastDescendantTest()
+		public void _GetLastDescendantTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ReflectLastDescendantTest()
+		public void _ReflectLastDescendantTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void GetPropertyInfoTest()
+		public void _GetPropertyInfoTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ReflectPropertyInfoListTest()
+		public void _ReflectPropertyInfoListTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ReflectPropertyInfoElementsTest()
+		public void _ReflectPropertyInfoElementsTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ReflectPropertyInfoAttributesTest()
+		public void _ReflectPropertyInfoAttributesTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ReflectXmlAttributesFilledTest()
+		public void _ReflectXmlAttributesFilledTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ReflectXmlAttributesAllTest()
+		public void _ReflectXmlAttributesAllTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ReflectChildListTest()
+		public void _ReflectChildListTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ReflectSubtreeTest()
+		public void _ReflectSubtreeTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void IsItemChangeAllowedTest()
+		public void _IsItemChangeAllowedTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void XmlReorderTest()
+		public void _XmlReorderTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void XmlFormatTest()
+		public void _XmlFormatTest()
 		{
 
 		}

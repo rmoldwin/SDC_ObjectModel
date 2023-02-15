@@ -55,6 +55,7 @@ namespace SDC.Schema.UtilityClasses.Extensions
 					throw new NotSupportedException($"{qType} is not supported");
 			}
 			qNew.title = title;
+			qNew.InitAfterTreeAdd();
 			return qNew;
 		}
 
@@ -82,6 +83,7 @@ namespace SDC.Schema.UtilityClasses.Extensions
 			rf.AddResponseUnits(units);
 			rf.AddTextAfterResponse(textAfterResponse);
 
+			qNew.InitAfterTreeAdd();
 			return qNew;
 
 		}
@@ -95,7 +97,8 @@ namespace SDC.Schema.UtilityClasses.Extensions
 			var count = deList.Count;
 			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
 			deList.Insert(insertPosition, sNew);
-
+			
+			sNew.InitAfterTreeAdd();
 			return sNew;
 		}
 
@@ -109,7 +112,8 @@ namespace SDC.Schema.UtilityClasses.Extensions
 			var count = deList.Count;
 			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
 			deList.Insert(insertPosition, dNew);
-
+			
+			dNew.InitAfterTreeAdd();
 			return dNew;
 		}
 
@@ -125,6 +129,8 @@ namespace SDC.Schema.UtilityClasses.Extensions
 			deList.Insert(insertPosition, btnNew);
 
 			// TODO: Add AddButtonActionTypeItems(btnNew);
+
+			btnNew.InitAfterTreeAdd();
 			return btnNew;
 		}
 
@@ -139,6 +145,7 @@ namespace SDC.Schema.UtilityClasses.Extensions
 			deList.Insert(insertPosition, injForm);
 			//TODO: init this InjectForm object
 
+			injForm.InitAfterTreeAdd();
 			return injForm;
 		}
 
