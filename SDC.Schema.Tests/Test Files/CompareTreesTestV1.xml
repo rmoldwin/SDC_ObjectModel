@@ -1,0 +1,108 @@
+<FormDesign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="urn:ihe:qrph:sdc:2016 ../../../sdc-schema-package/SDCFormDesign.xsd" xmlns="urn:ihe:qrph:sdc:2016"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="XML Pinto 328.603_328.REL_sdcFDF" sGuid="-UECEzCgqkqPq84fjQo7_A"
+ order="0" ID="XML Pinto 328.603_328.REL_sdcFDF" baseURI="www.cap.org/eCC" formTitle="new template title"
+ filename="XML Pinto 328.603_328.REL_sdcFDF.xml"
+ fullURI="_baseURI=www.cap.org/eCC&amp;_lineage=XML Pinto 328.603 &amp; _version=328.REL&amp;_docType=sdcFDF"
+ version="328.REL" lineage="XML Pinto 328.603">
+  <Property name="Copyright" type="CAPeCC_static_text" styleClass="copyright" sGuid="vjrbyR6lX0yetE7uX1D9MA" order="10"
+    propName="Copyright"
+    val="(c) 2021 College of American Pathologists.  All rights reserved.  License required for use."/>
+  <Property name="GenericHeaderText" type="CAPeCC_static_text" sGuid="qJ6GKFNIIEyVLwQfqwO2wQ" order="20"
+    propName="GenericHeaderText" val="XML Pinto 328"/>
+  <Property name="Category" type="CAPeCC_meta" sGuid="vOaZxz9jeEuM4SbJlcQSzA" order="30" propName="Category"
+    val="another test"/>
+  <Property name="OfficialName" type="CAPeCC_meta" sGuid="LEu_Rcxaa0qn8EqHFzIjvg" order="40" propName="OfficialName"
+    val="XML Pinto 328"/>
+  <Property name="CAP_ProtocolName" type="CAPeCC_meta" sGuid="XXQsHg9IrEmN0zcr1m7_ZQ" order="50"
+    propName="CAP_ProtocolName" val="XML Pinto 328"/>
+  <Property name="CAP_ProtocolShortName" type="CAPeCC_meta" sGuid="4Qm6OUtgH0eYMmt0ngetig" order="60"
+    propName="CAP_ProtocolShortName" val="XML Pinto 328"/>
+  <Property name="CAP_ProtocolVersion" type="CAPeCC_meta" sGuid="dvHaCROmJkq8AqJ0Lad_ig" order="70"
+    propName="CAP_ProtocolVersion" val="Nov_28_2022_4.16PM"/>
+  <Property name="TemplateID" type="CAPeCC_meta" sGuid="oCfCwbc8l06ebbU7_gVMZA" order="80" propName="TemplateID"
+    val="603.100004300"/>
+  <Property name="Restrictions" type="CAPeCC_meta" sGuid="Qb9V3XI840yO2EV035C6QA" order="90" propName="Restrictions"
+    val="None"/>
+  <Property name="CAP_Required" type="CAPeCC_meta" sGuid="m2BbY4yW-Ey6ezvFdNqZPg" order="100" propName="CAP_Required"
+    val="False"/>
+  <Property name="WebPostingDate" type="CAPeCC_meta dt.dateTime" sGuid="NknPK4jUh0y8l3hI_3u5fA" order="110" propName="WebPostingDate"/>
+  <Property name="ApprovalStatus" type="CAPeCC_meta" sGuid="_yohvrbsKECUIV33pM3NUA" order="120" propName="ReleaseStatus"
+    val="REL"/>
+  <Body name="Body" sGuid="gt7h9SdQdkuInHP93_90Vw" order="130" ID="XML Pinto 328.603_328.REL_sdcFDF_Body" title="***">
+    <ChildItems name="ch_Body" sGuid="QEiPn-W4qkqprHTIacVn5Q" order="140">
+      <DisplayedItem sGuid="QxTmcR7JIEC3zqJrgDPFEA" order="150" ID="681724.100004300" title="Default Displayed Item"/>
+      <Section sGuid="sbmQ8G3fj0S6Pi5jh4zFbQ" order="160" ID="681725.100004300" title="Section OA 121">
+        <ChildItems sGuid="altF7d7ohUWIFEeGuZxh-A" order="170">
+          <Question sGuid="K2vYBd_Kl061_82upClEbA" order="180" ID="681726.100004300" title="Question A">
+            <ListField sGuid="N_YW-NkeNE6lCPES7Tcq2g" order="190">
+              <List sGuid="Hf-dtVSmUk65IIqxwdHOrQ" order="200">
+                <ListItem sGuid="uHiXiH0_fU-MijlmqULDOg" order="210" ID="681727.100004300" title="Option 1 dafdf">
+                  <Property name="p_rptTxt_e847cace-725c-424e-9db6-60f71da683bd_1" sGuid="o4GSuiLhdEOEvVn6uO9NzQ" order="220" propName="ReportText"
+                    val="dsfdsafds"/>
+                  <Property name="p_altTxt_e847cace-725c-424e-9db6-60f71da683bd_2" sGuid="CgyezzuYu0GGaTk4n1FYlQ"
+                    order="230" propName="altText" val="adsfasdfsdf"/>
+                </ListItem>
+                <ListItem sGuid="a3GzdKXEGEaWxiI3HSJMAg" order="240" ID="681728.100004300" title="Option 2">
+                  <ListItemResponseField sGuid="B5aNqMh1cUmGzo9pfUMoIA" order="250">
+                    <Response sGuid="XMlfZnKPDkyXLYxRNw3vJg" order="260">
+                      <string sGuid="3y-3colhTkuVE5aOtycLVg" order="270" maxLength="0"/>
+                    </Response>
+                  </ListItemResponseField>
+                </ListItem>
+              </List>
+            </ListField>
+          </Question>
+        </ChildItems>
+      </Section>
+      <Section sGuid="F5GvSNED4kC6C9SDUhNSUA" order="280" ID="681729.100004300"
+        title="Nunc non nisi a arcu tempus dapibus">
+        <Property name="p_rptTxt_7889b1bf-aff0-48e5-a26c-284a90237e13_1" sGuid="HrbYqhgNoUeetSKy3idznA" order="290"
+          propName="ReportText" val="dsafdsfdsfds"/>
+        <Property name="p_altTxt_7889b1bf-aff0-48e5-a26c-284a90237e13_2" sGuid="nYpPytD7o0Sejka_yNkOiw" order="300"
+          propName="altText" val="trwtretewtewr"/>
+        <ChildItems sGuid="kMwnYBVcpUmJSzRE75Mn7A" order="310">
+          <Question sGuid="-TZMTYpzX0qD6iyoC_jsIw" order="320" ID="681730.100004300"
+            title="Vestibulum maximus nec enim ut pharetra.">
+            <ListField sGuid="u4i38sYtcUiqNRttebYN5A" order="330" maxSelections="0">
+              <List sGuid="CmKFtP--qU-xdsB-gaOrrw" order="340">
+                <ListItem sGuid="T2yzywf0rUmDRlPS0FlPCw" order="350" ID="681731.100004300" title="Duis aliquet urna leo"/>
+                <ListItem sGuid="iJcpz-FBOEiFSGtDiFCktA" order="360" ID="681732.100004300" title="Cras commodo elit"/>
+                <ListItem sGuid="BiGuHorXZ0yJDBga32zdvw" order="370" ID="681733.100004300"
+                  title=" Praesent fringilla volutpat hendrerit."/>
+                <ListItem sGuid="cW6ZAuSngUuC9eogvFrnOg" order="380" ID="681734.100004300"
+                  title="Etiam sit amet sapien dui."/>
+                <ListItem sGuid="5nIFYjGd-0WN5g83e_ulxg" order="390" ID="681735.100004300" title="Donec felis orci">
+                  <ListItemResponseField sGuid="VAT90yLKF0W_EV0CUWQFbg" order="400">
+                    <Response sGuid="jKLfpslUZE6xfYe3G5w5tQ" order="410">
+                      <string sGuid="FIlNYK4uDUK03xKEI9khAw" order="420" maxLength="0"/>
+                    </Response>
+                  </ListItemResponseField>
+                </ListItem>
+              </List>
+            </ListField>
+          </Question>
+          <Question sGuid="QffMED7Ly0ar7LBDLpt0LQ" order="430" ID="681736.100004300" title="dfdasfsafds">
+            <ListField sGuid="quDRpoCur0y7LECc6Q-eQw" order="440">
+              <List sGuid="tQ6DYu2580mtrK8HrZm0oQ" order="450">
+                <ListItem sGuid="6LzgXErbCk2mNC_srXcOgw" order="460" ID="681737.100004300" title="Option A"/>
+                <ListItem sGuid="5Gjw5YBefk25fD3uhuai-Q" order="470" ID="681738.100004300" title="***"/>
+                <ListItem sGuid="ZEQFkPLU90WkVIgym5XFsA" order="480" ID="681739.100004300" title="***">
+                  <ListItemResponseField sGuid="XDh9_HR5i0a0Cbr3rm56hQ" order="490">
+                    <Response sGuid="X8jBazTv0USO1EfvkJLEEw" order="500">
+                      <string sGuid="jG8F3BCDlU6Q_k0jd6tl1Q" order="510"/>
+                    </Response>
+                  </ListItemResponseField>
+                </ListItem>
+              </List>
+            </ListField>
+          </Question>
+        </ChildItems>
+      </Section>
+    </ChildItems>
+  </Body>
+  <Footer name="footer" sGuid="eTWbGnb1q0CoJpGWPzPpiQ" order="520" ID="f91899b9-4c6e-4ed6-aeb4-cf482997c7e5" title="***">
+    <Property type="meta" styleClass="copyright" sGuid="IQ6tipPtP0uWVmHtCAvwQA" order="530" propName="CopyrightFooter"
+      val="(c) 2022 College of American Pathologists.  All rights reserved.  License required for use."/>
+  </Footer>
+</FormDesign>

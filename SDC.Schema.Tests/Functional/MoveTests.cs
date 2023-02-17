@@ -99,16 +99,16 @@ namespace SDC.Schema.Tests.Functional
 
 
 			li.Move(list, 6);
-			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == 6);
+			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li, li.ParentNode).ItemIndex == 6);
 
 			li.Move(list, 99);
-			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == list.Items.Count() - 1);
+			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li, li.ParentNode).ItemIndex == list.Items.Count() - 1);
 
 			li.Move(list, 0);
-			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == 0);
+			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li, li.ParentNode).ItemIndex == 0);
 
 			li.Move(list);
-			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == list.Items.Count() - 1);
+			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li, li.ParentNode).ItemIndex == list.Items.Count() - 1);
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 			Setup.Reset(); //reset after moving nodes.
 		}
@@ -132,7 +132,7 @@ namespace SDC.Schema.Tests.Functional
 
 			//Move to different List (list2)
 			li.Move(list2, 2);
-			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li).ItemIndex == 2);
+			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li, li.ParentNode).ItemIndex == 2);
 			Assert.AreEqual(list2, li.ParentNode);
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 			Setup.Reset(); //reset after moving nodes.
@@ -398,9 +398,9 @@ namespace SDC.Schema.Tests.Functional
 				else if (position == DropPosition.After)
 				{
 					Console.WriteLine("if (position == DropPosition.After)");
-					pimTarget = targetNode.GetPropertyInfoMetaData(); //retrieve the IEnumerable object that contains targetNode
+					pimTarget = targetNode.GetPropertyInfoMetaData(sourceNode.ParentNode); //retrieve the IEnumerable object that contains targetNode
 					targetIndex = pimTarget.ItemIndex + 1;
-					pimSource = sourceNode.GetPropertyInfoMetaData(); //retrieve the IEnumerable object that contains targetNode
+					pimSource = sourceNode.GetPropertyInfoMetaData(sourceNode.ParentNode); //retrieve the IEnumerable object that contains targetNode
 					sourceIndex = pimSource.ItemIndex;
 					if (sourceNode.ParentNode == targetNode.ParentNode
 						&& targetIndex > sourceIndex) targetIndex--;
@@ -432,9 +432,9 @@ namespace SDC.Schema.Tests.Functional
 				else if (position == DropPosition.Before)
 				{
 					Console.WriteLine("if (position == DropPosition.Before)");
-					pimTarget = targetNode.GetPropertyInfoMetaData(); //retrieve the IEnumerable object that contains targetNode
+					pimTarget = targetNode.GetPropertyInfoMetaData(sourceNode.ParentNode); //retrieve the IEnumerable object that contains targetNode
 					targetIndex = pimTarget.ItemIndex;
-					pimSource = sourceNode.GetPropertyInfoMetaData(); //retrieve the IEnumerable object that contains sourceNode
+					pimSource = sourceNode.GetPropertyInfoMetaData(sourceNode.ParentNode); //retrieve the IEnumerable object that contains sourceNode
 					sourceIndex = pimSource.ItemIndex;
 					if (sourceNode.ParentNode == targetNode.ParentNode
 						&& targetIndex > sourceIndex) targetIndex--;  //we removed the sourceNode before re-adding in the new position, so we decrement index by one

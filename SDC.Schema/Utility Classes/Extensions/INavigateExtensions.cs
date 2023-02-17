@@ -59,7 +59,7 @@ namespace SDC.Schema.Extensions
 		public static Dictionary<Guid, BaseType>? GetSubtreeDictionary(this INavigate n)
 		{ if (n is not null && n is BaseType) return SdcUtil.GetSubtreeDictionary((BaseType)n); else return null; }
 		public static PropertyInfoMetadata? GetPropertyInfo(this INavigate n)
-		{ if (n is not null && n is BaseType) return SdcUtil.GetElementPropertyInfoMeta((BaseType)n); else return null; }
+		{ if (n is not null && n is BaseType bt) return SdcUtil.GetElementPropertyInfoMeta(bt, bt.ParentNode); else return null; }
 
 
 		//public static List<IdentifiedExtensionType>? GetIETChildren(this INavigate n)

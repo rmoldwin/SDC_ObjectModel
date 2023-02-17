@@ -256,6 +256,7 @@ namespace SDC.Schema
 					btNode._shouldSerializeorder = false;
 				}
 				else btNode.order = 0;
+
 				{//Braces here only for grouping, not for scope
 					if (current_ITopNode is DemogFormDesignType dfd)  //DemogForm is also a FormDesignType, so it must come first 
 					{
@@ -411,7 +412,7 @@ namespace SDC.Schema
 					int elementOrder = -1;
 					//Fill some useful properties, while it's efficient to do so, 
 					//because we have the PropertyInfo object (pi) and the actual property object (btProp) already available.
-					elementName = SdcUtil.ReflectSdcElement(pi, btProp, out _, out elementOrder, out _, out _, out _, out string? errorMsg);
+					elementName = SdcUtil.ReflectSdcElement(pi, btProp, parentNode, out _, out elementOrder, out _, out _, out _, out string? errorMsg);
 					if (elementName.IsNullOrWhitespace()) Debugger.Break();
 					btProp.ElementName = elementName;
 					btProp.ElementOrder = elementOrder;
@@ -1832,10 +1833,11 @@ namespace SDC.Schema
 			return lastKid;
 		}
 
-		public static PropertyInfoMetadata GetElementPropertyInfoMeta(BaseType item, bool getNames = true)
+		public static PropertyInfoMetadata GetElementPropertyInfoMeta(BaseType item, BaseType? parentNode, bool getNames = true)
 		{
 			PropertyInfo? pi = GetElementPropertyInfo(
 				item,
+				parentNode,
 				out string? propName,
 				out int itemIndex,
 				out IEnumerable<BaseType>? ieItems,
@@ -1873,6 +1875,7 @@ namespace SDC.Schema
 		/// If a wrapper property was created in an SDC parrtial class, only the inner property (i.e., the one with XML attributes) is returned
 		/// </summary>
 		/// <param name="item"></param>
+		/// <param name="parentNode"></param>
 		/// <param name="propName"></param>
 		/// <param name="itemIndex"></param>
 		/// <param name="ieItems"></param>
@@ -1886,7 +1889,8 @@ namespace SDC.Schema
 		/// itemIndex: the index of "item" in "ieItems" is returned as an out parameter, otherwise it is -1
 		/// </returns>
 		private static PropertyInfo? GetElementPropertyInfo(
-			BaseType item,
+			BaseType item, 
+			BaseType? parentNode,
 			out string? propName,
 			out int itemIndex,
 			out IEnumerable<BaseType>? ieItems,
@@ -1902,40 +1906,40 @@ namespace SDC.Schema
 			itemIndex = -1;
 			ieItems = null;
 			if (item is null) return null;
-			BaseType? par = item.ParentNode;
-			if (par is null)
+			//BaseType? parentNode = item.ParentNode;
+			if (parentNode is null)
 			{
-				par = item;  //we are at the top node
+				parentNode = item;  //we are at the top node
 				var t = item.GetType();
 				xmlElementName = t.GetCustomAttribute<XmlRootAttribute>()?.ElementName;
 				xmlOrder = -1; // -1 is a special case indicating root node
 				return null;
 			}
 
-			maxXmlOrder = GetMaxOrderFromXmlElementAttributes(par);
+			maxXmlOrder = GetMaxOrderFromXmlElementAttributes(parentNode);
 
-			xmlElementName = ReflectSdcElement(item, out ieItems, out xmlOrder, out maxXmlOrder, out itemIndex, out PropertyInfo? piItemOut, out _);
+			xmlElementName = ReflectSdcElement(item, parentNode, out ieItems, out xmlOrder, out maxXmlOrder, out itemIndex, out PropertyInfo? piItemOut, out _);
 			propName = piItemOut.Name;
 			return piItemOut;
 
 
 
 		}
-		private static int GetElementItemIndex(BaseType item, out IEnumerable<BaseType>? ieItems, out PropertyInfo? piItemOut, out string errorMsg)
-		=> GetElementItemIndex(item, null, out ieItems, out piItemOut, out errorMsg);
+		private static int GetElementItemIndex(BaseType item, BaseType parentNode, out IEnumerable<BaseType>? ieItems, out PropertyInfo? piItemOut, out string errorMsg)
+		=> GetElementItemIndex(item, parentNode, null, out ieItems, out piItemOut, out errorMsg);
 
-		private static int GetElementItemIndex(BaseType item, IEnumerable<PropertyInfo>? ieParProps, out IEnumerable<BaseType>? ieItems, out PropertyInfo? piItemOut, out string errorMsg)
+		private static int GetElementItemIndex(BaseType item, BaseType parentNode, IEnumerable<PropertyInfo>? ieParProps, out IEnumerable<BaseType>? ieItems, out PropertyInfo? piItemOut, out string errorMsg)
 		{
 			errorMsg = "";
 			ieItems = null;
 			piItemOut = null;
-			BaseType? par = item.ParentNode;
+			//BaseType? parentNode = item.ParentNode;
 
-			if (par is null)
-			{ errorMsg = $"{nameof(GetElementItemIndex)}: the ParentNode of n cannot be null"; return -1; }
+			if (parentNode is null)
+			{ errorMsg = $"{nameof(GetElementItemIndex)}: {nameof(parentNode)} cannot be null"; return -1; }
 			if (ieParProps is null)
 			{
-				ieParProps = par.GetType().GetProperties()
+				ieParProps = parentNode.GetType().GetProperties()
 						.Where(p => typeof(IEnumerable<BaseType>)
 						.IsAssignableFrom(p.PropertyType)
 						&& p.GetCustomAttributes(typeof(XmlElementAttribute)).Any()  //We must confirm that our IEnumerable has a XmlElementAttribute,
@@ -1946,11 +1950,11 @@ namespace SDC.Schema
 						);
 
 				if (ieParProps is null || !ieParProps.Any())
-				{ errorMsg = $"{nameof(GetElementItemIndex)}: the ParentNode of n does not contain an IEnumerable<BaseType> that contains the the target n n"; return -1; }
+				{ errorMsg = $"{nameof(GetElementItemIndex)}: the ParentNode of {nameof(item)} does not contain an IEnumerable<BaseType> that contains the the target {nameof(item)}"; return -1; }
 			}
 			foreach (var propInfo in ieParProps!) //loop through IEnumerable PropertyInfo objects in par
 			{   //Reflect each propInfo to see if our item parameter lives in it
-				ieItems = (IEnumerable<BaseType>?)propInfo.GetValue(par);
+				ieItems = (IEnumerable<BaseType>?)propInfo.GetValue(parentNode);
 				if (ieItems is not null && ieItems.Any())
 				{
 					piItemOut = propInfo;
@@ -1960,9 +1964,9 @@ namespace SDC.Schema
 			return -1;
 		}
 
-		private static string ReflectSdcElement(BaseType item, out IEnumerable<BaseType>? ieItems, out int xmlOrder, out int maxXmlOrder, out int itemIndex, out PropertyInfo piItem, out string? errorMsg)
+		private static string ReflectSdcElement(BaseType item, BaseType? parentNode, out IEnumerable<BaseType>? ieItems, out int xmlOrder, out int maxXmlOrder, out int itemIndex, out PropertyInfo piItem, out string? errorMsg)
 		{
-			string? elementName = ReflectSdcElement(null, item, out ieItems, out xmlOrder, out maxXmlOrder, out itemIndex, out piItem, out errorMsg);
+			string? elementName = ReflectSdcElement(null, item, parentNode, out ieItems, out xmlOrder, out maxXmlOrder, out itemIndex, out piItem, out errorMsg);
 			return elementName;
 
 
@@ -1982,7 +1986,7 @@ namespace SDC.Schema
 		/// <returns></returns>
 		/// <exception cref="InvalidOperationException"></exception>
 		/// <exception cref="NullReferenceException"></exception>
-		private static string ReflectSdcElement(PropertyInfo? piItem, BaseType item, out IEnumerable<BaseType>? ieItems, out int xmlOrder, out int maxXmlOrder, out int itemIndex, out PropertyInfo? piItemOut, out string? errorMsg)
+		private static string ReflectSdcElement(PropertyInfo? piItem, BaseType item, BaseType? parentNode, out IEnumerable<BaseType>? ieItems, out int xmlOrder, out int maxXmlOrder, out int itemIndex, out PropertyInfo? piItemOut, out string? errorMsg)
 		{
 			string? xmlElementName;
 			ieItems = null;
@@ -1993,26 +1997,26 @@ namespace SDC.Schema
 			piItemOut = null;
 			Type itemType = item.GetType();
 			Type? parType = null;
-			BaseType? par = item.ParentNode;
+			//BaseType? parentNode = item.ParentNode;
 
-			if (par is null)
+			if (parentNode is null)
 			{
 				//we are at the top node
 				xmlElementName = itemType.GetCustomAttribute<XmlRootAttribute>()?.ElementName;
 				if (xmlElementName is null)
-					throw new InvalidOperationException($"{nameof(ReflectSdcElement)} could not find a name for the n parameter.  This may occur if the n node has no parent object");
+					throw new InvalidOperationException($"{nameof(ReflectSdcElement)} could not find a name for the {nameof(item)} parameter.  This may occur if {nameof(item)} is not an SDC ITopNode and has no parent object");
 				return xmlElementName;
 			}
 
 			if (piItem is null) //piItem was not supplied, so let's try to find it.
 			{
-				parType = par.GetType();
+				parType = parentNode.GetType();
 				PropertyInfo[] parProps = parType.GetProperties();
 				//Look for a direct item-to-property match, so we can assign propName from the par object		
 				piItemOut = parProps
 					.Where(pi => pi.GetCustomAttributes(typeof(XmlElementAttribute)).Any()  //all serialized properties must have the XmlElementAttribute attribute
-					&& !typeof(IEnumerable<BaseType>).IsAssignableFrom(pi.PropertyType)     //the property is not an IEnumerable (i.e., an Array, List etc.)
-					&& ReferenceEquals(pi?.GetValue(par), item))?.FirstOrDefault();          //There can be, at most, one match to our item object
+					&& ! typeof(IEnumerable<BaseType>).IsAssignableFrom(pi.PropertyType)     //the property is not an IEnumerable (i.e., an Array, List etc.)
+					&& ReferenceEquals(pi?.GetValue(parentNode), item))?.FirstOrDefault();          //There can be, at most, one match to our item object
 
 				if (piItemOut is not null)
 					piItem = piItemOut; // piItem is not an IEnumerable here
@@ -2021,7 +2025,7 @@ namespace SDC.Schema
 				{
 					//Now we look in IEnumerable properties, to see if "item" is contained inside it.
 					//Let's see if our item object lives in an IEnumerable<BaseClassSubtype> 
-					itemIndex = GetElementItemIndex(item, out ieItems, out piItemOut, out errorMsg);
+					itemIndex = GetElementItemIndex(item, parentNode, out ieItems, out piItemOut, out errorMsg); //item.ParentNode can't be null here
 					// piItemOut will be null if item is not an IEnumerable, we only want to use it if piItemOut is null.
 					if (piItemOut is null)
 						throw new NullReferenceException($"{nameof(ReflectSdcElement)} could not obtain a PropertyInfo object from the supplied node parameter. \r\n" + errorMsg);
@@ -2039,10 +2043,12 @@ namespace SDC.Schema
 
 			//Look for "Item" or "Items" properties with an attribute similar to this: [XmlChoiceIdentifierAttribute("ItemsElementName")]
 			//This indicates that the element name must be retrieved from an enum,
-			//which is a special property in the same class (named, e.g., "ItemsElementName"),
+			//which is a special property in the same class (named, i.e., "ItemElementName" or "ItemsElementName"),
 			//and with a type of an enum subclass, or an Ienumerable<enumSubclass>
+			//The type of the enum object (Item(s)ElementName) holds an enum value with the element's name.
+			//This enum field (Item(s)ElementName) may be an array holding a list of ElementNames, in the same order that the elements appear in the Items List
 			//This is handled in the next method call:
-			xmlElementName = GetElementNameFromEnum(piItem, item, ref itemIndex, out errorMsg);
+			xmlElementName = GetElementNameFromItemChoiceEnum(piItem, item, parentNode, ref itemIndex, out errorMsg);
 			if (xmlElementName?.Length > 0) return xmlElementName;
 
 			//If there is only one XmlElementAttribute, try to get elementName directly from the XmlElementAttribute.
@@ -2082,17 +2088,17 @@ namespace SDC.Schema
 		}
 
 
-		private static string? GetElementNameFromEnum(PropertyInfo piItem, BaseType item, ref int itemIndex, out string? errorMsg)
+		private static string? GetElementNameFromItemChoiceEnum(PropertyInfo piItem, BaseType item, BaseType parentNode, ref int itemIndex, out string? errorMsg)
 		{
 			//itemIndex = -1;
 			errorMsg = null;
 			//itemIndex = GetItemIndex(piItem, item, out errorMsg, out ieItems);
-			object? choiceIdentifierObject = GetItemChoiceEnumProperty(piItem, item);
+			object? choiceIdentifierObject = GetPropertyFromItemChoiceEnum(piItem, item);
 			if (choiceIdentifierObject is null)
 				return null; //An enum is not used to determine the XML Element name			
 
 			if(itemIndex == -1)
-				itemIndex = GetElementItemIndex(item, out _, out _, out errorMsg);
+				itemIndex = GetElementItemIndex(item, parentNode, out _, out _, out errorMsg); //item must have non-null item.ParentNode
 
 			//If itemIndex == -1, then item is not contained in an IEnumerable List or Array, so
 			//it should be in an enum subclass:
@@ -2106,9 +2112,9 @@ namespace SDC.Schema
 			return null;
 		}
 
-		private static object? GetItemChoiceEnumProperty(PropertyInfo piItem, BaseType item)
+		private static object? GetPropertyFromItemChoiceEnum(PropertyInfo piItem, BaseType item)
 		{//old name: ItemChoiceEnum
-			string? enumName = GetElementNameFromItemChoiceType(piItem);
+			string? enumName = GetItemChoiceEnumFromAttribute(piItem);
 			if (enumName == null) return null!;
 
 			var enumObj = item.ParentNode?.GetType()?.GetProperty(enumName)?.GetValue(item.ParentNode);
@@ -2117,7 +2123,12 @@ namespace SDC.Schema
 			return null;
 		}
 
-		private static string? GetElementNameFromItemChoiceType(PropertyInfo piItem)
+		/// <summary>
+		/// Gets the enumeration to use when detecting types
+		/// </summary>
+		/// <param name="piItem"></param>
+		/// <returns></returns>
+		private static string? GetItemChoiceEnumFromAttribute(PropertyInfo piItem)
 		{//old name: ItemChoiceEnumName
 			XmlChoiceIdentifierAttribute? xci = (XmlChoiceIdentifierAttribute?)piItem.GetCustomAttribute(typeof(XmlChoiceIdentifierAttribute));
 			if (xci is null) return null;
@@ -2171,7 +2182,7 @@ namespace SDC.Schema
 								return true;
 
 							if (p.PropertyType.IsArray &&
-								(p.PropertyType.GetElementType() == itemType //this may not work unless it's an exact type match
+								(p.PropertyType.GetElementType() == itemType //this will not work unless it's an exact type match
 									|| p.PropertyType.GetElementType()!.IsAssignableFrom(itemType))
 								)//e.g., like: ExtensionBaseType[] Items, with [XmlElement("ValidateForm", typeof(ActValidateFormType), Order=0)]
 								return true;
@@ -2183,18 +2194,19 @@ namespace SDC.Schema
 				//if none of the XmlElementAttributes had a matching Type an ElementName, perhaps the property Type will match directly
 				//if (p.Name == itemName)
 				//{
+				pObj = itemType;  //tentative assignment if itemType is an exact type match
 				if (p.PropertyType == itemType)
 					return true; 
 
 				if (p.PropertyType.IsGenericType &&
-					(p.PropertyType.GetGenericArguments()[0] == itemType //this may not work unless it's an exact type match
+					(p.PropertyType.GetGenericArguments()[0] == itemType //this will not work unless it's an exact type match
 						|| p.PropertyType.GetGenericArguments()[0].IsAssignableFrom(itemType))
 					) //e.g., like: List<ExtensionBaseType> Items, with [XmlElement("SelectionTest", typeof(PredSelectionTestType), Order=0)]
 					return true;
 
 
 				if (p.PropertyType.IsArray &&
-					(p.PropertyType.GetElementType() == itemType //this may not work unless it's an exact type match
+					(p.PropertyType.GetElementType() == itemType //this will not work unless it's an exact type match
 						|| p.PropertyType.GetElementType()!.IsAssignableFrom(itemType))
 					)//e.g., like: ExtensionBaseType[] Items, with [XmlElement("ValidateForm", typeof(ActValidateFormType), Order=0)]
 					return true;
@@ -2211,19 +2223,20 @@ namespace SDC.Schema
 		/// We must find an <em>exact</em> match for <paramref name="item"/>'s element name and the data type in <paramref name="piNewParentProperty"/> to allow the move.
 		/// </summary>
 		/// <param name="item">The SDC node to test for its ability to be attached to the <paramref name="piNewParentProperty"/> node.</param>
+		/// <param name="parentNode">Parent node of <paramref name="item"/>. </param>
 		/// <param name="piNewParentProperty">The PropertyInfo object that defines the parent node to which 
 		/// the <paramref name="item"/> node should be moved.</param>
-		/// <param name="itemName">The XML Element name for item name.  If null (the default), the method will attempt to determine it.</param>
+		/// <param name="itemElementName">The XML Element name for item name.  If null (the default), the method will attempt to determine it.</param>
 		/// <returns>True for allowed parent nodes, false for disallowed parent nodes, 
 		/// where the parent node is defined by <paramref name="piNewParentProperty"/>.</returns>
-		internal static bool IsParentNodeAllowed(BaseType item, PropertyInfo piNewParentProperty, string? itemName = null)
+		internal static bool IsParentNodeAllowed(BaseType item, BaseType? parentNode, PropertyInfo piNewParentProperty, string? itemElementName = null)
 		{
 
 			if (item is null) throw new ArgumentNullException(nameof(item), "Argument cannot be null.");
 			if (piNewParentProperty is null) throw new ArgumentNullException(nameof(piNewParentProperty), "Argument cannot be null.");
 
 			Type itemType = item.GetType();
-			if (itemName is null || itemName.IsNullOrWhitespace()) itemName = item.GetPropertyInfoMetaData().XmlElementName;
+			if (itemElementName is null || itemElementName.IsNullOrWhitespace()) itemElementName = item.GetPropertyInfoMetaData(parentNode).XmlElementName;
 
 			var pAtts = piNewParentProperty.GetCustomAttributes<XmlElementAttribute>();
 
@@ -2231,7 +2244,7 @@ namespace SDC.Schema
 			{
 				foreach (var a in pAtts)
 				{
-					if (a.ElementName == itemName)
+					if (a.ElementName == itemElementName)
 					{
 						if (a.Type == itemType)
 							return true; //if type matches, then ElementName must also match.  This is the most common case.
@@ -2258,7 +2271,7 @@ namespace SDC.Schema
 
 				//if none of the XmlElementAttributes had a matching Type an ElementName, perhaps the property Type will match directly
 				//TODO: However, it's not clear we need an "expensive" type match if the item name matches the property name.
-				if (piNewParentProperty.Name == itemName)
+				if (piNewParentProperty.Name == itemElementName)
 				{
 					if (piNewParentProperty.PropertyType == itemType)
 						return true;
@@ -3180,9 +3193,9 @@ namespace SDC.Schema
 			return false;
 		}
 
-		private static void X_AssignXmlElementAndOrder<T>(T bt) where T : notnull, BaseType
+		private static void X_AssignXmlElementAndOrder<T>(T bt, BaseType parentNode) where T : notnull, BaseType
 		{
-			var pi = SdcUtil.GetElementPropertyInfoMeta(bt);
+			var pi = SdcUtil.GetElementPropertyInfoMeta(bt, parentNode);
 			bt.ElementName = pi.XmlElementName ?? "";
 			bt.ElementOrder = pi.XmlOrder;
 		}

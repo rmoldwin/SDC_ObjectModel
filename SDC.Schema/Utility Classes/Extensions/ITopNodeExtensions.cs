@@ -64,7 +64,7 @@ namespace SDC.Schema.Extensions
 			{
 				BaseType bt;
 				bt = kvp.Value;
-				bt.ElementName = bt.GetPropertyInfoMetaData().XmlElementName ?? "";
+				bt.ElementName = bt.GetPropertyInfoMetaData(bt.ParentNode).XmlElementName ?? "";
 			}
 			//return true;
 		}

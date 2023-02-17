@@ -56,7 +56,8 @@ namespace SDC.Schema.Tests
 			Setup.BreastStagingTestV4_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "BreastStagingTest2v4.xml"));
 			Setup.BreastStagingTestV5_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "BreastStagingTest2v5.xml"));
 
-			Setup.DefaultValsV1_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "DefaultValsTest2v1.xml"));
+			Setup.CompareTreesTestV1_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "CompareTreesTestV1.xml"));
+			Setup.CompareTreesTestV2_XML = File.ReadAllText(Path.Combine(_fileFolderPath, "CompareTreesTestV2.xml"));
 
 		}
 		#endregion
@@ -105,6 +106,9 @@ namespace SDC.Schema.Tests
 		public static string? BreastStagingTestV3_XML { get; private set; }
 		public static string? BreastStagingTestV4_XML { get; private set; }
 		public static string? BreastStagingTestV5_XML { get; private set; }
+		public static string? BreastStagingTestV6_XML { get; private set; }
+		public static string? CompareTreesTestV1_XML { get; private set; }
+		public static string? CompareTreesTestV2_XML { get; private set; }
 		public static string? DefaultValsV1_XML { get; private set; }
 		public static string? DefaultValsV2_XML { get; private set; }
 		//------------------------------------------------

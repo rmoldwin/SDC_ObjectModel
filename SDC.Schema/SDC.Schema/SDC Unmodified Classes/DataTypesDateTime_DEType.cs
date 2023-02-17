@@ -55,7 +55,7 @@ public partial class DataTypesDateTime_DEType : ExtensionBaseType
     #endregion
     
     [XmlElement("dateTime", typeof(dateTimeStamp_DEtype), IsNullable=true, Order=0)]
-    [XmlElement("dateTimeStamp", typeof(dateTimeStamp_Stype), IsNullable=true, Order=0)]
+    [XmlElement("dateTimeStamp", typeof(dateTimeStamp_DEtype), IsNullable=true, Order=0)]
     [XmlElement("duration", typeof(duration_DEtype), IsNullable=true, Order=0)]
     [XmlElement("gMonthDay", typeof(gMonthDay_DEtype), IsNullable=true, Order=0)]
     [XmlElement("gYear", typeof(gYear_DEtype), IsNullable=true, Order=0)]

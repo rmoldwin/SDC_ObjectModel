@@ -34,28 +34,30 @@ namespace SDC.Schema.UtilityClasses.Extensions
 
 			switch (qType)
 			{
+				case QuestionEnum.QuestionRaw:
+					break;
 				case QuestionEnum.QuestionSingle:
-					qNew.GetListField().GetList();
+					qNew.GetListField().GetList(); //creates ListField and List
 					break;
 				case QuestionEnum.QuestionMultiple:
 					//qNew.GetListField().GetList();
-					qNew.GetListField().maxSelections = 0;
+					qNew.GetListField().maxSelections = 0; //creates ListField and List
 					break;
 				case QuestionEnum.QuestionFill:
-					qNew.AddQuestionResponseField(out DataTypes_DEType dtDE);
+					qNew.AddQuestionResponseField(out DataTypes_DEType dtDE); //Creates Response node
 					break;
 				case QuestionEnum.QuestionLookupSingle:
-					qNew.GetListField().AddEndpoint();
+					qNew.GetListField().AddEndpoint(); //creates ListField and Lookup node
 					break;
-				case QuestionEnum.QuestionLookupMultiple:
+				case QuestionEnum.QuestionLookupMultiple: //creates ListField and Lookup node
 					qNew.GetListField().AddEndpoint();
-
+					qNew.GetListField().maxSelections = 0;
 					break;
 				default:
 					throw new NotSupportedException($"{qType} is not supported");
 			}
 			qNew.title = title;
-			qNew.InitAfterTreeAdd();
+			//qNew.InitAfterTreeAdd();
 			return qNew;
 		}
 
@@ -83,7 +85,7 @@ namespace SDC.Schema.UtilityClasses.Extensions
 			rf.AddResponseUnits(units);
 			rf.AddTextAfterResponse(textAfterResponse);
 
-			qNew.InitAfterTreeAdd();
+			//qNew.InitAfterTreeAdd();
 			return qNew;
 
 		}
@@ -98,7 +100,7 @@ namespace SDC.Schema.UtilityClasses.Extensions
 			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
 			deList.Insert(insertPosition, sNew);
 			
-			sNew.InitAfterTreeAdd();
+			//sNew.InitAfterTreeAdd();
 			return sNew;
 		}
 
@@ -113,7 +115,7 @@ namespace SDC.Schema.UtilityClasses.Extensions
 			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
 			deList.Insert(insertPosition, dNew);
 			
-			dNew.InitAfterTreeAdd();
+			//dNew.InitAfterTreeAdd();
 			return dNew;
 		}
 
@@ -130,7 +132,7 @@ namespace SDC.Schema.UtilityClasses.Extensions
 
 			// TODO: Add AddButtonActionTypeItems(btnNew);
 
-			btnNew.InitAfterTreeAdd();
+			//btnNew.InitAfterTreeAdd();
 			return btnNew;
 		}
 
@@ -145,7 +147,7 @@ namespace SDC.Schema.UtilityClasses.Extensions
 			deList.Insert(insertPosition, injForm);
 			//TODO: init this InjectForm object
 
-			injForm.InitAfterTreeAdd();
+			//injForm.InitAfterTreeAdd();
 			return injForm;
 		}
 

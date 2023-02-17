@@ -291,20 +291,26 @@ namespace SDC.Schema.Tests.OMTests
 			//var q2 = new QuestionItemType(de, "q2", "q2");			
 			//de.Items.Add(q2);
 			var q2 = de.AddQuestion(QuestionEnum.QuestionSingle, "q2", "q2");
+			var q3 = de.AddQuestion(QuestionEnum.QuestionRaw, "q3", "q3");
+			var q4 = de.AddQuestion(QuestionEnum.QuestionRaw, "q4", "q4");
 
 
-			var rf1 = q1.AddQuestionResponseField(out var dt1, ItemChoiceType.date);
-            var rf2 = q2.AddQuestionResponseField(out var dt2, ItemChoiceType.@int);
+			var rf3 = q3.AddQuestionResponseField(out var dt1, ItemChoiceType.date);
+            var rf4 = q4.AddQuestionResponseField(out var dt2, ItemChoiceType.@int);
 
-            var response1 = rf1.Response;
-            var response2 = rf2.Response;
+			var response3 = rf3.Response;
+            var response4 = rf4.Response;
             //response1.Item = new string_DEtype(null); //error - does not run ItemMutator
 			//response1.DataTypeDE_Item = new string_DEtype(null); //note the null parent - this node is not completely initialized
-			response1.DataTypeDE_Item = new string_DEtype(response1); //
-			Assert.ReferenceEquals(response1.Item.ParentNode, response1); //Check that ItemMutator detected and fixed the parent node for Item
+
+			response3.DataTypeDE_Item = new string_DEtype(response3); //
+			Assert.ReferenceEquals(response3.Item.ParentNode, response3); //Check that ItemMutator detected and fixed the parent node for Item
             Assert.IsTrue(de.GetChildNodes()?[0] == q1); //Show the the _ChildNodes dict has an entry for Item
-			response1.DataTypeDE_Item = new boolean_DEtype(response2); //response2 is the wrong parent - this will test if it's detected and fixed by ItemMutator
-			Assert.ReferenceEquals(response1.Item.ParentNode, response1);
+			Assert.IsTrue(de.GetChildNodes()?[1] == q2); //Show the the _ChildNodes dict has an entry for Item
+			Assert.IsTrue(de.GetChildNodes()?[2] == q3); //Show the the _ChildNodes dict has an entry for Item
+			Assert.IsTrue(de.GetChildNodes()?[3] == q4); //Show the the _ChildNodes dict has an entry for Item
+			response4.DataTypeDE_Item = new boolean_DEtype(response3); //response3 is the wrong parent - this will test if it's detected and fixed by ItemMutator
+			Assert.ReferenceEquals(response4.Item.ParentNode, response4);
 
 
 

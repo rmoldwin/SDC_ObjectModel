@@ -149,10 +149,11 @@ namespace SDC.Schema.Extensions
 		/// Retrieve the <see cref="PropertyInfoMetadata"/> struct describing the current node
 		/// </summary>
 		/// <param name="bt"></param>
+		/// <param name="parentNode">Unless bt is teh root node, parrentIndfo must not be null</param>
 		/// <returns></returns>
-		public static PropertyInfoMetadata GetPropertyInfoMetaData(this BaseType bt)
+		public static PropertyInfoMetadata GetPropertyInfoMetaData(this BaseType bt, BaseType? parentNode)
 		{
-			return SdcUtil.GetElementPropertyInfoMeta(bt);
+			return SdcUtil.GetElementPropertyInfoMeta(bt, parentNode);
 		}
 		/// <summary>
 		/// Starting with the current node, retrieve all descendant nodes in List&lt;BaseType. The list is sorted in node order.>
@@ -252,8 +253,8 @@ namespace SDC.Schema.Extensions
 		/// If the requested object is held by a parent IEnumerable (usually an array of List), the IEnumerable is retuurned as ieItems.
 		/// If the requested object is represented by a non-IEnumerable property, then itemIndex = -1 and ieItems is null.
 		/// </summary>
-		public static int GetListIndex(this BaseType bt)
-		=> SdcUtil.GetElementPropertyInfoMeta(bt, false).ItemIndex;
+		public static int GetListIndex(this BaseType bt, BaseType parentNode)
+		=> SdcUtil.GetElementPropertyInfoMeta(bt, parentNode, false).ItemIndex;
 
 		/// <summary>
 		/// Walk up the SDC object tree to find the first ITopNode ancestor of the current node.<br/>

@@ -61,7 +61,9 @@ namespace SDC.Schema.Extensions
 			=> SdcUtil.IsParentNodeAllowed(btSource, newParent, out _);
 
 		/// <summary>Remove <b><paramref name="btSource"/></b> and all its descendants from the SDC tree. 
-		/// Checks recursively for descendants and removes them from all dictionaries.
+		/// Checks recursively for descendants and removes them from all dictionaries.<br/>
+		/// This method requires that <see cref="BaseType.ParentNode"/> is not null for the supplied node and all descendant nodes,<br/>
+		/// which, in turn, requires that the <see cref="_ITopNode._ChildNodes"/> dictionary has been correctly populated for all subtree nodes.
 		/// </summary>
 		/// <param name="btSource">The node to remove</param>
 		/// <param name="cancelIfChildNodes">If true (default), abort node removal if child nodes (descendants) are present.
@@ -121,22 +123,24 @@ namespace SDC.Schema.Extensions
 		/// Reflect the parent property in the object tree that represents nodeToRemove, 
 		/// then use reflection to set the property to null.  This is non-recursive.<br/>
 		/// Child nodes are not checked and are not individually removed, so the caller must ensure that no child nodes are present.<br/>
+		/// If <see cref="BaseType.ParentNode"/> is null for <paramref name="nodeToRemove"/>, an exception will be thrown.
 		/// Call UnRegisterNode after this method to remove nodes from the node dictionaries.
 		/// </summary>
 		/// <param name="nodeToRemove"></param>
+		/// <param name="parentNode"></param>
 		/// <returns>true if the node is successfuly removed</returns>
 		/// <exception cref="InvalidOperationException"></exception>
 		private static bool RemoveNodeObject(this BaseType nodeToRemove)
 		{
-			var par = nodeToRemove.ParentNode;
-			if (par is null)
-				throw new InvalidOperationException($"{nameof(nodeToRemove.ParentNode)} cannot be null.");
+			var parentNode = nodeToRemove.ParentNode;
+			if (parentNode is null)
+				throw new InvalidOperationException($"{nameof(parentNode)} cannot be null.");
 
-			var prop = nodeToRemove.GetPropertyInfoMetaData().PropertyInfo;
+			var prop = nodeToRemove.GetPropertyInfoMetaData(parentNode).PropertyInfo;
 			if (prop is null)
 				throw new InvalidOperationException($"{nameof(RemoveNodeObject)}: Cannot obtain parent PropertyInfo holding: {nameof(nodeToRemove)}.");
 
-			var propObj = prop.GetValue(par);
+			var propObj = prop.GetValue(parentNode);
 			if (propObj is null)
 				throw new InvalidOperationException($"{nameof(RemoveNodeObject)}: Cannot reflect the parent object holding: {nameof(nodeToRemove)}.");
 
@@ -160,7 +164,7 @@ namespace SDC.Schema.Extensions
 			{
 				Debug.Print($"Before SetValue: propObj is null? {propObj is null}");
 				Console.WriteLine($"Before SetValue: propObj is null? {propObj is null}");
-				prop.SetValue(par, null);
+				prop.SetValue(parentNode, null);
 				Debug.Print($"After SetValue: propObj is null? {propObj is null}");
 				Console.WriteLine($"After SetValue: propObj is null? {propObj is null}");
 				//propObj will still hold a reference to our prop object, until propObj goes out of scope.
@@ -299,18 +303,19 @@ namespace SDC.Schema.Extensions
 				else if (targetObj is IList propList) //btSource can be attached to a member of a List
 					//TODO: refactor block: bool AttachSourceNodetoList() 
 				{
-					var sourceParent = btSource.ParentNode;
-					//par can be null if we are grafting from the btSource tree to another SDC object tree, and btSource is the root node of its tree
-					if (sourceParent is not null) //Remove the reference from par to btSource
+					var sourceParent = btSource.ParentNode;  //if ParentNode is null, and is not ITopNode, this may cause an exception or other errors below 
+
+				//par can be null if we are grafting from the btSource tree to another SDC object tree, and btSource is the root node of its tree
+				if (sourceParent is not null) //Remove the reference from par to btSource
 					{
 						//Remove this from current parent object
 						//The IsParentNodeAllowed call is done only to obtain the currentParentObj, which hold the reference to btSource
-						btSource.IsParentNodeAllowed(sourceParent, out object? currentParentObj);
+						btSource.IsParentNodeAllowed(sourceParent, out object? currentParentObj); //get grandparent of btSource
 						if (currentParentObj is not null)
 						{
-							if (currentParentObj is BaseType)
+							if (currentParentObj is BaseType par)
 							{
-								RemoveNodeObject(sourceParent);
+							sourceParent.RemoveNodeObject();
 							}
 							else if (currentParentObj is not null && currentParentObj is IList objList)
 							{
@@ -321,15 +326,16 @@ namespace SDC.Schema.Extensions
 									objList.Remove(btSource);
 
 									if (deleteEmptyParentNode && objList.Count == 0)
-									{
-										RemoveNodeObject(sourceParent); //requires _ParentNodes entry to work
+								{
+									//will throw if ParentNode is null
+									sourceParent.RemoveNodeObject(); //requires sourceParent.ParentNodes entry to work; will throw if null
 
-										//sourceParent was not previously removed in dictionaries, we only removed its last child node
-										//Since it's now "childless," we can remove this orphan node from both the dictionaries and the SDC OM
-										isSourceParentChildless = true;
-									}
+									//sourceParent was not previously removed in dictionaries, we only removed its last child node
+									//Since it's now "childless," we can remove this orphan node from both the dictionaries and the SDC OM
+									isSourceParentChildless = true;
 								}
 							}
+						}
 							else
 								throw new InvalidOperationException($"Could not reflect parent SDC property object ({nameof(currentParentObj)}) to remove node");
 						}
@@ -350,11 +356,13 @@ namespace SDC.Schema.Extensions
 					btSource.MoveInDictionaries(targetParent: newParent);
 					btSource.AssignOrder(); //Requires that dictionaries are first populated
 
-					if (isSourceParentChildless && deleteEmptyParentNode)
-					{
-						UnRegisterNodeAndParent(sourceParent!); //this calls UnRegisterParent also
-					}
-					return true;
+				if (sourceParent is not null && isSourceParentChildless && deleteEmptyParentNode)
+				{
+					UnRegisterNodeAndParent(sourceParent); //this calls UnRegisterParent also
+				}
+				else { }//source parent may be null here; is that a problem??
+
+				return true;
 				}
 				else 
 					throw new InvalidOperationException("Invalid targetObj: targetObj must be BaseType or IList");

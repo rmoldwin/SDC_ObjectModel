@@ -75,6 +75,27 @@ namespace SDC.Schema.Tests.Utils
 			//var sGuid_q1 = string.Empty;
 			//DifNodeIET? q1 = comparer.GetIETattributes(sGuid_q1);
 		}
+		public void InitV1V6()
+		{
+			string xNew = Setup.BreastStagingTestV6_XML!;
+			string xPrev = Setup.BreastStagingTestV1_XML!;
+
+			var tNew = FormDesignType.DeserializeFromXml(xNew);
+			var tPrev = FormDesignType.DeserializeFromXml(xPrev);
+			_comparer = new CompareTrees<FormDesignType>(tPrev, tNew);
+
+			//var sGuid_q1 = string.Empty;
+			//DifNodeIET? q1 = comparer.GetIETattributes(sGuid_q1);
+		}
+		public void InitCompareTreesV1V2()
+		{
+			string xNew = Setup.CompareTreesTestV2_XML!;
+			string xPrev = Setup.CompareTreesTestV1_XML!;
+
+			var tNew = FormDesignType.DeserializeFromXml(xNew);
+			var tPrev = FormDesignType.DeserializeFromXml(xPrev);
+			_comparer = new CompareTrees<FormDesignType>(tPrev, tNew);
+		}
 
 		[TestMethod()]
 		public void ChangePrevVersionTest()
@@ -361,6 +382,15 @@ namespace SDC.Schema.Tests.Utils
 			Debug.Print(nodesAdd.Count.ToString());
 			Assert.AreEqual(nodesAdd.Count, 3);
 			Assert.AreEqual(nodesAdd.ElementAt(0).sGuid, "XzbI7XtzoUeC84x52v9BTA");
+		}
+		[TestMethod]
+		public void CompareTreesTestV1V2()
+		{
+			InitCompareTreesV1V2();
+			DifNodeIET? difs = _comparer!.GetIETattributes("iUnfss9Ppk-frsOz8qTnIw");
+			Debug.Print(difs!.Value.isNew.ToString());
+			Assert.IsTrue(difs!.Value.isNew);
+
 		}
 	}
 }

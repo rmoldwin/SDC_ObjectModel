@@ -467,16 +467,16 @@ namespace SDC.Schema.Tests.Functional
 			var pList = t.Nodes.Where(n => n.Value is PropertyType).Select(n => n.Value).ToList();
 
 
-			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(qList[1]).ToString());
-			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(sList[1]).ToString());
-			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(aList[1]).ToString());
-			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(cList[1]).ToString());
-			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(pList[1]).ToString());
-			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(qList[10]).ToString());
-			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(sList[10]).ToString());
-			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(aList[10]).ToString());
-			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(cList[10]).ToString());
-			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(pList[10]).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(qList[1], qList[1].ParentNode).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(sList[1], qList[1].ParentNode).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(aList[1], qList[1].ParentNode).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(cList[1], qList[1].ParentNode).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(pList[1], qList[1].ParentNode).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(qList[10], qList[1].ParentNode).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(sList[10], qList[1].ParentNode).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(aList[10], qList[1].ParentNode).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(cList[10], qList[1].ParentNode).ToString());
+			Debug.Print(SdcUtil.GetElementPropertyInfoMeta(pList[10], qList[1].ParentNode).ToString());
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}
 		[TestMethod]
@@ -489,7 +489,7 @@ namespace SDC.Schema.Tests.Functional
 
 			foreach (var n in Setup.FD.Nodes)
 			{
-				SdcUtil.GetElementPropertyInfoMeta(n.Value);
+				SdcUtil.GetElementPropertyInfoMeta(n.Value, n.Value.ParentNode);
 				//Debug.Print(ISdcUtil.GetPropertyInfo(n.Value).ToString());
 			}
 			Debug.Print(((((float)Stopwatch.GetTimestamp() - a) / Stopwatch.Frequency) / Setup.FD.Nodes.Count).ToString());
