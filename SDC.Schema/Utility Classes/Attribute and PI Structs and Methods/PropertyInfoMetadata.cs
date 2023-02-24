@@ -25,8 +25,6 @@ namespace SDC.Schema
 			XmlOrder = xmlOrder;
 			MaxXmlOrder = maxXmlOrder;
 			XmlElementName = xmlElementName;
-
-
 		}
 		public PropertyInfo? PropertyInfo { get; }
 		/// <summary>

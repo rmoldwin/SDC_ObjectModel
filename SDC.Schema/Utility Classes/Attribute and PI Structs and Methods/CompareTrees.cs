@@ -756,12 +756,5 @@ namespace SDC.Schema.Tests.Utils
 		public bool IsPrevNodeRemoved(BaseType prevNode, out BaseType? newNode)
 		=> _newVersion.Nodes.TryGetValue(prevNode.ObjectGUID, out newNode);
 
-
-
-		void test()
-		{
-			var t = GetIETnodesRemovedInNew.Append(new SectionItemType(null));
-			//var d = GetIETattDiffs.Values.Append(new(GetIETattributes("A")));
-		}
 	}
 }

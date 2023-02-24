@@ -1261,7 +1261,12 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="parentNode"></param>
 		/// <param name="position">location of this new node in its parent node's list (if applicable)</param>
-		protected BaseType(BaseType? parentNode, int position = -1)
+		/// <param name="elementName">For new SDC nodes that can take on more than one element name, the caller must supply the intended element name.<br/>
+		/// These types inlcude: <see cref="CallFuncType"/>, <see cref="FileType"/>, <see cref="EventType"/>, <see cref="gMonth"/>, <see cref="anyURI_Stype"/>.<br/>
+		/// The <paramref name="parentNode"/> types that require elementName are: 
+		/// <see cref="DataTypesDateTime_DEType"/>, <see cref="DataTypesDateTime_SType"/>, <see cref="DataTypes_DEType"/>, 
+		/// <see cref="DataTypes_SType"/>, <see cref="CallFuncBaseType"/>, <see cref="RegistrySummaryType"/>, <see cref="ActionsType"/></param>
+		protected BaseType(BaseType? parentNode, int position = -1, string elementName = "")
 		{
 			if (parentNode is null && this is not ITopNode)
 				throw new NullReferenceException($"{nameof(parentNode)} can only be null if this object implements ITopNode.");
@@ -1279,10 +1284,14 @@ namespace SDC.Schema
 					}
 					else
 					{
+						//If this object is multi-named (e.g., CallFuncType, EventType), this method may assign "this" to
+						//the first available property that matches "this" datatype.
+						//TODO: add optional ctor param for ElementName.  Add same param for ItemMutator and Move
 						ItemMutator(target?.As<BaseType>(), this);
 					}
 				}
-				else throw new InvalidOperationException($"This object ({this.GetType().Name}) cannot be attached to the provided {nameof(parentNode)} type ({parentNode.GetType().Name}) ");
+				else if (this is not ITopNode)
+				{ throw new InvalidOperationException($"This object ({this.GetType().Name}) cannot be attached to the provided {nameof(parentNode)} type ({parentNode.GetType().Name}) "); }
 			}
 			
 			InitAfterTreeAdd(); //Register this node, assign this.order, assign this.name
@@ -1698,12 +1707,12 @@ namespace SDC.Schema
 		/// <typeparam name="T"></typeparam>
 		/// <param name="item">The source object to be repaced by <b><paramref name="valueNew"/></b>></param>
 		/// <param name="valueNew">The incoming object to replace <b><paramref name="item"/></b></param>
-		protected internal T? ItemMutator<T>(T? item, T? valueNew) where T : BaseType?
+		/// <param name="elementName"></param>
+		protected internal T? ItemMutator<T>(T? item, T? valueNew, string elementName = "") where T : BaseType?
 		{
 			if (item is not null)
 			{
 				item.RemoveRecursive(false);
-
 			}
 			if (valueNew is not null)
 			{
@@ -1714,10 +1723,9 @@ namespace SDC.Schema
 						//we have a node or subtree that is being grafted from a different SDC tree.
 						//in most cases like this, we will want new sGuid, ObjectID, ObjectGUID, name, ID
 						//Later, we can also reorder the entire tree.
-						valueNew.Move(this);
+						valueNew.Move(this); //calls IsParentNodeAllowed
 					}
 				}
-
 			}
 			return valueNew;
 		}

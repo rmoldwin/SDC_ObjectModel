@@ -46,9 +46,10 @@ namespace SDC.Schema.Extensions
 		/// <param name="newParent">The node to which the <paramref name="btSource"/> node should be moved.</param>
 		/// <param name="pObj">The property object on <paramref name="newParent"/> that would attach to <paramref name="btSource"/> (hold its object reference).
 		/// pObj may be a List&lt;> or a non-List object.</param>
+		/// <param name="elementName"></param>
 		/// <returns>True for allowed parent nodes, false for disallowed not allowed</returns>
-		private static bool IsParentNodeAllowed(this BaseType btSource, BaseType newParent, out object? pObj)
-			=> SdcUtil.IsParentNodeAllowed(btSource, newParent, out pObj);
+		private static bool IsParentNodeAllowed(this BaseType btSource, BaseType newParent, out object? pObj, string elementName = "")
+			=> SdcUtil.IsParentNodeAllowed(btSource, newParent, out pObj, elementName);
 
 		/// <summary>
 		/// Reflect the object tree to determine if <paramref name="btSource"/> can be attached to <paramref name="newParent"/>.   
@@ -56,9 +57,10 @@ namespace SDC.Schema.Extensions
 		/// </summary>
 		/// <param name="btSource">The SDC node to test for its ability to be attached to the <paramref name="newParent"/> node.</param>
 		/// <param name="newParent">The node to which the <paramref name="btSource"/> node should be moved.</param>
+		/// <param name="elementName"></param>
 		/// <returns>True for allowed parent nodes, false for disallowed not allowed</returns>
-		public static bool IsParentNodeAllowed(this BaseType btSource, BaseType newParent)
-			=> SdcUtil.IsParentNodeAllowed(btSource, newParent, out _);
+		public static bool IsParentNodeAllowed(this BaseType btSource, BaseType newParent, string elementName = "")
+			=> SdcUtil.IsParentNodeAllowed(btSource, newParent, out _, elementName = "");
 
 		/// <summary>Remove <b><paramref name="btSource"/></b> and all its descendants from the SDC tree. 
 		/// Checks recursively for descendants and removes them from all dictionaries.<br/>
@@ -68,6 +70,7 @@ namespace SDC.Schema.Extensions
 		/// <param name="btSource">The node to remove</param>
 		/// <param name="cancelIfChildNodes">If true (default), abort node removal if child nodes (descendants) are present.
 		/// If false, btSource and all descendants will be permanently removed.</param>
+		/// <param name="elementName"></param>
 		/// <returns>True if node removal was successful; false if unsuccessful</returns>
 		public static bool RemoveRecursive(this BaseType btSource, bool cancelIfChildNodes = true)
 		{
@@ -227,105 +230,105 @@ namespace SDC.Schema.Extensions
 
 			if (! btSource.IsParentNodeAllowed(newParent, out object? targetObj)) return false;
 
-				//!Set SameRoot
-				//Do btSource and newParent share the same root node? (Are they from the same SDC tree?)
-				bool sameRoot = false;  //Do source and target share the same root node?
-				var sourceRoot = btSource.FindRootNode();
-				if (sourceRoot is null) throw new NullReferenceException($"The root node of {nameof(btSource)} could not be determined.");
-				var newParentRoot = newParent.FindRootNode();
-				if (sourceRoot is null) throw new NullReferenceException($"The root node of {nameof(newParent)} could not be determined.");
+			//!Set SameRoot
+			//Do btSource and newParent share the same root node? (Are they from the same SDC tree?)
+			bool sameRoot = false;  //Do source and target share the same root node?
+			var sourceRoot = btSource.FindRootNode();
+			if (sourceRoot is null) throw new NullReferenceException($"The root node of {nameof(btSource)} could not be determined.");
+			var newParentRoot = newParent.FindRootNode();
+			if (sourceRoot is null) throw new NullReferenceException($"The root node of {nameof(newParent)} could not be determined.");
 
-				if (sourceRoot.Equals(newParentRoot)) sameRoot = true;
-				else //!+Process btSource tree with different root node
+			if (sourceRoot.Equals(newParentRoot)) sameRoot = true;
+			else //!+Process btSource tree with different root node
+			{
+				//Set TopNode for the first nodes of the source branch (subtree)
+				//The TopNode of these items might derive from a completely different SDC tree,
+				//and thus must be reset to match the current target node's TopNode
+				BaseType? n;
+				BaseType? nextNode;
+				int i = 0;
+				n = btSource;
+				if (btSource.TopNode != newParent.TopNode) updateMetadata = true;
+				_ITopNode currentTopNode = (_ITopNode)newParent.TopNode;
+
+				for (; ; ) //Set TopNodes in btSource tree (possibly we could stop when we hit a new ITopNode)
 				{
-					//Set TopNode for the first nodes of the source branch (subtree)
-					//The TopNode of these items might derive from a completely different SDC tree,
-					//and thus must be reset to match the current target node's TopNode
-					BaseType? n;
-					BaseType? nextNode;
-					int i = 0;
-					n = btSource;
-					if (btSource.TopNode != newParent.TopNode) updateMetadata = true;
-					_ITopNode currentTopNode = (_ITopNode)newParent.TopNode;
+					i++;
+					if (i > 1000000)
+						throw new InvalidOperationException($"Could not assign {nameof(btSource.TopNode)} to nodes in {nameof(btSource)} tree, due to inability to walk its SDC tree");
 
-					for (; ; ) //Set TopNodes in btSource tree (possibly we could stop when we hit a new ITopNode)
+					n.TopNode = currentTopNode; //currentTopNode can't be null
+					nextNode = btSource.GetNodeReflectNext();
+					if (nextNode is null) break;
+
+					if (n is _ITopNode itn)
 					{
-						i++;
-						if (i > 1000000) 
-							throw new InvalidOperationException($"Could not assign {nameof(btSource.TopNode)} to nodes in {nameof(btSource)} tree, due to inability to walk its SDC tree");
-
-						n.TopNode = currentTopNode; //currentTopNode can't be null
-						nextNode = btSource.GetNodeReflectNext();
-						if (nextNode is null) break;
-
-						if (n is _ITopNode itn)
-						{
-							//if (nextNode.TopNode is not null) break; //we assume the rest of the tree has correct TopNode assignments
-							currentTopNode = itn;
-						}
-						n = nextNode;
+						//if (nextNode.TopNode is not null) break; //we assume the rest of the tree has correct TopNode assignments
+						currentTopNode = itn;
 					}
-					//TODO: Refactor node Workers to methods as needed
-					//This is a nodeWorkerFirst lambda designed for us in ReflectRefreshSubtreeList
-					//TODO: We may need to modify this nodeWorker to detect and update duplicate sGuids and IDs (on IET nodes) in the target tree.
-					var UpdateObjectID = (BaseType node) =>
-						{
-							if (node is ITopNode tn)
-							{
-								((_ITopNode)node)._MaxObjectID = 0;
-								node.ObjectID = 0;
-								return true;
-							}
-							node.ObjectID = ((_ITopNode)node)._MaxObjectID++;
-							return true;
-						};
-
-					//Re-create dictionaries, ID, BaseName, @name, sGuid/ObjectGUID, etc for all btSource nodes.
-					//TODO: Will this work for a source tree that differs from the target tree??
-					//It also may create errors if duplicate sGuids and IDs are found.
-					//This may require ReflectRefreshSubtreeList to quietly fix these things.
-					var sourceNodeList =
-						SdcUtil.ReflectRefreshSubtreeList(btSource, false, false, true,
-						0, 1, true, SdcUtil.CreateCAPname, UpdateObjectID);
-
-				}//TODO: process donor node/branch: ObjectID, sGuid, ObjectID, @name, ID, baseURI?, Link?, events?, rule targets?
-
-				bool isSourceParentChildless = false;
-
-				if (targetObj is BaseType) //btSource can be attached directly to targetObj
-				{
-					targetObj = btSource;					
-					btSource.MoveInDictionaries(targetParent: newParent);
-					btSource.AssignOrder(); //Required that dictionaries are first populated
-
-					return true;
+					n = nextNode;
 				}
-				else if (targetObj is IList propList) //btSource can be attached to a member of a List
-					//TODO: refactor block: bool AttachSourceNodetoList() 
-				{
-					var sourceParent = btSource.ParentNode;  //if ParentNode is null, and is not ITopNode, this may cause an exception or other errors below 
+				//TODO: Refactor node Workers to methods as needed
+				//This is a nodeWorkerFirst lambda designed for us in ReflectRefreshSubtreeList
+				//TODO: We may need to modify this nodeWorker to detect and update duplicate sGuids and IDs (on IET nodes) in the target tree.
+				var UpdateObjectID = (BaseType node) =>
+					{
+						if (node is ITopNode tn)
+						{
+							((_ITopNode)node)._MaxObjectID = 0;
+							node.ObjectID = 0;
+							return true;
+						}
+						node.ObjectID = ((_ITopNode)node)._MaxObjectID++;
+						return true;
+					};
+
+				//Re-create dictionaries, ID, BaseName, @name, sGuid/ObjectGUID, etc for all btSource nodes.
+				//TODO: Will this work for a source tree that differs from the target tree??
+				//It also may create errors if duplicate sGuids and IDs are found.
+				//This may require ReflectRefreshSubtreeList to quietly fix these things.
+				var sourceNodeList =
+					SdcUtil.ReflectRefreshSubtreeList(btSource, false, false, true,
+					0, 1, true, SdcUtil.CreateCAPname, UpdateObjectID);
+
+			}//TODO: process donor node/branch: ObjectID, sGuid, ObjectID, @name, ID, baseURI?, Link?, events?, rule targets?
+
+			bool isSourceParentChildless = false;
+
+			if (targetObj is BaseType) //btSource can be attached directly to targetObj
+			{
+				targetObj = btSource;
+				btSource.MoveInDictionaries(targetParent: newParent);
+				btSource.AssignOrder(); //Required that dictionaries are first populated
+
+				return true;
+			}
+			else if (targetObj is IList propList) //btSource can be attached to a member of a List
+												  //TODO: refactor block: bool AttachSourceNodetoList() 
+			{
+				var sourceParent = btSource.ParentNode;  //if ParentNode is null, and is not ITopNode, this may cause an exception or other errors below 
 
 				//par can be null if we are grafting from the btSource tree to another SDC object tree, and btSource is the root node of its tree
 				if (sourceParent is not null) //Remove the reference from par to btSource
+				{
+					//Remove this from current parent object
+					//The IsParentNodeAllowed call is done only to obtain the currentParentObj, which hold the reference to btSource
+					btSource.IsParentNodeAllowed(sourceParent, out object? currentParentObj); //get grandparent of btSource
+					if (currentParentObj is not null)
 					{
-						//Remove this from current parent object
-						//The IsParentNodeAllowed call is done only to obtain the currentParentObj, which hold the reference to btSource
-						btSource.IsParentNodeAllowed(sourceParent, out object? currentParentObj); //get grandparent of btSource
-						if (currentParentObj is not null)
+						if (currentParentObj is BaseType par)
 						{
-							if (currentParentObj is BaseType par)
-							{
 							sourceParent.RemoveNodeObject();
-							}
-							else if (currentParentObj is not null && currentParentObj is IList objList)
+						}
+						else if (currentParentObj is not null && currentParentObj is IList objList)
+						{
+							//remove the btSource reference from this parent IList
+							//var objList = (IList)currentParentObj;
+							if (objList?.IndexOf(btSource) > -1) //this extra test may not be necessary
 							{
-								//remove the btSource reference from this parent IList
-								//var objList = (IList)currentParentObj;
-								if (objList?.IndexOf(btSource) > -1) //this extra test may not be necessary
-								{
-									objList.Remove(btSource);
+								objList.Remove(btSource);
 
-									if (deleteEmptyParentNode && objList.Count == 0)
+								if (deleteEmptyParentNode && objList.Count == 0)
 								{
 									//will throw if ParentNode is null
 									sourceParent.RemoveNodeObject(); //requires sourceParent.ParentNodes entry to work; will throw if null
@@ -336,25 +339,25 @@ namespace SDC.Schema.Extensions
 								}
 							}
 						}
-							else
-								throw new InvalidOperationException($"Could not reflect parent SDC property object ({nameof(currentParentObj)}) to remove node");
-						}
 						else
-							throw new InvalidOperationException($"Could not obtain SDC property object ({nameof(currentParentObj)})");
+							throw new InvalidOperationException($"Could not reflect parent SDC property object ({nameof(currentParentObj)}) to remove node");
 					}
-					else { }//sourceParent is null
+					else
+						throw new InvalidOperationException($"Could not obtain SDC property object ({nameof(currentParentObj)})");
+				}
+				else { }//sourceParent is null
 						//btSource.RegisterNodeAndParent();
 
-					if (newListIndex < 0 || newListIndex >= propList.Count) 
-						propList.Add(btSource);
-					else 
-						propList.Insert(newListIndex, btSource);
+				if (newListIndex < 0 || newListIndex >= propList.Count)
+					propList.Add(btSource);
+				else
+					propList.Insert(newListIndex, btSource);
 
 
-					//!Remove deleted nodes from _ITop Node dictionaries
-					//
-					btSource.MoveInDictionaries(targetParent: newParent);
-					btSource.AssignOrder(); //Requires that dictionaries are first populated
+				//!Remove deleted nodes from _ITop Node dictionaries
+				//
+				btSource.MoveInDictionaries(targetParent: newParent);
+				btSource.AssignOrder(); //Requires that dictionaries are first populated
 
 				if (sourceParent is not null && isSourceParentChildless && deleteEmptyParentNode)
 				{
@@ -363,10 +366,10 @@ namespace SDC.Schema.Extensions
 				else { }//source parent may be null here; is that a problem??
 
 				return true;
-				}
-				else 
-					throw new InvalidOperationException("Invalid targetObj: targetObj must be BaseType or IList");
-				
+			}//IList
+			else //not IList<BaseTypr> or BaseType
+				throw new InvalidOperationException("Invalid targetObj: targetObj must be BaseType or IList");
+
 		}
 
 
