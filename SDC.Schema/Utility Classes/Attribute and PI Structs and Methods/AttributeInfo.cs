@@ -269,17 +269,16 @@ namespace SDC.Schema
 	{
 
 		public AttInfoDif(string sGuidSubnode, 
-			AttributeInfo? aiPrev, AttributeInfo? aiNew)
-			//, string elementName, string propertyName = "")
+			AttributeInfo? aiPrev, AttributeInfo? aiNew
+			, string elementName, string propertyName, string displayName)
 		{
-			this.sGuidSubnode = sGuidSubnode;
-			
+			this.sGuidSubnode = sGuidSubnode;			
 			this.aiPrev = aiPrev;
 			this.aiNew = aiNew;
-			//TODO: Add ElementName, PropName to AttInfoDif
-			//this.elementName = elementName;
-			//this.propertyName = propertyName;
-
+			this.elementName = elementName;
+			this.propertyName = propertyName;
+			this.displayName = displayName;
+			 
 		}
 		/// <summary>
 		/// The ShortGuid (sGuid) identifying the same compared node in the new and previous versions of 2 compared SDC trees.
@@ -298,12 +297,15 @@ namespace SDC.Schema
 		/// <summary>
 		/// 
 		/// </summary>
-		//public readonly string? elementName;
+		public readonly string? elementName;
 		/// <summary>
 		/// 
 		/// </summary>
-		//public readonly string? propertyName;
-		
+		public readonly string? propertyName;
+		/// <summary>
+		/// 
+		/// </summary>
+		public readonly string? displayName;
 	}
 
 	/// <summary>

@@ -392,5 +392,25 @@ namespace SDC.Schema.Tests.Utils
 			Assert.IsTrue(difs!.Value.isNew);
 
 		}
+		[TestMethod]
+		public void CompareChangedIETnodeTest()
+		{
+			InitCompareTreesV1V2();
+			var newTree = _comparer!.NewVersion;
+			SectionItemType node = (SectionItemType)newTree.Nodes[ShortGuid.Decode("F5GvSNED4kC6C9SDUhNSUA")];
+			node.title += "*****";
+			node.Property[0].propName += "*****";
+			node.Property[1].propName += "*****";
+			DifNodeIET nodeDifs = _comparer.CompareIET(node);
+			//checked the changed propName in displayName field
+			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[0].displayName == "Section"); //Section title
+			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[0].aiNew?.Name == "title"); //Section title
+			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[0].aiNew?.ValueString == "Nunc non nisi a arcu tempus dapibus*****"); //Section title
+			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[1].displayName == "ReportText*****");  //Property with ReportText
+			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[2].displayName == "altText*****");  //Property with altText
+			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[2].elementName == "Property");  
+
+
+		}
 	}
 }
