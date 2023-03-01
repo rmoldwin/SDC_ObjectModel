@@ -10,37 +10,25 @@ namespace SDC.Schema.Extensions
 			if (li.ListItemResponseField is not null) 
 				throw new InvalidOperationException
 					("A ListItemResponseField object (lirf) already exists.  " +
-					"Run the Remove() method on that ListItemResponseField object before replacing it");
-			var liRF = new ListItemResponseFieldType(li);
-			li.ListItemResponseField = liRF;
+					"Run the RemoveRecursive() method on that ListItemResponseField object before replacing it");
 
-			return liRF;
+			return new ListItemResponseFieldType(li);
 		}
 		public static EventType AddOnDeselect(this ListItemType li)
 		{
-			var ods = new EventType(li);
-			li.OnDeselect ??= new();
-			li.OnDeselect.Add(ods);
-			return ods;
+			return new EventType(li, -1, "OnDeselect");
 		}
 		public static EventType AddOnSelect(this ListItemType li)
 		{
-			var n = new EventType(li);
-			li.OnSelect ??= new();
-			li.OnSelect.Add(n);
-			return n;
+			return new EventType(li, -1, "OnSelect"); ;
 		}
 		public static PredGuardType AddSelectIf(this ListItemType li)
 		{
-			var n = new PredGuardType(li);
-			li.SelectIf = n;
-			return n;
+			return new PredGuardType(li, -1, "SelectIf");
 		}
-		public static PredGuardType AddDeSelectIf(this ListItemType li)
+		public static PredGuardType AddDeselectIf(this ListItemType li)
 		{
-			var n = new PredGuardType(li);
-			li.DeselectIf = n;
-			return n;
+			return new PredGuardType(li, -1, "DeselectIf");
 		}
 		/// <summary>
 		/// Retrieve the node that holds an SDC data type object.  

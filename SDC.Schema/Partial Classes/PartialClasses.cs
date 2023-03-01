@@ -31,18 +31,22 @@ namespace SDC.Schema
 		#region ctor
 
 		protected FormDesignType() : base()
-		{ Init(); }
-		public FormDesignType(BaseType? parentNode, string id) : base(parentNode, id)
+		{ 
+			Init(); 
+		}
+		public FormDesignType(BaseType? parentNode, string id, int position = -1, string elementName = "FormDesign") : base(parentNode, id, position, elementName)
 		{
 			if (this is DemogFormDesignType)
 			{
 				if (parentNode is null || parentNode is XMLPackageType parXP)
 					Init();
+				ElementName = "DemogFormDesign";
 			}
 			else if (this is FormDesignType)
 			{
 				if (parentNode is null || parentNode is XMLPackageType parRFP || parentNode is InjectFormType parIF)
 					Init();
+				ElementName = "FormDesign";
 			}
 			else throw new InvalidOperationException("parentNode must be either null or RetrieveFormPackageType or InjectFormType");
 		}
@@ -197,8 +201,7 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="parentNode"/>
 		/// <param name="id"></param>
-		public DemogFormDesignType(XMLPackageType? parentNode = null!, string id = "")
-			: base(parentNode, id)
+		public DemogFormDesignType(XMLPackageType? parentNode, string id): base(parentNode, id, -1, "DemogFormDesign")
 		{ Init(); }//use the FormDesignType constructor (base(parentNode, id))
 
 		private void Init()
@@ -248,7 +251,7 @@ namespace SDC.Schema
 	{
 		protected DataElementType() : base()
 		{ Init(); }
-		public DataElementType(XMLPackageType? parentNode, string id = "", int position = -1) : base(parentNode, id, position)
+		public DataElementType(XMLPackageType? parentNode, string id = "", int position = -1) : base(parentNode, id, position, "DataElement")
 		{
 			Init();
 		}
@@ -387,7 +390,7 @@ namespace SDC.Schema
 	{
 		protected RetrieveFormPackageType() : base()
 		{ Init(); }
-		public RetrieveFormPackageType(RetrieveFormPackageType? parentNode, string packageID, int position = -1) : base(parentNode, position)
+		public RetrieveFormPackageType(RetrieveFormPackageType? parentNode, string packageID, int position = -1) : base(parentNode, position, "SDCPackage")
 		{
 			this.packageID = packageID;
 			Init();
@@ -525,18 +528,29 @@ namespace SDC.Schema
 	{
 		protected BasePackageType()
 		{ }
-		public BasePackageType(RetrieveFormPackageType? parentNode, int position) : base(parentNode, position)
+		public BasePackageType(RetrieveFormPackageType? parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{ }
 	}
 	public partial class HTMLPackageType : ExtensionBaseType
 	{
 		protected HTMLPackageType()
 		{ }
-		public HTMLPackageType(ExtensionBaseType? parentNode, int position = -1) : base(parentNode, position)
-		{ }
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "HTML"<br/>
+		/// "HTMLPackage"<br/>
+		/// </param>
+		public HTMLPackageType(ExtensionBaseType? parentNode, string elementName) : base(parentNode, -1, elementName)
+		{ 
+			Init();
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
+		}
 		private void Init()
 		{
-			ElementName = "HTMLPackage";
 			ElementPrefix = "htmlPkg";
 		}
 	}
@@ -544,7 +558,7 @@ namespace SDC.Schema
 	{
 		protected XMLPackageType()
 		{ }
-		public XMLPackageType(ExtensionBaseType? parentNode, int position = -1) : base(parentNode, position)
+		public XMLPackageType(ExtensionBaseType? parentNode, int position = -1) : base(parentNode, position, "XMLPackage")
 		{ }
 		private void Init()
 		{
@@ -556,7 +570,7 @@ namespace SDC.Schema
 	{
 		protected PackageItemType()
 		{ }
-		public PackageItemType(ExtensionBaseType? parentNode, int position = -1) : base(parentNode, position)
+		public PackageItemType(ExtensionBaseType? parentNode, int position = -1) : base(parentNode, position, "PackageItem")
 		{ }
 		private void Init()
 		{
@@ -570,7 +584,7 @@ namespace SDC.Schema
 	{
 		protected PackageListType() : base()
 		{ Init(); }
-		public PackageListType(PackageListType? parentNode) : base(parentNode)
+		public PackageListType(PackageListType? parentNode, int position = -1) : base(parentNode, position, "SDCPackageList")
 		{
 			Init();
 		}
@@ -698,14 +712,24 @@ namespace SDC.Schema
 	{
 		protected MappingType() : base()
 		{ Init(); }
-		public MappingType(XMLPackageType? parentNode, string templateID = "") : base(parentNode)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="templateID"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "Map"<br/>
+		/// "MapTemplate" (uses position)<br/>
+		/// </param>
+		public MappingType(XMLPackageType? parentNode, string templateID, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			this.templateID = templateID;
 			Init();
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
-			ElementName = "MapTemplate";
 			ElementPrefix = "MAP";
 		}
 		#region ITopNode
@@ -828,7 +852,7 @@ namespace SDC.Schema
 		: IChildItemsMember<ButtonItemType>
 	{
 		protected ButtonItemType() { Init(); }
-		public ButtonItemType(BaseType parentNode, string id = "", int position = -1) : base(parentNode, id, position)
+		public ButtonItemType(BaseType parentNode, string id = "", int position = -1) : base(parentNode, id, position, "ButtonAction")
 		{
 			Init();
 		}
@@ -843,7 +867,7 @@ namespace SDC.Schema
 	public partial class InjectFormType : IChildItemsMember<InjectFormType>
 	{
 		protected InjectFormType() { Init(); }
-		public InjectFormType(BaseType parentNode, string id = "", int position = -1) : base(parentNode, id, position)
+		public InjectFormType(BaseType parentNode, string id = "", int position = -1) : base(parentNode, id, position, "InjectForm")
 		{
 			Init();
 		}
@@ -858,29 +882,21 @@ namespace SDC.Schema
 	public partial class SectionBaseType
 	{
 		public SectionBaseType() { Init(); }
-		internal SectionBaseType(BaseType parentNode, string id, int position) : base(parentNode, id, position)
-		{
-			Init();
-		}
+		internal SectionBaseType(BaseType parentNode, string id, int position = -1) : base(parentNode, id, position, "Section")
+		{ Init(); }
 		private void Init()
-		{
-			this._ordered = true;
-			ElementName = "Section";
-			ElementPrefix = "S";
-		}
-
-		//public void FillSectionBaseType()
-		//{ sdcTreeBuilder.FillSectionBase(this); }
+		{	this._ordered = true;	}
 	}
 
 	public partial class SectionItemType : IChildItemsParent, IChildItemsMember<SectionItemType>
 	{
 		protected SectionItemType() { Init(); } //change back to protected
-		public SectionItemType(BaseType parentNode, string id = "", int position = -1) : base(parentNode, id, position)
+		public SectionItemType(BaseType parentNode, string id, int position = -1) : base(parentNode, id, position)
 		{ Init(); }
 		private void Init()
-		{
-
+		{			
+			ElementName = "Section";
+			ElementPrefix = "S";
 		}
 
 		#region IChildItemsParent Implementation
@@ -938,7 +954,7 @@ namespace SDC.Schema
 	public partial class QuestionItemBaseType : IQuestionBase
 	{
 		protected QuestionItemBaseType() { Init(); }
-		public QuestionItemBaseType(BaseType parentNode, string id, int position) : base(parentNode, id, position)
+		public QuestionItemBaseType(BaseType parentNode, string id, int position) : base(parentNode, id, position, "Question")
 		{
 			Init();
 			//this._readOnly = false;  // tag:#IsThisCorrect
@@ -987,13 +1003,14 @@ namespace SDC.Schema
 	public partial class ListType : IQuestionList
 	{
 		protected ListType() { Init(); }
-		public ListType(BaseType parentNode) : base(parentNode)
+		public ListType(BaseType parentNode) : base(parentNode, -1, "")
 		{
 			Init();
 		}
 		private void Init()
 		{
 			ElementPrefix = "lst";  // tag:#IsThisCorrect
+			ElementName = "List";
 			Items = new();
 		}
 
@@ -1017,7 +1034,7 @@ namespace SDC.Schema
 
 	{// #NeedsTest
 		protected ListFieldType() { Init(); }
-		public ListFieldType(BaseType parentNode) : base(parentNode)
+		public ListFieldType(BaseType parentNode) : base(parentNode, -1, "ListField")
 		{
 			Init();
 		}
@@ -1025,6 +1042,7 @@ namespace SDC.Schema
 		private void Init()
 		{
 			ElementPrefix = "lf";
+			ElementName = "ListField";
 			this._colTextDelimiter = "|";
 			this._numCols = ((byte)(1));
 			this._storedCol = ((byte)(1));
@@ -1128,7 +1146,7 @@ namespace SDC.Schema
 	public partial class LookupEndPointType  //TODO: fix base class in Schema update
 	{
 		protected LookupEndPointType() { Init(); }
-		public LookupEndPointType(ListFieldType parentNode) : base(parentNode)
+		public LookupEndPointType(ListFieldType parentNode) : base(parentNode, -1, "LookupEndPoint")
 		{
 			Init();
 
@@ -1137,6 +1155,7 @@ namespace SDC.Schema
 		{
 			this._includesHeaderRow = false;
 			ElementPrefix = "lep";
+			ElementName = "LookupEndPoint";
 		}
 	}
 
@@ -1147,7 +1166,7 @@ namespace SDC.Schema
 	public partial class ListItemResponseFieldType
 	{
 		protected ListItemResponseFieldType() { Init(); }
-		public ListItemResponseFieldType(ListItemBaseType parentNode) : base(parentNode)
+		public ListItemResponseFieldType(ListItemBaseType parentNode) : base(parentNode, "ListItemResponseField")
 		{
 			Init();
 
@@ -1156,16 +1175,17 @@ namespace SDC.Schema
 		{
 			this._responseRequired = false;
 			ElementPrefix = "lirf";
+			ElementName = "ListItemResponseField";
 		}
 	}
 
 	public partial class ResponseFieldType
 	{
 		protected ResponseFieldType() { Init(); }
-		public ResponseFieldType(IdentifiedExtensionType parentNode) : base(parentNode)
+		public ResponseFieldType(IdentifiedExtensionType parentNode, string elementName = "ResponseField") : base(parentNode, -1, elementName)
 		{
 			Init();
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -1178,16 +1198,26 @@ namespace SDC.Schema
 	public partial class UnitsType
 	{
 		protected UnitsType() { Init(); }
-		public UnitsType(BaseType parentNode) : base(parentNode)
+		/// <summary>
+		/// Options: <br/>
+		///Units
+		///ResponseUnits 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="elementName">Options: <br/>
+		///"Units"<br/>
+		///"ResponseUnits"</param>
+		public UnitsType(BaseType parentNode, string elementName) : base(parentNode, -1, elementName)
 		{
 			Init();
-
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
 			_unitSystem = "UCUM";
 			ElementPrefix = "un";
+			//Units
+			//ResponseUnits
 		}
 	}
 
@@ -1242,27 +1272,15 @@ namespace SDC.Schema
 				ObjectID = -1;
 			}
 		}
-
+		
 		/// <summary>
 		/// This parameterized constructor is NOT used to Deserialize SDC classes.
 		/// TopNode is retrieved from the parent node, if it exists, and used to set the current TopNode.
 		/// </summary>
 		/// <param name="parentNode"></param>
-		protected BaseType(BaseType? parentNode)
-		{
-			if (parentNode is null && this is not ITopNode)
-				throw new NullReferenceException($"{nameof(parentNode)} can only be null if this object implements ITopNode.");
-			InitBaseType(parentNode);
-			return;
-		}
-		/// <summary>
-		/// This parameterized constructor is NOT used to Deserialize SDC classes.
-		/// TopNode is retrieved from the parent node, if it exists, and used to set the current TopNode.
-		/// </summary>
-		/// <param name="parentNode"></param>
-		/// <param name="position">location of this new node in its parent node's list (if applicable)</param>
+		/// <param name="position">Location of this new node in its parent node's list (if applicable)</param>
 		/// <param name="elementName">For new SDC nodes that can take on more than one element name, the caller must supply the intended element name.<br/>
-		/// These types inlcude: <see cref="CallFuncType"/>, <see cref="FileType"/>, <see cref="EventType"/>, <see cref="gMonth"/>, <see cref="anyURI_Stype"/>.<br/>
+		/// These types include: <see cref="CallFuncType"/>, <see cref="FileType"/>, <see cref="EventType"/>, <see cref="gMonthDay_DEtype"/>, <see cref="anyURI_Stype"/>.<br/>
 		/// The <paramref name="parentNode"/> types that require elementName are: 
 		/// <see cref="DataTypesDateTime_DEType"/>, <see cref="DataTypesDateTime_SType"/>, <see cref="DataTypes_DEType"/>, 
 		/// <see cref="DataTypes_SType"/>, <see cref="CallFuncBaseType"/>, <see cref="RegistrySummaryType"/>, <see cref="ActionsType"/></param>
@@ -1271,30 +1289,23 @@ namespace SDC.Schema
 			if (parentNode is null && this is not ITopNode)
 				throw new NullReferenceException($"{nameof(parentNode)} can only be null if this object implements ITopNode.");
 			InitBaseType(parentNode);
-			if(parentNode is not null)
+			if (parentNode is not null)
 			{
-				if (SdcUtil.IsParentNodeAllowed(this, parentNode, out var target))
-				{
-					if (target is IList targetList)
-					{
-						if (position == -1 || position > targetList.Count - 1)
-							position = targetList.Count - 1;
-						if (position == -1) position = 0; //position = -1 normally means Last.  However, if there arre no entries in the List yet, Last = First = 0
-						targetList.Insert(position, this);
-					}
-					else
-					{
-						//If this object is multi-named (e.g., CallFuncType, EventType), this method may assign "this" to
-						//the first available property that matches "this" datatype.
-						//TODO: add optional ctor param for ElementName.  Add same param for ItemMutator and Move
-						ItemMutator(target?.As<BaseType>(), this);
-					}
-				}
-				else if (this is not ITopNode)
-				{ throw new InvalidOperationException($"This object ({this.GetType().Name}) cannot be attached to the provided {nameof(parentNode)} type ({parentNode.GetType().Name}) "); }
+				bool result = SdcUtil.TryAttachNewNode(parentNode, this, elementName,
+					out var piTarget, out var target, 
+					out var objectChoiceEnum, out string errorMsg,
+					true, position, true, false);
+
+				if(!result )
+					throw new InvalidOperationException(
+					$"This object type ({this.GetType().Name}) cannot be attached to the provided {nameof(parentNode)} type " +
+					$"({parentNode?.GetType().Name}).\r\n" + errorMsg);
+
+				if (target is null)
+					throw new InvalidOperationException(
+					$"This object type ({this.GetType().Name}) cannot be attached to the provided {nameof(parentNode)} type ({parentNode?.GetType().Name}).");
 			}
-			
-			InitAfterTreeAdd(); //Register this node, assign this.order, assign this.name
+			InitAfterTreeAdd(parentNode); //Register this node, assign this.order, assign this.name
 			return;
 		}
 
@@ -1369,11 +1380,11 @@ namespace SDC.Schema
 			//}
 		}
 
-		internal void InitAfterTreeAdd()
+		internal void InitAfterTreeAdd(BaseType? parentNode)
 		{
 			if (this.TopNode is not null)
 			{   //a node with a null TopNode will not be registered in any TopNode dictionaries.
-				this.RegisterNodeAndParent(this.ParentNode);
+				this.RegisterNodeAndParent(parentNode);
 
 				//The following code requires that the current node is first added
 				//to the ParentNodes dictionary.  Thus, these statements must come
@@ -1438,7 +1449,7 @@ namespace SDC.Schema
 
 		[XmlIgnore]
 		[JsonIgnore]
-		public ITopNode TopNode
+		public ITopNode? TopNode
 		{
 			get; protected internal set;
 		}
@@ -1710,22 +1721,18 @@ namespace SDC.Schema
 		/// <param name="elementName"></param>
 		protected internal T? ItemMutator<T>(T? item, T? valueNew, string elementName = "") where T : BaseType?
 		{
+			if (item == valueNew) 
+				return valueNew;  //this will prevent running item.RemoveRecursive when we are reassigning the same object.
+
 			if (item is not null)
-			{
 				item.RemoveRecursive(false);
-			}
-			if (valueNew is not null)
+
+			if (valueNew is not null && valueNew.TopNode != this.TopNode)
 			{
-				if (true || valueNew.TopNode is not null)
-				{
-					if (valueNew.TopNode != this.TopNode)
-					{
-						//we have a node or subtree that is being grafted from a different SDC tree.
-						//in most cases like this, we will want new sGuid, ObjectID, ObjectGUID, name, ID
-						//Later, we can also reorder the entire tree.
-						valueNew.Move(this); //calls IsParentNodeAllowed
-					}
-				}
+				//we have a node or subtree that is being grafted from a different SDC tree.
+				//in most cases like this, we will want new sGuid, ObjectID, ObjectGUID, name, ID
+				//Later, we can also reorder the entire tree.
+				valueNew.Move(this, -1, true, true); //calls IsParentNodeAllowed
 			}
 			return valueNew;
 		}
@@ -1741,6 +1748,9 @@ namespace SDC.Schema
 			//where L : List<T>?  //the List is often null
 			where T : BaseType  //we do not allow nulls in the list
 		{
+			if(itemsListOld == valueListNew)
+				return valueListNew;  //this will prevent running RemoveRecursive when we are reassigning the same object.
+
 			if (itemsListOld is not null  && itemsListOld.Count > 0)
 				foreach (T n in itemsListOld) n.RemoveRecursive(false);
 
@@ -1753,7 +1763,6 @@ namespace SDC.Schema
 				}
 				throw new InvalidOperationException($"The supplied {nameof(valueListNew)} could not be used to set {nameof(itemsListOld)}.");
 			}
-
 			return null; //value will be allowed to have a null value until compiler null-checking is enabled globally, and we can reliably exclude all nulls from this method at compile time and runtime
 		}
 
@@ -1782,7 +1791,7 @@ namespace SDC.Schema
 
 		#region Private Members
 		private int elementOrder;
-		private string _elementName = "";
+		 private string _elementName = "";
 		private string _elementPrefix = "";
 		private RetrieveFormPackageType? _PackageNode;
 		private static ITopNode? LastTopNode;
@@ -1798,7 +1807,7 @@ namespace SDC.Schema
 	public partial class ExtensionBaseType : IExtensionBase
 	{
 		protected ExtensionBaseType() { }
-		public ExtensionBaseType(BaseType? parentNode, int position = -1) : base(parentNode, position)
+		public ExtensionBaseType(BaseType? parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{ }
 	}
 
@@ -1807,11 +1816,9 @@ namespace SDC.Schema
 	{
 		private IExtensionBaseTypeMember Iebtm { get => (IExtensionBaseTypeMember)this; }
 		protected ExtensionType() { Init(); }
-		public ExtensionType(BaseType parentNode) : base(parentNode) { Init(); }
+		public ExtensionType(BaseType parentNode, int position = -1) : base(parentNode, position) { Init(); }
 		private void Init()
-		{
-
-		}
+		{	}
 
 		#region IExtensionBaseTypeMember
 		//public bool Remove() => Iebtm.Remove();
@@ -1823,10 +1830,9 @@ namespace SDC.Schema
 	{
 		private IExtensionBaseTypeMember Iebtm { get => (IExtensionBaseTypeMember)this; }
 		protected PropertyType() { Init(); }
-		public PropertyType(ExtensionBaseType parentNode) : base(parentNode)
+		public PropertyType(ExtensionBaseType parentNode, int position = -1) : base(parentNode, position , "Property")
 		{
 			Init();
-
 		}
 		private void Init()
 		{
@@ -1836,23 +1842,18 @@ namespace SDC.Schema
 
 		public HTML_Stype AddHTML()
 		{
-			this.TypedValue = new DataTypes_SType(this);
-			var rtf = new RichTextType(TypedValue);
+			this.TypedValue = new DataTypes_SType(this, "TypedValue");
+			var rtf = new RichTextType(TypedValue, -1, "HTML");
 			var h = (this as IHtmlHelpers).AddHTML(rtf);
 			return h;
 		}
-
-		#region IExtensionBaseTypeMember
-		//public bool Remove() => Iebtm.Remove();
-		//public bool Move(ExtensionBaseType ebtTarget, int newListIndex = -1) => Iebtm.MoveI(this, ebtTarget, newListIndex);
-		#endregion
 
 	}
 	public partial class CommentType : IExtensionBaseTypeMember
 	{
 		private IExtensionBaseTypeMember Iebtm { get => (IExtensionBaseTypeMember)this; }
 		protected CommentType() { Init(); }
-		public CommentType(BaseType parentNode) : base(parentNode)
+		public CommentType(BaseType parentNode, int position = -1) : base(parentNode, position)
 		{
 			Init();
 
@@ -1862,18 +1863,13 @@ namespace SDC.Schema
 			this.ElementPrefix = "cmt";
 		}
 
-		#region IExtensionBaseTypeMember
-		//public bool Remove() => Iebtm.Remove();
-		//public bool Move(ExtensionBaseType ebtTarget, int newListIndex = -1) => Iebtm.MoveI(this, ebtTarget, newListIndex);
-		#endregion
-
 	}
 	#endregion
 
 	public partial class IdentifiedExtensionType : IIdentifiedExtensionType
 	{
 		protected IdentifiedExtensionType() { Init(); }
-		protected IdentifiedExtensionType(BaseType? parentNode, string id = "", int position = -1) : base(parentNode, position)
+		protected IdentifiedExtensionType(BaseType? parentNode, string id, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			if (id.IsNullOrWhitespace())
 				ID = $"___{BaseName}"; //BaseName was based on the sGuid and assigned in the BaseType ctor
@@ -1956,14 +1952,14 @@ namespace SDC.Schema
 			}
 		}
 	}
-
+	
 	public partial class RepeatingType //this is an SDC abstract class
 	{
 		protected RepeatingType()
 		{
 			Init();
 		}
-		protected RepeatingType(BaseType parentNode, string id = "", int position = -1) : base(parentNode, id, position)
+		protected RepeatingType(BaseType parentNode, string id, int position, string elementName) : base(parentNode, id, position, elementName)
 		{
 			Init();
 		}
@@ -1979,10 +1975,9 @@ namespace SDC.Schema
 	public partial class ChildItemsType
 	{
 		protected ChildItemsType() { Init(); }
-		public ChildItemsType(IChildItemsParent parentNode) : base((BaseType)parentNode)
+		public ChildItemsType(IChildItemsParent parentNode) : base((BaseType)parentNode, -1, "ChildItems")
 		{
 			Init();
-
 		}
 		private void Init()
 		{
@@ -2018,10 +2013,10 @@ namespace SDC.Schema
 	public partial class DisplayedType : IChildItemsMember<DisplayedType> //, IQuestionListMember
 	{
 		protected DisplayedType() { Init(); }
-		public DisplayedType(BaseType parentNode, string id = "", int position = -1) : base(parentNode, id, position)
+		public DisplayedType(BaseType parentNode, string id, int position = -1, string elementName = "DisplayedItem") : base(parentNode, id, position, elementName)
 		{
 			Init();
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -2039,29 +2034,44 @@ namespace SDC.Schema
 	public partial class BlobType : IDisplayedTypeMember
 	{
 		protected BlobType() { Init(); }
-		public BlobType(DisplayedType parentNode) : base(parentNode)
+		public BlobType(DisplayedType parentNode, int position) : base(parentNode, position, "BlobContent")
 		{
-			Init();
-
+			Init();			
 		}
 		private void Init()
 		{
-			ElementName = "Blob";
 			ElementPrefix = "blob";
+			ElementName = "BlobContent";
 		}
 	}
 
 	public partial class LinkType : IDisplayedTypeMember
 	{
 		protected LinkType() { Init(); }
-		public LinkType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// ""<br/>
+		/// ""<br/>
+		/// </param>
+		public LinkType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
-		{
-			ElementName = "Link";
+		{			
 			ElementPrefix = "link";
+			//Link
+			//DemogFormPkgLink
+			//FormDesignPkgLink
+			//MainFormPkgLink
+			//InjectedFormPkgLink
+			//PackageLink
+
 		}
 	}
 
@@ -2069,26 +2079,36 @@ namespace SDC.Schema
 	public partial class CodingType : IDisplayedTypeMember
 	{
 		protected CodingType() { Init(); }
-		public CodingType(ExtensionBaseType parentNode) : base(parentNode)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "ResponseValue" (uses position)<br/>
+		/// "CodedValue" (uses position)<br/>
+		/// "Code"<br/>
+		/// "MappedCode"<br/>
+		/// "Included" (uses position)<br/>
+		/// "Excluded" (uses position)<br/>
+		/// </param>
+		public CodingType(ExtensionBaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
-
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
-		{
-			ElementName = "Coding";
-			ElementPrefix = "cod";
+		{			
+			ElementPrefix = "code";
 		}
 	}
 
 	public partial class CodeMatchType
 	{
 		protected CodeMatchType() { Init(); }
-		public CodeMatchType(CodingType parentNode) : base(parentNode)
+		public CodeMatchType(CodingType parentNode) : base(parentNode, -1, "CodeMatch")
 		{
 			Init();
-
 		}
 		private void Init()
 		{
@@ -2101,15 +2121,22 @@ namespace SDC.Schema
 	public partial class CodeSystemType
 	{
 		protected CodeSystemType() { Init(); }
-		public CodeSystemType(ExtensionBaseType parentNode) : base(parentNode)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "CodeSystem"<br/>
+		/// "DefaultCodeSystem"<br/>
+		/// </param>
+		public CodeSystemType(ExtensionBaseType parentNode, string elementName) : base(parentNode, -1, elementName)
 		{
 			Init();
-
+			if(!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
-		{
-			ElementName = "CodeSystem";
-			ElementPrefix = "csys";
+		{			
+			ElementPrefix = "cdsys";
 		}
 	}
 
@@ -2124,14 +2151,14 @@ namespace SDC.Schema
 	public partial class DataTypes_DEType //This is the Response element
 	{
 		protected DataTypes_DEType() { Init(); }
-		public DataTypes_DEType(ResponseFieldType parentNode) : base(parentNode)
+		public DataTypes_DEType(ResponseFieldType parentNode) : base(parentNode, -1, "Response")
 		{
 			Init();
 		}
 		private void Init()
 		{
-			ElementName = "Response"; //response element
-			ElementPrefix = "rsp";  //response element            
+			ElementName = "Response";
+			ElementPrefix = "rsp";          
 		}
 
 		/// <summary>
@@ -2165,13 +2192,26 @@ namespace SDC.Schema
 	public partial class DataTypes_SType
 	{
 		protected DataTypes_SType() { Init(); }
-		public DataTypes_SType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "TypedValue"<br/>
+		/// "ChangedTo"<br/>
+		/// "ChangedFrom"<br/>
+		/// "NewValue"<br/>
+		/// "extended by: ParameterValueType"<br/>
+		/// ""<br/>
+		/// </param>
+		public DataTypes_SType(BaseType parentNode, string elementName) : base(parentNode, -1, elementName)
 		{
 			Init();
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
-			ElementPrefix = "DataTypes";
+			ElementPrefix = "dts";
 		}
 
 		/// <summary>
@@ -2208,16 +2248,29 @@ namespace SDC.Schema
 
 
 		protected anyURI_Stype() { Init(); }
-		public anyURI_Stype(BaseType parentNode, int position = -1) : base(parentNode, position)
+		public anyURI_Stype(BaseType parentNode, int position = -1, string elementName = "") : base(parentNode, position, elementName)
 
 		{
 			Init();
-
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
 			ElementPrefix = "uri";
+			//FunctionURI
+			//LocalFunctionName
+			//TargetItemID
+			//BlobURI
+			//CodeURI
+			//CodeSystmURI
+			//WebURL
+			//FileURI
+			//LinkURI
+			//Endpoijt
+			//ReplacedID
+			//anyURI
+			//extended by: TargetItemIDType, anyURI_DEtype
+
 		}
 		[XmlIgnore]
 		[JsonIgnore]
@@ -3433,11 +3486,11 @@ namespace SDC.Schema
 	public partial class string_Stype
 	{
 		protected string_Stype() { Init(); }
-		public string_Stype(BaseType parentNode, int position = -1) : base(parentNode, position)
+		public string_Stype(BaseType parentNode, int position = -1, string elementName = "") : base(parentNode, position, elementName)
 
 		{
 			Init();
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -3770,10 +3823,10 @@ namespace SDC.Schema
 	public partial class ItemNameType
 	{
 		protected ItemNameType() { Init(); }
-		public ItemNameType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		public ItemNameType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
-
+			ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -3784,7 +3837,16 @@ namespace SDC.Schema
 	{
 		protected ItemNameAttributeType() { Init(); }
 
-		public ItemNameAttributeType(BaseType parentNode) : base(parentNode)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position">not used (enter -1)</param>
+		/// <param name="elementName">Choices:<br/>
+		/// "MatchSource"<br/>
+		/// "Target"<br/>
+		/// </param>
+		public ItemNameAttributeType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
 		}
@@ -3793,63 +3855,71 @@ namespace SDC.Schema
 			this._attributeName = "val";
 		}
 	}
-	public partial class NameType
+	public partial class NameType //OK
 	{
 		protected NameType() { Init(); }
-		public NameType(BaseType parentNode) : base(parentNode)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "AliasName"  (uses position)<br/>
+		/// "PersonName"<br/>
+		/// </param>
+		public NameType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
-
+			ElementName = elementName;
 		}
 		private void Init()
 		{
 			ElementPrefix = "nm";
 		}
 	}
-	public partial class TargetItemIDType
+	public partial class TargetItemIDType //OK
 	{
 		protected TargetItemIDType() { Init(); }
-		public TargetItemIDType(BaseType parentNode) : base(parentNode)
+		public TargetItemIDType(BaseType parentNode) : base(parentNode, -1, "TargetItemID")
 		{
 			Init();
-
 		}
 		private void Init()
 		{
 			ElementPrefix = "tiid";
+			ElementName = "TargetItemID";
 		}
 	}
-	public partial class TargetItemNameType
+	public partial class TargetItemNameType //OK
 	{
 		protected TargetItemNameType() { Init(); }
-		public TargetItemNameType(BaseType parentNode) : base(parentNode)
+		public TargetItemNameType(BaseType parentNode) : base(parentNode, -1, "TargetItemName")
 		{
 			Init();
-
 		}
 		private void Init()
 		{
 			ElementPrefix = "tinm";
+			ElementName = "TargetItemName";
 		}
 	}
-	public partial class TargetItemXPathType
+	public partial class TargetItemXPathType //OK
 	{
 		protected TargetItemXPathType() { Init(); }
-		public TargetItemXPathType(BaseType parentNode) : base(parentNode)
+		public TargetItemXPathType(BaseType parentNode) : base(parentNode, -1, "TargetItemXPath") //OK
 		{
 			Init();
-
 		}
 		private void Init()
 		{
 			ElementPrefix = "tixp";
+			ElementName = "TargetItemXPath";
 		}
-		//{if (elementName.Length > 0) ElementName = elementName; }
 	}
-	public partial class ListItemParameterType
+	public partial class ListItemParameterType //OK
 	{
 		protected ListItemParameterType() { Init(); }
-		public ListItemParameterType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		public ListItemParameterType(BaseType parentNode, int position = -1) : base(parentNode, position, "ListItemParameterRef") //OK
 		{
 			Init();
 			this._listItemAttribute = "associatedValue";
@@ -3858,42 +3928,41 @@ namespace SDC.Schema
 		{
 			this._dataType = "string";
 			ElementPrefix = "liParam";
+			ElementName = "ListItemParameterRef";
 		}
 	}
-	public partial class ParameterItemType
+	public partial class ParameterItemType //OK
 	{
 		protected ParameterItemType() { Init(); }
-		public ParameterItemType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		public ParameterItemType(BaseType parentNode, int position = -1) : base(parentNode, position, "ParameterRef") //OK
 		{
-			Init();
+			Init();			
 		}
 		private void Init()
 		{
 			this._dataType = "string";
 			this._sourceItemAttribute = "val";
 			ElementPrefix = "paramItem";
+			ElementName = "ParameterRef";
 		}
 	}
-	public partial class ParameterValueType
+	public partial class ParameterValueType //OK
 	{
 		protected ParameterValueType() { Init(); }
-		public ParameterValueType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		public ParameterValueType(BaseType parentNode) : base(parentNode, "ParameterValue") //OK
 		{
-			Init();
+			Init();			
 		}
 		private void Init()
 		{
 			ElementPrefix = "paramVal";
+			ElementName = "ParameterValue";
 		}
 	}
-
-
-
-	public partial class PredAlternativesType
+	public partial class PredAlternativesType //OK
 	{
 		public PredAlternativesType() { Init(); }
-		public PredAlternativesType(BaseType parentNode, int position = -1) : base(parentNode, position)
-
+		public PredAlternativesType(BaseType parentNode, int position = -1) : base(parentNode, position, "ItemAlternatives")
 		{
 			Init();
 		}
@@ -3903,12 +3972,13 @@ namespace SDC.Schema
 			this._minAnswered = 1;
 			this._maxAnswered = 0;
 			ElementPrefix = "predAlt";
+			ElementName = "ItemAlternatives";
 		}
 	}
-	public partial class PredEvalAttribValuesType
+	public partial class PredEvalAttribValuesType //OK
 	{
 		protected PredEvalAttribValuesType() { Init(); }
-		public PredEvalAttribValuesType(PredGuardType parentNode, int position = -1) : base(parentNode, position)
+		public PredEvalAttribValuesType(PredGuardType parentNode, int position = -1) : base(parentNode, position, "AttributeEval")
 
 		{
 			Init();
@@ -3918,39 +3988,43 @@ namespace SDC.Schema
 			this._not = false;
 			this._boolOp = PredEvalAttribValuesTypeBoolOp.AND;
 			ElementPrefix = "predEvAttVal";
+			ElementName = "AttributeEval";
 		}
 	}
-	public partial class PredGuardTypeSelectionSets
+	public partial class PredGuardTypeSelectionSets //OK
 	{
 		protected PredGuardTypeSelectionSets() { Init(); }
-		public PredGuardTypeSelectionSets(PredGuardType parentNode, int position = -1) : base(parentNode, position)
-
+		public PredGuardTypeSelectionSets(PredGuardType parentNode, int position = -1) : base(parentNode, position, "SelectionSets")
 		{
 			Init();
 		}
 		private void Init()
 		{
 			this._not = false;
+			ElementName = "SelectionSets";
+			ElementPrefix = "selset";
 		}
 	}
 	public partial class PredSingleSelectionSetsType
 	{
 		protected PredSingleSelectionSetsType() { Init(); }
-		public PredSingleSelectionSetsType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		public PredSingleSelectionSetsType(BaseType parentNode, int position = -1, string elementName = "IllegalCoSelectedListItems") : base(parentNode, position, elementName)
 		{
 			Init();
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
 			this._maxSelections = ((short)(1));
 			ElementPrefix = "predSngSelSet";
+			//IllegalCoSelectedListItems
+			//Extended/inherited by SelectionSets
 		}
 	}
-	public partial class RuleAutoActivateType
+	public partial class RuleAutoActivateType //OK
 	{
 		protected RuleAutoActivateType() { Init(); }
-		public RuleAutoActivateType(BaseType parentNode, int position = -1) : base(parentNode, position)
-
+		public RuleAutoActivateType(BaseType parentNode, int position = -1) : base(parentNode, position, "AutoActivation")
 		{
 			Init();
 		}
@@ -3961,14 +4035,14 @@ namespace SDC.Schema
 			this._setEnabled = toggleType.@true;
 			this._setExpanded = toggleType.@true;
 			ElementPrefix = "raa";
+			ElementName = "AutoActivation";
 			//this._x_removeResponsesWhenDeactivated = false;
 		}
 	}
-	public partial class RuleAutoSelectType
+	public partial class RuleAutoSelectType //OK
 	{
 		protected RuleAutoSelectType() { Init(); }
-		public RuleAutoSelectType(BaseType parentNode, int position = -1) : base(parentNode, position)
-
+		public RuleAutoSelectType(BaseType parentNode, int position = -1) : base(parentNode, position, "AutoSelection")
 		{
 			Init();
 		}
@@ -3976,12 +4050,13 @@ namespace SDC.Schema
 		{
 			this._onlyIf = false;
 			ElementPrefix = "ras";
+			ElementName = "AutoSelection";
 		}
 	}
-	public partial class RuleListItemMatchTargetsType
+	public partial class RuleListItemMatchTargetsType //OK
 	{
 		protected RuleListItemMatchTargetsType() { Init(); }
-		public RuleListItemMatchTargetsType(BaseType parentNode) : base(parentNode)
+		public RuleListItemMatchTargetsType(BaseType parentNode) : base(parentNode, -1, "ListItemMatchTargets")
 		{
 			Init();
 		}
@@ -3989,24 +4064,13 @@ namespace SDC.Schema
 		{
 			this._attributeToMatch = RuleListItemMatchTargetsTypeAttributeToMatch.associatedValue;
 			ElementPrefix = "rlimt";
+			ElementName = "ListItemMatchTargets";
 		}
-	}
-	//public partial class SelectionSetsActionType
-	//{
-	//    protected SelectionSetsActionType() { Init(); }
-	//    public SelectionSetsActionType(BaseType parentNode, string elementName = "", string elementPrefix = "") : base(parentNode)
-	//    {
-	//        Init();
-	//    }
-	//    private void Init()
-	//    {
-	//        this._not = false;
-	//    }
-	//}
-	public partial class ValidationTypeSelectionSets
+	}	
+	public partial class ValidationTypeSelectionSets //OK
 	{
 		protected ValidationTypeSelectionSets() { Init(); }
-		public ValidationTypeSelectionSets(BaseType parentNode, int position = -1) : base(parentNode, position)
+		public ValidationTypeSelectionSets(BaseType parentNode, int position = -1) : base(parentNode, position, "SelectionSets")
 
 		{
 			Init();
@@ -4015,12 +4079,13 @@ namespace SDC.Schema
 		{
 			this._not = false;
 			ElementPrefix = "vtss";
+			ElementName = "SelectionSets";
 		}
 	}
-	public partial class ValidationType
+	public partial class ValidationType //OK
 	{
 		protected ValidationType() { Init(); }
-		public ValidationType(RulesType parentNode, int position = -1) : base(parentNode, position)
+		public ValidationType(RulesType parentNode, int position = -1) : base(parentNode, position, "Validation")
 
 		{
 			Init();
@@ -4028,13 +4093,13 @@ namespace SDC.Schema
 		private void Init()
 		{
 			ElementPrefix = "valTyp";
+			ElementName = "Validation";
 		}
 	}
-	public partial class ValidationTypeSelectionTest
+	public partial class ValidationTypeSelectionTest //OK
 	{
 		protected ValidationTypeSelectionTest() { Init(); }
-		public ValidationTypeSelectionTest(BaseType parentNode, int position = -1) : base(parentNode, position)
-
+		public ValidationTypeSelectionTest(BaseType parentNode, int position = -1) : base(parentNode, position, "SelectionTest")
 		{
 			Init();
 		}
@@ -4042,51 +4107,80 @@ namespace SDC.Schema
 		{
 			this._not = false;
 			ElementPrefix = "valTypSel";
+			ElementName = "SelectionTest";
 		}
 	}
 	public partial class PredSelectionTestType
 	{
 		protected PredSelectionTestType() { Init(); }
-		public PredSelectionTestType(BaseType parentNode, int position = -1) : base(parentNode, position)
-
-		{ Init(); }
+		public PredSelectionTestType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
+		{ 
+			Init();
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
+		}
 		private  void Init()
 		{
 			ElementPrefix = "predSelTst";
+			//SelectionTest
+			//IllegalListItemPairings
 		}
 	}
 	public partial class CallFuncType
 	{
 		protected CallFuncType() { Init(); }
-		public CallFuncType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "CallSetValue"<br/>
+		/// "WebService" (uses position)<br/>
+		/// "ValidationWebService"<br/>
+		/// "ShowURL" (uses position)<br/>
+		/// "CallFunction (uses position)"<br/>
+		/// "ExternalRule (uses position)" (uses position)<br/>
+		/// </param>
+		public CallFuncType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
 			this._dataType = "string";
-			ElementPrefix = "callFunc";
+			ElementPrefix = "callFunc";			
 		}
 	}
 	partial class CallFuncBaseType
 	{
 		protected CallFuncBaseType() { Init(); }
-		public CallFuncBaseType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		/// <summary>
+		/// This is an abstract Schema type
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "CallFuncType"<br/>
+		/// "CallFuncBoolType"<br/>	
+		/// </param>
+		public CallFuncBaseType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
 			this._returnList = false;
 			this._listDelimiter = "|";
 			this._allowNull = true;
-			ElementPrefix = "callFuncBase";
+			//ElementPrefix = "callFuncBase";
 		}
 	}
 	partial class CallFuncBoolType
 	{
 		protected CallFuncBoolType() { Init(); }
-		public CallFuncBoolType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		public CallFuncBoolType(BaseType parentNode, int position = -1) : base(parentNode, position, "CallBoolFunc")
 
 		{
 			Init();
@@ -4094,53 +4188,26 @@ namespace SDC.Schema
 		private void Init()
 		{
 			this._not = false;
-			ElementPrefix = "callFuncBool";
+			ElementPrefix = "callBoolF";
+			ElementName = "CallBoolFunc";
 		}
 	}
 
 
 	#endregion
 	#region PredActions
-	//AttributeEval -       AttributeEvalActionType (actions)
-	//ScriptBoolFunc -      ScriptBoolFuncActionType (actions)
-	//CallBoolFunction -    CallFuncBoolActionType (actions)
-	//MultiSelections -     MultiSelectionsActionType
-	//SelectionSets -       SelectionSetsActionType (rule)
-	//SelectionTest -       SelectionTestActionType
-	//Group -               PredActionType (events)
-	//SelectMatchingListItems - RuleSelectMatchingListItemsType (actions)
-	//public partial class MultiSelectionsActionType
-	//{
-	//    protected MultiSelectionsActionType()
-	//    { Init(); }
-	//    public MultiSelectionsActionType(BaseType parentNode) : base(parentNode)
-	//    { Init(); }
-	//    private void Init()
-	//    {
-
-	//    }
-	//}
-	//public partial class SelectionTestActionType
-	//{
-	//    protected SelectionTestActionType()
-	//    { Init(); }
-	//    public SelectionTestActionType(BaseType parentNode) : base(parentNode)
-	//    { Init(); }
-	//    private void Init()
-	//    {
-
-	//    }
-	//}
 
 	public partial class PredMultiSelectionSetBoolType
 	{
 		protected PredMultiSelectionSetBoolType() { Init(); }
-		public PredMultiSelectionSetBoolType(BaseType parentNode, int position = -1) : base(parentNode, position)
-
-		{ Init(); }
+		public PredMultiSelectionSetBoolType(BaseType parentNode, int position) : base(parentNode, position, "MultiSelections")
+		{ 
+			Init();
+		}
 		private void Init()
 		{
 			ElementPrefix = "pmssb";
+			ElementName = "MultiSelections";
 		}
 	}
 
@@ -4151,20 +4218,24 @@ namespace SDC.Schema
 	public partial class ActionsType : IActions
 	{
 		protected ActionsType() { Init(); }
-		public ActionsType(ExtensionBaseType parentNode) : base(parentNode)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		public ActionsType(ExtensionBaseType parentNode) : base(parentNode, -1, "Actions")
 		{
 			Init();
 		}
 		private void Init()
 		{
-			ElementName = "_actions";
+			ElementName = "Actions";
 			ElementPrefix = "act";
 		}
 	}
 	public partial class ActActionType
 	{
 		protected ActActionType() { Init(); }
-		public ActActionType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		public ActActionType(ActionsType parentNode, int position = -1) : base(parentNode, position, "Action")
 		{
 			Init();
 		}
@@ -4188,20 +4259,20 @@ namespace SDC.Schema
 	public partial class RuleSelectMatchingListItemsType
 	{
 		protected RuleSelectMatchingListItemsType() { Init(); }
-		public RuleSelectMatchingListItemsType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		public RuleSelectMatchingListItemsType(ActionsType parentNode, int position = -1) : base(parentNode, position, "SelectMatchingListItems")
 		{
 			Init();
 		}
 		private void Init()
 		{
 			ElementName = "SelectMatchingListItems";
-			ElementPrefix = "selMli";
+			ElementPrefix = "selMLI";
 		}
 	}
 	public partial class ActAddCodeType
 	{
 		protected ActAddCodeType() { Init(); }
-		public ActAddCodeType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		public ActAddCodeType(ActionsType parentNode, int position = -1) : base(parentNode, position, "AddCode")
 		{
 			Init();
 		}
@@ -4227,7 +4298,7 @@ namespace SDC.Schema
 	public partial class ActSaveResponsesType
 	{
 		protected ActSaveResponsesType() { Init(); }
-		public ActSaveResponsesType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		public ActSaveResponsesType(ActionsType parentNode, int position = -1) : base(parentNode, position, "Save")
 		{
 			Init();
 		}
@@ -4240,7 +4311,7 @@ namespace SDC.Schema
 	public partial class ActSendReportType
 	{
 		protected ActSendReportType() { Init(); }
-		public ActSendReportType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		public ActSendReportType(ActionsType parentNode, int position = -1) : base(parentNode, position, "SendReport")
 		{
 			Init();
 		}
@@ -4263,13 +4334,18 @@ namespace SDC.Schema
 	public partial class ActSendMessageType
 	{
 		protected ActSendMessageType() { Init(); }
-		public ActSendMessageType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		/// <summary>
+		/// "SendMessage111" in Schema
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		public ActSendMessageType(ActionsType parentNode, int position = -1) : base(parentNode, position, "SendMessage")
 		{
 			Init();
-		} //"SendMessage111" in Schema
+		} 
 		private void Init()
 		{
-			ElementName = "SendMessage";
+			ElementName = "SendMessage";  //"SendMessage111"  this type may be removed
 			ElementPrefix = "actSndMsg";
 			Items = new();
 		}
@@ -4290,7 +4366,7 @@ namespace SDC.Schema
 	public partial class ActSetAttributeType
 	{
 		protected ActSetAttributeType() { Init(); }
-		public ActSetAttributeType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		public ActSetAttributeType(ActionsType parentNode, int position = -1) : base(parentNode, position, "SetAttributeValue")
 		{
 			Init();
 		}
@@ -4303,7 +4379,7 @@ namespace SDC.Schema
 	public partial class ActSetAttrValueScriptType
 	{
 		protected ActSetAttrValueScriptType() { Init(); }
-		public ActSetAttrValueScriptType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		public ActSetAttrValueScriptType(ActionsType parentNode, int position = -1) : base(parentNode, position, "SetAttributeValueScript")
 		{
 			Init();
 		}
@@ -4329,13 +4405,19 @@ namespace SDC.Schema
 	public partial class ScriptCodeBoolType
 	{
 		protected ScriptCodeBoolType() { Init(); }
-		public ScriptCodeBoolType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		/// <summary>
+		/// Note: subclassed by ActSetBoolAttributeValueCodeType (SetBoolAttributeValueCode).  That subclass can overwrite the ctor's hard-coded ElementName.
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName"></param>
+		public ScriptCodeBoolType(ActionsType parentNode, int position = -1, string elementName = "ScriptBoolFunc") : base(parentNode, position, elementName)
 		{
 			Init();
 		}
 		private void Init()
 		{
-			ElementName = "";
+			ElementName = "ScriptBoolFunc";
 			ElementPrefix = "scbt";
 			this._not = false;
 		}
@@ -4343,7 +4425,7 @@ namespace SDC.Schema
 	public partial class ActShowFormType
 	{
 		protected ActShowFormType() { Init(); }
-		public ActShowFormType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		public ActShowFormType(ActionsType parentNode, int position = -1) : base(parentNode, position, "ShowForm")
 		{
 			Init();
 		}
@@ -4356,7 +4438,7 @@ namespace SDC.Schema
 	public partial class ActShowMessageType
 	{
 		protected ActShowMessageType() { Init(); }
-		public ActShowMessageType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		public ActShowMessageType(ActionsType parentNode, int position = -1) : base(parentNode, position, "ShowMessage")
 		{
 			Init();
 		}
@@ -4370,7 +4452,7 @@ namespace SDC.Schema
 	{
 		protected ActShowReportType() { Init(); }
 
-		public ActShowReportType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		public ActShowReportType(ActionsType parentNode, int position = -1) : base(parentNode, position, "ShowReport")
 		{
 			Init();
 		}
@@ -4383,7 +4465,7 @@ namespace SDC.Schema
 	public partial class ActPreviewReportType
 	{
 		protected ActPreviewReportType() { Init(); }
-		public ActPreviewReportType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		public ActPreviewReportType(ActionsType parentNode, int position = -1) : base(parentNode, position, "PreviewReport")
 		{
 			Init();
 		}
@@ -4396,7 +4478,7 @@ namespace SDC.Schema
 	public partial class ActValidateFormType
 	{
 		protected ActValidateFormType() { Init(); }
-		public ActValidateFormType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		public ActValidateFormType(ActionsType parentNode, int position = -1) : base(parentNode, position, "ValidateForm")
 		{
 			Init();
 		}
@@ -4412,28 +4494,28 @@ namespace SDC.Schema
 		{ return null; }
 	}
 
-	//public partial class ScriptBoolFuncActionType
-	//{
-	//    protected ScriptBoolFuncActionType() { Init(); }
-	//    public ScriptBoolFuncActionType(ActionsType parentNode) : base(parentNode)
-	//    {
-	//        Init();
-	//    }
-	//    private void Init()
-	//    {
-	//        ElementName = "ScriptBoolFunc";
-	//    }
-	//}
-
 	public partial class ScriptCodeAnyType
 	{
 		protected ScriptCodeAnyType()
 		{ Init(); }
-		public ScriptCodeAnyType(ActionsType parentNode, int position = -1) : base(parentNode, position)
-		{ Init(); }
+		/// <summary>
+		/// 
+		/// Note: ScriptCodeAnyType is a base type for ActSetAttrValueScriptType.
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "SetValue"<br/>
+		/// "RunCode" (uses position)<br/>
+		/// "ScriptedRule" (uses position)<br/>
+		/// </param>
+		public ScriptCodeAnyType(ActionsType parentNode, int position, string elementName) : base(parentNode, position, elementName)
+		{ 
+			Init();
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
+		}
 		private void Init()
 		{
-			ElementName = "RunCode";
 			ElementPrefix = "sca";
 			this._dataType = "string";
 		}
@@ -4441,7 +4523,13 @@ namespace SDC.Schema
 	public partial class ScriptCodeBaseType
 	{
 		protected ScriptCodeBaseType() { Init(); }
-		public ScriptCodeBaseType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		/// <summary>
+		/// Abtract class underlying ScriptCodeAnyType and ScriptCodeBoolType
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName"></param>
+		public ScriptCodeBaseType(ActionsType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{ Init(); }
 		private void Init()
 		{
@@ -4452,37 +4540,16 @@ namespace SDC.Schema
 			this._allowNull = true;
 		}
 	}
-	//public partial class CallFuncActionType
-	//{
-	//    protected CallFuncActionType() { Init(); }
-	//    public CallFuncActionType(ActionsType parentNode) : base(parentNode) 
-	//    { Init(); }
-	//    private void Init()
-	//    {
-	//        ElementName = "CallFunction";
-	//    }
-	//}
-
-	//public partial class CallFuncBoolActionType
-	//{
-	//    protected CallFuncBoolActionType() { Init(); }
-	//    public CallFuncBoolActionType(ActionsType parentNode) : base(parentNode)
-	//    { Init(); }
-	//    private void Init()
-	//    {
-	//        ElementName = "CallBoolFunction";
-	//    }
-	//}
 
 	#endregion
 	#region Events
 	public partial class OnEventType : IDisplayedTypeMember
 	{
 		protected OnEventType() { Init(); }
-		public OnEventType(ExtensionBaseType parentNode) : base(parentNode)
+		public OnEventType(ExtensionBaseType parentNode, int position = -1, string elementName = "") : base(parentNode, position, elementName)
 		{
 			Init();
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -4493,7 +4560,7 @@ namespace SDC.Schema
 	public partial class RulesType
 	{
 		protected RulesType() { Init(); }
-		public RulesType(BaseType parentNode) : base(parentNode)
+		public RulesType(BaseType parentNode) : base(parentNode, -1, "Rules")
 		{
 			Init();
 
@@ -4501,16 +4568,17 @@ namespace SDC.Schema
 		private void Init()
 		{
 			ElementPrefix = "rules";
+			ElementName = "Rules";
 		}
 	}
 
 	public partial class EventType : IDisplayedTypeMember
 	{
 		protected EventType() { Init(); }
-		public EventType(ExtensionBaseType parentNode, int position = -1) : base(parentNode, position)
+		public EventType(ExtensionBaseType parentNode, int position = -1, string elementName = "") : base(parentNode, position, elementName)
 		{
 			Init();
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -4522,10 +4590,23 @@ namespace SDC.Schema
 	{
 
 		protected PredGuardType() { Init(); }
-		public PredGuardType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "SelectIf"<br/>
+		/// "DeselectIf"<br/>
+		/// "ActivateIf"<br/>
+		/// "DeActivateIf"<br/>
+		/// "Group (uses position)"<br/>
+		/// </param>
+		public PredGuardType(BaseType parentNode, int position = -1, string elementName = "") : base(parentNode, position, elementName)
 
 		{
 			Init();
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -4538,10 +4619,21 @@ namespace SDC.Schema
 	public partial class PredActionType
 	{
 		protected PredActionType() { Init(); }
-		public PredActionType(ExtensionBaseType parentNode, int position = -1) : base(parentNode, position)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "ConditionalGroupAction"<br/>
+		/// "ConditionalActions"<br/>
+		/// "Else"<br/>
+		/// "subclassed by EventType"<br/>
+		/// </param>
+		public PredActionType(ExtensionBaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -4554,11 +4646,10 @@ namespace SDC.Schema
 	public partial class FuncBoolBaseType
 	{
 		protected FuncBoolBaseType() { Init(); }
-		public FuncBoolBaseType(BaseType parentNode, int position = -1) : base(parentNode, position)
-
+		public FuncBoolBaseType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -4575,15 +4666,23 @@ namespace SDC.Schema
 	public partial class ContactType : IDisplayedTypeMember, IAddPerson, IAddOrganization
 	{
 		protected ContactType() { Init(); }
-		public ContactType(BaseType parentNode, int position = -1) : base(parentNode, position)
-
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "Contact" (uses position)<br/>
+		/// "ApprovalContact" (uses position)<br/>
+		/// "Signer"<br/>
+		/// </param>
+		public ContactType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
-			ElementName = "Contact";  //this is a default name; it might also be "ApprovalContact"
 			ElementPrefix = "cntct";
 		}
 	}
@@ -4591,10 +4690,19 @@ namespace SDC.Schema
 	public partial class OrganizationType
 	{
 		protected OrganizationType() { Init(); }
-		public OrganizationType(BaseType parentNode) : base(parentNode)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "Organization"<br/>
+		/// "ComplianceOrganization" (uses position)<br/>
+		/// </param>
+		public OrganizationType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -4605,10 +4713,19 @@ namespace SDC.Schema
 	public partial class PersonType
 	{
 		protected PersonType() { Init(); }
-		public PersonType(BaseType parentNode) : base(parentNode)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "Person"<br/>
+		/// "ContactPerson" (uses position)<br/>
+		/// </param>
+		public PersonType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -4619,7 +4736,7 @@ namespace SDC.Schema
 	public partial class AddressType
 	{
 		protected AddressType() { Init(); }
-		public AddressType(BaseType parentNode) : base(parentNode)
+		public AddressType(BaseType parentNode, int position = -1) : base(parentNode, position, "StreetAddress")
 		{
 			Init();
 
@@ -4627,6 +4744,7 @@ namespace SDC.Schema
 		private void Init()
 		{
 			this.ElementPrefix = "adrs";
+			ElementName = "StreetAddress";
 		}
 	}
 
@@ -4649,10 +4767,31 @@ namespace SDC.Schema
 	public partial class RichTextType : IHtmlHelpers
 	{
 		protected RichTextType() { Init(); }
-		public RichTextType(BaseType parentNode, int position = -1) : base(parentNode, position)
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "Security"<br/>
+		/// "ListHeaderText"<br/>
+		/// "TextAfterResponse"<br/>
+		/// "Message" (uses position)<br/>
+		/// "MessageText"<br/>
+		/// "TargetDisplayText"<br/>
+		/// "MapComment" (uses position)<br/>
+		/// "Description" (uses position)<br/>
+		/// "CodeText"<br/>
+		/// "VersionComments"<br/>
+		/// "LinkText"<br/>
+		/// "PackageDescription" (uses position)<br/>
+		/// "RegisteredItemDescription" (uses position)<br/>
+		/// </param>
+		public RichTextType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -4675,7 +4814,16 @@ namespace SDC.Schema
 	public partial class ComplianceRuleType
 	{
 		protected ComplianceRuleType() { Init(); }
-		public ComplianceRuleType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "ComplianceRule (uses position)"<br/>
+		/// "DefaultComplianceRule (uses position)"<br/>
+		/// </param>
+		public ComplianceRuleType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
 		}
@@ -4688,14 +4836,14 @@ namespace SDC.Schema
 	public partial class SubmissionRuleType
 	{
 		protected SubmissionRuleType() { Init(); }
-		public SubmissionRuleType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		public SubmissionRuleType(BaseType parentNode, int position = -1) : base(parentNode, position, "SubmissionRule")
 		{
 			Init();
-
 		}
 		private void Init()
 		{
 			this.ElementPrefix = "sr";
+			ElementName = "SubmissionRule";
 		}
 
 	}
@@ -4719,15 +4867,14 @@ namespace SDC.Schema
 	public partial class IdentifierType
 	{
 		protected IdentifierType() { Init(); }
-		public IdentifierType(BaseType parentNode) : base(parentNode)
+		public IdentifierType(BaseType parentNode, int position = -1) : base(parentNode, position, "Identifier")
 		{
 			Init();
-
-
 		}
 		private void Init()
 		{
 			this.ElementPrefix = "id";
+			ElementName = "Identifier";
 		}
 	}
 
@@ -4748,29 +4895,28 @@ namespace SDC.Schema
 	public partial class LanguageType
 	{
 		protected LanguageType() { Init(); }
-		public LanguageType(BaseType parentNode) : base(parentNode)
+		public LanguageType(BaseType parentNode, int position = -1) : base(parentNode, -1, "Language")
 		{
 			Init();
-
-
 		}
 		private void Init()
 		{
 			this.ElementPrefix = "lng";
+			ElementName = "Language";
 		}
 	}
 
 	public partial class ProvenanceType
 	{
 		protected ProvenanceType() { Init(); }
-		public ProvenanceType(BaseType parentNode) : base(parentNode)
+		public ProvenanceType(BaseType parentNode) : base(parentNode, -1, "Provenance")
 		{
 			Init();
-
 		}
 		private void Init()
 		{
 			this.ElementPrefix = "prv";
+			ElementName = "Provenance";
 		}
 	}
 
@@ -4791,7 +4937,7 @@ namespace SDC.Schema
 	public partial class VersionType
 	{
 		protected VersionType() { Init(); }
-		public VersionType(BaseType parentNode) : base(parentNode)
+		public VersionType(BaseType parentNode) : base(parentNode, -1, "Version")
 		{
 			Init();
 
@@ -4799,13 +4945,14 @@ namespace SDC.Schema
 		private void Init()
 		{
 			this.ElementPrefix = "ver";
+			ElementName = "Version";
 		}
 	}
 
 	public partial class VersionTypeChanges
 	{
 		protected VersionTypeChanges() { Init(); }
-		public VersionTypeChanges(BaseType parentNode) : base(parentNode)
+		public VersionTypeChanges(BaseType parentNode) : base(parentNode, -1, "Changes")
 		{
 			Init();
 
@@ -4813,6 +4960,7 @@ namespace SDC.Schema
 		private void Init()
 		{
 			this.ElementPrefix = "vch";
+			ElementName = "Changes";
 		}
 	}
 
@@ -4824,10 +4972,18 @@ namespace SDC.Schema
 	public partial class ContactsType
 	{
 		protected ContactsType() { Init(); }
-		public ContactsType(BaseType parentNode) : base(parentNode)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="elementName">Options: <br/>
+		/// "Contacts"<br/>
+		/// "Editors"
+		/// </param>
+		public ContactsType(BaseType parentNode, string elementName) : base(parentNode, -1, elementName)
 		{
 			Init();
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -4852,15 +5008,14 @@ namespace SDC.Schema
 	public partial class DestinationType
 	{
 		protected DestinationType() { Init(); }
-		public DestinationType(BaseType parentNode) : base(parentNode)
+		public DestinationType(BaseType parentNode, int position = -1) : base(parentNode, position, "Destination")
 		{
 			Init();
-
-
 		}
 		private void Init()
 		{
 			ElementPrefix = "dest";
+			ElementName = "Destination";
 		}
 	}
 
@@ -4868,10 +5023,18 @@ namespace SDC.Schema
 	public partial class PhoneNumberType
 	{
 		protected PhoneNumberType() { Init(); }
-		public PhoneNumberType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Choices:<br/>
+		/// "Fax"<br/>
+		/// "PhoneNumber"<br/>
+		/// </param>
+		public PhoneNumberType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
-
 		}
 		private void Init()
 		{
@@ -4882,14 +5045,13 @@ namespace SDC.Schema
 	public partial class PhoneType
 	{
 		protected PhoneType() { Init(); }
-		public PhoneType(BaseType parentNode) : base(parentNode)
+		public PhoneType(BaseType parentNode, int position = -1) : base(parentNode, position, "Phone")
 		{
 			Init();
-
 		}
 		private void Init()
 		{
-			ElementName = "PhoneType";
+			ElementName = "Phone";
 			ElementPrefix = "pht";
 		}
 	}
@@ -4897,14 +5059,14 @@ namespace SDC.Schema
 	public partial class JobType
 	{
 		protected JobType() { Init(); }
-		public JobType(BaseType parentNode) : base(parentNode)
+		public JobType(BaseType parentNode) : base(parentNode, -1, "Job")
 		{
 			Init();
-
 		}
 		private void Init()
 		{
 			ElementPrefix = "job";
+			ElementName = "Job";
 		}
 	}
 	#endregion
@@ -4913,10 +5075,19 @@ namespace SDC.Schema
 	public partial class EmailAddressType
 	{
 		protected EmailAddressType() { Init(); }
-		public EmailAddressType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Options: <br/>
+		/// "Email"<br/>
+		/// "EmailAddress"<br/>
+		/// </param>
+		public EmailAddressType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
-
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -4927,7 +5098,12 @@ namespace SDC.Schema
 	public partial class EmailType
 	{
 		protected EmailType() { Init(); }
-		public EmailType(BaseType parentNode) : base(parentNode)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		public EmailType(BaseType parentNode, int position = -1) : base(parentNode, position, "Email")
 		{
 			Init();
 
@@ -4938,6 +5114,7 @@ namespace SDC.Schema
 		private void Init()
 		{
 			ElementPrefix = "em";
+			ElementName = "Email";
 		}
 	}
 
@@ -4949,7 +5126,7 @@ namespace SDC.Schema
 	public partial class ApprovalType
 	{
 		protected ApprovalType() { Init(); }
-		public ApprovalType(BaseType parentNode) : base(parentNode)
+		public ApprovalType(BaseType parentNode, int position = -1) : base(parentNode, position, "Approval")
 		{
 			Init();
 
@@ -4957,20 +5134,21 @@ namespace SDC.Schema
 		private void Init()
 		{
 			ElementPrefix = "app";
+			ElementName = "Approval";
 		}
 	}
 
 	public partial class AssociatedFilesType
 	{
 		protected AssociatedFilesType() { Init(); }
-		public AssociatedFilesType(BaseType parentNode) : base(parentNode)
+		public AssociatedFilesType(BaseType parentNode) : base(parentNode, -1, "AssociatedFiles")
 		{
 			Init();
-
 		}
 		private void Init()
 		{
 			ElementPrefix = "asf";
+			ElementName = "AssociatedFiles";
 		}
 	}
 
@@ -4992,7 +5170,7 @@ namespace SDC.Schema
 	public partial class FileDatesType
 	{
 		protected FileDatesType() { Init(); }
-		public FileDatesType(BaseType parentNode) : base(parentNode)
+		public FileDatesType(BaseType parentNode) : base(parentNode, -1, "Dates")
 		{
 			Init();
 
@@ -5000,6 +5178,7 @@ namespace SDC.Schema
 		private void Init()
 		{
 			ElementPrefix = "fld";
+			ElementName = "Dates";
 		}
 	}
 	public partial class FileHashType
@@ -5019,10 +5198,24 @@ namespace SDC.Schema
 	public partial class FileType
 	{
 		protected FileType() { Init(); }
-		public FileType(BaseType parentNode, int position = -1) : base(parentNode, position)
-
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parentNode"></param>
+		/// <param name="position"></param>
+		/// <param name="elementName">Options: <br/>
+		/// "VersioningReference"<br/>
+		/// "File" (uses position)<br/>
+		/// "ReplacedFile" (uses position)<br/>
+		/// "TemplateFile"<br/>
+		/// "ServiceLevelAgreement"<br/>
+		/// "RegistryPurpose"<br/>
+		/// "ReferenceDocument (uses position)"<br/> 
+		/// </param>
+		public FileType(BaseType parentNode, int position, string elementName) : base(parentNode, position, elementName)
 		{
 			Init();
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -5032,7 +5225,7 @@ namespace SDC.Schema
 	public partial class InterfaceType
 	{
 		protected InterfaceType() { Init(); }
-		public InterfaceType(BaseType parentNode, int position = -1) : base(parentNode, position)
+		public InterfaceType(BaseType parentNode) : base(parentNode, -1, "RegistryInterface")
 
 		{
 			Init();
@@ -5047,7 +5240,7 @@ namespace SDC.Schema
 	public partial class FileUsageType
 	{
 		protected FileUsageType() { Init(); }
-		public FileUsageType(BaseType parentNode) : base(parentNode)
+		public FileUsageType(BaseType parentNode, int position = -1) : base(parentNode, position, "Usage")
 		{
 			Init();
 
@@ -5055,6 +5248,7 @@ namespace SDC.Schema
 		private void Init()
 		{
 			ElementPrefix = "flu";
+			ElementName = "Usage";
 		}
 	}
 

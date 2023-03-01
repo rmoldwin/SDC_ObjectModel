@@ -24,7 +24,7 @@ namespace SDC.Schema.Extensions
 		{
 			if (rf is not null && units is not null)
 			{
-				rf.ResponseUnits ??= new(rf);
+				rf.ResponseUnits ??= new(rf, "ResponseUnits" );
 				//var u = new UnitsType(rf);
 				//rf.ResponseUnits = u;
 				rf.ResponseUnits.val = units;
@@ -43,10 +43,10 @@ namespace SDC.Schema.Extensions
 		{
 			if (rf is not null && asciiText is not null)
 			{
-				rf.TextAfterResponse ??= new(rf);
+				rf.TextAfterResponse ??= new(rf, -1, "TextAfterResponse");
 				var rt = rf.TextAfterResponse;
 				//rf.TextAfterResponse = rt;
-				rt.val = asciiText;
+				if(!string.IsNullOrWhiteSpace(asciiText)) rt.val = asciiText;
 				return rt;
 			}
 			return null;
@@ -72,7 +72,7 @@ namespace SDC.Schema.Extensions
 			var item = rf.Response?.Item;
 			val = null;
 
-			//use refelcction to retrieve @val here, instead of dynamic
+			//use reflection to retrieve @val here, instead of dynamic
 			//var a = obj.GetType().Get;
 			return false; // (val is not null && val != obj.GetType());
 		}

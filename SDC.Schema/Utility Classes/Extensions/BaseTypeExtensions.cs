@@ -123,17 +123,9 @@ namespace SDC.Schema.Extensions
 			{
 				//if (n.ElementName.Intersect(new {"a"}) is not null)
 				lai.AddRange( SdcUtil.ReflectNodeXmlAttributes(n, getAllXmlAttributes: false));
-			}
-			
-			
+			}			
 			return lai;
 		}
-
-
-
-
-
-
 
 		/// <summary>
 		/// For the current node, retrieves a <see cref="List&lt;AttributeInfo>"/> containing <see cref="AttributeInfo"/> (AI) definitions <br/>

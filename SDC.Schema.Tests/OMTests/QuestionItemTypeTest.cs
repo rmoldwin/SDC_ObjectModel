@@ -18,7 +18,7 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null);
 			QuestionItemType qi = new QuestionItemType(de);
-			de.DataElement_Items.Add(qi);
+			//de.DataElement_Items.Add(qi);
 
             var testItem = qi.AddChildButtonAction("test_id", "", 1);
             Assert.IsNotNull(testItem);
@@ -30,7 +30,7 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null);
 			QuestionItemType qi = new QuestionItemType(de);
-			de.DataElement_Items.Add(qi);
+			//de.DataElement_Items.Add(qi);
 
 			var testItem = qi.AddChildDisplayedItem("test_id","", 1);
             Assert.IsNotNull(testItem);
@@ -42,11 +42,9 @@ namespace SDC.Schema.Tests.OMTests
         {
 			var de = new DataElementType(null);
 			QuestionItemType qi = new QuestionItemType(de);
-			de.DataElement_Items.Add(qi);
 
-            var rf = qi.AddQuestionResponseField(out _);  // ResponseField_Item = new ListItemResponseFieldType(null);
-            qi.GetListField().maxSelections = 1;
-            //qi.ListField_Item = new ListFieldType(null) { maxSelections = 1 };
+            //var rf = qi.AddQuestionResponseField(out _);  // ResponseField_Item = new ListItemResponseFieldType(null);
+
             var testItem = qi.AddDisplayedTypeToList("test_id", "", 1);
             Assert.IsNotNull(testItem);
             Assert.AreEqual("test_id", testItem.ID);

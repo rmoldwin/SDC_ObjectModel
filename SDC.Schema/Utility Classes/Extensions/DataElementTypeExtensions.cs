@@ -20,17 +20,9 @@ namespace SDC.Schema.UtilityClasses.Extensions
 		/// <param name="insertPosition"></param>
 		/// <returns></returns>
 		/// <exception cref="NotSupportedException"></exception>
-		public static QuestionItemType AddQuestion(this DataElementType de, QuestionEnum qType, string id, string title = null, int insertPosition = -1)
-		//where T : BaseType, IChildItemsParent<T>
+		public static QuestionItemType AddQuestion(this DataElementType de, QuestionEnum qType, string id, string title = "", int insertPosition = -1)
 		{
-			de.DataElement_Items ??= new();
-			var deList = de.DataElement_Items;
-			var qNew = new QuestionItemType(de, id);
-			
-			//ListFieldType lf;
-			var count = deList.Count;
-			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
-			deList.Insert(insertPosition, qNew);
+			var qNew = new QuestionItemType(de, id, insertPosition);			
 
 			switch (qType)
 			{
@@ -47,107 +39,70 @@ namespace SDC.Schema.UtilityClasses.Extensions
 					qNew.AddQuestionResponseField(out DataTypes_DEType dtDE); //Creates Response node
 					break;
 				case QuestionEnum.QuestionLookupSingle:
-					qNew.GetListField().AddEndpoint(); //creates ListField and Lookup node
+					qNew.GetListField().GetLookupEndpoint(); //creates ListField and Lookup node
 					break;
 				case QuestionEnum.QuestionLookupMultiple: //creates ListField and Lookup node
-					qNew.GetListField().AddEndpoint();
+					qNew.GetListField().GetLookupEndpoint();
 					qNew.GetListField().maxSelections = 0;
 					break;
 				default:
 					throw new NotSupportedException($"{qType} is not supported");
 			}
 			qNew.title = title;
-			//qNew.InitAfterTreeAdd();
 			return qNew;
 		}
 
 		public static QuestionItemType AddQuestionResponse(this DataElementType de,
 			string id,
 			out DataTypes_DEType deType,
-			string defTitle = null,
+			string defTitle = "",
 			int insertPosition = -1,
 			ItemChoiceType dt = ItemChoiceType.@string,
-			string textAfterResponse = null,
-			string units = null,
+			string textAfterResponse = "",
+			string units = "",
 			dtQuantEnum dtQuant = dtQuantEnum.EQ,
-			object valDefault = null) //where T : BaseType, IChildItemsParent<T>
+			object? valDefault = null) //where T : BaseType, IChildItemsParent<T>
 		{
-			de.DataElement_Items ??= new();
-			var deList = de.DataElement_Items;
+			var qNew = new QuestionItemType(de, id, insertPosition);
+			if(!defTitle.IsNullOrWhitespace()) qNew.title = defTitle;
 
-			var qNew = new QuestionItemType(de, id);
-			qNew.title = defTitle;
-
-			var count = deList.Count;
-			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
-			deList.Insert(insertPosition, qNew);
 			var rf = qNew.AddQuestionResponseField(out deType, dt, dtQuant, valDefault);
-			rf.AddResponseUnits(units);
-			rf.AddTextAfterResponse(textAfterResponse);
+			if (!units.IsNullOrWhitespace()) rf.AddResponseUnits(units);
+			if (!textAfterResponse.IsNullOrWhitespace()) rf.AddTextAfterResponse(textAfterResponse);
 
-			//qNew.InitAfterTreeAdd();
 			return qNew;
-
 		}
 
-		public static SectionItemType AddSection(this DataElementType de, string id, string? defTitle = null, int insertPosition = -1)
+		public static SectionItemType AddSection(this DataElementType de, string id, string defTitle = "", int insertPosition = -1)
 		{
-			de.DataElement_Items ??= new();
-			var deList = de.DataElement_Items;
-			var sNew = new SectionItemType(de, id);
-			sNew.title = defTitle;
-			var count = deList.Count;
-			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
-			deList.Insert(insertPosition, sNew);
+			var sNew = new SectionItemType(de, id, insertPosition);
+			if (!defTitle.IsNullOrWhitespace()) sNew.title = defTitle;
 			
-			//sNew.InitAfterTreeAdd();
 			return sNew;
 		}
 
-		public static DisplayedType AddDisplayedItem(this DataElementType de, string id, string defTitle = null, int insertPosition = -1)
-		//where T : BaseType, IChildItemsParent<T>
+		public static DisplayedType AddDisplayedItem(this DataElementType de, string id, string defTitle = "", int insertPosition = -1)
 		{
-			de.DataElement_Items ??= new();
-			var deList = de.DataElement_Items;
-			var dNew = new DisplayedType(de, id);
-			dNew.title = defTitle;
-			var count = deList.Count;
-			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
-			deList.Insert(insertPosition, dNew);
+			var dNew = new DisplayedType(de, id, insertPosition);
+			if (!defTitle.IsNullOrWhitespace()) dNew.title = defTitle;
 			
-			//dNew.InitAfterTreeAdd();
 			return dNew;
 		}
 
-		public static ButtonItemType AddButtonAction(this DataElementType de, string id, string defTitle = null, int insertPosition = -1)
-		//where T : BaseType, IChildItemsParent<T>
+		public static ButtonItemType AddButtonAction(this DataElementType de, string id, string defTitle = "", int insertPosition = -1)
 		{
-			de.DataElement_Items ??= new();
-			var deList = de.DataElement_Items;
-			var btnNew = new ButtonItemType(de, id);
-			btnNew.title = defTitle;
-			var count = deList.Count;
-			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
-			deList.Insert(insertPosition, btnNew);
+			var btnNew = new ButtonItemType(de, id, insertPosition);
+			if (!defTitle.IsNullOrWhitespace()) btnNew.title = defTitle;
 
 			// TODO: Add AddButtonActionTypeItems(btnNew);
-
-			//btnNew.InitAfterTreeAdd();
 			return btnNew;
 		}
 
 		public static InjectFormType AddInjectedForm(this DataElementType de, string id, int insertPosition = -1)
-		//where T : BaseType, IChildItemsParent<T>
 		{
-			de.DataElement_Items ??= new();
-			var deList = de.DataElement_Items;
-			var injForm = new InjectFormType(de, id);
-			var count = deList.Count;
-			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
-			deList.Insert(insertPosition, injForm);
-			//TODO: init this InjectForm object
+			var injForm = new InjectFormType(de, id, insertPosition);
 
-			//injForm.InitAfterTreeAdd();
+			//TODO: init this InjectForm object
 			return injForm;
 		}
 

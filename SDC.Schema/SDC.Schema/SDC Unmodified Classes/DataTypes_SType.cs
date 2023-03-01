@@ -38,7 +38,7 @@ using System.Collections.Generic;
 /// --boolean (boolean_Stype)
 /// --byte (byte_Stype)
 /// --date (date_Stype)
-/// --dateTime (dateTimeStamp_Stype)
+/// --dateTime (dateTime_Stype)
 /// --dateTimeStamp (dateTimeStamp_Stype)
 /// --decimal (decimal_Stype)
 /// --double (double_Stype)
@@ -88,8 +88,8 @@ public partial class DataTypes_SType : ExtensionBaseType
     [XmlElement("boolean", typeof(boolean_Stype), IsNullable=true, Order=0)]
     [XmlElement("byte", typeof(byte_Stype), IsNullable=true, Order=0)]
     [XmlElement("date", typeof(date_Stype), IsNullable=true, Order=0)]
-    [XmlElement("dateTime", typeof(dateTimeStamp_Stype), IsNullable=true, Order=0)]
-    [XmlElement("dateTimeStamp", typeof(dateTimeStamp_Stype), IsNullable=true, Order=0)]
+    [XmlElement("dateTime", typeof(dateTime_Stype), IsNullable=true, Order=0)] //was dateTimeStamp_Stype RM 2023_02_21
+	[XmlElement("dateTimeStamp", typeof(dateTimeStamp_Stype), IsNullable=true, Order=0)]
     [XmlElement("decimal", typeof(decimal_Stype), IsNullable=true, Order=0)]
     [XmlElement("double", typeof(double_Stype), IsNullable=true, Order=0)]
     [XmlElement("duration", typeof(duration_Stype), IsNullable=true, Order=0)]

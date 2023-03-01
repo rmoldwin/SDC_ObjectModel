@@ -382,7 +382,7 @@ namespace SDC.Schema.Tests.Functional
 						Console.WriteLine("Over: childItemsParent is not null");
 						if (sourceNode is ListItemType) return false;
 
-						targetAttachementSite = targetAsCIP.AddChildItemsNode(); //Create ChildItemsNode only when needed 
+						targetAttachementSite = targetAsCIP.GetChildItemsNode(); //Create ChildItemsNode only when needed 
 
 					}
 					else //any other non-IChildItemsParent target nodes (only DI target nodes are left)

@@ -4,11 +4,11 @@ using System.Numerics;
 
 public static class ObjectExtensions
 {
-	public static bool IsGenericList(this object o)
+	public static bool IsGenericList(this Type t)
 	{
 		try
 		{
-			return SDC.Schema.SdcUtil.IsGenericList(o);
+			return SDC.Schema.SdcUtil.IsGenericList(t);
 		}
 		catch { return false; }
 

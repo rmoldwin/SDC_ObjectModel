@@ -40,7 +40,7 @@ using System.Collections.Generic;
 /// --boolean (boolean_DEtype)
 /// --byte (byte_DEtype)
 /// --date (date_DEtype)
-/// --dateTime (dateTimeStamp_DEtype)
+/// --dateTime (dateTime_DEtype)
 /// --dateTimeStamp (dateTimeStamp_DEtype)
 /// --decimal (decimal_DEtype)
 /// --double (double_DEtype)
@@ -89,8 +89,8 @@ public partial class DataTypes_DEType : ExtensionBaseType
     [XmlElement("boolean", typeof(boolean_DEtype), IsNullable=true, Order=0)]
     [XmlElement("byte", typeof(byte_DEtype), IsNullable=true, Order=0)]
     [XmlElement("date", typeof(date_DEtype), IsNullable=true, Order=0)]
-    [XmlElement("dateTime", typeof(dateTimeStamp_DEtype), IsNullable=true, Order=0)]
-    [XmlElement("dateTimeStamp", typeof(dateTimeStamp_DEtype), IsNullable=true, Order=0)]
+    [XmlElement("dateTime", typeof(dateTime_DEtype), IsNullable=true, Order=0)] //Was dateTimeStamp_DEtype  RM 2023_02_21
+	[XmlElement("dateTimeStamp", typeof(dateTimeStamp_DEtype), IsNullable=true, Order=0)]
     [XmlElement("decimal", typeof(decimal_DEtype), IsNullable=true, Order=0)]
     [XmlElement("double", typeof(double_DEtype), IsNullable=true, Order=0)]
     [XmlElement("duration", typeof(duration_DEtype), IsNullable=true, Order=0)]

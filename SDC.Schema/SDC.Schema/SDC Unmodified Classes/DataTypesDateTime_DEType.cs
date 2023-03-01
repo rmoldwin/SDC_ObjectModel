@@ -6,90 +6,131 @@
 #pragma warning disable
 namespace SDC.Schema
 {
-using System;
-using System.Diagnostics;
-using System.Xml.Serialization;
-using System.Runtime.Serialization;
-using System.Collections;
-using System.Xml.Schema;
-using System.ComponentModel;
-using System.Collections.Specialized;
-using System.Collections.ObjectModel;
-using System.Reflection;
-using System.Globalization;
-using System.Xml;
-using Newtonsoft.Json.Bson;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using MsgPack.Serialization;
-using System.IO;
-using System.Text;
-using System.ComponentModel.DataAnnotations;
-using System.Collections.Generic;
+	using System;
+	using System.Diagnostics;
+	using System.Xml.Serialization;
+	using System.Runtime.Serialization;
+	using System.Collections;
+	using System.Xml.Schema;
+	using System.ComponentModel;
+	using System.Collections.Specialized;
+	using System.Collections.ObjectModel;
+	using System.Reflection;
+	using System.Globalization;
+	using System.Xml;
+	using Newtonsoft.Json.Bson;
+	using Newtonsoft.Json;
+	using Newtonsoft.Json.Converters;
+	using MsgPack.Serialization;
+	using System.IO;
+	using System.Text;
+	using System.ComponentModel.DataAnnotations;
+	using System.Collections.Generic;
 
-/// <summary>
-/// SDC datatypes for Data Entry (DE), based mostly on W3C specifications.
-/// Uses base attributes  and Extension capability to enhance the list of Data Types.
-/// Includes additonal metadata to specify data input restrictions for data entry forms, and to aid in validation of SDC form responses in SDC XML instance documents.
-/// Must be one of the following:
-/// --dateTime (dateTimeStamp_DEtype)
-/// --dateTimeStamp (dateTimeStamp_DEtype)
-/// --duration (duration_DEtype)
-/// --gDay (gDay_DEtype)
-/// --gMonth (gMonth_DEtype)
-/// --gMonthDay (gMonthDay_DEtype)
-/// --gYear (gYear_DEtype)
-/// --gYearMonth (gMonth_DEtype)
-/// --time (time_DEtype)
-/// --yearMonthDuration (yearMonthDuration_DEtype)
-/// </summary>
-[System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
-[Serializable]
-[DesignerCategoryAttribute("code")]
-[XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
-[JsonObject("DataTypesDateTime_DEType")]
-public partial class DataTypesDateTime_DEType : ExtensionBaseType
-{
-    #region Private fields
-    private BaseType _item;
-    #endregion
-    
-    [XmlElement("dateTime", typeof(dateTime_DEtype), IsNullable=true, Order=0)]
-    [XmlElement("dateTimeStamp", typeof(dateTimeStamp_DEtype), IsNullable=true, Order=0)]
-    [XmlElement("duration", typeof(duration_DEtype), IsNullable=true, Order=0)]
-    [XmlElement("gMonthDay", typeof(gMonthDay_DEtype), IsNullable=true, Order=0)]
-    [XmlElement("gYear", typeof(gYear_DEtype), IsNullable=true, Order=0)]
-    [XmlElement("gYearMonth", typeof(gMonth_DEtype), IsNullable=true, Order=0)]
-    [XmlElement("time", typeof(time_DEtype), IsNullable=true, Order=0)]
-    [XmlElement("yearMonthDuration", typeof(yearMonthDuration_DEtype), IsNullable=true, Order=0)]
-    public virtual BaseType Item
-    {
-        get
-        {
-            return _item;
-        }
-        set
-        {
-            if ((_item == value))
-            {
-                return;
-            }
-            if (((_item == null) 
-                        || (_item.Equals(value) != true)))
-            {
-                _item = value;
-                OnPropertyChanged("Item", value);
-            }
-        }
-    }
-    
-    /// <summary>
-    /// Test whether Item should be serialized
-    /// </summary>
-    public virtual bool ShouldSerializeItem()
-    {
-        return (_item != null);
-    }
-}
+	/// <summary>
+	/// SDC datatypes for Data Entry (DE), based mostly on W3C specifications.
+	/// Uses base attributes  and Extension capability to enhance the list of Data Types.
+	/// Includes additonal metadata to specify data input restrictions for data entry forms, and to aid in validation of SDC form responses in SDC XML instance documents.
+	/// Must be one of the following:
+	/// --dateTime (dateTime_DEtype)
+	/// --dateTimeStamp (dateTimeStamp_DEtype)
+	/// --duration (duration_DEtype)
+	/// --gDay (gDay_DEtype)
+	/// --gMonth (gMonth_DEtype)
+	/// --gMonthDay (gMonthDay_DEtype)
+	/// --gYear (gYear_DEtype)
+	/// --gYearMonth (gMonth_DEtype)
+	/// --time (time_DEtype)
+	/// --yearMonthDuration (yearMonthDuration_DEtype)
+	/// </summary>
+	[System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.4084.0")]
+	[Serializable]
+	[DesignerCategoryAttribute("code")]
+	[XmlTypeAttribute(Namespace = "urn:ihe:qrph:sdc:2016")]
+	[JsonObject("DataTypesDateTime_DEType")]
+	public partial class DataTypesDateTime_DEType : ExtensionBaseType
+	{
+		#region Private fields
+		protected internal bool _shouldSerializeItemElementName;
+		private BaseType _item;
+		private ItemChoiceType3 _itemElementName;
+		#endregion
+		[XmlElement("date", typeof(date_DEtype), IsNullable = true, Order = 0)]
+		[XmlElement("dateTime", typeof(dateTime_DEtype), IsNullable = true, Order = 0)]
+		[XmlElement("dateTimeStamp", typeof(dateTimeStamp_DEtype), IsNullable = true, Order = 0)]
+		[XmlElement("dayTimeDuration", typeof(dayTimeDuration_DEtype), Order = 0)]
+		[XmlElement("duration", typeof(duration_DEtype), IsNullable = true, Order = 0)]
+		[XmlElement("gDay", typeof(gDay_DEtype), IsNullable = true, Order = 0)]
+		[XmlElement("gMonth", typeof(gMonth_Stype), IsNullable = true, Order = 0)]
+		[XmlElement("gMonthDay", typeof(gMonthDay_DEtype), IsNullable = true, Order = 0)]
+		[XmlElement("gYear", typeof(gYear_DEtype), IsNullable = true, Order = 0)]
+		[XmlElement("gYearMonth", typeof(gMonth_DEtype), IsNullable = true, Order = 0)]
+		[XmlElement("time", typeof(time_DEtype), IsNullable = true, Order = 0)]
+		[XmlElement("yearMonthDuration", typeof(yearMonthDuration_DEtype), IsNullable = true, Order = 0)]
+		[System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemElementName")]
+		public virtual BaseType Item
+		{
+			get
+			{
+				return _item;
+			}
+			set
+			{
+				if ((_item == value))
+				{
+					return;
+				}
+				if (((_item == null)
+							|| (_item.Equals(value) != true)))
+				{
+					_item = value;
+					OnPropertyChanged("Item", value);
+				}
+			}
+		}
+
+		[XmlElement(Order = 1)]
+		[XmlIgnore]
+		public virtual ItemChoiceType3 ItemElementName
+		{
+			get
+			{
+				return _itemElementName;
+			}
+			set
+			{
+				if ((_itemElementName.Equals(value) != true))
+				{
+					_itemElementName = value;
+					OnPropertyChanged("ItemElementName", value);
+				}
+				_shouldSerializeItemElementName = true;
+			}
+		}
+
+		/// <summary>
+		/// Test whether ItemElementName should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializeItemElementName()
+		{
+			if (_shouldSerializeItemElementName)
+			{
+				return true;
+			}
+			return (_itemElementName != default(ItemChoiceType3));
+		}
+
+
+
+
+
+		/// <summary>
+		/// Test whether Item should be serialized
+		/// </summary>
+		public virtual bool ShouldSerializeItem()
+		{
+			return (_item != null);
+		}
+	}
 }
 #pragma warning restore

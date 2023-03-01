@@ -12,7 +12,7 @@ namespace SDC.Schema.Tests.OMTests
         public void SectionItemTypeTest_AddButtonAction()
         {
 			var de = new DataElementType(null);
-			SectionItemType si = new (de);
+			SectionItemType si = new (de, "si");
 			de.DataElement_Items.Add(si);
 
             var btn = si.AddChildButtonAction("test_item", "myTitle", 1);
@@ -24,7 +24,7 @@ namespace SDC.Schema.Tests.OMTests
         public void SectionItemTypeTest_AddDisplayedItem()
         {
 			var de = new DataElementType(null);
-			SectionItemType si = new(de);
+			SectionItemType si = new(de, "si");
 			de.DataElement_Items.Add(si);
 
 			var di = si.AddChildDisplayedItem("test_item","dtTitle", 1);

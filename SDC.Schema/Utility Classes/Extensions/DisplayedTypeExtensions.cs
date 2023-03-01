@@ -4,94 +4,63 @@
 namespace SDC.Schema.Extensions
 {
 	public static class DisplayedTypeExtensions
-	{//LinkType, BlobType, ContactType, CodingType, EventType, OnEventType, PredGuardType
+	{
+		//LinkType, BlobType, ContactType, CodingType, EventType, OnEventType, PredGuardType
 		public static BlobType AddBlob(this DisplayedType dtParent, int insertPosition = -1)
 		{
-			var blob = new BlobType(dtParent);
-			if (dtParent.BlobContent == null) dtParent.BlobContent = new List<BlobType>();
-			var count = dtParent.BlobContent.Count;
-			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
-			dtParent.BlobContent.Insert(insertPosition, blob);
+			var blob = new BlobType(dtParent, insertPosition);
 			return blob;
 		}
 		public static LinkType AddLink(this DisplayedType dtParent, int insertPosition = -1)
 		{
-			var link = new LinkType(dtParent);
-
-			if (dtParent.Link == null) dtParent.Link = new List<LinkType>();
-			var count = dtParent.Link.Count;
-			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
-			dtParent.Link.Insert(insertPosition, link);
-			//link.order = link.ObjectID;
-
-			var rtf = new RichTextType(link);
-			link.LinkText = rtf;
+			var link = new LinkType(dtParent, insertPosition, "Link");
+			var rtf = new RichTextType(link, -1, "LinkText");
 			return link;
 		}
 		public static ContactType AddContact(this DisplayedType dtParent, int insertPosition = -1)
 		{
-			if (dtParent.Contact == null) dtParent.Contact = new List<ContactType>();
-			var ct = new ContactType(dtParent);
-			var count = dtParent.Contact.Count;
-			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
-			dtParent.Contact.Insert(insertPosition, ct);
+			var ct = new ContactType(dtParent, insertPosition, "Contact");
 			return ct;
 		}
 		public static CodingType AddCodedValue(this DisplayedType dtParent, int insertPosition = -1)
 		{
-			if (dtParent.CodedValue == null) dtParent.CodedValue = new List<CodingType>();
-			var ct = new CodingType(dtParent);
-			var count = dtParent.CodedValue.Count;
-			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
-			dtParent.CodedValue.Insert(insertPosition, ct);
+			var ct = new CodingType(dtParent, insertPosition, "CodedValue");
 			return ct;
 		}
 
 
 		public static PredGuardType AddActivateIf(this DisplayedType dt)
 		{
-			var pg = new PredGuardType(dt);
-			pg.ElementPrefix = "ActivateIf";
-			pg.ElementPrefix = "acif";
-			dt.ActivateIf = pg;
+			var pg = new PredGuardType(dt, -1, "ActivateIf");
+			pg.ElementPrefix = "actIf";
 			return pg;
 		}
 		public static PredGuardType AddDeActivateIf(this DisplayedType dt)
 		{
-			var pg = new PredGuardType(dt);
-			pg.ElementPrefix = "DeActivateIf";
-			pg.ElementPrefix = "deif";
-			dt.DeActivateIf = pg;
+			var pg = new PredGuardType(dt, -1, "DeActivateIf");
+			pg.ElementPrefix = "deActIf";
 			return pg;
 		}
-		public static EventType AddOnEnter(this DisplayedType dt)
+		public static EventType AddOnEnter(this DisplayedType dt, int position = -1)
 		{
-			var ev = new EventType(dt);
-			ev.ElementName = "OnEnter";
-			ev.ElementPrefix = "onen";
-			dt.OnEnter ??= new ();
-			dt.OnEnter.Add(ev);
+			var ev = new EventType(dt, -1, "OnEnter");
+			ev.ElementPrefix = "onEntr";
 			return ev;
 		}
-		public static OnEventType AddOnEvent(this DisplayedType dt)
+		public static OnEventType AddOnEvent(this DisplayedType dt, int position = -1)
 		{
-			var oe = new OnEventType(dt);
-			oe.ElementName = "OnEvent";
-			oe.ElementPrefix = "onev";
-			dt.OnEvent ??= new();
-			dt.OnEvent.Add(oe);
+			var oe = new OnEventType(dt, -1, "OnEvent");
+			oe.ElementPrefix = "onEvnt";
 			return oe;
 		}
-		public static EventType AddOnExit(this DisplayedType dt)
+		public static EventType AddOnExit(this DisplayedType dt, int position = -1)
 		{
-			var oe = new EventType(dt);
+			var oe = new EventType(dt, -1, "OnExit");
 			oe.ElementName = "OnExit";
-			oe.ElementPrefix = "onex";
-			dt.OnExit ??= new();
-			dt.OnExit.Add(oe);
+			oe.ElementPrefix = "onext";
 			return oe;
 		}
-		public static bool MoveEvent_(this DisplayedType dt, EventType ev, List<EventType> targetList = null, int index = -1)
+		public static bool MoveEvent_(this DisplayedType dt, EventType ev, List<EventType>? targetList = null, int index = -1)
 		{
 			throw new NotImplementedException();
 		}

@@ -21,11 +21,11 @@ namespace SDC.Schema.Extensions
 		{
 			ListItemType li = new ListItemType(lt, id);
 			li.title = title;
-			if (lt.QuestionListMembers is null)
-				lt.QuestionListMembers = new();
-			var count = lt.QuestionListMembers.Count;
-			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
-			lt.QuestionListMembers.Insert(insertPosition, li);
+			//if (lt.QuestionListMembers is null)
+			//	lt.QuestionListMembers = new();
+			//var count = lt.QuestionListMembers.Count;
+			//if (insertPosition < 0 || insertPosition > count) insertPosition = count;
+			//lt.QuestionListMembers.Insert(insertPosition, li);
 			return li;
 		}
 		/// <summary>
@@ -59,8 +59,10 @@ namespace SDC.Schema.Extensions
 			var lirf = li.AddListItemResponseField();
 			lirf.AddDataType(dt, dtQuant, valDefault);
 			lirf.responseRequired = responseRequired;
-			if(units is not null) lirf.AddResponseUnits(units);
-			lirf.AddTextAfterResponse(textAfterResponse);
+			if(!string.IsNullOrWhiteSpace(units)) 
+				lirf.AddResponseUnits(units);
+			if (!string.IsNullOrWhiteSpace(textAfterResponse)) 
+				lirf.AddTextAfterResponse(textAfterResponse);
 
 			return li;
 		}
@@ -76,12 +78,7 @@ namespace SDC.Schema.Extensions
 		/// <returns>New DisplayedType node</returns>
 		public static DisplayedType AddDisplayedType(this ListType list, string id, string? title = null, int insertPosition = -1)
 		{
-			var di = new DisplayedType(list, id) { title = title };
-			var count = list.QuestionListMembers.Count;
-			if (insertPosition < 0 || insertPosition > count) insertPosition = count;
-			list.QuestionListMembers.Insert(insertPosition, di);
-
-			return di;
+			return new DisplayedType(list, id, insertPosition) { title = title };
 		}
 
 	}

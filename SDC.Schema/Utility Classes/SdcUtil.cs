@@ -18,6 +18,7 @@ using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.IO.IsolatedStorage;
+using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -48,16 +49,7 @@ namespace SDC.Schema
 		{ return Get_ITopNode(n)._ParentNodes; }
 		internal static ObservableCollection<IdentifiedExtensionType> Get_IETnodes(BaseType n)
 		{ return Get_ITopNode(n)._IETnodes; }
-		private static HashSet<string> xUniqueBaseNames = new(); //key is BaseName, value is sGuid; ensure that all BaseNames are unique
-
-
-		/// <summary>
-		/// This SortedSet contains the ObjectID of each node that has been sorted by ITreeSibComparer.  
-		/// Each entry in this HashSet indicates that nodes child nodes have already been sorted.  
-		/// Checking for a parent node in this HashSet is used to bypass the resorting of child nodes during a tree sorting operation.  
-		/// The SortedList is cleared after the conclusion of the sorting operation, using TreeSort_ClearNodeIds().
-		/// </summary>
-		//private static readonly HashSet<int> TreeSort_NodeIds = new();
+		private static HashSet<string> X_UniqueBaseNames = new(); //key is BaseName, value is sGuid; ensure that all BaseNames are unique
 
 		/// <summary>
 		/// List-sorting code can test for the presence of a flagged parent node in TreeSort_NodeIds with TreeSort_IsSorted. 
@@ -2014,6 +2006,7 @@ namespace SDC.Schema
 				parType = parentNode.GetType();
 				PropertyInfo[] parProps = parType.GetProperties();
 				//Look for a direct item-to-property match, so we can assign propName from the par object		
+				//This will fail if item is not currently referenced to some tree node
 				piItemOut = parProps
 					.Where(pi => pi.GetCustomAttributes(typeof(XmlElementAttribute)).Any()  //all serialized properties must have the XmlElementAttribute attribute
 					&& ! typeof(IEnumerable<BaseType>).IsAssignableFrom(pi.PropertyType)     //the property is not an IEnumerable (i.e., an Array, List etc.)
@@ -2028,7 +2021,8 @@ namespace SDC.Schema
 					//Let's see if our item object lives in an IEnumerable<BaseClassSubtype> 
 					itemIndex = GetElementItemIndex(item, parentNode, out ieItems, out piItemOut, out errorMsg); //item.ParentNode can't be null here
 					// piItemOut will be null if item is not an IEnumerable, we only want to use it if piItemOut is null.
-					if (piItemOut is null)
+					//This will throw if item is not currently referenced to some tree node
+					if (piItemOut is null)  //This will throw if item is not currently referenced to some tree node
 						throw new NullReferenceException($"{nameof(ReflectSdcElement)} could not obtain a PropertyInfo object from the supplied node parameter. \r\n" + errorMsg);
 					else
 						piItem = piItemOut; // piItem is an IEnumerable here
@@ -2088,146 +2082,6 @@ namespace SDC.Schema
 		}
 
 
-		internal static bool TryAttachNewNode(BaseType newNode, string newNodeElementName, BaseType parentTarget, 
-			out Object? targetPropertyObject
-			, out String errorMsg
-			, bool attachSourceToParentTarget = true
-			, int insertPosition = -1
-			, bool overwriteExistingObject = false
-			, bool cancelWhenChildNodes = false
-			)
-		{/*
-		  * 1) If itemElementName populated?
-			1.1) Look in newParent for Item(s)ElementName to find name of Item(s)ChoiceType#
-			1.2)	For item, look in ItemChoiceType# enum to find matching ElementName.
-				1.2.1)	Set newParent = newItem, 
-						Set ItemChoiceType# to match the ElementName and 
-						Return true; 
-			1.3)	For Items, look in ItemsChoiceType# enum values to find matching ElementName.
-				1.3.1)	Execute Items.Insert(newItem, insertPostion), 
-						Set ItemsChoiceType#[insertPostion] to match ElementName and 
-						Return true.
-			2) If itemElementName is not populated:
-			2.1) Look for the first newItem datatype match in newParent.  If no ItemElementName, set the item.  If ItemElementName is present, throw...
-			*/
-			targetPropertyObject = null;
-			errorMsg = "";
-			Type? enumType = null;
-			bool result = false;
-			int matchCount = 0;
-
-			PropertyInfo? piTarget;
-			Type sourceType = newNode.GetType();
-
-			//+Try to match source to a parentTarget property, based on source's datatype
-			if (newNodeElementName.IsNullOrWhitespace())
-			{  //no elementName supplied, so let's see if we can match to one and only one XmlElementAttribute by its datatype
-				piTarget = parentTarget.GetType().GetProperties()
-					.Where
-					(n =>
-					{
-						matchCount += n.GetCustomAttributes<XmlElementAttribute>()
-						.Where(a => a.Type == sourceType).Count();
-						return (matchCount > 0);
-					})?
-					.FirstOrDefault();
-
-				if (matchCount > 1)
-				{   //elementName is empty ("") here
-					errorMsg += $"{nameof(newNodeElementName)} was not supplied, and multiple XmlElementAttribute names matched {nameof(newNode)}'s datatype.";
-					return false;
-				}
-			}
-			else
-			{//+Try to match source to a parent property, based on source's SDC XML elementName
-				piTarget = parentTarget.GetType().GetProperties()
-							.Where(n => n.GetCustomAttributes<XmlElementAttribute>()
-							.Where(a => a.ElementName == newNodeElementName).Any())?
-							.First();
-			}
-
-			if (piTarget is null)  //could not find a parentTarget property to attach source
-			{
-				errorMsg += $"Could not find a property in {nameof(parentTarget)} to bind to {nameof(newNode)}. Check the value of {nameof(newNodeElementName)} (if supplied), and ensure that valid {nameof(newNode)} and {nameof(parentTarget)} objects were supplied.";
-				return false; //can't find a property to bind to source
-			}
-			if (!attachSourceToParentTarget) return true;
-
-			//!+---------Attach Source to targetParent-----------------------------------
-
-			//targetPropertyObject could be null here, as it may not have been instantiated yet.
-			//It may return a single property or a List<> of properties
-			targetPropertyObject = piTarget.GetValue(parentTarget); 
-			result = true;			
-
-			//+Try to find Item(s)ChoiceType object for piTarget, if it exists
-			//piChoiceEnum will tell us if Item(s)ChoiceType is defined as a property.  choiceEnum will be non-null if Item(s)ChoiceType has been instantiated
-			object? choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTarget, newNode, out var piChoiceEnum);
-
-			if (piChoiceEnum is not null)  //We need to process an Item(s)ChoiceEnum object
-			{
-				if (choiceEnum is null)
-				{ //Create a new Enum or List<Enum> object, and attach it to parentTarget:
-					choiceEnum = Activator.CreateInstance(piChoiceEnum.PropertyType);
-					piChoiceEnum.SetValue(parentTarget, choiceEnum);
-				}
-				if (choiceEnum is IList itemsChoiceType) //itemsChoiceType is always List<EnumSubtype> 
-				{
-					enumType = itemsChoiceType.GetType().GetElementType();
-					result = Enum.TryParse(enumType!, newNodeElementName, out object? newEnumObj);
-
-					if (insertPosition == -1 || insertPosition > itemsChoiceType.Count - 1)
-						insertPosition = itemsChoiceType.Count - 1;
-					itemsChoiceType.Insert(insertPosition, newEnumObj);
-
-
-					//Create target list object if not present
-					if (targetPropertyObject is null)
-					{
-						targetPropertyObject = Activator.CreateInstance(piTarget.PropertyType);
-						piTarget.SetValue(parentTarget, targetPropertyObject);
-					}
-					((IList)targetPropertyObject!).Insert(insertPosition, newNode);
-
-					return result;
-				}
-				else if (choiceEnum is Enum itemChoiceType) //itemChoiceType is a simple Enum subtype.
-				{
-					enumType = itemChoiceType.GetType();
-					result = Enum.TryParse(enumType, newNodeElementName, out object? newEnumObj);
-
-					enumType = itemChoiceType.GetType();
-					piChoiceEnum.SetValue(parentTarget, newEnumObj);
-					if (targetPropertyObject is not null) targetPropertyObject.As<BaseType>().RemoveRecursive();
-					piTarget.SetValue(parentTarget, newNode);
-					return result;
-				}
-			}
-			//piChoiceEnum is null here, so we can add source to target without populating an item(s)ChoiceType Enum object
-			if (piTarget.PropertyType is IList lst)
-			{
-				if (insertPosition == -1 || insertPosition > lst.Count - 1)
-					insertPosition = lst.Count - 1;
-
-				//Create target List object if not present
-				if (targetPropertyObject is null)
-				{
-					targetPropertyObject = Activator.CreateInstance(piTarget.PropertyType);
-					piTarget.SetValue(parentTarget, targetPropertyObject);
-				}
-				((IList)targetPropertyObject!).Insert(insertPosition, newNode);
-
-				return true;
-			}
-			else //the target property is not a List<BaseTypeSubtype>;  
-			{	//if targetPropertyObject is not null, we need to remove it, along with any descendant nodes.
-				if (targetPropertyObject is not null) targetPropertyObject.As<BaseType>().RemoveRecursive();
-				piTarget.SetValue(parentTarget, newNode);
-				return true;
-			}
-		}
-
-
 		private static string? GetElementNameFromItemChoiceEnum(PropertyInfo piItem, BaseType item, BaseType parentNode, ref int itemIndex, out string? errorMsg)
 		{
 			errorMsg = null;
@@ -2274,67 +2128,28 @@ namespace SDC.Schema
 			return xci.MemberName;
 		}
 
-		/// <summary>
-		/// Reflect the object tree to determine if <paramref name="newItem"/> can be attached to <paramref name="newParent"/>.   
-		/// We must find an <em>exact</em> match for <paramref name="newItem"/>'s element name and the data type in <paramref name="newParent"/> to allow the move.
-		/// </summary>
-		/// <param name="newItem">The SDC node to test for its ability to be attached to the <paramref name="newParent"/> node.</param>
-		/// <param name="newParent">The node to which the <paramref name="newItem"/> node should be moved.</param>
-		/// <param name="pObj">The property object on <paramref name="newParent"/> that would attach to <paramref name="newItem"/> (hold its object reference).
-		/// pObj may be a List&lt;> or a non-List object.</param>
-		/// <param name="itemElementName"></param>
-		/// <returns>True for allowed parent nodes, false for disallowed not allowed</returns>
-		//internal static bool IsParentNodeAllowed(BaseType item, BaseType newParent,
-		//out PropertyIno pi, out object? pObj, string targetElementName = "")
-		internal static bool IsParentNodeAllowed(BaseType newItem, BaseType newParent, out object? pObj, string itemElementName = "")
-		{
-			/* 
-			item is the node we want to add to newParent
-			If the newParent property is not a List<BaseType>, the matching newParent property could be null or occupied
-			If it's occupied, that node-subtree must be removed from all dictionaries
-			 - this is handled later by IMoveRemoveExtensions
-			If the parent node is a List<> object, it may be null, and if non-null, it may have list entries
-			If item has been added to a parent previously, we can find the current element name, and then
-			look for an appropriate element name and object type match on newParent
-			If item has not yet been attached to a parent node, there are cases when it could adopt more than one element name.
+		internal static bool IsAttachNodeAllowed(BaseType parentTarget, BaseType newNode, string newNodeElementName, 
+			out PropertyInfo? piTargetProperty, out Object? targetPropertyObject
+			, out object? choiceEnum
+			, out String errorMsg)
+			
+			=> TryAttachNewNode(parentTarget, newNode, newNodeElementName, out piTargetProperty, out targetPropertyObject
+				, out choiceEnum
+				, out errorMsg,
+				false);
 
-			In SDC, those multi-named SDC types are:
-			     FileType (in RegistrySummaryType) ItemsChoiceType1[]: Manual, RegistryPurpose, ServiceLevelAgreement
-			     CallFuncType (in ActionsType) ItemsChoiceType[]: CallFunction, ShowURL, WebService, ExternalRule
-			     anyURI_Stype (in CallFuncBaseType) ItemChoiceType1: FunctionURI, LocalFunctionName
-			     gMonth_DEtype (in DataTypes_DEType) ItemChoiceType2: gMonth, gYearMonth
-			     gMonth_Stype (in DataTypes_SType) ItemChoiceType: gMonth, gYearMonth
-				 gMonth_Stype (in DataTypesDateTime_SType) ItemChoiceType3: gMonth, gYearMonth
-				 gMonth_DEtype (in DataTypesDateTime_DEType) 
-
-			In all other cases, each SDC type has a unique ElementName that is generally hard-coded into the SDC partial classes
-			In rare cases, a given item type can be attached to more than one property in a parent object.
-			The best (and perhaps only) examples of multi-positional SDC types is EventType:
-			     DI: EventType: OnEnter, OnExit
-			     LI: EventTime: OnSelect, OnDeselect
-
-			If item's current parent has NOT been set, then in these cases, the intended element name must be specified to determine if attachment is legal,
-			and to return the attaching object in newParent.
-
-			If item's current parent has been set, the current ElementName may be determined by refelction,
-			and this name may be used for moving the node to newParent,  However, it's also possible that the calling code
-			wants to move item to a property with a different element name, but a matching type,  For this reason, it may
-			be necessary to pass in elementName whenever item is one of multi-named or multi-positional SDC types listed above.
-
-			pObj the newParent p isroperty to which we want to attach item.  It is located by reflection, and it might be nuill.
-			If null, it cannot be passed out by reference, but it can be attached to item by reflection.
-			Alternatively, the PropertyInfo object can be exported, and the caller can attach item to newParent.
-			In many cases, this requires setting enum values for ItemElementName.
-			These properties have this attribute: [XmlChoiceIdentifierAttribute("ItemElementName")]
-
-			This method should thus be split into 2: FindParentAttachmentObject (useful for deserialization and moving),
-			and IsParentNodeAllowed (useful for adding new nodes to a parent node).  The latter requires that the
-			calling code specify the intended ElementName for attachement of ambiguous types
-
-
-			Hard code itemElementName for
-
-			1) If itemElementName populated?
+		internal static bool TryAttachNewNode(BaseType parentTarget, BaseType newNode, string newNodeElementName, 
+			out PropertyInfo? piTargetProperty
+			, out object? targetPropertyObject
+			, out object? choiceEnum
+			, out String errorMsg
+			, bool attachNewNodeToParentTarget = true
+			, int insertPosition = -1
+			, bool overwriteExistingObject = false
+			, bool cancelWhenChildNodes = false
+			)
+		{/*
+		  * 1) If itemElementName populated?
 			1.1) Look in newParent for Item(s)ElementName to find name of Item(s)ChoiceType#
 			1.2)	For item, look in ItemChoiceType# enum to find matching ElementName.
 				1.2.1)	Set newParent = newItem, 
@@ -2347,185 +2162,210 @@ namespace SDC.Schema
 			2) If itemElementName is not populated:
 			2.1) Look for the first newItem datatype match in newParent.  If no ItemElementName, set the item.  If ItemElementName is present, throw...
 			*/
+			targetPropertyObject = null;
+			piTargetProperty = null;
+			choiceEnum = null;
+			errorMsg = "";
+			Type? enumType = null;
+			bool result = false;
+			int matchCount = 0;
+			//if (string.IsNullOrWhiteSpace(newNodeElementName)) newNodeElementName = newNode.ElementName;
 
+			Type newNodeType = newNode.GetType();
 
+			//+Try to match newNode to a parentTarget property, based on newNode's Type
+			if (newNodeElementName.IsNullOrWhitespace())
+			{   //no elementName supplied, so let's see if we can match to one and only one XmlElementAttribute by its datatype
+				//This will be slower than using the elementName parameter, and will fail for some types
+				//(e.g., CallFuncBase, EventType...) where the elementName is critical.
 
-			pObj = null;  //the property object to which item would be attached; it may be a List<> or a non-List object.
+				var parentTargetProps = parentTarget.GetType().GetProperties().Where(n=> n.GetCustomAttributes<XmlElementAttribute>().Any()).ToList();
+				
+				piTargetProperty = parentTargetProps?.Where
+					(n =>
+					{						
+						matchCount += n.GetCustomAttributes<XmlElementAttribute>()
+						.Where(a => a.Type == newNodeType).Count();
+						return (matchCount > 0);
+					})?
+					.FirstOrDefault();
 
-			if (newParent is null) return false;
-			//make sure that item and target are not null and are part of the same tree
-			//we'll allow moving from one tree to another, so the following line is commented out.
-			//if (Get_Nodes(item)[newParent.ObjectGUID] is null) return false;
-
-			if (newParent.IsDescendantOf(newItem)) return false;
-
-			Type itemType = newItem.GetType();
-			var thisPi = SdcUtil.GetElementPropertyInfoMeta(newItem, newParent); //This will throw if item is not currently referenced to some tree node
-			string? itemName = thisPi.XmlElementName;
-			if (itemName is null) return false;
-
-			foreach (var p in newParent.GetType().GetProperties())
-			{ //loop through parent properties
-
-				var pAtts = p.GetCustomAttributes<XmlElementAttribute>();
-				pObj = p.GetValue(newParent);  //object that item can be attached to; it may be a List or Array to attach "item" as an element, or another BaseType subclass object to which item can be attached"
-				if (pObj is not null) //the proposed parent proprty is populated with some SDC object
-				{
-					foreach (var a in pAtts)  
-						//the parent property can have multiple possible child object types
-						//look for the one with a name that matches item's current name, if available
-						//If the name is not availablke (perhaps item is not yet attached to a parent,
-						//TODO: we perhaps can use an element name passed in bu the caller
-					{
-						if (a.ElementName == itemName)
-						{
-							if (a.Type == itemType)
-								return true; //if type matches, then ElementName will match, unless XmlChoiceIdentifierAttribute exists on the property.  This is the most common case.
-
-							if (a.Type is null && p.PropertyType == itemType) return true;
-
-							if (p.PropertyType.IsGenericType &&
-								p.PropertyType.GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)) &&
-								(p.PropertyType.GetGenericArguments()[0] == itemType //this may not work unless it's an exact type match
-									|| p.PropertyType.GetGenericArguments()[0].IsAssignableFrom(itemType))
-								) //e.g., like: List<ExtensionBaseType> Items, with [XmlElement("SelectionTest", typeof(PredSelectionTestType), Order=0)]
-								return true;
-
-							if (p.PropertyType.IsArray &&
-								(p.PropertyType.GetElementType() == itemType //this will not work unless it's an exact type match
-									|| p.PropertyType.GetElementType()!.IsAssignableFrom(itemType))
-								)//e.g., like: ExtensionBaseType[] Items, with [XmlElement("ValidateForm", typeof(ActValidateFormType), Order=0)]
-								return true;
-						}
-					}
+				if (matchCount > 1)
+				{   //elementName is empty ("") here
+					errorMsg += $"{nameof(newNodeElementName)} was not supplied, and a unique XmlElementAttribute Type match to {nameof(newNode)}'s Type could not be determined.";
+					return false;
 				}
-				//TODO: Also try matching element names found in the ItemChoiceType enums.  This is more reliable that using data types.
 
-				//if none of the XmlElementAttributes had a matching Type an ElementName, perhaps the property Type will match directly
-				//if (p.Name == itemName)
-				//{
-				//BUG: Need to do ItemChoiceType name checking here!!
-				//BUG: Should be able to approve attaching @string_DEtype to Response node, which is a BaseType (DataTypes_DEType.Items,
-				//BUG: also expressed as helper property DataTypes_DEType_Items)
-				if (p.Name == itemName)  //In many cases, the property name will directly the itemName,
-										 //TODO: or a value passed in with the desired element name will
-				{
-					if (p.PropertyType == itemType)
-					{
-						pObj = itemType;
-						return true;
-					}
+				if (matchCount == 0) //try again to find a matching property:
+				{   //Try for an exact match to a unique property Type (i.e., only one parentTarget property has a PropertyType that exactly matches newNode's type),
+					//but only if that parentTarget property does not specify "Type" in -any- of its XmlElement attributes.
 
-					if (p.PropertyType.IsGenericType &&
-						(p.PropertyType.GetGenericArguments()[0] == itemType //this will not work unless it's an exact type match
-							|| p.PropertyType.GetGenericArguments()[0].IsAssignableFrom(itemType))
-						) //e.g., like: List<ExtensionBaseType> Items, with [XmlElement("SelectionTest", typeof(PredSelectionTestType), Order=0)]
+					var parentTargetPropsWithNullTypes = parentTargetProps?
+						.Where(p => p.GetCustomAttributes<XmlElementAttribute>()
+						.All(a => a.Type is null));
+					var piTargets = parentTargetPropsWithNullTypes?.Where(p =>
 					{
-						pObj = itemType;
-						return true;
-					}
+						if(p.PropertyType == newNodeType) return true; //our target property is an exact type match
+						else 
+							if (p.PropertyType.IsGenericList() && p.PropertyType.GetGenericArguments()?[0] == newNodeType) return true;  //our target property is a List<>
+						return false;
+					})?
+					.ToList();
 
-					if (p.PropertyType.IsArray &&
-						(p.PropertyType.GetElementType() == itemType //this will not work unless it's an exact type match
-							|| p.PropertyType.GetElementType()!.IsAssignableFrom(itemType))
-						)//e.g., like: ExtensionBaseType[] Items, with [XmlElement("ValidateForm", typeof(ActValidateFormType), Order=0)]
+					if (piTargets is null || piTargets.Count() != 1)
 					{
-						pObj = itemType;
-						return true;
+						errorMsg += $"{nameof(newNodeElementName)} was not supplied, and a property with a unique type match to {nameof(newNode)}'s datatype ({newNode.GetType().Name}) could not be found.";
+						return false;
 					}
+					else piTargetProperty = piTargets[0];  //we have exactly one match to a parentTarget property
 				}
 			}
-			pObj = null;
-			return false;
-		}
+			else //this is the preferred approach, as we don't have to infer the caller's desired SDC node type
+			{//+Try to match newNode to a parent property, based on newNode's SDC XML elementName
+				piTargetProperty = parentTarget.GetType()
+					.GetProperties()
+					.Where(pi => 
+						pi.Name == newNodeElementName || 
+						pi.GetCustomAttributes<XmlElementAttribute>()
+							.Where(att => att.ElementName == newNodeElementName).Any()
+					)?.FirstOrDefault();
+	}
 
-		/// <summary>
-		/// Reflect the object tree to determine if the supplied <paramref name="item"/> item node can be attached to new parent node,
-		/// which is defined by the <paramref name="piNewParentProperty"/> PropertyInfo type.   
-		/// We must find an <em>exact</em> match for <paramref name="item"/>'s element name and the data type in <paramref name="piNewParentProperty"/> to allow the move.
-		/// </summary>
-		/// <param name="item">The SDC node to test for its ability to be attached to the <paramref name="piNewParentProperty"/> node.</param>
-		/// <param name="parentNode">Parent node of <paramref name="item"/>. </param>
-		/// <param name="piNewParentProperty">The PropertyInfo object that defines the parent node to which 
-		/// the <paramref name="item"/> node should be moved.</param>
-		/// <param name="itemElementName">The XML Element name for item name.  If null (the default), the method will attempt to determine it.</param>
-		/// <returns>True for allowed parent nodes, false for disallowed parent nodes, 
-		/// where the parent node is defined by <paramref name="piNewParentProperty"/>.</returns>
-		internal static bool IsParentNodeAllowed(BaseType item, BaseType? parentNode, PropertyInfo piNewParentProperty, string? itemElementName = null)
-		{
-			if (item is null) throw new ArgumentNullException(nameof(item), "Argument cannot be null.");
-			if (piNewParentProperty is null) throw new ArgumentNullException(nameof(piNewParentProperty), "Argument cannot be null.");
-
-			Type itemType = item.GetType();
-			if (itemElementName is null || itemElementName.IsNullOrWhitespace()) itemElementName = item.GetPropertyInfoMetaData(parentNode).XmlElementName;
-
-			var pAtts = piNewParentProperty.GetCustomAttributes<XmlElementAttribute>();
-
-			if (pAtts.Any())
+			  if (piTargetProperty is null)  //could not find a parentTarget property to attach newNode
 			{
-				foreach (var a in pAtts)
+				errorMsg += $"Could not find a property in {nameof(parentTarget)} to bind to {nameof(newNode)}. Check the value of {nameof(newNodeElementName)} (if supplied), and ensure that valid {nameof(newNode)} and {nameof(parentTarget)} objects were supplied.";
+				return false; //can't find a property to bind to newNode
+			}
+
+			//targetPropertyObject could be null here, as it may not have been instantiated yet.
+			//It may return a single property or a List<> of properties
+			targetPropertyObject = piTargetProperty.GetValue(parentTarget);
+
+			//Try to find Item(s)ChoiceType object for piTarget, if it exists
+			//piChoiceEnum will tell us if Item(s)ChoiceType is defined as a property. choiceEnum will be non-null if Item(s)ChoiceType has been instantiated
+			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, out var piChoiceEnum);
+
+			if (!attachNewNodeToParentTarget) 
+				return true;			
+
+			//!+---------Attach newNode to targetParent-----------------------------------
+
+			if (targetPropertyObject is BaseType btTarget) //A non-List<> BaseType subtype object already exists as the targetPropertyObject
+			{
+				if(!overwriteExistingObject)
 				{
-					if (a.ElementName == itemElementName)
-					{
-						if (a.Type == itemType)
-							return true; //if type matches, then ElementName must also match.  This is the most common case.
-
-						if (a.Type is null &&
-							piNewParentProperty.PropertyType == itemType
-							)
-							return true;
-
-						if (piNewParentProperty.PropertyType.IsGenericType &&
-							piNewParentProperty.PropertyType.GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)) &&
-							piNewParentProperty.PropertyType.GetGenericArguments()[0] == itemType
-							)
-							return true;
-
-						if (piNewParentProperty.PropertyType.IsArray &&
-							piNewParentProperty.PropertyType.GetElementType() == itemType
-							)
-							return true;
-					}
+					errorMsg += $"{nameof(overwriteExistingObject)} was false, and the target property ({nameof(piTargetProperty.Name)}) in {nameof(parentTarget)} was not null.";
+					return false;
 				}
 
-				//Also, we could try matching element names found in the ItemChoiceType enums.  This is more reliable that using data types.
-
-				//if none of the XmlElementAttributes had a matching Type an ElementName, perhaps the property Type will match directly
-				//TODO: However, it's not clear we need an "expensive" type match if the item name matches the property name.
-				if (piNewParentProperty.Name == itemElementName)
+				if (cancelWhenChildNodes && btTarget.TryGetChildNodes(out _))
 				{
-					if (piNewParentProperty.PropertyType == itemType)
-						return true;
+					errorMsg += $"{nameof(cancelWhenChildNodes)} was true, and the target property ({nameof(piTargetProperty.Name)}) in {nameof(parentTarget)} contained child nodes.";
+					return false;
+				}
+			}		
 
-					if (piNewParentProperty.PropertyType.IsGenericType &&
-						piNewParentProperty.PropertyType.GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)) &&
-						piNewParentProperty.PropertyType.GetGenericArguments()[0] == itemType
-						)
-						return true;
+			//+Try to find Item(s)ChoiceType object for piTarget, if it exists
+			//piChoiceEnum will tell us if Item(s)ChoiceType is defined as a property.  choiceEnum will be non-null if Item(s)ChoiceType has been instantiated
+			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, out piChoiceEnum);
 
-					if (piNewParentProperty.PropertyType.IsArray &&
-						piNewParentProperty.PropertyType.GetElementType() == itemType
-						)
+			if (piChoiceEnum is not null)  //We need to process an Item(s)ChoiceEnum object
+			{
+				if (choiceEnum is null)
+				{ //Create a new Enum or List<Enum> object, and attach it to parentTarget:
+					choiceEnum = Activator.CreateInstance(piChoiceEnum.PropertyType);
+					piChoiceEnum.SetValue(parentTarget, choiceEnum);
+				}
+
+				if (choiceEnum is IList itemsChoiceType) //itemsChoiceType is always List<EnumSubtype> 
+				{
+					enumType = itemsChoiceType.GetType().GetElementType();
+					result = Enum.TryParse(enumType!, newNodeElementName, out object? newEnumObj);
+					if (result)
+					{
+						//Create target List object if not present
+						if (targetPropertyObject is null)
+						{
+							targetPropertyObject = Activator.CreateInstance(piTargetProperty.PropertyType);
+							piTargetProperty.SetValue(parentTarget, targetPropertyObject);
+						}
+
+						IList tpoList = (IList)targetPropertyObject!;
+
+						if (insertPosition == -1 || insertPosition > tpoList.Count - 1)
+						{ 
+							itemsChoiceType.Add(newEnumObj);
+							tpoList.Add(newNode);
+						}
+						else
+						{
+							itemsChoiceType.Insert(insertPosition, newEnumObj);
+							tpoList.Insert(insertPosition, newNode);
+						}
 						return true;
+					}
+					return false;
+				}
+				else if (choiceEnum is Enum itemChoiceType) //itemChoiceType is a simple Enum subtype.
+				{
+					enumType = itemChoiceType.GetType();
+					result = Enum.TryParse(enumType, newNodeElementName, out object? newEnumObj);
+					
+					if (result)
+					{
+						piChoiceEnum.SetValue(parentTarget, newEnumObj);
+						if (targetPropertyObject is not null) targetPropertyObject.As<BaseType>().RemoveRecursive();
+						piTargetProperty.SetValue(parentTarget, newNode);
+							targetPropertyObject = newNode;
+						choiceEnum = newEnumObj;  //we had to recreate the Enum to represent newNode instead of the previous property value
+						return true;
+					}
+					return false;
 				}
 			}
-			return false;
+			//piChoiceEnum is null here, so we can add newNode to target without populating an item(s)ChoiceType Enum object
+			if (piTargetProperty.PropertyType.IsGenericList())  //piTargetProperty.PropertyType.IsGenericList()
+			{
+				//Create target List object if not present
+				if (targetPropertyObject is null)
+				{
+					targetPropertyObject = Activator.CreateInstance(piTargetProperty.PropertyType);
+					piTargetProperty.SetValue(parentTarget, targetPropertyObject);
+				}
+
+				IList tpoList = (IList)targetPropertyObject!;
+				if (insertPosition == -1 || insertPosition > tpoList.Count - 1)
+					tpoList.Add(newNode);
+				else 
+					tpoList.Insert(insertPosition, newNode);
+
+				return true;
+			}
+			else //the target property is not a List<BaseTypeSubtype>;  We are replacing targetPropertyObject (and all subnodes if present) with newNode. 
+			{   //if targetPropertyObject is not null, we need to remove it, along with any descendant nodes (using RemoveRecursive).
+				if (targetPropertyObject is not null) targetPropertyObject.As<BaseType>().RemoveRecursive();
+				piTargetProperty.SetValue(parentTarget, newNode);
+					 targetPropertyObject = newNode;
+				return true;
+			}
 		}
 
 		#endregion
 		#region ArrayHelpers 
+		
 		/// <summary>
-		/// Determines if the object o parameter is a List&lt;T>
+		/// Determines if the type parameter is a List&lt;T>
 		/// </summary>
-		/// <param name="o"></param>
+		/// <param name="t"></param>
 		/// <returns></returns>
-		public static bool IsGenericList(object o)
+		public static bool IsGenericList(Type t)
 		{
-			if (o == null) return false;
-			return o is IList &&
-				o.GetType().IsGenericType &&
-				o.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>));
+			if (t is null) return false;
+			return 
+				t.IsGenericType &&
+				t.GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>));
 		}
+
 		/// <summary>
 		/// Given an array of type T, this method finds the first null entry and returns its index in the array.
 		/// If it does not find a null entry before reaching the end of the array, 
@@ -3133,6 +2973,244 @@ namespace SDC.Schema
 
 		#endregion
 		#region Retired
+
+
+		/// <summary>
+		/// Reflect the object tree to determine if <paramref name="newItem"/> can be attached to <paramref name="newParent"/>.   
+		/// We must find an <em>exact</em> match for <paramref name="newItem"/>'s element name and the data type in <paramref name="newParent"/> to allow the move.
+		/// </summary>
+		/// <param name="newItem">The SDC node to test for its ability to be attached to the <paramref name="newParent"/> node.</param>
+		/// <param name="newParent">The node to which the <paramref name="newItem"/> node should be moved.</param>
+		/// <param name="pObj">The property object on <paramref name="newParent"/> that would attach to <paramref name="newItem"/> (hold its object reference).
+		/// pObj may be a List&lt;> or a non-List object.</param>
+		/// <param name="itemElementName"></param>
+		/// <returns>True for allowed parent nodes, false for disallowed not allowed</returns>
+		//internal static bool IsParentNodeAllowed(BaseType item, BaseType newParent,
+		//out PropertyIno pi, out object? pObj, string targetElementName = "")
+		private static bool X_IsParentNodeAllowed(BaseType newItem, BaseType newParent, out object? pObj, string itemElementName = "")
+		{
+			/* 
+			item is the node we want to add to newParent
+			If the newParent property is not a List<BaseType>, the matching newParent property could be null or occupied
+			If it's occupied, that node-subtree must be removed from all dictionaries
+			 - this is handled later by IMoveRemoveExtensions
+			If the parent node is a List<> object, it may be null, and if non-null, it may have list entries
+			If item has been added to a parent previously, we can find the current element name, and then
+			look for an appropriate element name and object type match on newParent
+			If item has not yet been attached to a parent node, there are cases when it could adopt more than one element name.
+
+			In SDC, those multi-named SDC types are:
+			     FileType (in RegistrySummaryType) ItemsChoiceType1[]: Manual, RegistryPurpose, ServiceLevelAgreement
+			     CallFuncType (in ActionsType) ItemsChoiceType[]: CallFunction, ShowURL, WebService, ExternalRule
+			     anyURI_Stype (in CallFuncBaseType) ItemChoiceType1: FunctionURI, LocalFunctionName
+			     gMonth_DEtype (in DataTypes_DEType) ItemChoiceType2: gMonth, gYearMonth
+			     gMonth_Stype (in DataTypes_SType) ItemChoiceType: gMonth, gYearMonth
+				 gMonth_Stype (in DataTypesDateTime_SType) ItemChoiceType3: gMonth, gYearMonth
+				 gMonth_DEtype (in DataTypesDateTime_DEType) 
+
+			In all other cases, each SDC type has a unique ElementName that is generally hard-coded into the SDC partial classes
+			In rare cases, a given item type can be attached to more than one property in a parent object.
+			The best (and perhaps only) examples of multi-positional SDC types is EventType:
+			     DI: EventType: OnEnter, OnExit
+			     LI: EventTime: OnSelect, OnDeselect
+
+			If item's current parent has NOT been set, then in these cases, the intended element name must be specified to determine if attachment is legal,
+			and to return the attaching object in newParent.
+
+			If item's current parent has been set, the current ElementName may be determined by refelction,
+			and this name may be used for moving the node to newParent,  However, it's also possible that the calling code
+			wants to move item to a property with a different element name, but a matching type,  For this reason, it may
+			be necessary to pass in elementName whenever item is one of multi-named or multi-positional SDC types listed above.
+
+			pObj the newParent p isroperty to which we want to attach item.  It is located by reflection, and it might be nuill.
+			If null, it cannot be passed out by reference, but it can be attached to item by reflection.
+			Alternatively, the PropertyInfo object can be exported, and the caller can attach item to newParent.
+			In many cases, this requires setting enum values for ItemElementName.
+			These properties have this attribute: [XmlChoiceIdentifierAttribute("ItemElementName")]
+
+			This method should thus be split into 2: FindParentAttachmentObject (useful for deserialization and moving),
+			and IsParentNodeAllowed (useful for adding new nodes to a parent node).  The latter requires that the
+			calling code specify the intended ElementName for attachement of ambiguous types
+
+
+			Hard code itemElementName for
+
+			1) If itemElementName populated?
+			1.1) Look in newParent for Item(s)ElementName to find name of Item(s)ChoiceType#
+			1.2)	For item, look in ItemChoiceType# enum to find matching ElementName.
+				1.2.1)	Set newParent = newItem, 
+						Set ItemChoiceType# to match the ElementName and 
+						Return true; 
+			1.3)	For Items, look in ItemsChoiceType# enum values to find matching ElementName.
+				1.3.1)	Execute Items.Insert(newItem, insertPostion), 
+						Set ItemsChoiceType#[insertPostion] to match ElementName and 
+						Return true.
+			2) If itemElementName is not populated:
+			2.1) Look for the first newItem datatype match in newParent.  If no ItemElementName, set the item.  If ItemElementName is present, throw...
+			*/
+
+
+
+			pObj = null;  //the property object to which item would be attached; it may be a List<> or a non-List object.
+
+			if (newParent is null) return false;
+			//make sure that item and target are not null and are part of the same tree
+			//we'll allow moving from one tree to another, so the following line is commented out.
+			//if (Get_Nodes(item)[newParent.ObjectGUID] is null) return false;
+
+			if (newParent.IsDescendantOf(newItem)) return false;
+
+			Type itemType = newItem.GetType();
+			var thisPi = SdcUtil.GetElementPropertyInfoMeta(newItem, newParent); //This will throw if item is not currently referenced to some tree node
+			string? itemName = thisPi.XmlElementName;
+			if (itemName is null) return false;
+
+			foreach (var p in newParent.GetType().GetProperties())
+			{ //loop through parent properties
+
+				var pAtts = p.GetCustomAttributes<XmlElementAttribute>();
+				pObj = p.GetValue(newParent);  //object that item can be attached to; it may be a List or Array to attach "item" as an element, or another BaseType subclass object to which item can be attached"
+				if (pObj is not null) //the proposed parent proprty is populated with some SDC object
+				{
+					foreach (var a in pAtts)  
+						//the parent property can have multiple possible child object types
+						//look for the one with a name that matches item's current name, if available
+						//If the name is not availablke (perhaps item is not yet attached to a parent,
+						//TODO: we perhaps can use an element name passed in bu the caller
+					{
+						if (a.ElementName == itemName)
+						{
+							if (a.Type == itemType)
+								return true; //if type matches, then ElementName will match, unless XmlChoiceIdentifierAttribute exists on the property.  This is the most common case.
+
+							if (a.Type is null && p.PropertyType == itemType) return true;
+
+							if (p.PropertyType.IsGenericType &&
+								p.PropertyType.GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)) &&
+								(p.PropertyType.GetGenericArguments()[0] == itemType //this may not work unless it's an exact type match
+									|| p.PropertyType.GetGenericArguments()[0].IsAssignableFrom(itemType))
+								) //e.g., like: List<ExtensionBaseType> Items, with [XmlElement("SelectionTest", typeof(PredSelectionTestType), Order=0)]
+								return true;
+
+							if (p.PropertyType.IsArray &&
+								(p.PropertyType.GetElementType() == itemType //this will not work unless it's an exact type match
+									|| p.PropertyType.GetElementType()!.IsAssignableFrom(itemType))
+								)//e.g., like: ExtensionBaseType[] Items, with [XmlElement("ValidateForm", typeof(ActValidateFormType), Order=0)]
+								return true;
+						}
+					}
+				}
+				//TODO: Also try matching element names found in the ItemChoiceType enums.  This is more reliable that using data types.
+
+				//if none of the XmlElementAttributes had a matching Type an ElementName, perhaps the property Type will match directly
+				//if (p.Name == itemName)
+				//{
+				//BUG: Need to do ItemChoiceType name checking here!!
+				//BUG: Should be able to approve attaching @string_DEtype to Response node, which is a BaseType (DataTypes_DEType.Items,
+				//BUG: also expressed as helper property DataTypes_DEType_Items)
+				if (p.Name == itemName)  //In many cases, the property name will directly the itemName,
+										 //TODO: or a value passed in with the desired element name will
+				{
+					if (p.PropertyType == itemType)
+					{
+						pObj = itemType;
+						return true;
+					}
+
+					if (p.PropertyType.IsGenericType &&
+						(p.PropertyType.GetGenericArguments()[0] == itemType //this will not work unless it's an exact type match
+							|| p.PropertyType.GetGenericArguments()[0].IsAssignableFrom(itemType))
+						) //e.g., like: List<ExtensionBaseType> Items, with [XmlElement("SelectionTest", typeof(PredSelectionTestType), Order=0)]
+					{
+						pObj = itemType;
+						return true;
+					}
+
+					if (p.PropertyType.IsArray &&
+						(p.PropertyType.GetElementType() == itemType //this will not work unless it's an exact type match
+							|| p.PropertyType.GetElementType()!.IsAssignableFrom(itemType))
+						)//e.g., like: ExtensionBaseType[] Items, with [XmlElement("ValidateForm", typeof(ActValidateFormType), Order=0)]
+					{
+						pObj = itemType;
+						return true;
+					}
+				}
+			}
+			pObj = null;
+			return false;
+		}
+		/// <summary>
+		/// Reflect the object tree to determine if the supplied <paramref name="item"/> item node can be attached to new parent node,
+		/// which is defined by the <paramref name="piNewParentProperty"/> PropertyInfo type.   
+		/// We must find an <em>exact</em> match for <paramref name="item"/>'s element name and the data type in <paramref name="piNewParentProperty"/> to allow the move.
+		/// </summary>
+		/// <param name="item">The SDC node to test for its ability to be attached to the <paramref name="piNewParentProperty"/> node.</param>
+		/// <param name="parentNode">Parent node of <paramref name="item"/>. </param>
+		/// <param name="piNewParentProperty">The PropertyInfo object that defines the parent node to which 
+		/// the <paramref name="item"/> node should be moved.</param>
+		/// <param name="itemElementName">The XML Element name for item name.  If null (the default), the method will attempt to determine it.</param>
+		/// <returns>True for allowed parent nodes, false for disallowed parent nodes, 
+		/// where the parent node is defined by <paramref name="piNewParentProperty"/>.</returns>
+		private static bool X_IsParentNodeAllowed(BaseType item, BaseType? parentNode, PropertyInfo piNewParentProperty, string? itemElementName = null)
+		{
+			if (item is null) throw new ArgumentNullException(nameof(item), "Argument cannot be null.");
+			if (piNewParentProperty is null) throw new ArgumentNullException(nameof(piNewParentProperty), "Argument cannot be null.");
+
+			Type itemType = item.GetType();
+			if (itemElementName is null || itemElementName.IsNullOrWhitespace()) itemElementName = item.GetPropertyInfoMetaData(parentNode).XmlElementName;
+
+			var pAtts = piNewParentProperty.GetCustomAttributes<XmlElementAttribute>();
+
+			if (pAtts.Any())
+			{
+				foreach (var a in pAtts)
+				{
+					if (a.ElementName == itemElementName)
+					{
+						if (a.Type == itemType)
+							return true; //if type matches, then ElementName must also match.  This is the most common case.
+
+						if (a.Type is null &&
+							piNewParentProperty.PropertyType == itemType
+							)
+							return true;
+
+						if (piNewParentProperty.PropertyType.IsGenericType &&
+							piNewParentProperty.PropertyType.GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)) &&
+							piNewParentProperty.PropertyType.GetGenericArguments()[0] == itemType
+							)
+							return true;
+
+						if (piNewParentProperty.PropertyType.IsArray &&
+							piNewParentProperty.PropertyType.GetElementType() == itemType
+							)
+							return true;
+					}
+				}
+
+				//Also, we could try matching element names found in the ItemChoiceType enums.  This is more reliable that using data types.
+
+				//if none of the XmlElementAttributes had a matching Type an ElementName, perhaps the property Type will match directly
+				//TODO: However, it's not clear we need an "expensive" type match if the item name matches the property name.
+				if (piNewParentProperty.Name == itemElementName)
+				{
+					if (piNewParentProperty.PropertyType == itemType)
+						return true;
+
+					if (piNewParentProperty.PropertyType.IsGenericType &&
+						piNewParentProperty.PropertyType.GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)) &&
+						piNewParentProperty.PropertyType.GetGenericArguments()[0] == itemType
+						)
+						return true;
+
+					if (piNewParentProperty.PropertyType.IsArray &&
+						piNewParentProperty.PropertyType.GetElementType() == itemType
+						)
+						return true;
+				}
+			}
+			return false;
+		}
 		private static List<BaseType>? X_ReflectChildList(BaseType bt)
 		{
 			if (bt is null) return null;

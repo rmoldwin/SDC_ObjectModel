@@ -7,11 +7,11 @@ namespace SDC.Schema
 {
 	public static class QuestionItemTypeExtensions
 	{
-		private static QuestionItemType ConvertToQR_(this QuestionItemType q, bool testOnly = false)
+		private static QuestionItemType X_ConvertToQR_(this QuestionItemType q, bool testOnly = false)
 		{ throw new NotImplementedException(); } //abort if children present
-		private static QuestionItemType ConvertToQS_(this QuestionItemType q, bool testOnly = false)
+		private static QuestionItemType X_ConvertToQS_(this QuestionItemType q, bool testOnly = false)
 		{ throw new NotImplementedException(); }
-		private static QuestionItemType ConvertToQM_(this QuestionItemType q, int maxSelections = 0, bool testOnly = false)
+		private static QuestionItemType X_ConvertToQM_(this QuestionItemType q, int maxSelections = 0, bool testOnly = false)
 		{ throw new NotImplementedException(); }
 		//private static DisplayedType ConvertToDI_(this QuestionItemType q, bool testOnly = false)
 		//{ throw new NotImplementedException(); } //abort if LIs or children present
@@ -81,27 +81,21 @@ namespace SDC.Schema
 				q.GetQuestionSubtype() == QuestionEnum.QuestionSingle ||
 				q.GetQuestionSubtype() == QuestionEnum.QuestionRaw)
 			{
-				ListFieldType lf = q.GetListField();
-				ListType list = lf.GetList(); 
+				ListFieldType lf = q.GetListField(); //Adds ListField if null
+				ListType list = lf.GetList(); //Adds ListField.List if null
 
-				//ListItemType li = new ListItemType(list, id);
-				ListItemType li = new ListItemType(list, id);  //register node with null parent.  This prevents the node from being registered in any TopNode dictionaries
+				ListItemType li = new ListItemType(list, id, insertPosition);  
 				li.title = defTitle;
-				int count = list.QuestionListMembers.Count;
-				if (insertPosition < 0 || insertPosition > count) insertPosition = count;
-				list.QuestionListMembers.Insert(insertPosition, li);
 
+				//int count = list.QuestionListMembers.Count;
+				//if (insertPosition < 0 || insertPosition > count) insertPosition = count;
+				//list.QuestionListMembers.Insert(insertPosition, li);
 				//li.RegisterNodeAndParent(list);
+
 				return li;
 			}
 			else throw new InvalidOperationException("You can only add a ListItem to a QuestionSingle or QuestionMultiple");
 		}
-
-
-
-
-
-
 
 		/// <summary>
 		/// Add a new ListItemResponse (LIR) to a Question.  <br/>
@@ -145,7 +139,8 @@ namespace SDC.Schema
 				if(units is not null)lirf.AddResponseUnits(units);
 				if(textAfterResponse is not null)lirf.AddTextAfterResponse(textAfterResponse);
 
-				deType = IDataHelpers.AddDataTypesDE(lirf, dt, dtQuant, valDefault);
+				deType = rsp;
+				//deType = IDataHelpers.AddDataTypesDE(lirf, dt, dtQuant, valDefault);
 				return li;
 
 			}
@@ -189,15 +184,14 @@ namespace SDC.Schema
 		{
 			if (q.GetQuestionSubtype() == QuestionEnum.QuestionMultiple ||
 				q.GetQuestionSubtype() == QuestionEnum.QuestionSingle ||
-				q.GetQuestionSubtype() == QuestionEnum.QuestionRaw)//TODO: handle the last case
+				q.GetQuestionSubtype() == QuestionEnum.QuestionRaw)//TODO: document the last case
 			{
-				if (q.ListField_Item is null) q.GetListField();
-				ListType? list = q.ListField_Item!.List;
-				list ??= q.ListField_Item.GetList();
+				ListFieldType lf = q.GetListField();
+				ListType? list = lf.GetList();
 
 				return list.AddDisplayedType(id, title, insertPosition);
 			}
-			else throw new InvalidOperationException("You can only add a DisplayedItem to a QuestionSingle or QuestionMultiple");
+			else throw new InvalidOperationException("You can only add a DisplayedItem to QuestionSingle, QuestionMultiple or QuestionRaw");
 		}
 
 		/// <summary>
@@ -219,8 +213,6 @@ namespace SDC.Schema
 			if (q.GetQuestionSubtype() == QuestionEnum.QuestionRaw)
 			{
 				var rf = new ResponseFieldType(q);
-				q.ResponseField_Item = rf;
-				//_ = new DataTypes_DEType(rf);
 				deType = rf.AddDataType(dataType, dtQuant, valDefault);
 				return rf;
 			}
@@ -234,12 +226,12 @@ namespace SDC.Schema
 		/// <returns></returns>
 		public static ListFieldType GetListField(this QuestionItemType q)
 		{
-			if (q.ListField_Item == null)
-			{
-				var listField = new ListFieldType(q);
-				q.ListField_Item = listField;
-			}
-			return q.ListField_Item; //TODO: handle error if not Qraw
+			if (q.ListField_Item != null) 
+				return q.ListField_Item;
+			if (q.Item is null)
+				return new ListFieldType(q);
+
+			throw new InvalidOperationException($"The {nameof(q)} parameter contained an Item object that cannot be cconverted to ListField");
 		}
 		/// <summary>
 		/// In a QuestionSingle (QS) or QuestionMultiple (QM), retrieves an ordered List&lt;DisplayedType> of all ListItems and DisplayedItems owned by the QS or QM. <br/>
@@ -252,7 +244,6 @@ namespace SDC.Schema
 		/// <returns>Sorted ImmutableList&lt;DisplayedType> or null if the Question has no ListField object</returns>
 		public static ImmutableList<DisplayedType>? GetListItems(this QuestionItemType q)
 		{
-			//return q?.ListField_Item?.List?.GetChildNodes()?.Cast<DisplayedType>().ToList();
 			return q?.ListField_Item?.List?.Items.ToImmutableList();
 		}
 		/// <summary>
@@ -260,8 +251,8 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="q"></param>
 		/// <returns>I a QR node, returns DataTypeDE_Item.  Otherwise returns null </returns>
-		public static BaseType? GetResponseDataTypeNode(this QuestionItemType q) =>
-			q?.ResponseField_Item?.Response?.DataTypeDE_Item;
+		public static BaseType? GetResponseDataTypeNode(this QuestionItemType q) 
+			=>	q?.ResponseField_Item?.Response?.DataTypeDE_Item;
 
 		/// <summary>
 		/// Retrieves all ListItem and DisplayedItem nodes under the List node, <br/>

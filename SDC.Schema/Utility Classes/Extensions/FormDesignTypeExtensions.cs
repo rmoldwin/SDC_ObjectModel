@@ -28,7 +28,6 @@ namespace SDC.Schema.Extensions
 		}
 		public static SectionItemType AddFooter(this FormDesignType fd)
 		{
-			//var fd = (ifd as FormDesignType);
 			if (fd.Footer == null)
 			{
 				fd.Footer = new SectionItemType(fd, fd.ID + "_Footer");  //Set a default ID, in case the database template does not have a body
@@ -46,9 +45,7 @@ namespace SDC.Schema.Extensions
 		public static RulesType AddRule_(this FormDesignType fd)
 		{ 
 			if(fd.Rules is null)
-			{
 				fd.Rules = new RulesType(fd);
-			}
 			return fd.Rules;
 		}
 

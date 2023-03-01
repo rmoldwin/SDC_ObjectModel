@@ -589,7 +589,7 @@ include the MainItems sub-group under each ListItem.</xs:documentation>
 							items in this attribute's content. Prefixing any named with a hyphen (-)
 							will reverse the above behaviour (i.e., the named items will be
 							disabled). Unselecting the ListItem will reverse this behaviour.
-							Prefixing the name with a tilde (~) will suppress this reversal behavior.
+							Prefixing the name with a tilde (~) will supress this reversal behavior.
 						</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
@@ -743,16 +743,26 @@ ListItem for multi-select questions. </xs:documentation>
 						</xs:restriction>
 					</xs:simpleType>
 				</xs:attribute>
-				<xs:attribute default="1" name="numCols" type="xs:unsignedByte">
+				<xs:attribute default="1" name="numCols">
 					<xs:annotation>
 						<xs:documentation>Number of columns in the list</xs:documentation>
 					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:unsignedByte">
+							<xs:minInclusive value="1"/>
+						</xs:restriction>
+					</xs:simpleType>
 				</xs:attribute>
-				<xs:attribute default="1" name="storedCol" type="xs:unsignedByte">
+				<xs:attribute default="1" name="storedCol">
 					<xs:annotation>
 						<xs:documentation>Determines which column of the list is stored in a
 							database. This list is one-based.</xs:documentation>
 					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:unsignedByte">
+							<xs:minInclusive value="1"/>
+						</xs:restriction>
+					</xs:simpleType>
 				</xs:attribute>
 				<xs:attribute default="1" name="minSelections">
 					<xs:annotation>
@@ -1140,19 +1150,20 @@ OnClick may repeat, and thus may fire multiple OnClick events</xs:documentation>
 				</xs:attribute>
 				<xs:attribute default="True" name="showInReport">
 					<xs:annotation>
-						<xs:documentation>CHANGED to T/F/Optional If @showInReport on a Question is
-							false, then the Question and its ListItems (if any) should not be
-							present in a typical report derived from this template. If this
-							attribute appears on a ListItem, then the entire question and all
-							ListItems should be omitted from the report. If this attribute appears
-							on a Section, then the entire Section and all Section contents
-							(descendents) should be omitted from the report. If @showInReport
-							appears on a DisplayedItem, then the DisplayedItem should be omitted
-							from the report. This attribute is usually set to false when a Question
-							is used to control form behavior (e.g., skip logic), or when the
-							Question provides unhelpful "negative" information about actions that
-							did not occur or were not performed, or things that were not
-							observed.</xs:documentation>
+						<xs:documentation>CHANGED to True/False/Optional.  Note that the 3 options must begin with capital letters.
+If @showInReport on a Question is
+False, then the Question and its ListItems (if any) should not be
+present in a typical report derived from this template. If this
+attribute appears on a ListItem, then the entire question and all
+ListItems should be omitted from the report. If this attribute appears
+on a Section, then the entire Section and all Section contents
+(descendents) should be omitted from the report. If @showInReport
+appears on a DisplayedItem, then the DisplayedItem should be omitted
+from the report. This attribute is usually set to False when a Question
+is used to control form behavior (e.g., skip logic), or when the
+Question provides unhelpful "negative" information about actions that
+did not occur or were not performed, or things that were not
+observed.</xs:documentation>
 					</xs:annotation>
 					<xs:simpleType>
 						<xs:restriction base="xs:string">

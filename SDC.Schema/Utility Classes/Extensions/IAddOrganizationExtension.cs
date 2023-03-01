@@ -8,18 +8,14 @@ namespace SDC.Schema.Extensions
 		public static OrganizationType AddOganization_(this IAddOrganization ao)
 		{ throw new NotImplementedException(); }
 
-		public static OrganizationType AddOrganization(this IAddOrganization ao, ContactType contactParent)
+		public static OrganizationType AddOrganization(this IAddOrganization ao, ContactType contactParent, int insertPosition = -1)
 		{
-			var ot = new OrganizationType(contactParent);
-			contactParent.Organization = ot;
-
+			var ot = new OrganizationType(contactParent, insertPosition, "Organization");
 			return ot;
 		}
-		public static OrganizationType AddOrganization(this IAddOrganization ao, JobType jobParent)
+		public static OrganizationType AddOrganization(this IAddOrganization ao, JobType jobParent, int insertPosition = -1)
 		{
-			var ot = new OrganizationType(jobParent);
-			jobParent.Organization = ot;
-
+			var ot = new OrganizationType(jobParent, insertPosition, "Organization");
 			return ot;
 		}
 		public static OrganizationType AddOrganizationItems_(this IAddOrganization ao, OrganizationType ot)

@@ -26,10 +26,10 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null);
 			QuestionItemType q = new(de, "q");
-			de.Items.Add(q);
+			//de.Items.Add(q);
 			var li = q.AddListItem("li");
-			var dsi = li.AddDeSelectIf();
-            Assert.AreNotEqual(dsi, null);
+			var dsi = li.AddDeselectIf();
+            Assert.ReferenceEquals(dsi, q.GetListItems()?[0].As<ListItemType>().DeselectIf);
         }
 
         [TestMethod]
@@ -72,7 +72,7 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null);
 			QuestionItemType q = new(de, "q");
-            de.DataElement_Items.Add(q);
+            //de.DataElement_Items.Add(q);
 
 			var li = q.AddListItem("li");
 			var e = li.AddOnDeselect();
@@ -85,12 +85,12 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null);
 			QuestionItemType q = new(de, "q");
-			de.DataElement_Items.Add(q);
+			//de.DataElement_Items.Add(q);
 
 			var li = q.AddListItem("li");
 			var e = li.AddOnSelect();
             Assert.IsNotNull(e);
-            Assert.AreEqual(1, (li as ListItemType).OnSelect.Count);
+            Assert.AreEqual(1, li.OnSelect.Count);
         }
 
         [TestMethod]
@@ -98,7 +98,7 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null);
 			QuestionItemType q = new(de, "q");
-            de.DataElement_Items.Add(q);
+            //de.DataElement_Items.Add(q);
 
 			var li = q.AddListItem("li");
 			var q1 = li.AddChildQuestion(QuestionEnum.QuestionSingle,"q1");
@@ -111,7 +111,7 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null);
 			QuestionItemType q = new(de, "q");
-			de.DataElement_Items.Add(q);
+			//de.DataElement_Items.Add(q);
 
 			var li = q.AddListItem("li");
 
@@ -120,7 +120,7 @@ namespace SDC.Schema.Tests.OMTests
                 ID = "QuestionResponseId",
                 title = "This is a test question"
             };
-			de.DataElement_Items.Add(q2);
+			//de.DataElement_Items.Add(q2);
 
 			var qr = li.AddChildQuestionResponse("myID",out _, "", 1, ItemChoiceType.@string, "", "", dtQuantEnum.EQ, "");
             Assert.IsNotNull(qr);
@@ -131,7 +131,7 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null);
 			QuestionItemType q = new(de, "q");
-			de.DataElement_Items.Add(q);
+			//de.DataElement_Items.Add(q);
 
 			var li = q.AddListItem("li");
 			var s = li.AddChildSection("test_id", "", 1);
@@ -144,7 +144,7 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null);
 			QuestionItemType q = new(de, "q");
-			de.DataElement_Items.Add(q);
+			//de.DataElement_Items.Add(q);
 
 			var li = q.AddListItem("li");
 			var s = li.AddSelectIf();

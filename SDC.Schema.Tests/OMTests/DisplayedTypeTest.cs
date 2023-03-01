@@ -12,19 +12,19 @@ namespace SDC.Schema.Tests.OMTests
         public void DisplayedTypeTest_AddLink()
         {
             var de = new DataElementType(null);
-            DisplayedType di = new DisplayedType(de);
-			de.DataElement_Items.Add(di);
+            DisplayedType di = new DisplayedType(de, "di");
+            //de.DataElement_Items.Add(di);
 
-			var link = di.AddLink(1);
-            Assert.AreNotEqual(link, null);
+            var link = di.AddLink(1);
+            Assert.ReferenceEquals(di.Link[0], link);
         }
 
         [TestMethod]
         public void DisplayedTypeTest_AddBlob()
         {
 			var de = new DataElementType(null);
-			DisplayedType di = new DisplayedType(de);
-			de.DataElement_Items.Add(di);
+			DisplayedType di = new DisplayedType(de, "di");
+			//de.DataElement_Items.Add(di);
 
 			var blob = di.AddBlob(1);
             Assert.AreNotEqual(blob, null);
@@ -35,8 +35,8 @@ namespace SDC.Schema.Tests.OMTests
         public void DisplayedTypeTest_AddContact()
         {
 			var de = new DataElementType(null);
-			DisplayedType di = new DisplayedType(de);
-			de.DataElement_Items.Add(di);
+			DisplayedType di = new DisplayedType(de, "di");
+			//de.DataElement_Items.Add(di);
 
 			var contact = di.AddContact(1);
             Assert.AreNotEqual(contact, null);
@@ -47,8 +47,8 @@ namespace SDC.Schema.Tests.OMTests
         public void DisplayedTypeTest_AddCodedValue()
         {
 			var de = new DataElementType(null);
-			DisplayedType di = new DisplayedType(de);
-			de.DataElement_Items.Add(di);
+			DisplayedType di = new DisplayedType(de, "di");
+			//de.DataElement_Items.Add(di);
 
 			var codedValue = di.AddCodedValue(1);
             Assert.AreNotEqual(codedValue, null);
@@ -59,8 +59,8 @@ namespace SDC.Schema.Tests.OMTests
         public void DisplayedTypeTest_AddActiveIf()
         {
 			var de = new DataElementType(null);
-			DisplayedType di = new DisplayedType(de);
-			de.DataElement_Items.Add(di);
+			DisplayedType di = new DisplayedType(de, "di");
+			//de.DataElement_Items.Add(di);
 
 			var ai = di.AddActivateIf();
             Assert.AreNotEqual(ai, null);
@@ -70,8 +70,8 @@ namespace SDC.Schema.Tests.OMTests
         public void DisplayedTypeTest_AddDeActiveIf()
         {
 			var de = new DataElementType(null);
-			DisplayedType di = new DisplayedType(de);
-			de.DataElement_Items.Add(di);
+			DisplayedType di = new DisplayedType(de, "di");
+			//de.DataElement_Items.Add(di);
 
 			var dai = di.AddDeActivateIf();
             Assert.AreNotEqual(dai, null);
@@ -81,8 +81,8 @@ namespace SDC.Schema.Tests.OMTests
         public void DisplayedTypeTest_AddOnEnter()
         {
 			var de = new DataElementType(null);
-			DisplayedType di = new DisplayedType(de);
-			de.DataElement_Items.Add(di);
+			DisplayedType di = new DisplayedType(de, "di");
+			//de.DataElement_Items.Add(di);
 
 			var ee = di.AddOnEnter();
 			
@@ -95,8 +95,8 @@ namespace SDC.Schema.Tests.OMTests
         public void DisplayedTypeTest_AddOnExit()
         {
 			var de = new DataElementType(null);
-			DisplayedType di = new DisplayedType(de);
-			de.DataElement_Items.Add(di);
+			DisplayedType di = new DisplayedType(de, "di");
+			//de.DataElement_Items.Add(di);
 
 			var ee = di.AddOnExit();
 

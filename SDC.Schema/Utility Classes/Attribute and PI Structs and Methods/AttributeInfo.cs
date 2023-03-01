@@ -268,11 +268,17 @@ namespace SDC.Schema
 	public readonly record struct AttInfoDif
 	{
 
-		public AttInfoDif(string sGuidSubnode, AttributeInfo? aiPrev, AttributeInfo? aiNew)
+		public AttInfoDif(string sGuidSubnode, 
+			AttributeInfo? aiPrev, AttributeInfo? aiNew)
+			//, string elementName, string propertyName = "")
 		{
 			this.sGuidSubnode = sGuidSubnode;
+			
 			this.aiPrev = aiPrev;
 			this.aiNew = aiNew;
+			//TODO: Add ElementName, PropName to AttInfoDif
+			//this.elementName = elementName;
+			//this.propertyName = propertyName;
 
 		}
 		/// <summary>
@@ -288,6 +294,16 @@ namespace SDC.Schema
 		/// </summary>
 		public readonly AttributeInfo? aiNew;
 
+
+		/// <summary>
+		/// 
+		/// </summary>
+		//public readonly string? elementName;
+		/// <summary>
+		/// 
+		/// </summary>
+		//public readonly string? propertyName;
+		
 	}
 
 	/// <summary>

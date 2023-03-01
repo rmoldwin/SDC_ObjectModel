@@ -31,18 +31,19 @@ using System.Collections.Generic;
 [Serializable]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016", IncludeInSchema=false)]
 public enum ItemChoiceType3
-{
-    date,
-    dateTime,
-    dateTimeStamp,
-    duration,
-    gDay,
-    gMonth,
-    gMonthDay,
-    gYear,
-    gYearMonth,
-    time,
-    yearMonthDuration,
-}
+	{
+		date,
+		dateTime,
+		dateTimeStamp,
+		duration,
+		dayTimeDuration, //rm added 2023_02_27
+		gDay,
+		gMonth,
+		gMonthDay,
+		gYear,
+		gYearMonth,
+		time,
+		yearMonthDuration,
+	}
 }
 #pragma warning restore

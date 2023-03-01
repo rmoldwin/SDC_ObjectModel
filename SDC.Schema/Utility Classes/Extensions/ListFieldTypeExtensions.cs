@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.SqlTypes;
 using System.Linq;
 
 namespace SDC.Schema.Extensions
@@ -11,17 +12,16 @@ namespace SDC.Schema.Extensions
 		/// <param name="lf"></param>
 		/// <returns></returns>
 		/// <exception cref="InvalidOperationException"></exception>
-		public static LookupEndPointType AddEndpoint(this ListFieldType lf)
+		public static LookupEndPointType GetLookupEndpoint(this ListFieldType lf)
 		{
-			if (lf.List is null)
-			{
-				var lep = new LookupEndPointType(lf);
-				lf.LookupEndpoint = lep;
-				return lep;
-			}
-			else throw new InvalidOperationException
+			if (lf.List is not null)
+				throw new InvalidOperationException
 					("You can only add a LookupEndpoint to ListField if a List object is not present on ListField");
-		}
+
+			if (lf.LookupEndpoint is not null) 
+				return lf.LookupEndpoint;
+			else return new LookupEndPointType(lf);
+ 		}
 		/// <summary>
 		/// 
 		/// </summary>
@@ -34,21 +34,12 @@ namespace SDC.Schema.Extensions
 				throw new InvalidOperationException
 					("You can only add a List to a ListField if a LookupEndpoint object is not present on the ListField");
 			ListType list;  //this is not the .NET List class; It's an answer list
-			if (lf.List is null)
-			{
-				list = new ListType(lf);
-				lf.List = list;
-			}
-			else
-			{
-				if (lf.List.Items is null) lf.List.Items = new();
-				list = lf.List;
-			}
+			if (lf.List is null) list = new ListType(lf);
 
 			//The "list" item contains a list<DisplayedType>, to which the ListItems and ListNotes (DisplayedItems) are added.
-			list.QuestionListMembers ??= new List<DisplayedType>();
+			lf.List!.QuestionListMembers ??= new List<DisplayedType>();
 
-			return list;
+			return lf.List;
 		}
 
 	}
