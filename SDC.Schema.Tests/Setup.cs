@@ -207,7 +207,14 @@ namespace SDC.Schema.Tests
 		public static string FormDesignWithHtmlXml { get; set; }
 		public static string FormDesignXml { get; set; }
 		public static string? FileFolderPath { get => _fileFolderPath; private set => _fileFolderPath = value; }
-		public static FormDesignType? FD { get => _fD; private set => _fD = value; }
+		public static FormDesignType? FD {
+            get
+            {
+				if (_fD is null) Reset();
+                return _fD;
+            }
+
+            private set => _fD = value; }
 
 		public static void TimerStart(string message = "")
 		{

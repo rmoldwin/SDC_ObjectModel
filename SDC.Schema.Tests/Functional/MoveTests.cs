@@ -204,11 +204,14 @@ namespace SDC.Schema.Tests.Functional
 			var LI_39079 = FD.GetListItemByName("LI_39079");
 			var LIR_16195 = FD.GetListItemByName("LI_16195");
 			var LI_16196 = FD.GetListItemByName("LI_16196");
+
 			var Q_16214 = FD.GetQuestionByName("Q_16214"); //QS: Specimen Laterality
 			var LI_16215 = FD.GetListItemByName(name: "LI_16215");
 			var LI_16216 = FD.GetListItemByName("LI_16216");
 			var LI_16218 = FD.GetListItemByName("LI_16218");
+
 			var S_16249 = FD.GetSectionByName("S_16249"); //S:TUMOR
+
 			var Q_16250 = FD.GetQuestionByName("Q_16250"); //QS: Tumor Site (Note B)
 			var p_rptTxt_16250_1 = FD.GetPropertyByName("p_rptTxt_16250_1"); //Report Text
 			var LI_16251 = FD.GetListItemByName("LI_16251");
@@ -258,11 +261,19 @@ namespace SDC.Schema.Tests.Functional
 			Move(S_16249, S_16182, DropPosition.After);  //Drop Tumor onto Specimen node to make Tumor a child section
 			Assert.IsTrue(S_16182?.ChildItemsNode.ChildItemsList.Count == 2);
 
+			// Drop LI ("Central") Over Q ("Procedure (Note A)")
+			Move(LI_16255, Q_16250, DropPosition.Over);  //Drop LI on Q, and check to ensure that the LI is now is position 0 in ChildNodes & right after the Q in &IETnodes.
+			var lst = FD.IETnodes.ToList();
+			var lst1 = (IList)FD.IETnodes;
+			var qPos = lst1.IndexOf(Q_16250);
+			var liPos = lst1.IndexOf(LI_16255);
+			Assert.IsTrue(liPos - qPos == 1);
+
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 			Setup.Reset(); //reset after moving nodes.
 		}
 		[TestMethod]
-		public void _MoveListDInList()
+		public void _MoveListDIinList()
 		{
 			Setup.TimerStart("==>[] Started");
 

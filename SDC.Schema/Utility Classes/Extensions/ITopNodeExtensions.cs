@@ -301,7 +301,7 @@ namespace SDC.Schema.Extensions
 					if (parExists)
 					{
 						//bt.IsLeafNode = true;
-						bt.RegisterNodeAndParent(btPar!, childNodesSort: false);
+						bt.RegisterAll(btPar!, childNodesSort: false);
 						//Debug.WriteLine($"The node with ObjectID: {bt.ObjectID} is leaving InitializeNodesFromSdcXml. Item type is {bt.GetType().Name}.  " +
 						//            $"Parent ObjectID is {bt?.ParentID}, ParentIETnodeID: {bt?.ParentIETnodeID}, ParentType: {btPar.GetType().Name}");
 					}

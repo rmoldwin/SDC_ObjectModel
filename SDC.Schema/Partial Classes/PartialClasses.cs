@@ -1291,17 +1291,17 @@ namespace SDC.Schema
 			InitBaseType(parentNode);
 			if (parentNode is not null)
 			{
-				bool result = SdcUtil.TryAttachNewNode(parentNode, this, elementName,
-					out var piTarget, out var target, 
-					out var objectChoiceEnum, out string errorMsg,
-					true, position, true, false);
+				bool result = SdcUtil.TryAttachNewNode(this, elementName
+					, parentNode, out var piTarget, out var targetPropertyObject
+					, out PropertyInfo? piChoiceEnum, out var choiceEnum, out string errorMsg
+					, position, true, false);
 
 				if(!result )
 					throw new InvalidOperationException(
 					$"This object type ({this.GetType().Name}) cannot be attached to the provided {nameof(parentNode)} type " +
 					$"({parentNode?.GetType().Name}).\r\n" + errorMsg);
 
-				if (target is null)
+				if (targetPropertyObject is null)
 					throw new InvalidOperationException(
 					$"This object type ({this.GetType().Name}) cannot be attached to the provided {nameof(parentNode)} type ({parentNode?.GetType().Name}).");
 			}
@@ -1384,7 +1384,7 @@ namespace SDC.Schema
 		{
 			if (this.TopNode is not null)
 			{   //a node with a null TopNode will not be registered in any TopNode dictionaries.
-				this.RegisterNodeAndParent(parentNode);
+				this.RegisterAll(parentNode);
 
 				//The following code requires that the current node is first added
 				//to the ParentNodes dictionary.  Thus, these statements must come
@@ -1691,7 +1691,7 @@ namespace SDC.Schema
 
 		[XmlIgnore]
 		[JsonIgnore]
-		/// <summary
+		/// <summary>
 		/// Loaded => 1; <br/>
 		/// New => 2; <br/>
 		/// MovedUp => 3; <br/>

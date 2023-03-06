@@ -13,6 +13,7 @@ namespace SDC.Schema.Tests.Functional
 		public void AssignXmlNames()
 		{
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
+			if(Setup.FD is null ) Setup.Reset();
 			Setup.FD.AssignElementNamesByReflection();
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 		}

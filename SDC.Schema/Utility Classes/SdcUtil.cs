@@ -281,10 +281,10 @@ namespace SDC.Schema
 						else mp.name = Regex.Replace(mp.templateID, @"\W+", "");
 					}
 				}
-			//}
-			//Set _currentTopNode; If other ITopNode nodes are subsumed in this tree, current_ITopNode will be adjusted to the subsumed node(s)
-			//if (refreshTree)
-			//{
+				//}
+				//Set _currentTopNode; If other ITopNode nodes are subsumed in this tree, current_ITopNode will be adjusted to the subsumed node(s)
+				//if (refreshTree)
+				//{
 				Init_ITopNode(current_ITopNode);
 				//current_ITopNode.ClearDictionaries();
 				SdcUtil.AssignGuid_sGuid_BaseName(btNode);
@@ -292,7 +292,7 @@ namespace SDC.Schema
 				if (btNode.ParentNode is null) btNode.TopNode = current_ITopNode; //points to itself, indicating this is the root node
 				else btNode.TopNode = btNode.ParentNode.TopNode;
 
-				btNode.RegisterNodeAndParent(btNode.ParentNode, childNodesSort: false);
+				btNode.RegisterAll(btNode.ParentNode, childNodesSort: false);
 			}
 			SortedNodes.Add(btNode);
 			if (print) sbTreeText.Append($"({btNode.DotLevel})#{counter}; OID: {btNode.ObjectID}; name: {btNode.name}{content(btNode)}");
@@ -326,7 +326,7 @@ namespace SDC.Schema
 					IEnumerable<PropertyInfo>? props;
 					Type sPop = s.Pop();
 
-					if (! dListPropInfoElements.TryGetValue(sPop, out props))
+					if (!dListPropInfoElements.TryGetValue(sPop, out props))
 					{
 						props = sPop.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
 						.Where(p => p.IsDefined(typeof(XmlElementAttribute))).ToList();
@@ -378,7 +378,7 @@ namespace SDC.Schema
 					//the enum value that contains the XML element name.
 					//The enum location is found in XmlChoiceIdentifierAttribute on the IEnumerable Property
 					//This should be handled in ReflectSdcElement
-					
+
 
 					if (btProp is _ITopNode itn) //we have a subsumed ITopNode node
 					{
@@ -390,10 +390,10 @@ namespace SDC.Schema
 					SdcUtil.AssignGuid_sGuid_BaseName(btProp);  //check if thread-safe - may rely on parent IET
 
 					//Refill the node dictionaries with the current node
-					btProp.RegisterNodeAndParent(parentNode, childNodesSort: false); //we are adding nodes in reflection-sorted order
-																					 //Debug.Print(btProp.sGuid + "; Obj ID: " + btProp.ObjectID);
-																					 //Adding is not thread-safe - need ConcurrentDictionary
-																					 //Mark parentNode as having its child nodes already sorted
+					btProp.RegisterAll(parentNode, childNodesSort: false); //we are adding nodes in reflection-sorted order
+																		   //Debug.Print(btProp.sGuid + "; Obj ID: " + btProp.ObjectID);
+																		   //Adding is not thread-safe - need ConcurrentDictionary
+																		   //Mark parentNode as having its child nodes already sorted
 					TreeSort_Add(parentNode);  //Change ObjectID to ObjectGUID?  //Probably thread-safe, as it's a hashtable, but may need Concurrent Hashtable?
 					AssignSdcProperties(parentNode, piChildProperty, btProp, current_ITopNode, ref order, orderGap, print, sbTreeText, createNodeName);
 				}
@@ -418,7 +418,7 @@ namespace SDC.Schema
 
 					if (btProp is IdentifiedExtensionType iet)
 					{
-						if (iet.ID.IsNullOrEmpty()) 
+						if (iet.ID.IsNullOrEmpty())
 							iet.ID = $"___{iet.sGuid}";
 					}
 					if (createNodeName is not null)
@@ -614,7 +614,7 @@ namespace SDC.Schema
 					{
 						SortElementKids(n, childList);
 						foreach (var child in childList)
-							if(child is not IdentifiedExtensionType) MoveNext(child);
+							if (child is not IdentifiedExtensionType) MoveNext(child);
 					}
 				}
 			}
@@ -756,7 +756,7 @@ namespace SDC.Schema
 				//______________________________________________________________________________
 
 				if (reRegisterNodes || resetNodeIdentity)
-					n.UnRegisterNodeAndParent();
+					n.UnRegisterAll();
 
 				//!START Special actions-------------------------------:
 				{
@@ -784,7 +784,7 @@ namespace SDC.Schema
 				}
 
 				if (reRegisterNodes || resetNodeIdentity)
-					n.RegisterNodeAndParent(parentNode);
+					n.RegisterAll(parentNode);
 				//!END Special actions-------------------------------:
 
 				//______________________________________________________________________________
@@ -1105,14 +1105,14 @@ namespace SDC.Schema
 		/// <param name="n"></param>
 		/// <returns></returns>
 		public static IdentifiedExtensionType? GetPrevElementIET(BaseType n)
-		{ 
+		{
 			BaseType? bt = n;
 			do
 			{
 				bt = bt.GetNodePrevious();
 				if (bt is IdentifiedExtensionType iet) return iet;
 
-			} while(bt is not null);
+			} while (bt is not null);
 
 			return null;
 		}
@@ -1173,7 +1173,7 @@ namespace SDC.Schema
 			var par = n.ParentNode;
 			var topNode = Get_ITopNode(n);
 			if (par is null) return null;
-			if (topNode is null) throw new InvalidOperationException("topNode could not obtained from the input node n");			
+			if (topNode is null) throw new InvalidOperationException("topNode could not obtained from the input node n");
 			topNode._ChildNodes.TryGetValue(par.ObjectGUID, out List<BaseType>? sibs);
 			if (sibs is null) return null;
 			SortElementKids(par, sibs);
@@ -1566,9 +1566,9 @@ namespace SDC.Schema
 
 			List<AttributeInfo> attributes = new();
 			IEnumerable<PropertyInfo>? piIE = null;
-			int nodeIndex = -1; 
+			int nodeIndex = -1;
 			IList<AttributeInfo>? atts;
-			attributesToExclude??= new string[] { "name", "sGuid", "order" };
+			attributesToExclude ??= new string[] { "name", "sGuid", "order" };
 
 			//Create a LIFO stack of the targetNode inheritance hierarchy.  The stack's top level type will always be BaseType
 			//For most non-datatype SDC objects, it could be a bit more efficient to use ExtensionBaseType - we can test this another time
@@ -1599,7 +1599,7 @@ namespace SDC.Schema
 					continue;
 				}
 
-				if( ! dListPropInfoAttributes.TryGetValue(t, out piIE))  //look in cache to bypass slow PropertyInfo lookup
+				if (!dListPropInfoAttributes.TryGetValue(t, out piIE))  //look in cache to bypass slow PropertyInfo lookup
 				{
 					piIE = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
 							.Where(pi => pi.GetCustomAttributes<XmlAttributeAttribute>().Any());
@@ -1612,7 +1612,7 @@ namespace SDC.Schema
 					nodeIndex++;
 					if (getAllXmlAttributes) AddAttribute(p, n);
 					else
-					{	
+					{
 						var sspn = t.GetMethod("ShouldSerialize" + p.Name)?.Invoke(n, null); //sspn == ShouldSerialize*PropertyName*
 
 						var pVal = p.GetValue(n);
@@ -1881,7 +1881,7 @@ namespace SDC.Schema
 		/// itemIndex: the index of "item" in "ieItems" is returned as an out parameter, otherwise it is -1
 		/// </returns>
 		private static PropertyInfo? GetElementPropertyInfo(
-			BaseType item, 
+			BaseType item,
 			BaseType? parentNode,
 			out string? propName,
 			out int itemIndex,
@@ -2009,7 +2009,7 @@ namespace SDC.Schema
 				//This will fail if item is not currently referenced to some tree node
 				piItemOut = parProps
 					.Where(pi => pi.GetCustomAttributes(typeof(XmlElementAttribute)).Any()  //all serialized properties must have the XmlElementAttribute attribute
-					&& ! typeof(IEnumerable<BaseType>).IsAssignableFrom(pi.PropertyType)     //the property is not an IEnumerable (i.e., an Array, List etc.)
+					&& !typeof(IEnumerable<BaseType>).IsAssignableFrom(pi.PropertyType)     //the property is not an IEnumerable (i.e., an Array, List etc.)
 					&& ReferenceEquals(pi?.GetValue(parentNode), item))?.FirstOrDefault();          //There can be, at most, one match to our item object
 
 				if (piItemOut is not null)
@@ -2020,8 +2020,8 @@ namespace SDC.Schema
 					//Now we look in IEnumerable properties, to see if "item" is contained inside it.
 					//Let's see if our item object lives in an IEnumerable<BaseClassSubtype> 
 					itemIndex = GetElementItemIndex(item, parentNode, out ieItems, out piItemOut, out errorMsg); //item.ParentNode can't be null here
-					// piItemOut will be null if item is not an IEnumerable, we only want to use it if piItemOut is null.
-					//This will throw if item is not currently referenced to some tree node
+																												 // piItemOut will be null if item is not an IEnumerable, we only want to use it if piItemOut is null.
+																												 //This will throw if item is not currently referenced to some tree node
 					if (piItemOut is null)  //This will throw if item is not currently referenced to some tree node
 						throw new NullReferenceException($"{nameof(ReflectSdcElement)} could not obtain a PropertyInfo object from the supplied node parameter. \r\n" + errorMsg);
 					else
@@ -2089,7 +2089,7 @@ namespace SDC.Schema
 			if (choiceIdentifierObject is null)
 				return null; //An enum is not used to determine the XML Element name			
 
-			if(itemIndex == -1)
+			if (itemIndex == -1)
 				itemIndex = GetElementItemIndex(item, parentNode, out _, out _, out errorMsg); //item must have non-null item.ParentNode
 
 			//If itemIndex == -1, then item is not contained in an IEnumerable List or Array, so
@@ -2128,48 +2128,17 @@ namespace SDC.Schema
 			return xci.MemberName;
 		}
 
-		internal static bool IsAttachNodeAllowed(BaseType parentTarget, BaseType newNode, string newNodeElementName, 
-			out PropertyInfo? piTargetProperty, out Object? targetPropertyObject
-			, out object? choiceEnum
-			, out String errorMsg)
-			
-			=> TryAttachNewNode(parentTarget, newNode, newNodeElementName, out piTargetProperty, out targetPropertyObject
-				, out choiceEnum
-				, out errorMsg,
-				false);
-
-		internal static bool TryAttachNewNode(BaseType parentTarget, BaseType newNode, string newNodeElementName, 
-			out PropertyInfo? piTargetProperty
-			, out object? targetPropertyObject
-			, out object? choiceEnum
-			, out String errorMsg
-			, bool attachNewNodeToParentTarget = true
-			, int insertPosition = -1
-			, bool overwriteExistingObject = false
-			, bool cancelWhenChildNodes = false
-			)
-		{/*
-		  * 1) If itemElementName populated?
-			1.1) Look in newParent for Item(s)ElementName to find name of Item(s)ChoiceType#
-			1.2)	For item, look in ItemChoiceType# enum to find matching ElementName.
-				1.2.1)	Set newParent = newItem, 
-						Set ItemChoiceType# to match the ElementName and 
-						Return true; 
-			1.3)	For Items, look in ItemsChoiceType# enum values to find matching ElementName.
-				1.3.1)	Execute Items.Insert(newItem, insertPostion), 
-						Set ItemsChoiceType#[insertPostion] to match ElementName and 
-						Return true.
-			2) If itemElementName is not populated:
-			2.1) Look for the first newItem datatype match in newParent.  If no ItemElementName, set the item.  If ItemElementName is present, throw...
-			*/
+		internal static bool IsAttachNodeAllowed(BaseType newNode, string newNodeElementName
+			, BaseType parentTarget, out PropertyInfo? piTargetProperty, out object? targetPropertyObject
+			, out PropertyInfo? piChoiceEnum, out object? choiceEnum
+			, out string errorMsg)
+		{
 			targetPropertyObject = null;
 			piTargetProperty = null;
 			choiceEnum = null;
+			piChoiceEnum = null;
 			errorMsg = "";
-			Type? enumType = null;
-			bool result = false;
 			int matchCount = 0;
-			//if (string.IsNullOrWhiteSpace(newNodeElementName)) newNodeElementName = newNode.ElementName;
 
 			Type newNodeType = newNode.GetType();
 
@@ -2179,11 +2148,11 @@ namespace SDC.Schema
 				//This will be slower than using the elementName parameter, and will fail for some types
 				//(e.g., CallFuncBase, EventType...) where the elementName is critical.
 
-				var parentTargetProps = parentTarget.GetType().GetProperties().Where(n=> n.GetCustomAttributes<XmlElementAttribute>().Any()).ToList();
-				
+				var parentTargetProps = parentTarget.GetType().GetProperties().Where(n => n.GetCustomAttributes<XmlElementAttribute>().Any()).ToList();
+
 				piTargetProperty = parentTargetProps?.Where
 					(n =>
-					{						
+					{
 						matchCount += n.GetCustomAttributes<XmlElementAttribute>()
 						.Where(a => a.Type == newNodeType).Count();
 						return (matchCount > 0);
@@ -2205,8 +2174,8 @@ namespace SDC.Schema
 						.All(a => a.Type is null));
 					var piTargets = parentTargetPropsWithNullTypes?.Where(p =>
 					{
-						if(p.PropertyType == newNodeType) return true; //our target property is an exact type match
-						else 
+						if (p.PropertyType == newNodeType) return true; //our target property is an exact type match
+						else
 							if (p.PropertyType.IsGenericList() && p.PropertyType.GetGenericArguments()?[0] == newNodeType) return true;  //our target property is a List<>
 						return false;
 					})?
@@ -2224,14 +2193,14 @@ namespace SDC.Schema
 			{//+Try to match newNode to a parent property, based on newNode's SDC XML elementName
 				piTargetProperty = parentTarget.GetType()
 					.GetProperties()
-					.Where(pi => 
-						pi.Name == newNodeElementName || 
+					.Where(pi =>
+						pi.Name == newNodeElementName ||
 						pi.GetCustomAttributes<XmlElementAttribute>()
 							.Where(att => att.ElementName == newNodeElementName).Any()
 					)?.FirstOrDefault();
-	}
+			}
 
-			  if (piTargetProperty is null)  //could not find a parentTarget property to attach newNode
+			if (piTargetProperty is null)  //could not find a parentTarget property to attach newNode
 			{
 				errorMsg += $"Could not find a property in {nameof(parentTarget)} to bind to {nameof(newNode)}. Check the value of {nameof(newNodeElementName)} (if supplied), and ensure that valid {nameof(newNode)} and {nameof(parentTarget)} objects were supplied.";
 				return false; //can't find a property to bind to newNode
@@ -2243,14 +2212,48 @@ namespace SDC.Schema
 
 			//Try to find Item(s)ChoiceType object for piTarget, if it exists
 			//piChoiceEnum will tell us if Item(s)ChoiceType is defined as a property. choiceEnum will be non-null if Item(s)ChoiceType has been instantiated
-			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, out var piChoiceEnum);
+			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, out piChoiceEnum);
 
-			if (!attachNewNodeToParentTarget) 
-				return true;			
+			//+Try to find Item(s)ChoiceType object for piTarget, if it exists
+			//piChoiceEnum will tell us if Item(s)ChoiceType is defined as a property.  choiceEnum will be non-null if Item(s)ChoiceType has been instantiated
+			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, out piChoiceEnum);
 
-			//!+---------Attach newNode to targetParent-----------------------------------
+			return true;
+		}
 
-			if (targetPropertyObject is BaseType btTarget) //A non-List<> BaseType subtype object already exists as the targetPropertyObject
+		internal static bool TryAttachNewNode(BaseType newNode, string newNodeElementName
+			, BaseType parentTarget, out PropertyInfo? piTargetProperty, out object? targetPropertyObject
+			, out PropertyInfo? piChoiceEnum, out object? choiceEnum
+			, out string errorMsg
+			, int insertPosition = -1
+			, bool overwriteExistingObject = false
+			, bool cancelWhenChildNodes = false
+			)
+		{/*
+		  * 1) If itemElementName populated?
+			1.1) Look in newParent for Item(s)ElementName to find name of Item(s)ChoiceType#
+			1.2)	For item, look in ItemChoiceType# enum to find matching ElementName.
+				1.2.1)	Set newParent = newItem, 
+						Set ItemChoiceType# to match the ElementName and 
+						Return true; 
+			1.3)	For Items, look in ItemsChoiceType# enum values to find matching ElementName.
+				1.3.1)	Execute Items.Insert(newItem, insertPostion), 
+						Set ItemsChoiceType#[insertPostion] to match ElementName and 
+						Return true.
+			2) If itemElementName is not populated:
+			2.1) Look for the first newItem datatype match in newParent.  If no ItemElementName, set the item.  If ItemElementName is present, throw...
+			*/
+
+			bool isAllowed = IsAttachNodeAllowed(newNode, newNodeElementName
+				, parentTarget, out piTargetProperty, out targetPropertyObject
+				, out piChoiceEnum, out choiceEnum, out errorMsg);
+
+			if (!isAllowed || piTargetProperty is null) return false;
+            //targetPropertyObject, piChoiceEnum and choiceEnum may be null
+
+            //!+---------Attach newNode to targetParent-----------------------------------
+
+            if (targetPropertyObject is BaseType btTarget) //A non-List<> BaseType subtype object already exists as the targetPropertyObject
 			{
 				if(!overwriteExistingObject)
 				{
@@ -2263,11 +2266,7 @@ namespace SDC.Schema
 					errorMsg += $"{nameof(cancelWhenChildNodes)} was true, and the target property ({nameof(piTargetProperty.Name)}) in {nameof(parentTarget)} contained child nodes.";
 					return false;
 				}
-			}		
-
-			//+Try to find Item(s)ChoiceType object for piTarget, if it exists
-			//piChoiceEnum will tell us if Item(s)ChoiceType is defined as a property.  choiceEnum will be non-null if Item(s)ChoiceType has been instantiated
-			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, out piChoiceEnum);
+			}	
 
 			if (piChoiceEnum is not null)  //We need to process an Item(s)ChoiceEnum object
 			{
@@ -2279,8 +2278,8 @@ namespace SDC.Schema
 
 				if (choiceEnum is IList itemsChoiceType) //itemsChoiceType is always List<EnumSubtype> 
 				{
-					enumType = itemsChoiceType.GetType().GetElementType();
-					result = Enum.TryParse(enumType!, newNodeElementName, out object? newEnumObj);
+					Type enumType = itemsChoiceType.GetType().GetElementType()!;
+					bool result = Enum.TryParse(enumType!, newNodeElementName, out object? newEnumObj);
 					if (result)
 					{
 						//Create target List object if not present
@@ -2308,8 +2307,8 @@ namespace SDC.Schema
 				}
 				else if (choiceEnum is Enum itemChoiceType) //itemChoiceType is a simple Enum subtype.
 				{
-					enumType = itemChoiceType.GetType();
-					result = Enum.TryParse(enumType, newNodeElementName, out object? newEnumObj);
+					Type enumType = itemChoiceType.GetType();
+					bool result = Enum.TryParse(enumType, newNodeElementName, out object? newEnumObj);
 					
 					if (result)
 					{
@@ -2342,23 +2341,118 @@ namespace SDC.Schema
 				return true;
 			}
 			else //the target property is not a List<BaseTypeSubtype>;  We are replacing targetPropertyObject (and all subnodes if present) with newNode. 
-			{   //if targetPropertyObject is not null, we need to remove it, along with any descendant nodes (using RemoveRecursive).
-				if (targetPropertyObject is not null) targetPropertyObject.As<BaseType>().RemoveRecursive();
-				piTargetProperty.SetValue(parentTarget, newNode);
-					 targetPropertyObject = newNode;
-				return true;
-			}
+            {   //if targetPropertyObject is not null, we need to remove it, along with any descendant nodes (using RemoveRecursive).
+                if (targetPropertyObject is not null) targetPropertyObject.As<BaseType>().RemoveRecursive();
+                piTargetProperty.SetValue(parentTarget, newNode);
+                targetPropertyObject = newNode;
+                return true;
+            }
 		}
 
-		#endregion
-		#region ArrayHelpers 
-		
-		/// <summary>
-		/// Determines if the type parameter is a List&lt;T>
-		/// </summary>
-		/// <param name="t"></param>
-		/// <returns></returns>
-		public static bool IsGenericList(Type t)
+		static internal bool TryRemoveItemChoiceEnumValue(BaseType node, out string errorMsg)
+        {
+			BaseType? par = node.ParentNode;
+			if (par is null)
+			{
+				errorMsg = $"{nameof(node.ParentNode)} was null";
+				return false;
+            }
+            string? elementName = node.ElementName;
+            if (string.IsNullOrWhiteSpace(elementName))
+            {
+                errorMsg = $"{nameof(node.ElementName)} was null";
+                return false;
+            }
+
+            if (!IsAttachNodeAllowed(node, elementName
+                , par, out _, out object? targetPropertyObject
+                , out PropertyInfo? piChoiceEnum, out object? choiceEnum
+                , out errorMsg)
+				)
+                return false;
+
+            if (targetPropertyObject is not null && piChoiceEnum is not null && choiceEnum is not null)
+                return TryRemoveItemChoiceEnumValue(node, targetPropertyObject, piChoiceEnum, choiceEnum, out errorMsg);
+            else
+            {
+                if (targetPropertyObject is null)
+				{
+                    errorMsg = $"{nameof(targetPropertyObject)} was null";
+					return false;
+                }
+				else
+				{
+                    errorMsg = $"There was no Item(s)ChoiceType object to remove";
+                    return true; //not an error
+                }
+			}               
+        }
+
+
+        static internal bool TryRemoveItemChoiceEnumValue(BaseType node, object targetPropertyObject
+			, PropertyInfo piChoiceEnum, object choiceEnum, out string errorMsg)
+		{
+			errorMsg = "";
+
+            //if (choiceEnum is not null)  //We need to process an Item(s)ChoiceEnum object
+            //{
+                if (choiceEnum is IList itemsChoiceType) //itemsChoiceType is always List<EnumSubtype> 
+                {
+                    //Determine itemsChoiceType[insertPosition]
+                    int currentPosition = ((IList)targetPropertyObject).IndexOf(node);
+
+                    if (currentPosition > -1
+                        && currentPosition < itemsChoiceType.Count)
+                    {
+                        var enumVal = itemsChoiceType[currentPosition] as Enum;
+                        if (enumVal?.ToString() == node.ElementName)
+                        {
+                            itemsChoiceType.RemoveAt(currentPosition);
+                            return true;
+                        }
+                        else
+                        {
+                            errorMsg = $"The ItemsChoiceType[{nameof(currentPosition)}] enum at position {currentPosition} did not match the elementName of {nameof(node)}";
+                            return false;
+                        }
+                    }
+                    {
+                        errorMsg = $"The value of {nameof(currentPosition)} was out of bounds for the ItemsChoiceType List";
+                        return false;
+                    }
+                }
+                else if (choiceEnum is Enum itemChoiceType) //itemChoiceType is a simple Enum subtype.
+                {
+                    if (itemChoiceType?.ToString() == node.ElementName)
+                    {
+						var parentNode = node.ParentNode;
+						if(parentNode is null) 
+							throw new NullReferenceException($"Since {nameof(node.ParentNode)} was null, {nameof(piChoiceEnum)} could not be set to null on {nameof(node.ParentNode)}.");
+                        piChoiceEnum.SetValue(parentNode, null);
+                        return true;
+                    }
+                    else
+                    {
+                        errorMsg = $"The element name in the ItemChoiceType enum did not match {nameof(node.ElementName)}";
+                        return false;
+                    }
+                }
+            //}
+            errorMsg = $"There was no Item(s)ChoiceType object to remove"; //this is not really an error, just a message
+            return true; //no error here
+
+        }
+
+
+        #endregion
+        #region ArrayHelpers 
+
+        /// <summary>
+        /// Determines if the type parameter is a List&lt;T>
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public static bool IsGenericList(Type t)
 		{
 			if (t is null) return false;
 			return 
