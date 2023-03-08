@@ -671,38 +671,41 @@ namespace SDC.Schema
 
 
 
-		//!Should not need sorting of child nodes
-		//
-		/// <summary>
-		/// Traverse an SDC tree by reflection to optionally reset @order and/or to refresh the TopNode dictionaries encountered in the tree
-		/// More tree traversal changes can be added by proving delagates to nodeWorker functions.
-		/// </summary>
-		/// <param name="startNode">The root of the subtree to modify</param>
-		/// <param name="singleNode">Limit changes to the single startNode.  Do not process the subtree</param>
-		/// <param name="reOrder">Setting to true: refresh all subTree @order properties in sequential order.<br/>
-		/// Setting this to true may cause non-subTree parts of the whole tree to become incorrectly ordered relative to the subtree.
-		/// </param>
-		/// <param name="reRegisterNodes">Setting to true: Reregister all nodes in the TopNodes dictionaries</param>
-		/// <param name="startReorder">The starting number when reordering nodes with @order.  <br/>
-		/// In general, this should be set to startNode.order
-		/// </param>
-		/// <param name="orderInterval">The interval between new @order properties.</param>
-		/// <param name="resetNodeIdentity">Setting to true creates new vaues for ObjectGUID, sGuid (which matches ObjectGuid), BaseName, @name and ID<br/>
-		/// This is useful when the caller wants to reuse subtree with new identities, e.g., when cloning an SDC template
-		/// This option will also reregister all nodes in the TopNodes dictionaries</param>
-		/// <param name="createNodeName">An Sdc.Util.CreateName delegate pointing to a function that will refresh the @name property for each node.<br/>
-		/// The default value (null) will not chagne any @name values.
-		/// </param>
-		/// <param name="nodeWorkerFirst">A function pointer (delegate) to a method that can modify a BaseType node.<br/>  
-		/// It will run before any other work on the visited nodes, e.g., before changing @order or refreshing dictionaries.<br/> 
-		/// Returns true for success, false for failure.
-		/// </param>
-		/// <param name="nodeWorkerLast">A function pointer (delegate) to a method that can modify a BaseType node.<br/>  
-		/// It will run after all other work on the visted nodes.<br/> 
-		/// Returns true for success, false for failure.
-		/// </param>
-		/// <returns>null if the method fails at any point;</returns>
-		public static List<BaseType>? ReflectRefreshSubtreeList(BaseType startNode,
+        //!Should not need sorting of child nodes
+        //
+        /// <summary>
+        /// Traverse an SDC tree by reflection to optionally reset @order and/or to refresh the TopNode dictionaries encountered in the tree
+        /// More tree traversal changes can be added by proving delagates to nodeWorker functions.
+        /// </summary>
+        /// <param name="startNode">The root of the subtree to modify</param>
+        /// <param name="singleNode">Limit changes to the single startNode.  Do not process the subtree</param>
+        /// <param name="reOrder">Setting to true: refresh all subTree @order properties in sequential order.<br/>
+        /// Setting this to true may cause non-subTree parts of the whole tree to become incorrectly ordered relative to the subtree.
+        /// </param>
+        /// <param name="reRegisterNodes">Setting to true: Reregister all nodes in the TopNodes dictionaries</param>
+        /// <param name="startReorder">The starting number when reordering nodes with @order.  <br/>
+        /// In general, this should be set to startNode.order
+        /// </param>
+        /// <param name="orderInterval">The interval between new @order properties.</param>
+        /// <param name="resetNodeIdentity">Setting to true creates new vaues for ObjectGUID, sGuid (which matches ObjectGuid), BaseName, @name and ID<br/>
+        /// This is useful when the caller wants to reuse subtree with new identities, e.g., when cloning an SDC template
+        /// This option will also reregister all nodes in the TopNodes dictionaries</param>
+        /// <param name="targetParentNode"></param>
+        /// <param name="topNode">If topNode is not null, it will be useed to set the TopNode of all incoming nodes in teh startNode subtree.<br/>
+        /// if a new Topnode node is found while traversing the startNode subtree, that new TopNode will be used to set TopNodes in its own subtree. </param>
+        /// <param name="createNodeName">An Sdc.Util.CreateName delegate pointing to a function that will refresh the @name property for each node.<br/>
+        /// The default value (null) will not chagne any @name values.
+        /// </param>
+        /// <param name="nodeWorkerFirst">A function pointer (delegate) to a method that can modify a BaseType node.<br/>  
+        /// It will run before any other work on the visited nodes, e.g., before changing @order or refreshing dictionaries.<br/> 
+        /// Returns true for success, false for failure.
+        /// </param>
+        /// <param name="nodeWorkerLast">A function pointer (delegate) to a method that can modify a BaseType node.<br/>  
+        /// It will run after all other work on the visted nodes.<br/> 
+        /// Returns true for success, false for failure.
+        /// </param>
+        /// <returns>null if the method fails at any point;</returns>
+        public static List<BaseType>? ReflectRefreshSubtreeList(BaseType startNode,
 
 			bool singleNode = false,
 			bool reOrder = false,
@@ -710,6 +713,7 @@ namespace SDC.Schema
 			int startReorder = 0,
 			byte orderInterval = 1,
 			bool resetNodeIdentity = false,
+			BaseType? targetParentNode = null,
 			CreateName? createNodeName = null,
 			Func<BaseType, bool>? nodeWorkerFirst = null,
 			Func<BaseType, bool>? nodeWorkerLast = null)
@@ -719,17 +723,40 @@ namespace SDC.Schema
 
 			var i = startReorder;
 			var nodeList = new List<BaseType>();
-			BaseType? par = startNode.ParentNode;
 
-			//Process the root of the subtree
-			NodeWorker(startNode, par);
+			//Determine the caller's intended parent for startNode:
+            BaseType? par = targetParentNode??startNode.ParentNode ;
+
+            //Determine currentTopNode, based on the parent of startNode, if present:
+            ITopNode? currentTopNode = null;
+			if (reRegisterNodes || resetNodeIdentity)
+			{
+				if (par is not null)
+				{
+					if (par is ITopNode) currentTopNode = (ITopNode)par;
+					else if (par.TopNode is not null)
+						currentTopNode = par.TopNode;
+					else
+						throw new NullReferenceException($"{nameof(targetParentNode.ParentNode)} (or {nameof(startNode.ParentNode)}, if targetParentNode is null) had a null TopNode.");
+				}
+				else //we have a null parent node, so try to use startNode to derive TopNode
+				{
+					if (startNode is ITopNode) currentTopNode = (ITopNode)startNode;
+					else if ((startNode.TopNode is not null)) currentTopNode = startNode.TopNode;
+					else
+						throw new NullReferenceException($"The TopNode of startNode was null.");
+				}
+			}
+
+            //Process the root of the subtree
+            NodeWorker(startNode, par);
 			if (singleNode) return nodeList;
 
 			ReflectSubtree(startNode);
 
 			void ReflectSubtree(BaseType par)
 			{
-				var kids = ReflectChildElements(par);
+                var kids = ReflectChildElements(par);
 				if (kids is not null)
 				{
 					foreach (BaseType kid in kids)
@@ -747,33 +774,45 @@ namespace SDC.Schema
 			{
 				if (parentNode is null && n != startNode)
 					throw new InvalidOperationException("A null parentNode was passed to NodeWorker.  Only the startNode may have a null parentNode");
-
-				var tn = (_ITopNode)n.TopNode!;
-
+					
 				if (nodeWorkerFirst is not null)
 					if (nodeWorkerFirst(n) is false) throw new InvalidOperationException($"Method failed at nodeWorkerFirst(n), at sGuid {n.sGuid}");
 
-				//______________________________________________________________________________
+                //!START Special actions-------------------------------:
+                {
+                    if (reRegisterNodes || resetNodeIdentity)
+                    { //UnRegisterAll must run before TopNode and ObjectGUID are refreshed .
+                        if (n.TopNode is not null)
+                            n.UnRegisterAll();
+                    }
 
-				if (reRegisterNodes || resetNodeIdentity)
-					n.UnRegisterAll();
-
-				//!START Special actions-------------------------------:
-				{
-					//Reset node identity: ObjectGUID, sGuid, BaseName, @name and ID
-					if (resetNodeIdentity)
+                    //Reset node identity: ObjectGUID, sGuid, BaseName, @name and ID
+                    if (resetNodeIdentity)
 					{
-						//n.ObjectGUID = Guid.NewGuid();
-						//n.sGuid = ShortGuid.Encode(n.ObjectGUID);
-						//n.BaseName = CreateBaseNameFromsGuid(n.sGuid);
-						SdcUtil.AssignGuid_sGuid_BaseName(n);
+                        //n.ObjectGUID = Guid.NewGuid();
+                        //n.sGuid = ShortGuid.Encode(n.ObjectGUID);
+                        //n.BaseName = CreateBaseNameFromsGuid(n.sGuid);
+
+						//reset TopNode as applicable
+                        n.TopNode = currentTopNode;
+                        if (n is ITopNode itn)
+                        {
+                            currentTopNode = itn;
+                            ((_ITopNode)itn)._MaxObjectID = 0;
+                        }
+
+                        n.sGuid = null;
+						n.ObjectGUID = default;
+                        SdcUtil.AssignGuid_sGuid_BaseName(n);
 
 						if (n is IdentifiedExtensionType iet)
 							iet.ID = $"___{n.BaseName}";
 
-						if (createNodeName is not null)
+                        n.RegisterAll(parentNode);
+
+                        if (createNodeName is not null) 
 							n.name = createNodeName(node: n);
-						else n.name = CreateCAPname(n);
+						else n.name = CreateCAPname(n); //requires that node n has already been added to dictionaries
 					}
 
 					if (reOrder)
@@ -783,8 +822,8 @@ namespace SDC.Schema
 					}
 				}
 
-				if (reRegisterNodes || resetNodeIdentity)
-					n.RegisterAll(parentNode);
+				if (reRegisterNodes & ! resetNodeIdentity) //if resetNodeIdentity is true, we already ran RegisterAll
+                    n.RegisterAll(parentNode);
 				//!END Special actions-------------------------------:
 
 				//______________________________________________________________________________
@@ -794,7 +833,11 @@ namespace SDC.Schema
 
 				nodeList.Add(n);
 			}
-		}
+        }
+
+
+
+
 
 		/// <summary>
 		/// Includes the input node n.
@@ -2249,11 +2292,11 @@ namespace SDC.Schema
 				, out piChoiceEnum, out choiceEnum, out errorMsg);
 
 			if (!isAllowed || piTargetProperty is null) return false;
-            //targetPropertyObject, piChoiceEnum and choiceEnum may be null
+			//targetPropertyObject, piChoiceEnum and choiceEnum may be null
 
-            //!+---------Attach newNode to targetParent-----------------------------------
+			//!+---------Attach newNode to targetParent-----------------------------------
 
-            if (targetPropertyObject is BaseType btTarget) //A non-List<> BaseType subtype object already exists as the targetPropertyObject
+			if (targetPropertyObject is BaseType btTarget) //A non-List<> BaseType subtype object already exists as the targetPropertyObject
 			{
 				if(!overwriteExistingObject)
 				{
@@ -2341,118 +2384,118 @@ namespace SDC.Schema
 				return true;
 			}
 			else //the target property is not a List<BaseTypeSubtype>;  We are replacing targetPropertyObject (and all subnodes if present) with newNode. 
-            {   //if targetPropertyObject is not null, we need to remove it, along with any descendant nodes (using RemoveRecursive).
-                if (targetPropertyObject is not null) targetPropertyObject.As<BaseType>().RemoveRecursive();
-                piTargetProperty.SetValue(parentTarget, newNode);
-                targetPropertyObject = newNode;
-                return true;
-            }
+			{   //if targetPropertyObject is not null, we need to remove it, along with any descendant nodes (using RemoveRecursive).
+				if (targetPropertyObject is not null) targetPropertyObject.As<BaseType>().RemoveRecursive();
+				piTargetProperty.SetValue(parentTarget, newNode);
+				targetPropertyObject = newNode;
+				return true;
+			}
 		}
 
 		static internal bool TryRemoveItemChoiceEnumValue(BaseType node, out string errorMsg)
-        {
+		{
 			BaseType? par = node.ParentNode;
 			if (par is null)
 			{
 				errorMsg = $"{nameof(node.ParentNode)} was null";
 				return false;
-            }
-            string? elementName = node.ElementName;
-            if (string.IsNullOrWhiteSpace(elementName))
-            {
-                errorMsg = $"{nameof(node.ElementName)} was null";
-                return false;
-            }
+			}
+			string? elementName = node.ElementName;
+			if (string.IsNullOrWhiteSpace(elementName))
+			{
+				errorMsg = $"{nameof(node.ElementName)} was null";
+				return false;
+			}
 
-            if (!IsAttachNodeAllowed(node, elementName
-                , par, out _, out object? targetPropertyObject
-                , out PropertyInfo? piChoiceEnum, out object? choiceEnum
-                , out errorMsg)
+			if (!IsAttachNodeAllowed(node, elementName
+				, par, out _, out object? targetPropertyObject
+				, out PropertyInfo? piChoiceEnum, out object? choiceEnum
+				, out errorMsg)
 				)
-                return false;
+				return false;
 
-            if (targetPropertyObject is not null && piChoiceEnum is not null && choiceEnum is not null)
-                return TryRemoveItemChoiceEnumValue(node, targetPropertyObject, piChoiceEnum, choiceEnum, out errorMsg);
-            else
-            {
-                if (targetPropertyObject is null)
+			if (targetPropertyObject is not null && piChoiceEnum is not null && choiceEnum is not null)
+				return TryRemoveItemChoiceEnumValue(node, targetPropertyObject, piChoiceEnum, choiceEnum, out errorMsg);
+			else
+			{
+				if (targetPropertyObject is null)
 				{
-                    errorMsg = $"{nameof(targetPropertyObject)} was null";
+					errorMsg = $"{nameof(targetPropertyObject)} was null";
 					return false;
-                }
+				}
 				else
 				{
-                    errorMsg = $"There was no Item(s)ChoiceType object to remove";
-                    return true; //not an error
-                }
+					errorMsg = $"There was no Item(s)ChoiceType object to remove";
+					return true; //not an error
+				}
 			}               
-        }
+		}
 
 
-        static internal bool TryRemoveItemChoiceEnumValue(BaseType node, object targetPropertyObject
+		static internal bool TryRemoveItemChoiceEnumValue(BaseType node, object targetPropertyObject
 			, PropertyInfo piChoiceEnum, object choiceEnum, out string errorMsg)
 		{
 			errorMsg = "";
 
-            //if (choiceEnum is not null)  //We need to process an Item(s)ChoiceEnum object
-            //{
-                if (choiceEnum is IList itemsChoiceType) //itemsChoiceType is always List<EnumSubtype> 
-                {
-                    //Determine itemsChoiceType[insertPosition]
-                    int currentPosition = ((IList)targetPropertyObject).IndexOf(node);
+			//if (choiceEnum is not null)  //We need to process an Item(s)ChoiceEnum object
+			//{
+				if (choiceEnum is IList itemsChoiceType) //itemsChoiceType is always List<EnumSubtype> 
+				{
+					//Determine itemsChoiceType[insertPosition]
+					int currentPosition = ((IList)targetPropertyObject).IndexOf(node);
 
-                    if (currentPosition > -1
-                        && currentPosition < itemsChoiceType.Count)
-                    {
-                        var enumVal = itemsChoiceType[currentPosition] as Enum;
-                        if (enumVal?.ToString() == node.ElementName)
-                        {
-                            itemsChoiceType.RemoveAt(currentPosition);
-                            return true;
-                        }
-                        else
-                        {
-                            errorMsg = $"The ItemsChoiceType[{nameof(currentPosition)}] enum at position {currentPosition} did not match the elementName of {nameof(node)}";
-                            return false;
-                        }
-                    }
-                    {
-                        errorMsg = $"The value of {nameof(currentPosition)} was out of bounds for the ItemsChoiceType List";
-                        return false;
-                    }
-                }
-                else if (choiceEnum is Enum itemChoiceType) //itemChoiceType is a simple Enum subtype.
-                {
-                    if (itemChoiceType?.ToString() == node.ElementName)
-                    {
+					if (currentPosition > -1
+						&& currentPosition < itemsChoiceType.Count)
+					{
+						var enumVal = itemsChoiceType[currentPosition] as Enum;
+						if (enumVal?.ToString() == node.ElementName)
+						{
+							itemsChoiceType.RemoveAt(currentPosition);
+							return true;
+						}
+						else
+						{
+							errorMsg = $"The ItemsChoiceType[{nameof(currentPosition)}] enum at position {currentPosition} did not match the elementName of {nameof(node)}";
+							return false;
+						}
+					}
+					{
+						errorMsg = $"The value of {nameof(currentPosition)} was out of bounds for the ItemsChoiceType List";
+						return false;
+					}
+				}
+				else if (choiceEnum is Enum itemChoiceType) //itemChoiceType is a simple Enum subtype.
+				{
+					if (itemChoiceType?.ToString() == node.ElementName)
+					{
 						var parentNode = node.ParentNode;
 						if(parentNode is null) 
 							throw new NullReferenceException($"Since {nameof(node.ParentNode)} was null, {nameof(piChoiceEnum)} could not be set to null on {nameof(node.ParentNode)}.");
-                        piChoiceEnum.SetValue(parentNode, null);
-                        return true;
-                    }
-                    else
-                    {
-                        errorMsg = $"The element name in the ItemChoiceType enum did not match {nameof(node.ElementName)}";
-                        return false;
-                    }
-                }
-            //}
-            errorMsg = $"There was no Item(s)ChoiceType object to remove"; //this is not really an error, just a message
-            return true; //no error here
+						piChoiceEnum.SetValue(parentNode, null);
+						return true;
+					}
+					else
+					{
+						errorMsg = $"The element name in the ItemChoiceType enum did not match {nameof(node.ElementName)}";
+						return false;
+					}
+				}
+			//}
+			errorMsg = $"There was no Item(s)ChoiceType object to remove"; //this is not really an error, just a message
+			return true; //no error here
 
-        }
+		}
 
 
-        #endregion
-        #region ArrayHelpers 
+		#endregion
+		#region ArrayHelpers 
 
-        /// <summary>
-        /// Determines if the type parameter is a List&lt;T>
-        /// </summary>
-        /// <param name="t"></param>
-        /// <returns></returns>
-        public static bool IsGenericList(Type t)
+		/// <summary>
+		/// Determines if the type parameter is a List&lt;T>
+		/// </summary>
+		/// <param name="t"></param>
+		/// <returns></returns>
+		public static bool IsGenericList(Type t)
 		{
 			if (t is null) return false;
 			return 
@@ -2665,13 +2708,13 @@ namespace SDC.Schema
 			string namePrefix;
 			string nameBody;
 			string nameSuffix;
-			Type nodeType = node.GetType();
-			namePrefix = GetNamePrefix(node);
 
-			if (changeType == NameChangeEnum.PreserveAll
-				&& ! nodeName.IsNullOrWhitespace())
-				return nodeName;
+            if (changeType == NameChangeEnum.PreserveAll
+                            && !nodeName.IsNullOrWhitespace())
+                return nodeName;
 
+            Type nodeType = node.GetType();
+			namePrefix = GetNamePrefix(node);	
 
 			if (changeType == NameChangeEnum.Normal)
 			{
@@ -2690,7 +2733,10 @@ namespace SDC.Schema
 				//If we don't detect an auto-generated name (i.e., one that uses the auto-generated namePrefix), then it's a custom name and we'll preserve it unchanged.
 				else if ( //it's a QuestionItemType here...
 					nodeName.Length > namePrefixLength
-					&& nodeName[..namePrefixLength] != $"{namePrefix}_")
+					&& nodeName[..namePrefixLength] != $"{namePrefix}_"
+                    && nodeName[..nodePrefixLength] != $"{nodePrefix}_"
+
+					)
 					return nodeName;
 
 				//check for initialTextToSkip
@@ -3094,19 +3140,19 @@ namespace SDC.Schema
 			If item has not yet been attached to a parent node, there are cases when it could adopt more than one element name.
 
 			In SDC, those multi-named SDC types are:
-			     FileType (in RegistrySummaryType) ItemsChoiceType1[]: Manual, RegistryPurpose, ServiceLevelAgreement
-			     CallFuncType (in ActionsType) ItemsChoiceType[]: CallFunction, ShowURL, WebService, ExternalRule
-			     anyURI_Stype (in CallFuncBaseType) ItemChoiceType1: FunctionURI, LocalFunctionName
-			     gMonth_DEtype (in DataTypes_DEType) ItemChoiceType2: gMonth, gYearMonth
-			     gMonth_Stype (in DataTypes_SType) ItemChoiceType: gMonth, gYearMonth
+				 FileType (in RegistrySummaryType) ItemsChoiceType1[]: Manual, RegistryPurpose, ServiceLevelAgreement
+				 CallFuncType (in ActionsType) ItemsChoiceType[]: CallFunction, ShowURL, WebService, ExternalRule
+				 anyURI_Stype (in CallFuncBaseType) ItemChoiceType1: FunctionURI, LocalFunctionName
+				 gMonth_DEtype (in DataTypes_DEType) ItemChoiceType2: gMonth, gYearMonth
+				 gMonth_Stype (in DataTypes_SType) ItemChoiceType: gMonth, gYearMonth
 				 gMonth_Stype (in DataTypesDateTime_SType) ItemChoiceType3: gMonth, gYearMonth
 				 gMonth_DEtype (in DataTypesDateTime_DEType) 
 
 			In all other cases, each SDC type has a unique ElementName that is generally hard-coded into the SDC partial classes
 			In rare cases, a given item type can be attached to more than one property in a parent object.
 			The best (and perhaps only) examples of multi-positional SDC types is EventType:
-			     DI: EventType: OnEnter, OnExit
-			     LI: EventTime: OnSelect, OnDeselect
+				 DI: EventType: OnEnter, OnExit
+				 LI: EventTime: OnSelect, OnDeselect
 
 			If item's current parent has NOT been set, then in these cases, the intended element name must be specified to determine if attachment is legal,
 			and to return the attaching object in newParent.

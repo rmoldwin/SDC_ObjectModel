@@ -44,19 +44,19 @@ namespace SDC.Schema.Extensions
 			//We could also use the ChildNodes dictionary to create a new faster TreeComparer, as long as we keep ChildNodes sorted
 		}
 
-        /// <summary>Remove <b><paramref name="btSource"/></b> and all its descendants from the SDC tree. 
-        /// Checks recursively for descendants and removes them from all dictionaries.<br/>
-        /// This method requires that <see cref="BaseType.ParentNode"/> is not null for the supplied node and all descendant nodes,<br/>
-        /// which, in turn, requires that the <see cref="_ITopNode._ChildNodes"/> dictionary has been correctly populated for all subtree nodes.
-        /// Removes Item(s)ChoiceType entries when present.<br/>
+		/// <summary>Remove <b><paramref name="btSource"/></b> and all its descendants from the SDC tree. 
+		/// Checks recursively for descendants and removes them from all dictionaries.<br/>
+		/// This method requires that <see cref="BaseType.ParentNode"/> is not null for the supplied node and all descendant nodes,<br/>
+		/// which, in turn, requires that the <see cref="_ITopNode._ChildNodes"/> dictionary has been correctly populated for all subtree nodes.
+		/// Removes Item(s)ChoiceType entries when present.<br/>
 		/// Will also remove a <see cref="ChildItemsType"/> node, when that node is the direct parent of <paramref name="btSource"/>, and 
 		/// all the <see cref="ChildItemsType"/> node's Items members have been removed.
-        /// </summary>
-        /// <param name="btSource">The node to remove</param>
-        /// <param name="cancelIfChildNodes">If true (default), abort node removal if child nodes (descendants) are present.
-        /// If false, btSource and all descendants will be permanently removed.</param>
-        /// <returns>True if node removal was successful; false if unsuccessful</returns>
-        public static bool RemoveRecursive(this BaseType btSource, bool cancelIfChildNodes = true)
+		/// </summary>
+		/// <param name="btSource">The node to remove</param>
+		/// <param name="cancelIfChildNodes">If true (default), abort node removal if child nodes (descendants) are present.
+		/// If false, btSource and all descendants will be permanently removed.</param>
+		/// <returns>True if node removal was successful; false if unsuccessful</returns>
+		public static bool RemoveRecursive(this BaseType btSource, bool cancelIfChildNodes = true)
 		{
 			if (cancelIfChildNodes && btSource.TryGetChildNodes(out var roc) && roc is not null && roc.Count > 0)
 				return false;
@@ -72,23 +72,35 @@ namespace SDC.Schema.Extensions
 			bool result = RemoveNodesRecursively(btSource); 
 			if (result is true)  //remove the btSource node
 			{
-                //Check for and Item(s)ChoiceType enum for btSource, and if present, remove it.
-                //It's not necessary to check Item(s)ChoiceType enums on subnodes, since they will all be garbage collected anyway.  
-                if (! SdcUtil.TryRemoveItemChoiceEnumValue(btSource, out string errorMsg))
-                    throw new InvalidOperationException($"Error removing value from the Item(s)ChoiceType enum servicing {nameof(btSource)}.");
+				//Check for and Item(s)ChoiceType enum for btSource, and if present, remove it.
+				//It's not necessary to check Item(s)ChoiceType enums on subnodes, since they will all be garbage collected anyway.  
+				bool choiceTypeRemovalSucceeded = SdcUtil.TryRemoveItemChoiceEnumValue(btSource, out string errorMsg);
 
-                //Let's see if btSource is a ChildItemsType object that can be deleted if empty
-                //There may be other similar List objects like ChildItemsType that are candidates for removal,
+				if (!choiceTypeRemovalSucceeded)
+					throw new InvalidOperationException($"Error removing value from the Item(s)ChoiceType enum servicing {nameof(btSource)}.");
+
+				//Let's see if btSource is an Items object that can be deleted if empty
+				//There may be other similar List objects like ChildItemsType that are candidates for removal,
 				//     but an empty ChildItemsType.Items (List<>) node is most often in need of clean up.
-                if (par is ChildItemsType ci && ci.Items.Count == 0)
-                {
-                    ci.RemoveNodeObject();
-                    ci.UnRegisterAll();
-                }
 
-                //Remove btSource from object tree,
-                //unless the btSource subtree is rejoined to the same or another tree, the entire disconnected subtree can now be garbage-collected
-                result = RemoveNodeObject(btSource);
+				//bool isAllowed = SdcUtil.IsAttachNodeAllowed(btSource, btSource.ElementName
+				//    , par, out PropertyInfo? piTargetProperty, out object? sourceAttachmentObject
+				//    , out PropertyInfo? piChoiceEnum, out object? choiceEnum, out string errMsg);
+				//if(sourceAttachmentObject is IList lst && lst.Count == 0)
+				//{
+				//	sourceAttachmentObject.RemoveNodeObject();
+				//	sourceAttachmentObject.UnRegisterAll();
+				//}
+
+				//if (par is ChildItemsType ci && ci.Items.Count == 0)
+				//{
+				//	ci.RemoveNodeObject();
+				//	ci.UnRegisterAll();
+				//}
+
+				//Remove btSource from object tree,
+				//unless the btSource subtree is rejoined to the same or another tree, the entire disconnected subtree can now be garbage-collected
+				result = RemoveNodeObject(btSource);
 
 				//Remove btSource from _ITopNode dictionaries.
 				//Also, if btSource is an IET node, remove entire btSource subtree from _IETnodes
@@ -227,103 +239,57 @@ namespace SDC.Schema.Extensions
 				throw new NullReferenceException($"{nameof(newParent)} must not be null.");
 			//if (btSource.ParentNode is null) throw new NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved");
 			if (newParent.TopNode is null) throw new NullReferenceException($"{nameof(newParent.TopNode)} must not be null.");
-
-			//if (! btSource.IsParentNodeAllowed(newParent, out object? targetObj)) return false;
-			//if(! SdcUtil.IsAttachNodeAllowed(newParent, btSource, btSource.ElementName, out _, out object? targetObj, out _, out string errorMsg))
-			//return false;
-
-			//!Set SameRoot
+			//+------------------------------------------------------------
 			//Do btSource and newParent share the same root node? (Are they from the same SDC tree?)
-			bool sameRoot = false;  //Do source and target share the same root node?
 			var sourceRoot = btSource.FindRootNode();
 			if (sourceRoot is null) throw new NullReferenceException($"The root node of {nameof(btSource)} could not be determined.");
 			var newParentRoot = newParent.FindRootNode();
 			if (sourceRoot is null) throw new NullReferenceException($"The root node of {nameof(newParent)} could not be determined.");
+			if (! sourceRoot.Equals(newParentRoot))
+				updateMetadata = true;  //Source and target subtrees do not share the same root node
 
-			if (sourceRoot.Equals(newParentRoot)) sameRoot = true;
-			else //!+Process btSource tree with different root node
-			{
-				//Set TopNode for the first nodes of the source branch (subtree)
-				//The TopNode of these items might derive from a completely different SDC tree,
-				//and thus must be reset to match the current target node's TopNode
-				BaseType? n;
-				BaseType? nextNode;
-				int i = 0;
-				n = btSource;
-				if (btSource.TopNode != newParent.TopNode) updateMetadata = true;
-				_ITopNode currentTopNode = (_ITopNode)newParent.TopNode;
-
-				for (; ; ) //Set TopNodes in btSource tree (possibly we could stop when we hit a new ITopNode)
-				{
-					i++;
-					if (i > 1000000)
-						throw new InvalidOperationException($"Could not assign {nameof(btSource.TopNode)} to nodes in {nameof(btSource)} tree, due to inability to walk its SDC tree");
-					//Debug.Print(n.DotLevel, n.ElementName, n.name);
-					//if (i>1000 && i % 1000 == 0) Debugger.Break();
-
-					n.TopNode = currentTopNode; //currentTopNode can't be null
-
-					//short-circuit the ITopNode assignment once we hit a new ITopNode
-					if (n is _ITopNode itn) currentTopNode = itn;  //break;
-					n = n.GetNodeReflectNext();
-					if (n is null) break;
-				}
-				//TODO: Refactor node Workers to methods as needed
-				//This is a nodeWorkerFirst lambda designed for us in ReflectRefreshSubtreeList
-				//TODO: We may need to modify this nodeWorker to detect and update duplicate sGuids and IDs (on IET nodes) in the target tree.
-				var UpdateObjectID = (BaseType node) =>
-					{
-						if (node is ITopNode tn)
-						{
-							((_ITopNode)node)._MaxObjectID = 0;
-							node.ObjectID = 0;
-							return true;
-						}
-						node.ObjectID = ((_ITopNode)node)._MaxObjectID++;
-						return true;
-					};
-
-				//Re-create dictionaries, ID, BaseName, @name, sGuid/ObjectGUID, etc for all btSource nodes.
-				//TODO: Will this work for a source tree that differs from the target tree??
-				//It also may create errors if duplicate sGuids and IDs are found.
-				//This may require ReflectRefreshSubtreeList to quietly fix these things.
-				var sourceNodeList =
-					SdcUtil.ReflectRefreshSubtreeList(btSource, false, false, true,
-					0, 1, true, SdcUtil.CreateCAPname, UpdateObjectID);
-
-			}//TODO: process donor node/branch: ObjectID, sGuid, ObjectID, @name, ID, baseURI?, Link?, events?, rule targets?
-
-			bool isSourceParentChildless = false;
+			_ITopNode?  origSourceI_TopNode = btSource.TopNode as _ITopNode;    //Save this for later in case we need it; may be null
 
 			bool isAllowed = SdcUtil.IsAttachNodeAllowed(btSource, btSource.ElementName
-					, newParent, out PropertyInfo? piTargetProperty, out object? targetPropertyObject
-					, out PropertyInfo? piChoiceEnum, out object? choiceEnum, out string errorMsg);
-			if(! isAllowed) return false;
+				, newParent, out PropertyInfo? piTargetProperty, out object? targetPropertyObject
+				, out PropertyInfo? piChoiceEnum, out object? choiceEnum, out string errorMsg);
+			if (!isAllowed) return false;
+			
 
-			if (targetPropertyObject is BaseType) //btSource can be attached directly to targetObj
-			{
+			if(updateMetadata) 
+			{	//Re-create dictionaries, ID, BaseName, @name, sGuid/ObjectGUID, ObjectID etc for all btSource nodes.				
+				var sourceNodeList =
+					SdcUtil.ReflectRefreshSubtreeList(btSource, false, true, true,
+					(int)newParent.order + 1, 1, true, newParent, SdcUtil.CreateCAPname
+					, null, null);
+			}//TODO: do we need to process donor node/branch: baseURI?, Link?, Codes, events?, rule targets?
+
+
+			if (targetPropertyObject is BaseType) 
+			{	//btSource can be attached directly to targetObj
 				targetPropertyObject = btSource;
 				btSource.MoveInDictionaries(targetParent: newParent);
 				btSource.AssignOrder(); //Required that dictionaries are first populated
 
 				return true;
 			}
-			else if (targetPropertyObject is IList propList) //btSource can be attached to a member of a List
-															 //TODO: refactor block: bool AttachSourceNodetoList() 
-			{
-				var sourceParent = btSource.ParentNode;  //if ParentNode is null, and is not ITopNode, this may cause an exception or other errors below 
+			else if (targetPropertyObject is IList propList)
+            //btSource can be attached to a member of a List
+            //TODO: refactor block: bool AttachSourceNodetoList()
+            {   //if ParentNode is null, and is not ITopNode, this may cause an exception or other errors below 
+                var sourceParent = btSource.ParentNode;
 
 				//par can be null if we are grafting from the btSource tree to another SDC object tree, and btSource is the root node of its tree
 				if (sourceParent is not null) //Remove the reference from par to btSource
 				{
-                    //Remove btSource from current parent object
-                    //This call is done only to obtain the sourceAttachmentObject, which hold the reference to btSource
+					//Remove btSource from current parent object
+					//This call is done only to obtain the sourceAttachmentObject, which hold the reference to btSource
 
-                    isAllowed = SdcUtil.IsAttachNodeAllowed(btSource, btSource.ElementName
+					isAllowed = SdcUtil.IsAttachNodeAllowed(btSource, btSource.ElementName
 					, sourceParent, out _, out object? sourceAttachmentObject
 					, out _, out _, out errorMsg);
 
-					//!Remove entries from the enum ItemChoiceType# (ItemElementName) object or ItemChoiceType#[] (ItemsElementName)
+					//+!Remove entries from the enum ItemChoiceType# (ItemElementName) object or ItemChoiceType#[] (ItemsElementName)
 					if(piChoiceEnum is not null && choiceEnum is not null) 
 						SdcUtil.TryRemoveItemChoiceEnumValue(btSource, targetPropertyObject, piChoiceEnum, choiceEnum, out errorMsg);
 
@@ -342,7 +308,9 @@ namespace SDC.Schema.Extensions
 
 								//sourceParent was not previously removed in dictionaries, we only removed its last child node
 								//Since it's now "childless," we can remove this orphan node from both the dictionaries and the SDC OM
-								isSourceParentChildless = true;
+								//isSourceParentChildless = true;
+
+								UnRegisterAll(sourceParent); //this calls UnRegisterParent also
 							}
 						}
 					}
@@ -358,23 +326,31 @@ namespace SDC.Schema.Extensions
 					propList.Insert(newListIndex, btSource);
 
 				//!Remove deleted nodes from _ITopNode dictionaries
-				//
 				btSource.MoveInDictionaries(targetParent: newParent);
 				btSource.AssignOrder(); //Requires that dictionaries are first populated
 
-				if (sourceParent is not null && isSourceParentChildless && deleteEmptyParentNode)
-				{
-					UnRegisterAll(sourceParent); //this calls UnRegisterParent also
-				}//source parent may be null here; is that a problem??
-				else { }
-
 				return true;
-			}//IList
-			else //not IList<BaseTypr> or BaseType
+			}//end of (targetPropertyObject is IList propList)
+			else //not IList<BaseType> or BaseType
 				throw new InvalidOperationException("Invalid targetObj: targetObj must be BaseType or IList");
-
 		}
-
+		
+		//This is a nodeWorkerFirst lambda designed for us in ReflectRefreshSubtreeList
+		//Not used
+		//TODO: We may need to modify this nodeWorker to detect and update duplicate sGuids and IDs (on IET nodes) in the target tree.
+		private static Func<BaseType, bool> X_UpdateObjectID = (BaseType node) =>
+			{
+				if (node is ITopNode itn)
+				{
+					((_ITopNode)node)._MaxObjectID = 0;
+					node.ObjectID = 0;
+					return true;
+				}
+				if (node.TopNode is null)
+					throw new NullReferenceException($"Node {node.name} has a null TopNode");
+				node.ObjectID = ((_ITopNode)node.TopNode)._MaxObjectID++;
+				return true;
+			};
 
 		#endregion
 		#region Dictionary Register-UnRegister
@@ -500,22 +476,28 @@ namespace SDC.Schema.Extensions
 		}
 		private static void RegisterSubtreeIn_IETnodes(this IdentifiedExtensionType iet, bool isMoving = false)
 		{
-			_ITopNode itn = (_ITopNode)iet.TopNode!;
+			_ITopNode? itn = iet.TopNode as _ITopNode;
 			var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our new/moved node	
 			
-			int insertPosition = -1;
-			
-			if (ietPrev is not null)
-				insertPosition = itn._IETnodes.IndexOf(ietPrev);  //TODO: this collection scan may be inefficient; we may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) or ConditionalWeakTable instead (using sGuid or the object ref as Key).
-			
-			if (isMoving)
-				foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
-					itn._IETnodes.Insert(++insertPosition, n);
-			else //we are just adding a node here, not moving
-				itn._IETnodes.Insert(++insertPosition, iet);
+			int insertPosition = -1;  //add to the beginning of the list, by default.
 
-			if (iet is _ITopNode meTopNode && (meTopNode._IETnodes is null || meTopNode._IETnodes.Count == 0))
-				meTopNode._IETnodes!.Insert(0, iet);
+			if (itn is not null)
+			{
+				if (ietPrev is not null)
+					insertPosition = itn._IETnodes.IndexOf(ietPrev);  //TODO: this collection scan may be inefficient; we may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) or ConditionalWeakTable instead (using sGuid or the object ref as Key).
+
+				if (isMoving)
+					foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
+						itn._IETnodes.Insert(++insertPosition, n);
+				else //we are just adding a node here, not moving
+					itn._IETnodes.Insert(++insertPosition, iet);
+			}
+
+			else 
+				throw new InvalidOperationException($"{nameof(iet.TopNode)} was null.");
+
+			if (iet is _ITopNode myTopNode && myTopNode._IETnodes.Count == 0) //we seem to be starting a new SDC tree here
+				myTopNode._IETnodes.Insert(0, iet);
 
 		}
 
@@ -622,15 +604,15 @@ namespace SDC.Schema.Extensions
 				throw new NullReferenceException($"{nameof(node.TopNode)} cannot be null.");
 			UnRegister(_topNode);
 
-			if (node is _ITopNode _meTopNode && _meTopNode != _topNode) //if we did not already do this... 
+			if (node is _ITopNode _myTopNode && _myTopNode != _topNode) //if we did not already do this... 
 			{   //also register this ITopNode object in its own dictionaries.
-				UnRegister(_meTopNode);
+				UnRegister(_myTopNode);
 			}
 
 			void UnRegister(_ITopNode tn)
 			{
 				//Unregister _Nodes
-				bool success = tn?._Nodes.Remove(node.ObjectGUID) ?? false;
+				bool success = tn._Nodes.Remove(node.ObjectGUID);
 				if (!success)
 					throw new Exception($"Could not remove object from {nameof(tn._Nodes)} dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
 				
@@ -640,7 +622,7 @@ namespace SDC.Schema.Extensions
 				//Unregister _IETnodes
 				if (node is IdentifiedExtensionType iet)
 				{
-					var inb = tn!._IETnodes;
+					var inb = tn._IETnodes;
 					if(inb is null) 
 						throw new InvalidOperationException($"{nameof(tn._IETnodes)} was null; Node name: {iet.name ?? "(none)"}, Short Guid: {node.sGuid}");
 

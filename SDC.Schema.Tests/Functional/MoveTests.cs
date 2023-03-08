@@ -1,3 +1,4 @@
+using FastSerialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema.Extensions;
 using System;
@@ -313,6 +314,96 @@ namespace SDC.Schema.Tests.Functional
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
+
+
+		[TestMethod]
+		public void CloneSdcSubtreeXmlTest()
+		{
+			Setup.TimerStart("==>[] Started");
+			BaseType.ResetLastTopNode();
+			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
+			var FD = FormDesignType.DeserializeFromXmlPath(path);
+			var S1 = FD.IETnodes.OfType<SectionItemType>().Take(3).ToList()[1]; //ID = 16079, BaseName = "y1bxHm"
+			var S2 = FD.IETnodes.OfType<SectionItemType>().Take(3).ToList()[2]; //ID = 16182, BaseName = "HLz19G"
+
+			var xml1 = SdcSerializer<SectionItemType>.Serialize(S1);
+			var xml2 = SdcSerializer<SectionItemType>.Serialize(S2);
+
+
+			var Clone1 = SdcSerializer<SectionItemType>.Deserialize(xml1); //Clone of S1 subtree
+			var Clone2 = SdcSerializer<SectionItemType>.Deserialize(xml2); //Clone of S2 subtree
+
+			//Move the Clone2 subtree under S1 in FD.  FD will have a new copy of the Clone2 subtree;
+			//This is not a Move but actually a copy (Clone2 is a new copy of the S2 subtree)
+			//The Clone2 subtree will be found in FD.ChildItemsNode.Last(), but with all new identifiers:
+			//The Clone2 copy in FD will have new sGuids, name, ID for each node.
+
+			Clone2.Move(S1.ChildItemsNode, -1, false, true);
+
+			var newXml = FD.GetXml();
+			var newXElement = newXml.ToXmlElement();
+			Assert.IsTrue(S1.ID != S2.ID);
+			Assert.IsTrue(Clone2.ID != S2.ID);
+			Assert.IsTrue(Clone2.name != S2.name);
+			Assert.IsTrue(Clone2.sGuid != S2.sGuid);
+			var childNodeClone2 = Clone2.GetChildItemsList()![0]; //new Q
+			var childNodeS2 = S2.GetChildItemsList()![0]; //original Q
+
+
+			Assert.IsTrue(childNodeClone2.sGuid != childNodeS2.sGuid);
+
+			Assert.IsTrue(childNodeClone2.ID != childNodeS2.ID);
+			Assert.IsTrue(childNodeClone2.name != childNodeS2.name);
+
+
+
+
+			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		}
+		[TestMethod]
+		public void CloneSdcSubtreeBsonTest()
+		{
+			Setup.TimerStart("==>[] Started");
+			BaseType.ResetLastTopNode();
+			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
+
+
+
+			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		}
+		[TestMethod]
+		public void CloneSdcSubtreeMpackTest()
+		{
+			Setup.TimerStart("==>[] Started");
+			BaseType.ResetLastTopNode();
+			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
+
+
+
+			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		}
+		[TestMethod]
+		public void RefreshSdcSubtreeOMTest()
+		{
+			Setup.TimerStart("==>[] Started");
+			BaseType.ResetLastTopNode();
+			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
+
+
+
+			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		}
+
+
+
+
+
+
+
+
+
+
+
 
 		public bool Move(BaseType sourceNode, BaseType targetNode, DropPosition position)
 		{

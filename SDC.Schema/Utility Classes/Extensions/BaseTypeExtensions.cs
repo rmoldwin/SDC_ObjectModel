@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace SDC.Schema.Extensions
 {
@@ -313,14 +314,32 @@ namespace SDC.Schema.Extensions
 		public static bool TryGetChildElements(this BaseType n, out ReadOnlyCollection<BaseType>? kids)
 		=> SdcUtil.TryGetChildElements(n, out kids);
 
-		/// <summary>
-		/// Not implemented.
-		/// </summary>
-		/// <param name="iet"></param>
-		/// <param name="targetType"></param>
-		/// <returns></returns>
-		/// <exception cref="NotImplementedException"></exception>
-		private static bool X_IsItemChangeAllowed_(this IdentifiedExtensionType iet, IdentifiedExtensionType targetType)
+        /// <summary>
+        /// Generate a new copy of an SDC tree or subtree, starting with <paramref name="rootNode"/>
+        /// </summary>
+        /// <typeparam name="T">Must be subtype of <see cref="BaseType"/></typeparam>
+        /// <param name="rootNode">The root for the subtree to clone.  Must be subtype of <see cref="BaseType"/></param>
+        /// <returns>SDC subtree that is a deep clone of the <paramref name="rootNode"/> subtree, <br/>
+		/// but stripped of all non-public values, including all TopNode dictionary and collection entries.<br/>
+		/// This clone may be grafted onto a valid location on any SDC tree node using <br/>
+		/// the extension method <see cref="IMoveRemoveExtensions.Move(BaseType, BaseType, int, bool, bool)"/>:<br/>
+		/// cloneRootNode.Move(<b>newParent: targetNode</b>, newListIndex: -1, deleteEmptyParentNode: false, <b>updateMetadata: true</b>)
+		/// 
+		/// </returns>
+        public static BaseType Clone<T>(this T rootNode) where T:BaseType
+		{
+            var xml = SdcSerializer<T>.Serialize(rootNode);
+            return SdcSerializer<T>.Deserialize(xml); //Clone of rootNode subtree
+        }
+
+        /// <summary>
+        /// Not implemented.
+        /// </summary>
+        /// <param name="iet"></param>
+        /// <param name="targetType"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        private static bool X_IsItemChangeAllowed_(this IdentifiedExtensionType iet, IdentifiedExtensionType targetType)
 		=>	throw new NotImplementedException();
 
 
