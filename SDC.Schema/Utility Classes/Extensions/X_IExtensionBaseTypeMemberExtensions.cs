@@ -2,10 +2,10 @@
 
 namespace SDC.Schema.Extensions
 {
-	public static class IExtensionBaseTypeMemberExtensions
+	public static class X_IExtensionBaseTypeMemberExtensions
 	{
 		//!+TODO: Handle Dictionary updates
-		public static bool Move(this IExtensionBaseTypeMember iebt, ExtensionType extension, ExtensionBaseType ebtTarget, int newListIndex = -1)
+		private static bool X_Move(this IExtensionBaseTypeMember iebt, ExtensionType extension, ExtensionBaseType ebtTarget, int newListIndex = -1)
 		{
 			if (extension == null) return false;
 
@@ -18,7 +18,7 @@ namespace SDC.Schema.Extensions
 			if (ebtTarget.Extension[newListIndex] == extension) return true; //success
 			return false;
 		}
-		public static bool Move(this IExtensionBaseTypeMember iebt, CommentType comment, ExtensionBaseType ebtTarget, int newListIndex)
+        private static bool X_Move(this IExtensionBaseTypeMember iebt, CommentType comment, ExtensionBaseType ebtTarget, int newListIndex)
 		{
 			if (comment == null) return false;
 
@@ -31,7 +31,7 @@ namespace SDC.Schema.Extensions
 			if (ebtTarget.Comment[newListIndex] == comment) return true; //success
 			return false;
 		}
-		public static bool Move(this IExtensionBaseTypeMember iebt, PropertyType property, ExtensionBaseType ebtTarget, int newListIndex)
+        private static bool X_Move(this IExtensionBaseTypeMember iebt, PropertyType property, ExtensionBaseType ebtTarget, int newListIndex)
 		{
 			if (property == null) return false;
 

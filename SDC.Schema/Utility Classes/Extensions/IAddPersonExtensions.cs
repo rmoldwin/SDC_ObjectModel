@@ -27,9 +27,9 @@ namespace SDC.Schema.Extensions
 		internal static PersonType AddPersonItems(this IAddPerson ap, PersonType pt)  //AddFillPersonItems, make this abstract and move to subclass?
 		{
 			pt.PersonName = new NameType(pt, -1, "PersonName");//TODO: Need separate method(s) for this
-											 //pt.Alias = new NameType();
-											 //pt.PersonName.FirstName.val = (string)drFormDesign["FirstName"];  //TODO: replace with real data
-											 //pt.PersonName.LastName.val = (string)drFormDesign["LastName"];  //TODO: replace with real data
+			//pt.Alias = new NameType();
+			//pt.PersonName.FirstName.val = (string)drFormDesign["FirstName"];  //TODO: replace with real data
+			//pt.PersonName.LastName.val = (string)drFormDesign["LastName"];  //TODO: replace with real data
 
 			pt.Email = new List<EmailType>();//TODO: Need separate method(s) for this
 			var email = new EmailType(pt, -1);//TODO: Need separate method(s) for this

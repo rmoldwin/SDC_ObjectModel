@@ -337,8 +337,8 @@ namespace SDC.Schema.Tests.Functional
 			//This is not a Move but actually a copy (Clone2 is a new copy of the S2 subtree)
 			//The Clone2 subtree will be found in FD.ChildItemsNode.Last(), but with all new identifiers:
 			//The Clone2 copy in FD will have new sGuids, name, ID for each node.
-
-			Clone2.Move(S1.ChildItemsNode, -1, false, true);
+			//var Clone2_1 = S2.Clone();
+			Clone2.Move(S1.ChildItemsNode, -1, false, SdcUtil.RefreshMode.UpdateNodeIdentity);
 
 			var newXml = FD.GetXml();
 			var newXElement = newXml.ToXmlElement();

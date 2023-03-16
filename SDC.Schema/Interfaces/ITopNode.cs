@@ -129,7 +129,8 @@ namespace SDC.Schema
 		/// Ensure that all BaseNames are unique. The key is a node's BaseName, The value is a node's sGuid; 
 		/// </summary>
 		internal HashSet<string> _UniqueBaseNames { get; }
-		protected internal void _ClearDictionaries();
+        internal HashSet<string> _UniqueNames { get; }
+        protected internal void _ClearDictionaries();
 	}
 }
 

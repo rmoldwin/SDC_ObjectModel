@@ -11,7 +11,7 @@ namespace SDC.Schema.Extensions
 			// var fd = (ifd as FormDesignType);
 			if (fd.Header == null)
 			{
-				fd.Header = new SectionItemType(fd, fd.ID + "_Header");  //Set a default ID, in case the database template does not have a body
+				fd.Header = new SectionItemType(fd, fd.ID + "_Header", -1, "Header");  //Set a default ID, in case the database template does not have a body
 				fd.Header.name = "Header";
 			}
 			return fd.Header;
@@ -21,7 +21,7 @@ namespace SDC.Schema.Extensions
 			//var fd = (ifd as FormDesignType);
 			if (fd.Body == null)
 			{
-				fd.Body = new SectionItemType(fd, fd.ID + "_Body");  //Set a default ID, in case the database template does not have a body
+				fd.Body = new SectionItemType(fd, fd.ID + "_Body", -1, "Body");  //Set a default ID, in case the database template does not have a body
 				fd.Body.name = "Body";
 			}
 			return fd.Body;
@@ -30,7 +30,7 @@ namespace SDC.Schema.Extensions
 		{
 			if (fd.Footer == null)
 			{
-				fd.Footer = new SectionItemType(fd, fd.ID + "_Footer");  //Set a default ID, in case the database template does not have a body
+				fd.Footer = new SectionItemType(fd, fd.ID + "_Footer", -1, "Footer");  //Set a default ID, in case the database template does not have a body
 				fd.Footer.name = "Footer";
 			}
 			return fd.Footer;

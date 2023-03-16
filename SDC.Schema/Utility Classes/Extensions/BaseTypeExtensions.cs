@@ -248,15 +248,22 @@ namespace SDC.Schema.Extensions
 		/// </summary>
 		public static int GetListIndex(this BaseType bt, BaseType parentNode)
 		=> SdcUtil.GetElementPropertyInfoMeta(bt, parentNode, false).ItemIndex;
+        ///	<summary>
+        /// If the requested object is held by a parent IEnumerable (usually an array of List), the IEnumerable is retuurned as ieItems.
+        /// If the requested object is represented by a non-IEnumerable property, then itemIndex = -1 and ieItems is null.
+		/// The method will throw an exception if the calling node (<paramref name="bt"/>) has a null ParentNode (<see cref="BaseType.ParentNode"/>)
+        /// </summary>
+        public static int GetListIndex(this BaseType bt)
+        => SdcUtil.GetElementPropertyInfoMeta(bt, bt.ParentNode, false).ItemIndex;
 
-		/// <summary>
-		/// Walk up the SDC object tree to find the first ITopNode ancestor of the current node.<br/>
-		/// Requires that all nodes have their ParentNode property assigned correctly.
-		/// If the current node implements ITopNode and has no ancestors, returns the current node.
-		/// </summary>
-		/// <returns></returns>
-		/// <exception cref="InvalidOperationException"></exception>
-		public static ITopNode? FindTopNode(this BaseType bt)
+        /// <summary>
+        /// Walk up the SDC object tree to find the first ITopNode ancestor of the current node.<br/>
+        /// Requires that all nodes have their ParentNode property assigned correctly.
+        /// If the current node implements ITopNode and has no ancestors, returns the current node.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static ITopNode? FindTopNode(this BaseType bt)
 		{
 			BaseType? n = bt.ParentNode;
 			int i = 0;

@@ -26,8 +26,8 @@ namespace SDC.Schema
 {
 
 	#region   ITopNode SDC Elements
-	public partial class FormDesignType : _ITopNode, ITopNodeDeserialize<FormDesignType>
-	{
+	public partial class FormDesignType : _ITopNode, ITopNodeDeserialize<FormDesignType>, _IUniqueIDs
+    {
 		#region ctor
 
 		protected FormDesignType() : base()
@@ -63,22 +63,40 @@ namespace SDC.Schema
 		/// </summary>
 		~FormDesignType()
 		{ }
-		#endregion
+        #endregion
 
-		#region ITopNode 
-
-		[XmlIgnore]
+        /// <summary>
+        /// When cloning and repeating an IET-rooted subtree in a <see cref="FormDesignType"/> tree, <br/>
+        /// a repeat suffix must be appended to each ID and name property in the cloned subtree.<br/><br/>
+        /// The suffix consists or 2 underscores ("__") followed by the string version of this <see cref="RepeatCounter"/>.<br/>
+        /// For example, the first repeated subtree clone inside the <see cref="FormDesignType"/> tree will have the suffix "__1" <br/>
+        /// appended to every ID and name property in the cloned subtree.<br/><br/>
+        /// The calling application must update <see cref="RepeatCounter"/> by one, each time a new subtree <br/>
+        /// is cloned and copied into the parent <see cref="FormDesignType"/> tree.<br/><br/>
+        /// If cloning and repeating subtrees is handled through <see cref="IMoveRemoveExtensions.Move"/>, <br/>
+		/// <see cref="RepeatCounter"/> will be automatically incremented by one for each cloned repeat. 
+        /// </summary>
+        [XmlIgnore]
 		[JsonIgnore]
-		public ReadOnlyDictionary<Guid, BaseType> Nodes
-		{
-			get
-			{
-				if (_nodesRO is null)
-					_nodesRO = new(((_ITopNode)this)._Nodes);
-				return _nodesRO;
-			}
-		}
-		[XmlIgnore]
+        public uint RepeatCounter { get; set; } = 0;
+        HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
+        #region ITopNode 
+
+        /// <summary>
+        /// ReadOnlyObservableCollection of all SDC nodes.
+        /// </summary>
+        [XmlIgnore]
+        [JsonIgnore]
+        public ReadOnlyDictionary<Guid, BaseType> Nodes
+        {
+            get
+            {
+                if (_nodesRO is null)
+                    _nodesRO = new(((_ITopNode)this)._Nodes);
+                return _nodesRO;
+            }
+        }
+        [XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
 		{
@@ -136,9 +154,12 @@ namespace SDC.Schema
 
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
 		HashSet<string> _ITopNode._UniqueBaseNames { get; } = new();
-		/// <summary> Clears all internal dictionaries
-		/// </summary>
-		void _ITopNode._ClearDictionaries()
+        
+        HashSet<string> _ITopNode._UniqueNames { get; } = new();
+
+        /// <summary> Clears all internal dictionaries
+        /// </summary>
+        void _ITopNode._ClearDictionaries()
 		{
 			var topNode = (_ITopNode)this;
 			topNode._Nodes.Clear();
@@ -247,8 +268,8 @@ namespace SDC.Schema
 		#endregion
 	}
 
-	public partial class DataElementType : _ITopNode, ITopNodeDeserialize<DataElementType>
-	{
+	public partial class DataElementType : _ITopNode, ITopNodeDeserialize<DataElementType>, _IUniqueIDs
+    {
 		protected DataElementType() : base()
 		{ Init(); }
 		public DataElementType(XMLPackageType? parentNode, string id = "", int position = -1) : base(parentNode, id, position, "DataElement")
@@ -261,8 +282,14 @@ namespace SDC.Schema
 			ElementPrefix = "DE";
 			Items = new();
 		}
-
-		[XmlIgnore]
+        /// <summary>
+        /// Gets or sets the data element Items.
+        /// </summary>
+        /// <value>
+        /// DataElement.Items (List&lt;IdentifiedExtensionType>).<br/>
+		/// May contains Section, Question, DisplayedItem, Button and InjectForm nodes.
+        /// </value>
+        [XmlIgnore]
 		[JsonIgnore]
 		public List<IdentifiedExtensionType> DataElement_Items
 		{
@@ -273,10 +300,11 @@ namespace SDC.Schema
 				Items = ItemsMutator(Items, value);
 			}
 		}
+        HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
-		#region ITopNode
+        #region ITopNode
 
-		[XmlIgnore]
+        [XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyDictionary<Guid, BaseType> Nodes
 		{
@@ -333,10 +361,11 @@ namespace SDC.Schema
 		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
 		HashSet<string> _ITopNode._UniqueBaseNames { get; } = new();
-		/// <summary>
-		/// 
-		/// </summary>
-		void _ITopNode._ClearDictionaries()
+        HashSet<string> _ITopNode._UniqueNames { get; } = new();
+        /// <summary>
+        /// 
+        /// </summary>
+        void _ITopNode._ClearDictionaries()
 		{
 			var topNode = (_ITopNode)this;
 			topNode._Nodes.Clear();
@@ -386,8 +415,8 @@ namespace SDC.Schema
 		#endregion
 
 	}
-	public partial class RetrieveFormPackageType : _ITopNode, ITopNodeDeserialize<RetrieveFormPackageType>
-	{
+	public partial class RetrieveFormPackageType : _ITopNode, ITopNodeDeserialize<RetrieveFormPackageType>, _IUniqueIDs
+    {
 		protected RetrieveFormPackageType() : base()
 		{ Init(); }
 		public RetrieveFormPackageType(RetrieveFormPackageType? parentNode, string packageID, int position = -1) : base(parentNode, position, "SDCPackage")
@@ -404,9 +433,10 @@ namespace SDC.Schema
 			this.ComplianceRule = new();
 			this.SDCPackage = new();
 		}
+        HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
-		#region ITopNode
-		[XmlIgnore]
+        #region ITopNode
+        [XmlIgnore]
 		[JsonIgnore]
 		public int MaxObjectID { get; internal set; } = 0;
 		[XmlIgnore]
@@ -471,7 +501,8 @@ namespace SDC.Schema
 		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
 		HashSet<string> _ITopNode._UniqueBaseNames { get; } = new();
-		void _ITopNode._ClearDictionaries()
+        HashSet<string> _ITopNode._UniqueNames { get; } = new();
+        void _ITopNode._ClearDictionaries()
 		{
 			var topNode = (_ITopNode)this;
 			topNode._Nodes.Clear();
@@ -554,8 +585,8 @@ namespace SDC.Schema
 			ElementPrefix = "htmlPkg";
 		}
 	}
-	public partial class XMLPackageType : ExtensionBaseType
-	{
+	public partial class XMLPackageType : ExtensionBaseType, _IUniqueIDs
+    {
 		protected XMLPackageType()
 		{ }
 		public XMLPackageType(ExtensionBaseType? parentNode, int position = -1) : base(parentNode, position, "XMLPackage")
@@ -565,7 +596,8 @@ namespace SDC.Schema
 			ElementName = "XMLPackage";
 			ElementPrefix = "xmlPkg";
 		}
-	}
+		HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
+    }
 	public partial class PackageItemType : ExtensionBaseType
 	{
 		protected PackageItemType()
@@ -580,8 +612,8 @@ namespace SDC.Schema
 
 	}
 
-	public partial class PackageListType : _ITopNode, ITopNodeDeserialize<PackageListType>
-	{
+	public partial class PackageListType : _ITopNode, ITopNodeDeserialize<PackageListType>, _IUniqueIDs
+    {
 		protected PackageListType() : base()
 		{ Init(); }
 		public PackageListType(PackageListType? parentNode, int position = -1) : base(parentNode, position, "SDCPackageList")
@@ -593,8 +625,10 @@ namespace SDC.Schema
 			ElementName = "SDCPackageList";
 			ElementPrefix = "PL";
 		}
-		#region ITopNode
-		[XmlIgnore]
+        HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
+
+        #region ITopNode
+        [XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyDictionary<Guid, BaseType> Nodes
 		{
@@ -651,10 +685,11 @@ namespace SDC.Schema
 		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
 		HashSet<string> _ITopNode._UniqueBaseNames { get; } = new();
-		/// <summary>
-		/// 
-		/// </summary>
-		void _ITopNode._ClearDictionaries()
+        HashSet<string> _ITopNode._UniqueNames { get; } = new();
+        /// <summary>
+        /// 
+        /// </summary>
+        void _ITopNode._ClearDictionaries()
 		{
 			var topNode = (_ITopNode)this;
 			topNode._Nodes.Clear();
@@ -788,10 +823,11 @@ namespace SDC.Schema
 		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
 		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
 		HashSet<string> _ITopNode._UniqueBaseNames { get; } = new();
-		/// <summary>
-		/// 
-		/// </summary>
-		void _ITopNode._ClearDictionaries()
+        HashSet<string> _ITopNode._UniqueNames { get; } = new();
+        /// <summary>
+        /// 
+        /// </summary>
+        void _ITopNode._ClearDictionaries()
 		{
 			var topNode = (_ITopNode)this;
 			topNode._Nodes.Clear();
@@ -847,7 +883,7 @@ namespace SDC.Schema
 
 	#endregion
 
-	#region ..Main Types
+	#region Main Types
 	public partial class ButtonItemType
 		: IChildItemsMember<ButtonItemType>
 	{
@@ -882,7 +918,8 @@ namespace SDC.Schema
 	public partial class SectionBaseType
 	{
 		public SectionBaseType() { Init(); }
-		internal SectionBaseType(BaseType parentNode, string id, int position = -1) : base(parentNode, id, position, "Section")
+
+        internal SectionBaseType(BaseType parentNode, string id, int position, string elementName) : base(parentNode, id, position, elementName)
 		{ Init(); }
 		private void Init()
 		{	this._ordered = true;	}
@@ -891,7 +928,14 @@ namespace SDC.Schema
 	public partial class SectionItemType : IChildItemsParent, IChildItemsMember<SectionItemType>
 	{
 		protected SectionItemType() { Init(); } //change back to protected
-		public SectionItemType(BaseType parentNode, string id, int position = -1) : base(parentNode, id, position)
+        /// <summary>
+        /// Note: When adding a new Header, Body, or Footer node, use -1 for <paramref name="position"/>, and specify "Header", "Body", or "Footer" for <paramref name="elementName"/>.
+        /// </summary>
+        /// <param name="parentNode"></param>
+        /// <param name="id"></param>
+        /// <param name="position"></param>
+        /// <param name="elementName"></param>
+        public SectionItemType(BaseType parentNode, string id, int position = -1, string elementName = "Section") : base(parentNode, id, position, elementName)
 		{ Init(); }
 		private void Init()
 		{			
@@ -1380,7 +1424,11 @@ namespace SDC.Schema
 			//}
 		}
 
-		internal void InitAfterTreeAdd(BaseType? parentNode)
+        /// <summary>
+        /// //This code is intended to run in the BaseType parameterized constructor.
+        /// </summary>
+        /// <param name="parentNode"></param>
+        internal void InitAfterTreeAdd(BaseType? parentNode)
 		{
 			if (this.TopNode is not null)
 			{   //a node with a null TopNode will not be registered in any TopNode dictionaries.
@@ -1391,8 +1439,12 @@ namespace SDC.Schema
 				//*after* the dictionaries are populated (in RegisterNodeAndParent)
 
 				this.AssignOrder(orderGap: 10);
-				//SdcUtil.CreateCAPname(this,"",SdcUtil.NameChangeEnum.Normal); //This won't work until the node is fully initialized (including BaseType.ID for IET nodes), after adding it to the SDC tree.
-				this.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
+                //SdcUtil.CreateCAPname(this,"",SdcUtil.NameChangeEnum.Normal); //This won't work until the node is fully initialized (including BaseType.ID for IET nodes), after adding it to the SDC tree.
+                
+				
+				//ElementPrefix is assigned later in the top-level constructor. It will be empty here, unless we make it a constant
+                //Thus the simple name below will start with "_" instead of the ElementPrefix.
+                this.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
 			}
 		}
 		
@@ -1732,7 +1784,7 @@ namespace SDC.Schema
 				//we have a node or subtree that is being grafted from a different SDC tree.
 				//in most cases like this, we will want new sGuid, ObjectID, ObjectGUID, name, ID
 				//Later, we can also reorder the entire tree.
-				valueNew.Move(this, -1, true, true); //calls IsParentNodeAllowed
+				valueNew.Move(this, -1, true, SdcUtil.RefreshMode.UpdateNodeIdentity); //checks if  ParentNode is allowed
 			}
 			return valueNew;
 		}

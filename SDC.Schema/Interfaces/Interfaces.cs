@@ -14,7 +14,20 @@ using Newtonsoft.Json;
 //using SDC;
 namespace SDC.Schema
 {
-    public interface IChildItemsParent //implemented by items that can have a ChildItems node.
+    /// <summary>
+    /// Implemented by TopNode nodes that require unique Identifier properties <br/>
+    /// (i.e., ID or InstanceVersionURI [for instance documents]) among its members.<br/>
+    /// Includes FormDesignType, DataElementType, RetrieveFormPackageType, PackageListType, XMLPackageType
+    /// Contains a HashSet&lt;string> to help determine uniqueness
+    /// </summary>
+    internal interface _IUniqueIDs
+    {
+        internal HashSet<string> _UniqueIDs { get; }
+    }
+    /// <summary>
+    /// Implemented by nodes that contain a ChildItems node.
+    /// </summary>
+    public interface IChildItemsParent 
         //where T : BaseType, IChildItemsParent<T>
     {
         public ChildItemsType ChildItemsNode { get; set; }
@@ -27,11 +40,17 @@ namespace SDC.Schema
         //QM AddChildQM(string id = "", int insertPosition = -1);
         //QL AddChildQL(string id = "", int insertPosition = -1);
     }
+    /// <summary>
+    /// Implemented by ListFieldType
+    /// </summary>
     public interface IListField
     {
         ListType? List { get; set; }
         LookupEndPointType? LookupEndpoint { get; set; }
     }
+    /// <summary>
+    /// Implemented by QuestionBaseType
+    /// </summary>
     public interface IQuestionBase
     {
         ResponseFieldType? ResponseField_Item { get; set; }
