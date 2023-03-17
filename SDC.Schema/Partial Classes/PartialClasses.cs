@@ -1820,15 +1820,38 @@ namespace SDC.Schema
 		}
 
 
-		[XmlIgnore]
-		[JsonIgnore]
-		/// <inheritdoc/>
-		public string BaseName { get; set; } = "";
-		#endregion
+        string baseName = "";				
 
-		#region ChangeTracking
-		//Properties to mark changed nodes for serialization to database etc.
+
+		/// <inheritdoc/>
 		[XmlIgnore]
+        [JsonIgnore]
+        public string BaseName
+        {
+            get => baseName;
+            set
+            {
+                if (baseName == value)
+                    return;
+                if (TopNode is not null) 
+                {
+                    if (!SdcUtil.IsValidVariableName(value))
+                        throw new InvalidOperationException($"The name \"{value}\" is not a legal variable name.");
+
+                    _ITopNode tn = (_ITopNode)this.TopNode;
+                    if (!tn._UniqueBaseNames.Add(value))
+                        throw new InvalidOperationException($"The name \"{value}\" already exists within the TopNode's tree.  A unique value is required.");
+					tn._UniqueBaseNames.Remove(baseName); //remove the old name
+                }
+                baseName = value;
+            }
+
+        }
+        #endregion
+
+        #region ChangeTracking
+        //Properties to mark changed nodes for serialization to database etc.
+        [XmlIgnore]
 		[JsonIgnore]
 		public Boolean Added { get; private set; }
 		[XmlIgnore]

@@ -341,21 +341,46 @@ namespace SDC.Schema.Extensions
         }
 
         /// <summary>
-		/// Set the name property on any BaseType node only if it does not already exist in the current TopNode's _UniqueNames hashable.
-		/// Will return false if 
-		/// </summary>
-		/// <returns></returns>
+        /// Set the name property on any BaseType node only if it does not already exist for another node <br/>
+        /// in the current tree's _UniqueNames hashable. <br/>
+        /// Returns false if the new name already already exists for a different node in _UniqueNames.<br/>
+        /// Returns true if the new name is the same as the old name.<br/>
+        /// Returns false if the new name is null or empty.
+        /// </summary>
 		static bool TrySetName(this BaseType bt, string newName)
         {
-			if (bt.TopNode is null || newName == "") return false;
-			if (!newName.IsValidVariableName()) return false;
+            if (bt.TopNode is null || newName == "") return false;
+            if (bt.name == newName) return true;
+            if (!newName.IsValidVariableName()) return false;
 
-			var tn = (_ITopNode)bt.TopNode;
-			if (tn._UniqueNames.TryGetValue(bt.name, out string? curName) 
-				&& bt.name == curName) return false;
-			bt.name = newName;
-			return true;            
+            var tn = (_ITopNode)bt.TopNode;
+            if (tn._UniqueNames.Add(newName) == false) return false;
+
+            tn._UniqueNames.Remove(bt.name);
+            bt.name = newName;
+            return true;
         }
+        /// <summary>
+        /// Set the BaseName property on any BaseType node only if it does not already exist for another node <br/>
+        /// in the current tree's _UniqueBaseNames hashable. <br/>
+        /// Returns false if the new BaseName already already exists for a different node in _UniqueBaseNames.<br/>
+        /// Returns true if the new BaseName is the same as the old BaseName.<br/>
+        /// Returns false if the new BaseName is null or empty.
+        /// </summary>
+		static bool TrySetBaseName(this BaseType bt, string newBaseName)
+        {
+            if (bt.TopNode is null || newBaseName == "") return false;
+            if (bt.BaseName == newBaseName) return true;
+            if (!newBaseName.IsValidVariableName()) return false;
+
+            var tn = (_ITopNode)bt.TopNode;
+            if (tn._UniqueBaseNames.Add(newBaseName) == false) return false;
+
+            tn._UniqueBaseNames.Remove(bt.BaseName);
+            bt.BaseName = newBaseName;
+            return true;
+        }
+
 
         /// <summary>
         /// Not implemented.

@@ -279,19 +279,20 @@ namespace SDC.Schema
                 if (((_name == null)
                             || (_name.Equals(value) != true)))
                 {
-                    //RM added 2023_03_16-------------------------------------------------------------
+                    //!RM added 2023_03_16-------------------------------------------------------------
+                    if(!SdcUtil.IsValidVariableName(value))
+                        throw new InvalidOperationException($"The name \"{value}\" is not a legal variable name.");
 
                     if (TopNode is not null) //if TopNode is null here, we are probably deserializing through the default constructor - probably we are cloning part of a object tree.
                     {
                         _ITopNode? tn = (_ITopNode)this.TopNode;
-                        if (tn._UniqueNames.TryGetValue(value, out _))
+                        if (tn._UniqueNames.Add(value) == false)
                             throw new InvalidOperationException($"The name \"{value}\" already exists within the TopNode's tree.  A unique value is required.");
+                        
+                        tn._UniqueNames.Remove(_name);
                     }
-                    
-                    if(!SdcUtil.IsValidVariableName(value))
-                        throw new InvalidOperationException($"The name \"{value}\" is not a legal variable name.");
 
-                    //End of addition --------------------------------------------------------------------
+                    //!End of addition --------------------------------------------------------------------
 
                     _name = value;
                     OnPropertyChanged("name", value);

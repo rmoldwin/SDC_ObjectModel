@@ -467,27 +467,27 @@ namespace SDC.Schema.Extensions
 			errors = "";
             //List<string> errorList = new();
             StringBuilder sb = new();
-            if (!string.IsNullOrWhiteSpace(node.name))
-            {
-                if (!tn._UniqueNames.Add(node.name))
-                    AddError(nameof(node.name), node.name);
-            }
-			if (!string.IsNullOrWhiteSpace(node.BaseName))
-			{
-				if (!tn._UniqueBaseNames.Add(node.BaseName))
-					AddError(nameof(node.BaseName), node.BaseName);
-			}
+            //if (!string.IsNullOrWhiteSpace(node.name))
+            //{
+            //    if (!tn._UniqueNames.Add(node.name))
+            //        AddError(nameof(node.name), node.name);
+            //}
+			//if (!string.IsNullOrWhiteSpace(node.BaseName))
+			//{
+			//	if (!tn._UniqueBaseNames.Add(node.BaseName))
+			//		AddError(nameof(node.BaseName), node.BaseName);
+			//}
 
             //Remove the various types of unique identifiers from _UniqueIDs
             //Only TopNode types that implement _IUniqueID contain the hashtable _UniqueIDs
             //_IUniqueIDs includes FormDesignType, DataElementType, RetrieveFormPackageType, PackageListType, XMLPackageType
             if (tn is _IUniqueIDs u)
             {
-                if (node is IdentifiedExtensionType ietNode) //FormDesign, DemogFormDesign, DataElement, Section, DisplayedItem, Question, ListItem, Button, InjectForm
-                {
-                    if (!string.IsNullOrWhiteSpace(ietNode.ID))
-                        if (!u._UniqueIDs.Add(ietNode.ID)) AddError(nameof(ietNode.ID), ietNode.ID);
-                }
+                //if (node is IdentifiedExtensionType ietNode) //FormDesign, DemogFormDesign, DataElement, Section, DisplayedItem, Question, ListItem, Button, InjectForm
+                //{
+                //    if (!string.IsNullOrWhiteSpace(ietNode.ID))
+                //        if (!u._UniqueIDs.Add(ietNode.ID)) AddError(nameof(ietNode.ID), ietNode.ID);
+                //}
                 if (node is FormDesignType fd) //Includes DemogFormDesignType
                 {
                     if (!string.IsNullOrWhiteSpace(fd.instanceVersionURI))
@@ -537,7 +537,7 @@ namespace SDC.Schema.Extensions
                 }
             }
             errors = sb.ToString();
-			if(string.IsNullOrWhiteSpace(errors))
+			if(!string.IsNullOrWhiteSpace(errors))
 				Console.WriteLine(errors);
 
             void AddError(string property, string value)

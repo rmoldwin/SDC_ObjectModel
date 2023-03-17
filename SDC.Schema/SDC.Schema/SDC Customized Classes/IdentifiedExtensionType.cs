@@ -82,15 +82,13 @@ namespace SDC.Schema
                             throw new InvalidOperationException("ID cannot be null or empty");
 
                         _IUniqueIDs u;
-                        if (this.ParentNode is not null
-                            && this.ParentNode is XMLPackageType xp)
+                        if (this.ParentNode is not null && this.ParentNode is XMLPackageType xp) //XMLPackageType holds the _UniqueIDs dictionary
                             u = xp;
-                        else u = (_IUniqueIDs)this.TopNode;
+                        else u = (_IUniqueIDs)this.TopNode; //TopNode holds the _UniqueIDs dictionary
 
-                        if (u._UniqueIDs.TryGetValue(value, out _))
+                        if (u._UniqueIDs.Add(value))
                             throw new InvalidOperationException($"ID \"{value}\" already exists");
-
-                        IMoveRemoveExtensions.AddUniqueIDsToHashTables(this, out string error);
+                        u._UniqueIDs.Remove(_id);
                     }
                     
                     //End of addition --------------------------------------------------------------------

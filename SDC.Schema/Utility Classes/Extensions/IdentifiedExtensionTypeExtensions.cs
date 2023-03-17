@@ -16,20 +16,28 @@ namespace SDC.Schema.Extensions
 {
     public static class IdentifiedExtensionTypeExtensions
     {
-
         /// <summary>
-        /// Set the ID property on any IdentifiedExtensionType node only if it does not already exist in the current TopNode's _UniqueIdentifiers hashable.
-        /// Will return false if ID already already exists in _UniqueIdentifiers.
+        /// Set the ID property on any IdentifiedExtensionType node only if it does not already exist <br/>
+        /// in the current tree's _UniqueIDs hashable. <br/>
+        /// Returns false if the new ID already already exists for a different node in _UniqueIDs.<br/>
+        /// Returns true if the new ID is the same as the old ID.<br/>
+        /// Returns false if the new ID is null or empty.
         /// </summary>
         /// <returns></returns>
         public static bool TrySetID(this IdentifiedExtensionType iet, string newID)
         {
-            if (iet.TopNode is null || newID == "") return false;
+            //Copy this code idea to IET.ID setter, and do the same for TrySetName, TrySetBaseType, and all other unique identifiers,
+            //in their main property setters.  Remove duplicate code in IMoveRemoveExtensions.AddUniqueIDsToHashTables
 
-            var tn = (_ITopNode)iet.TopNode;
-            if (tn._UniqueIdentifiers.TryGetValue(iet.name, out string? curID)
-                && iet.name == curID) return false;
-            iet.name = newID;
+            if (iet.TopNode is null || newID == "") return false;
+            if(newID == iet.ID) return true;
+
+            var u = (_IUniqueIDs)iet.TopNode;            
+
+            if(!u._UniqueIDs.Add(newID)) return false;  //ID already in use elsewhere
+            
+            u._UniqueIDs.Remove(iet.ID); //remove old ID
+            iet.ID = newID; //newID was already added to _UniqueIDs
             return true;
         }
     }
