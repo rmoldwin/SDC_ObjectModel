@@ -1488,6 +1488,7 @@ namespace SDC.Schema
 				{
 					i++;
 					node = node.GetNodePrevious();
+					//node = SdcUtil.ReflectPrevSibElement(node)
 					if (node is IdentifiedExtensionType || node is ITopNode) return i;
 				} while (node != null && i < nodeCount);
 
@@ -1839,7 +1840,7 @@ namespace SDC.Schema
                         throw new InvalidOperationException($"The name \"{value}\" is not a legal variable name.");
 
                     _ITopNode tn = (_ITopNode)this.TopNode;
-                    if (!tn._UniqueBaseNames.Add(value))
+                    if (tn._UniqueBaseNames.Add(value) == false)
                         throw new InvalidOperationException($"The name \"{value}\" already exists within the TopNode's tree.  A unique value is required.");
 					tn._UniqueBaseNames.Remove(baseName); //remove the old name
                 }

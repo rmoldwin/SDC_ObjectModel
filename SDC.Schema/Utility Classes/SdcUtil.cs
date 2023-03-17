@@ -2935,30 +2935,31 @@ namespace SDC.Schema
 		public static string CreateSimpleName(BaseType bt, string initialTextToSkip = "", NameChangeEnum changeType = NameChangeEnum.Normal)
 		{
 			if (bt.name?.Length > 0 && bt.name.AsSpan(0, 1) == initialTextToSkip) return bt.name;  //Return the existing name, if it starts with "_"
-			string baseName = "";
-            if (!(bt is not IdentifiedExtensionType))
-                baseName = bt.BaseName;
-            else
-            {
-                var iet = bt.ParentIETnode;
-                if (iet is not null)
-                    baseName = iet.BaseName;
-                else
-                    if (bt.BaseName is not null)
-                    baseName = bt.BaseName;
-            }
+			string tempBaseName = bt.BaseName;
 
-            if (baseName.IsNullOrWhitespace())
+            //if (!(bt is not IdentifiedExtensionType))
+            //    tempBaseName = bt.BaseName;
+            //else
+            //{
+            //    var iet = bt.ParentIETnode;
+            //    if (iet is not null)
+            //        tempBaseName = iet.BaseName;
+            //    else
+            //        if (bt.BaseName is not null)
+            //        tempBaseName = bt.BaseName;
+            //}
+
+            if (tempBaseName.IsNullOrWhitespace())
 				if (bt.sGuid is not null)
 					AssignGuid_sGuid_BaseName(bt);
 				else
 					throw new InvalidOperationException("supplied node did not have sGuid assigned.");
-			
+
 			string name = new StringBuilder(bt.ElementPrefix)
 						.Append('_')
-						.Append(baseName)
-						.Append('_')
-						.Append(bt.SubIETcounter).ToString();
+						.Append(tempBaseName).ToString();
+						//.Append('_')
+						//.Append(bt.SubIETcounter).ToString();
 			return name;
 		}
 
@@ -3032,7 +3033,7 @@ namespace SDC.Schema
             var UniqueBaseNames = ((_ITopNode)node.TopNode!)._UniqueBaseNames;
             if (! UniqueBaseNames.TryGetValue(newBaseName, out _))
 			{
-				UniqueBaseNames.Add(newBaseName);
+				//UniqueBaseNames.Add(newBaseName);
 				return newBaseName;
 			}
 
@@ -3045,7 +3046,7 @@ namespace SDC.Schema
 				newBaseName = sb.ToString();
 				if (! UniqueBaseNames.TryGetValue(newBaseName, out _))
 				{
-					UniqueBaseNames.Add(newBaseName);
+					//UniqueBaseNames.Add(newBaseName);
 					return newBaseName;
 				}
 				minNameBaseLength++;

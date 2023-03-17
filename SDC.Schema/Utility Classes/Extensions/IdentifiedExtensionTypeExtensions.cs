@@ -26,15 +26,12 @@ namespace SDC.Schema.Extensions
         /// <returns></returns>
         public static bool TrySetID(this IdentifiedExtensionType iet, string newID)
         {
-            //Copy this code idea to IET.ID setter, and do the same for TrySetName, TrySetBaseType, and all other unique identifiers,
-            //in their main property setters.  Remove duplicate code in IMoveRemoveExtensions.AddUniqueIDsToHashTables
-
             if (iet.TopNode is null || newID == "") return false;
             if(newID == iet.ID) return true;
 
             var u = (_IUniqueIDs)iet.TopNode;            
 
-            if(!u._UniqueIDs.Add(newID)) return false;  //ID already in use elsewhere
+            if(u._UniqueIDs.Add(newID) == false) return false;  //ID already in use elsewhere
             
             u._UniqueIDs.Remove(iet.ID); //remove old ID
             iet.ID = newID; //newID was already added to _UniqueIDs

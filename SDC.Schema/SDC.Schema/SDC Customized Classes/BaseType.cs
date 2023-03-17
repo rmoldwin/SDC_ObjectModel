@@ -281,13 +281,13 @@ namespace SDC.Schema
                 {
                     //!RM added 2023_03_16-------------------------------------------------------------
                     if(!SdcUtil.IsValidVariableName(value))
-                        throw new InvalidOperationException($"The name \"{value}\" is not a legal variable name.");
+                        throw new InvalidOperationException($"The string \"{value}\" is not a legal variable name.");
 
                     if (TopNode is not null) //if TopNode is null here, we are probably deserializing through the default constructor - probably we are cloning part of a object tree.
                     {
                         _ITopNode? tn = (_ITopNode)this.TopNode;
                         if (tn._UniqueNames.Add(value) == false)
-                            throw new InvalidOperationException($"The name \"{value}\" already exists within the TopNode's tree.  A unique value is required.");
+                            throw new InvalidOperationException($"The string \"{value}\" already exists within the TopNode's tree.  A unique value is required.");
                         
                         tn._UniqueNames.Remove(_name);
                     }

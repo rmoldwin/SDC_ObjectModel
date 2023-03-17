@@ -72,8 +72,10 @@ namespace SDC.Schema.Extensions
 			if (par is null)
 				throw new InvalidOperationException($"{nameof(btSource.ParentNode)} cannot be null.");
 
-			//remove btSource subtree from TopNode dictionaries
-			bool result = RemoveNodesRecursively(btSource); 
+            //Remove btSource subtree modes from TopNode dictionaries
+            //__name and BaseName will be removed from _UniqueNames and _UniqueBaseNames for all nodes in the subtree.
+            //__If btSource is an IET node, ID will be removed from _UniqueIDs, for all nodes in the btSource subtree
+            bool result = RemoveNodesRecursively(btSource); 
 			if (result is true)  //remove the btSource node
 			{
 				//Check for and Item(s)ChoiceType enum for btSource, and if present, remove it.
@@ -83,13 +85,14 @@ namespace SDC.Schema.Extensions
 				if (!choiceTypeRemovalSucceeded)
 					throw new InvalidOperationException($"Error removing value from the Item(s)ChoiceType enum servicing {nameof(btSource)}.");
 
-				//Remove btSource from object tree,
-				//unless the btSource subtree is rejoined to the same or another tree, the entire disconnected subtree can now be garbage-collected
-				result = RemoveNodeObject(btSource);
+                //Disconnect btSource from object tree
+                result = RemoveNodeObject(btSource);
+                //unless the btSource subtree is rejoined to the same or another tree, the entire disconnected subtree can now be garbage-collected
 
-				//Remove btSource from _ITopNode dictionaries.
-				//Also, if btSource is an IET node, remove entire btSource subtree from _IETnodes
-				if (result) btSource.UnRegisterAll();
+
+                //Remove btSource  from _ITopNode dictionaries.
+                //If btSource is an IET node, btSource also be removed from _IETnodes
+                if (result) btSource.UnRegisterAll();
 				return result;
 			}
 			else
@@ -116,8 +119,11 @@ namespace SDC.Schema.Extensions
 						RemoveNodesRecursively(lastKid); //recurse depth first 
 						remResult = lastKid.RemoveNodeObject(); //Remove from object tree
 						if (remResult) lastKid.UnRegisterAll(); //Remove from dictionaries
-						else { Debugger.Break(); break; } //exit early if failure to remove a node
-					}
+                        else { Debugger.Break(); break; } //exit early if failure to remove a node
+                        ((_ITopNode)nodeToRemove)._UniqueBaseNames.Remove(nodeToRemove.BaseName);
+                        ((_ITopNode)nodeToRemove)._UniqueNames.Remove(nodeToRemove.name);
+						if(nodeToRemove is IdentifiedExtensionType iet) ((_IUniqueIDs)iet)._UniqueIDs.Remove(iet.ID);
+                    }
 					return remResult;
 				}
 				return true;  //no kids were found or removed
@@ -450,7 +456,7 @@ namespace SDC.Schema.Extensions
 				if (node is IdentifiedExtensionType iet)
 					iet.RegisterSubtreeIn_IETnodes(isMoving);
 
-				AddUniqueIDsToHashTables(node, out string nonUniqueErrors);
+				//AddUniqueIDsToHashTables(node, out string nonUniqueErrors);
 			}
 			else {
 				throw new InvalidOperationException($"TopNode could not be set for node {node.name}");
@@ -458,7 +464,7 @@ namespace SDC.Schema.Extensions
 
 			return node;
 		}
-		internal static void AddUniqueIDsToHashTables(BaseType node, out string errors)
+		private static void X_AddUniqueIDsToHashTables(BaseType node, out string errors)
 		{
 			//TODO: Handle hashTable collisions (_UniqueIDs.Add returns false) and add to error log; do not throw exceptions here.
 
@@ -472,15 +478,15 @@ namespace SDC.Schema.Extensions
             //    if (!tn._UniqueNames.Add(node.name))
             //        AddError(nameof(node.name), node.name);
             //}
-			//if (!string.IsNullOrWhiteSpace(node.BaseName))
-			//{
-			//	if (!tn._UniqueBaseNames.Add(node.BaseName))
-			//		AddError(nameof(node.BaseName), node.BaseName);
-			//}
+            //if (!string.IsNullOrWhiteSpace(node.BaseName))
+            //{
+            //	if (!tn._UniqueBaseNames.Add(node.BaseName))
+            //		AddError(nameof(node.BaseName), node.BaseName);
+            //}
 
-            //Remove the various types of unique identifiers from _UniqueIDs
-            //Only TopNode types that implement _IUniqueID contain the hashtable _UniqueIDs
-            //_IUniqueIDs includes FormDesignType, DataElementType, RetrieveFormPackageType, PackageListType, XMLPackageType
+
+            //Only SDC types that implement _IUniqueID contain the hashtable _UniqueIDs
+            //_IUniqueIDs includes FormDesignType, DataElementType, RetrieveFormPackageType, PackageListType, XMLPackageType (XMLPackageType does implement ITopNode)
             if (tn is _IUniqueIDs u)
             {
                 //if (node is IdentifiedExtensionType ietNode) //FormDesign, DemogFormDesign, DataElement, Section, DisplayedItem, Question, ListItem, Button, InjectForm

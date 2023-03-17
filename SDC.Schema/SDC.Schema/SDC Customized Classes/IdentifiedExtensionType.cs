@@ -86,7 +86,7 @@ namespace SDC.Schema
                             u = xp;
                         else u = (_IUniqueIDs)this.TopNode; //TopNode holds the _UniqueIDs dictionary
 
-                        if (u._UniqueIDs.Add(value))
+                        if (u._UniqueIDs.Add(value) == false)
                             throw new InvalidOperationException($"ID \"{value}\" already exists");
                         u._UniqueIDs.Remove(_id);
                     }
