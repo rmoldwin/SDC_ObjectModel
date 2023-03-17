@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Security.Cryptography;
+using System.Text;
 using System.Xml.Linq;
 using static SDC.Schema.SdcUtil;
 using static System.Collections.Specialized.BitVector32;
@@ -449,7 +450,7 @@ namespace SDC.Schema.Extensions
 				if (node is IdentifiedExtensionType iet)
 					iet.RegisterSubtreeIn_IETnodes(isMoving);
 
-				AddUniqueIDsToHashTable(node);
+				AddUniqueIDsToHashTables(node, out string nonUniqueErrors);
 			}
 			else {
 				throw new InvalidOperationException($"TopNode could not be set for node {node.name}");
@@ -457,10 +458,25 @@ namespace SDC.Schema.Extensions
 
 			return node;
 		}
-		internal static void AddUniqueIDsToHashTable(BaseType node)
+		internal static void AddUniqueIDsToHashTables(BaseType node, out string errors)
 		{
+			//TODO: Handle hashTable collisions (_UniqueIDs.Add returns false) and add to error log; do not throw exceptions here.
+
 			_ITopNode tn = node.TopNode as _ITopNode ?? throw new NullReferenceException($"{nameof(node.TopNode)} cannot be null");
 			BaseType? par = node.ParentNode;
+			errors = "";
+            //List<string> errorList = new();
+            StringBuilder sb = new();
+            if (!string.IsNullOrWhiteSpace(node.name))
+            {
+                if (!tn._UniqueNames.Add(node.name))
+                    AddError(nameof(node.name), node.name);
+            }
+			if (!string.IsNullOrWhiteSpace(node.BaseName))
+			{
+				if (!tn._UniqueBaseNames.Add(node.BaseName))
+					AddError(nameof(node.BaseName), node.BaseName);
+			}
 
             //Remove the various types of unique identifiers from _UniqueIDs
             //Only TopNode types that implement _IUniqueID contain the hashtable _UniqueIDs
@@ -470,50 +486,62 @@ namespace SDC.Schema.Extensions
                 if (node is IdentifiedExtensionType ietNode) //FormDesign, DemogFormDesign, DataElement, Section, DisplayedItem, Question, ListItem, Button, InjectForm
                 {
                     if (!string.IsNullOrWhiteSpace(ietNode.ID))
-                        u._UniqueIDs.Add(ietNode.ID);
-                    if (node is FormDesignType fd) //Includes DemogFormDesignType
-                        if (!string.IsNullOrWhiteSpace(fd.instanceVersionURI))
-                            u._UniqueIDs.Add(fd.instanceVersionURI);
-                        else if (node is DataElementType de)
-                            u._UniqueIDs.Add(de.fullURI);
-                        else if (node is RetrieveFormPackageType rf)
-                        {
-                            if (!string.IsNullOrWhiteSpace(rf.packageID))
-                                u._UniqueIDs.Add(rf.packageID);
-                            if (!string.IsNullOrWhiteSpace(rf.instanceVersionURI))
-                                u._UniqueIDs.Add(rf.instanceVersionURI);
-                            if (!string.IsNullOrWhiteSpace(rf.fullURI))
-                                u._UniqueIDs.Add(rf.fullURI);
-                        }
+                        if (!u._UniqueIDs.Add(ietNode.ID)) AddError(nameof(ietNode.ID), ietNode.ID);
                 }
+                if (node is FormDesignType fd) //Includes DemogFormDesignType
+                {
+                    if (!string.IsNullOrWhiteSpace(fd.instanceVersionURI))
+                        if (!u._UniqueIDs.Add(fd.instanceVersionURI)) AddError(nameof(fd.instanceVersionURI), fd.instanceVersionURI);
+                }
+                else if (node is DataElementType de)
+                {
+                    if (!string.IsNullOrWhiteSpace(de.fullURI))
+                        if (!u._UniqueIDs.Add(de.fullURI)) AddError(nameof(de.fullURI), de.fullURI);
+                }
+                else if (node is RetrieveFormPackageType rf)
+                {
+                    if (!string.IsNullOrWhiteSpace(rf.packageID))
+                        if (!u._UniqueIDs.Add(rf.packageID)) AddError(nameof(rf.packageID), rf.packageID);
+                    if (!string.IsNullOrWhiteSpace(rf.instanceVersionURI))
+                        if (!u._UniqueIDs.Add(rf.instanceVersionURI)) AddError(nameof(rf.instanceVersionURI), rf.instanceVersionURI);
+                    if (!string.IsNullOrWhiteSpace(rf.fullURI))
+                        if (!u._UniqueIDs.Add(rf.fullURI)) AddError(nameof(rf.fullURI), rf.fullURI);
+                }
+
                 else if (node is PackageItemType pi)
                 {
-                    if (!string.IsNullOrWhiteSpace(pi.fullURI)) 
-						u._UniqueIDs.Add(pi.fullURI);
-                    if (!string.IsNullOrWhiteSpace(pi.packageID)) 
-						u._UniqueIDs.Add(pi.packageID);
-                    if (!string.IsNullOrWhiteSpace(pi.formInstanceVersionURI)) 
-						u._UniqueIDs.Add(pi.formInstanceVersionURI);
+                    if (!string.IsNullOrWhiteSpace(pi.fullURI))
+                        if (!u._UniqueIDs.Add(pi.fullURI)) AddError(nameof(pi.fullURI), pi.fullURI);
+                    if (!string.IsNullOrWhiteSpace(pi.packageID))
+                        if (!u._UniqueIDs.Add(pi.packageID)) AddError(nameof(pi.packageID), pi.packageID);
+                    if (!string.IsNullOrWhiteSpace(pi.formInstanceVersionURI))
+                        if (!u._UniqueIDs.Add(pi.formInstanceVersionURI)) AddError(nameof(pi.formInstanceVersionURI), pi.formInstanceVersionURI);
                 }
                 else if (par is not null && par is XMLPackageType)
                 {
-					if (node is MappingType m) //exists only under XMLPackageType parent
-					{
-						if (!string.IsNullOrWhiteSpace(m.templateID))
-							u._UniqueIDs.Add(m.templateID);
-					}
-					else if (node is XMLPackageTypeHelperFile h) // exists only under XMLPackageType parent
-					{
-						if (!string.IsNullOrWhiteSpace(h.templateID))
-							u._UniqueIDs.Add(h.templateID);
-					}
-					else if (node is LinkType lt)  // (named FormURL) uniqueness only important when under XMLPackageType parent, 
-					{
-						if (!string.IsNullOrWhiteSpace(lt.LinkURI.val))
-							u._UniqueIDs.Add(lt.LinkURI.val);
-					}
+                    if (node is MappingType m) //exists only under XMLPackageType parent
+                    {
+                        if (!string.IsNullOrWhiteSpace(m.templateID))
+                            if (!u._UniqueIDs.Add(m.templateID)) AddError(nameof(m.templateID), m.templateID);
+                    }
+                    else if (node is XMLPackageTypeHelperFile h) // exists only under XMLPackageType parent
+                    {
+                        if (!string.IsNullOrWhiteSpace(h.templateID))
+                            if (!u._UniqueIDs.Add(h.templateID)) AddError(nameof(h.templateID), h.templateID);
+                    }
+                    else if (node is LinkType lt)  // (named FormURL) uniqueness only important when under XMLPackageType parent, 
+                    {
+                        if (!string.IsNullOrWhiteSpace(lt.LinkURI.val))
+                            if (!u._UniqueIDs.Add(lt.LinkURI.val)) AddError(nameof(lt.LinkURI.val), lt.LinkURI.val);
+                    }
                 }
             }
+            errors = sb.ToString();
+			if(string.IsNullOrWhiteSpace(errors))
+				Console.WriteLine(errors);
+
+            void AddError(string property, string value)
+                => sb.Append($"Duplicate {property}: {value}, sGuid{node.sGuid}, TopNode: {((BaseType)tn).name}\r\n");
         }
         private static void RegisterIn_Nodes(this BaseType node)
 		{

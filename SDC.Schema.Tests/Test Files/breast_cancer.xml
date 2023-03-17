@@ -4543,12 +4543,12 @@
 												<AttributeEval hasSelectionsGTE="1" itemNames="Q_PgR_Studies_onc_43239"/>
 											</SelectIf>
 										</ListItem>
-										<ListItem name="LI_HER2.Eval_44384" ID="44384.100004300" title="HER2">
+										<ListItem name="LI_HER2_Eval_44384" ID="44384.100004300" title="HER2">
 											<SelectIf>
 												<AttributeEval hasSelectionsGTE="1" itemNames="Q_HER2_Eval_onc_54600"/>
 											</SelectIf>
 										</ListItem>
-										<!--          <ListItem name="LI_HER2.ishPresent_443841" ID="443841.100004300" title="HER2 ISH">
+										<!--          <ListItem name="LI_HER2_ishPresent_443841" ID="443841.100004300" title="HER2 ISH">
            <SelectIf>
             <AttributeEval hasSelectionsGTE="1" itemNames="Q_HER2_FISH_CISH_Results_onc_39495"/>
            </SelectIf>

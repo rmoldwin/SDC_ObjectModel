@@ -3185,24 +3185,44 @@ namespace SDC.Schema
 			if (n is _ITopNode itn) return itn;
 			return n.TopNode as _ITopNode;
 		}
-
-		#endregion
-		#region Retired
-
-
-		/// <summary>
-		/// Reflect the object tree to determine if <paramref name="newItem"/> can be attached to <paramref name="newParent"/>.   
-		/// We must find an <em>exact</em> match for <paramref name="newItem"/>'s element name and the data type in <paramref name="newParent"/> to allow the move.
+        /// <summary>
+		/// Check if the supplied string can be used as a legal variable name in C#.<br/>
+		/// Does not check for reserved words or other variables in use.
 		/// </summary>
-		/// <param name="newItem">The SDC node to test for its ability to be attached to the <paramref name="newParent"/> node.</param>
-		/// <param name="newParent">The node to which the <paramref name="newItem"/> node should be moved.</param>
-		/// <param name="pObj">The property object on <paramref name="newParent"/> that would attach to <paramref name="newItem"/> (hold its object reference).
-		/// pObj may be a List&lt;> or a non-List object.</param>
-		/// <param name="itemElementName"></param>
-		/// <returns>True for allowed parent nodes, false for disallowed not allowed</returns>
-		//internal static bool IsParentNodeAllowed(BaseType item, BaseType newParent,
-		//out PropertyIno pi, out object? pObj, string targetElementName = "")
-		private static bool X_IsParentNodeAllowed(BaseType newItem, BaseType newParent, out object? pObj, string itemElementName = "")
+		/// <param name="newString">The string to check.</param>
+		/// <returns></returns>
+		internal static bool IsValidVariableName(this string newString)
+        {
+            if (string.IsNullOrEmpty(newString))
+                return false;
+
+            if (!char.IsLetter(newString[0]) && newString[0] != '_')
+                return false;
+
+            for (int i = 1; i < newString.Length; i++)
+                if (!char.IsLetterOrDigit(newString[i]) && newString[i] != '_')
+                    return false;
+
+            return true;
+        }
+
+        #endregion
+        #region Retired
+
+
+        /// <summary>
+        /// Reflect the object tree to determine if <paramref name="newItem"/> can be attached to <paramref name="newParent"/>.   
+        /// We must find an <em>exact</em> match for <paramref name="newItem"/>'s element name and the data type in <paramref name="newParent"/> to allow the move.
+        /// </summary>
+        /// <param name="newItem">The SDC node to test for its ability to be attached to the <paramref name="newParent"/> node.</param>
+        /// <param name="newParent">The node to which the <paramref name="newItem"/> node should be moved.</param>
+        /// <param name="pObj">The property object on <paramref name="newParent"/> that would attach to <paramref name="newItem"/> (hold its object reference).
+        /// pObj may be a List&lt;> or a non-List object.</param>
+        /// <param name="itemElementName"></param>
+        /// <returns>True for allowed parent nodes, false for disallowed not allowed</returns>
+        //internal static bool IsParentNodeAllowed(BaseType item, BaseType newParent,
+        //out PropertyIno pi, out object? pObj, string targetElementName = "")
+        private static bool X_IsParentNodeAllowed(BaseType newItem, BaseType newParent, out object? pObj, string itemElementName = "")
 		{
 			/* 
 			item is the node we want to add to newParent

@@ -42,7 +42,9 @@
   <ItemGroup>
     <Compile Remove="Partial Classes\CC.cs" />
     <Compile Remove="SDC.Schema\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\dayTimeDuration_Stype.cs" />
+    <Compile Remove="Utility Classes\Extensions\IdentifiedExtensionTypeExtensions.cs" />
     <Compile Remove="Utility Classes\Extensions\Unimplemented Extensions.cs" />
+    <Compile Remove="Utility Classes\Extensions\_MappingTypeExtensions.cs" />
     <Compile Remove="Utility Classes\Hex Conversions - Copy %282%29.cs" />
     <Compile Remove="Utility Classes\Hex Conversions - Copy %283%29.cs" />
     <Compile Remove="Utility Classes\Hex Conversions - Copy %284%29.cs" />
@@ -54,7 +56,9 @@
   <ItemGroup>
     <None Include="bin\Debug\net6.0\sdctemplate.css" />
     <None Include="bin\Debug\net6.0\sdctemplate.xslt" />
+    <None Include="Utility Classes\Extensions\IdentifiedExtensionTypeExtensions.cs" />
     <None Include="Utility Classes\Extensions\Unimplemented Extensions.cs" />
+    <None Include="Utility Classes\Extensions\_MappingTypeExtensions.cs" />
     <None Include="Utility Classes\Junk\SDC_CodeGeneratorTest.csproj_old" />
   </ItemGroup>
 

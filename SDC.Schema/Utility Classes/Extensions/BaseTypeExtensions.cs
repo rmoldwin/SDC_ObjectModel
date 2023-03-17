@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using static SDC.Schema.SdcUtil;
 
 namespace SDC.Schema.Extensions
 {
@@ -337,6 +338,23 @@ namespace SDC.Schema.Extensions
 		{
             var xml = SdcSerializer<T>.Serialize(rootNode);
             return SdcSerializer<T>.Deserialize(xml); //Clone of rootNode subtree
+        }
+
+        /// <summary>
+		/// Set the name property on any BaseType node only if it does not already exist in the current TopNode's _UniqueNames hashable.
+		/// Will return false if 
+		/// </summary>
+		/// <returns></returns>
+		static bool TrySetName(this BaseType bt, string newName)
+        {
+			if (bt.TopNode is null || newName == "") return false;
+			if (!newName.IsValidVariableName()) return false;
+
+			var tn = (_ITopNode)bt.TopNode;
+			if (tn._UniqueNames.TryGetValue(bt.name, out string? curName) 
+				&& bt.name == curName) return false;
+			bt.name = newName;
+			return true;            
         }
 
         /// <summary>

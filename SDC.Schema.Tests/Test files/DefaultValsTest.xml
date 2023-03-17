@@ -104,7 +104,7 @@
 		</ChildItems>
 	</Body>
 	<Footer type="---TEST---" name="footer" ID="Breast.Ca.Stg.Calc.359_.CTP9_sdcFDF" mustImplement="true" maxCard="1" visible="true"  >
-		<Property type="meta" styleClass="copyright" propName="CopyrightFooter" name="CopyrightFooter-under-footer"
+		<Property type="meta" styleClass="copyright" propName="CopyrightFooter" name="CopyrightFooter_under_footer"
 		val="(c) 2018 College of American Pathologists. All rights reserved. License required for use."/>
 	</Footer>
 </FormDesign>

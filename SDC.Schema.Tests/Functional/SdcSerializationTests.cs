@@ -222,9 +222,9 @@ namespace SDC.Schema.Tests.Functional
 
 
 			var DI = Q.AddChildDisplayedItem("DDDDD");//should add to end of the <List>
-			DI.name = "my added DI";
+			DI.name = "myAddedDI";
 
-			DisplayedType? DI1 = FD.Nodes.Values.Where(n => n.name == "my added DI").FirstOrDefault() as DisplayedType;
+			DisplayedType? DI1 = FD.Nodes.Values.Where(n => n.name == "myAddedDI").FirstOrDefault() as DisplayedType;
 			DisplayedType? DI2 = Q?.ChildItemsNode?.Items?[0] as DisplayedType;
 			QuestionItemType? Q1 = DI2?.ParentNode?.ParentNode as QuestionItemType;
 			string diName = Q?.Item1.Items[0].name??"";

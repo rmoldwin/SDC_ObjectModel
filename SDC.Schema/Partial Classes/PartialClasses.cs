@@ -19,6 +19,7 @@ using System.Data;
 using System.Reflection.PortableExecutable;
 using System.Xml.Linq;
 using SDC.Schema.Extensions;
+using static SDC.Schema.SdcUtil;
 
 
 //!Handling Item and Items generic types derived from the xsd2Code++ code generator
@@ -585,7 +586,7 @@ namespace SDC.Schema
 			ElementPrefix = "htmlPkg";
 		}
 	}
-	public partial class XMLPackageType : ExtensionBaseType, _IUniqueIDs
+	public partial class XMLPackageType : ExtensionBaseType, _IUniqueIDs //This might deserve to be ITopNode, but for now, it's not
     {
 		protected XMLPackageType()
 		{ }
@@ -1930,8 +1931,8 @@ namespace SDC.Schema
 		}
 		private void Init()
 		{   //The ID may be assigned later by a deserializer after this runs, but that should be OK
-			if (string.IsNullOrWhiteSpace(ID))
-				this.ID = this.ObjectGUID.ToString();// #IsThisCorrect 
+			//if (string.IsNullOrWhiteSpace(ID))
+				//this.ID = this.ObjectGUID.ToString();// #IsThisCorrect 
 		}
 
 		/// <summary>
@@ -2047,14 +2048,6 @@ namespace SDC.Schema
 			{
 				Items = ItemsMutator(Items, value);
 			}
-		}
-
-		bool Remove(int NodeIndex)
-		{
-			var node = ChildItemsList[NodeIndex];
-			if (node != null) return node.RemoveRecursive(false);
-			return false;
-
 		}
 	}
 

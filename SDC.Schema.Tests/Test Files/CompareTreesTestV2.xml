@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FormDesign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="urn:ihe:qrph:sdc:2016 ../../../sdc-schema-package/SDCFormDesign.xsd" xmlns="urn:ihe:qrph:sdc:2016"
-  xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="XML Pinto 328.603_328.REL_sdcFDF" sGuid="-UECEzCgqkqPq84fjQo7_A"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="XML_Pinto_328_603_328_REL_sdcFDF" sGuid="-UECEzCgqkqPq84fjQo7_A"
   order="0" ID="XML Pinto 328.603_Feb_15_2023_03.11PM.AUTH_sdcFDF" baseURI="www.cap.org/eCC"
   formTitle="new template title" filename="XML Pinto 328.603_Feb_15_2023_03.11PM.AUTH_sdcFDF.xml"
   fullURI="_baseURI=www.cap.org/eCC&amp;amp;_lineage=XML Pinto 328.603&amp;amp;_version=Feb_15_2023_03.11PM.AUTH&amp;amp;docType=sdcFDF"
@@ -41,9 +41,9 @@
             <ListField sGuid="N_YW-NkeNE6lCPES7Tcq2g" order="190">
               <List sGuid="Hf-dtVSmUk65IIqxwdHOrQ" order="200">
                 <ListItem sGuid="uHiXiH0_fU-MijlmqULDOg" order="210" ID="681727.100004300" title="Option 1 dafdf">
-                  <Property name="p_rptTxt_e847cace-725c-424e-9db6-60f71da683bd_1" sGuid="o4GSuiLhdEOEvVn6uO9NzQ"
+                  <Property name="p_rptTxt_e847cace_1" sGuid="o4GSuiLhdEOEvVn6uO9NzQ"
                     order="220" propName="ReportText" val="dsfdsafds"/>
-                  <Property name="p_altTxt_e847cace-725c-424e-9db6-60f71da683bd_2" sGuid="CgyezzuYu0GGaTk4n1FYlQ"
+                  <Property name="p_altTxt_e847cace_2" sGuid="CgyezzuYu0GGaTk4n1FYlQ"
                     order="230" propName="altText" val="adsfasdfsdf"/>
                 </ListItem>
                 <ListItem sGuid="a3GzdKXEGEaWxiI3HSJMAg" order="240" ID="681728.100004300" title="Option 2">
@@ -60,9 +60,9 @@
       </Section>
       <Section sGuid="F5GvSNED4kC6C9SDUhNSUA" order="280" ID="681729.100004300"
         title="Nunc non nisi a arcu tempus dapibus">
-        <Property name="p_rptTxt_7889b1bf-aff0-48e5-a26c-284a90237e13_1" sGuid="HrbYqhgNoUeetSKy3idznA" order="290"
+        <Property name="p_rptTxt_7889b1bf_1" sGuid="HrbYqhgNoUeetSKy3idznA" order="290"
           propName="ReportText" val="dsafdsfdsfds"/>
-        <Property name="p_altTxt_7889b1bf-aff0-48e5-a26c-284a90237e13_2" sGuid="nYpPytD7o0Sejka_yNkOiw" order="300"
+        <Property name="p_altTxt_7889b1bf_2" sGuid="nYpPytD7o0Sejka_yNkOiw" order="300"
           propName="altText" val="trwtretewtewr"/>
         <ChildItems sGuid="kMwnYBVcpUmJSzRE75Mn7A" order="310">
           <Question sGuid="-TZMTYpzX0qD6iyoC_jsIw" order="320" ID="681730.100004300"

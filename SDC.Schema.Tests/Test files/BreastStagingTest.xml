@@ -5336,12 +5336,12 @@ If the Oncotype Dx score is less than 11, then Stage = IA
 />
 											</SelectIf>
 										</ListItem>
-										<ListItem name="LI_HER2.Eval_44384" ID="44384.100004300" title="HER2">
+										<ListItem name="LI_HER2_Eval_44384" ID="44384.100004300" title="HER2">
 											<SelectIf>
 												<AttributeEval hasSelectionsGTE="1" itemNames="Q_HER2_Eval_onc_54600"/>
 											</SelectIf>
 										</ListItem>
-										<!-- <ListItem name="LI_HER2.ishPresent_443841" ID="443841.100004300" title="HER2 ISH">
+										<!-- <ListItem name="LI_HER2_ishPresent_443841" ID="443841.100004300" title="HER2 ISH">
 <SelectIf>
 <AttributeEval hasSelectionsGTE="1" itemNames="Q_HER2_FISH_CISH_Results_onc_39495"/>
 </SelectIf>
@@ -5415,9 +5415,9 @@ If the Oncotype Dx score is less than 11, then Stage = IA
 						</ChildItems>
 					</Section>
 
-					<ButtonAction name = "ButtonAction-SubmitForm" ID="SubmitForm" title="Submit Form">
-						<OnClick name = "OnClick-under-ButtonAction-SubmitForm" >
-							<Actions name = "Actions-under-OnClick">
+					<ButtonAction name = "ButtonAction_SubmitForm" ID="SubmitForm" title="Submit Form">
+						<OnClick name = "OnClick_under_ButtonAction_SubmitForm" >
+							<Actions name = "Actions_under_OnClick">
 
 								<SetAttributeValue name ="targetNames_S_41550" targetNames="S_41550" actEnable="false"/>
 								<SetAttributeValue name ="targetNames_SaveState" targetNames="SaveState" actSetVal="Staged"/>
@@ -5437,7 +5437,7 @@ If the Oncotype Dx score is less than 11, then Stage = IA
 		</ChildItems>
 	</Body>
 	<Footer name="footer" ID="Breast.Ca.Stg.Calc.359_.CTP9_sdcFDF">
-		<Property type="meta" styleClass="copyright" propName="CopyrightFooter" name="CopyrightFooter-under-footer"
+		<Property type="meta" styleClass="copyright" propName="CopyrightFooter" name="CopyrightFooter_under_footer"
 		val="(c) 2018 College of American Pathologists. All rights reserved. License required for use."/>
 	</Footer>
 </FormDesign>
