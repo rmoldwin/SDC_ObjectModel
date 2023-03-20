@@ -8,7 +8,6 @@ namespace SDC.Schema.Extensions
 		//Default Implementations
 		public static SectionItemType AddHeader(this FormDesignType fd)
 		{
-			// var fd = (ifd as FormDesignType);
 			if (fd.Header == null)
 			{
 				fd.Header = new SectionItemType(fd, fd.ID + "_Header", -1, "Header");  //Set a default ID, in case the database template does not have a body
@@ -17,8 +16,7 @@ namespace SDC.Schema.Extensions
 			return fd.Header;
 		}
 		public static SectionItemType AddBody(this FormDesignType fd)
-		{
-			//var fd = (ifd as FormDesignType);
+		{			
 			if (fd.Body == null)
 			{
 				fd.Body = new SectionItemType(fd, fd.ID + "_Body", -1, "Body");  //Set a default ID, in case the database template does not have a body

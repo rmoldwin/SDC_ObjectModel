@@ -159,30 +159,31 @@ namespace SDC.Schema
 			} while (true);
 
 		}
-		#endregion
+        #endregion
 
 
 
-		#region Delegates
+        #region Delegates
 
 
-		/// <summary>
-		/// Delegate that points to a single method for creating a new <see cref="BaseType.name"/> value for the designated <paramref name="node"/>.<br/>
-		/// The caller can supply a method for generating the @name property of each SDC node.  <br/>
-		/// The following methods are available:
-		/// <br/>
-		/// <br/><see cref="SdcUtil.CreateCAPname"/><br/>
-		/// A method that generates a CKey/ID aware name for CAP use.  Names reference a parent <see cref="IdentifiedExtensionType"/> (IET) node when applicable.<br/>
-		/// <br/>
-		/// <see cref="SdcUtil.CreateSimpleName"/><br/>
-		/// A generic name generation method that uses the sGuid of each node.<br/><br/>
-		/// Users may create their own method that returns a name value and matches the <see cref="SdcUtil.CreateName"/> delegate.
-		/// </summary>
-		/// <param name="node">The SDC node for which a name will be generated. </param>
-		/// <param name="initialTextToSkip">If an existing name value starts with this string, the existing name will be reused, and will not be replaced with a new value.</param>
-		/// <param name="changeType">Enum value contolling how new names are assigned. See <see cref="NameChangeEnum"/> for values.</param>		
-		/// <returns>The new name that will be used to refresh <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
-		public delegate string CreateName(BaseType node, string initialTextToSkip = "", NameChangeEnum changeType = NameChangeEnum.Normal);
+        /// <summary>
+        /// Delegate that points to a single method for creating a new <see cref="BaseType.name"/> value for the designated <paramref name="node"/>.<br/>
+        /// The caller can supply a method for generating the @name property of each SDC node.  <br/>
+        /// The following methods are available:
+        /// <br/>
+        /// <br/><see cref="SdcUtil.CreateCAPname"/><br/>
+        /// A method that generates a CKey/ID aware name for CAP use.  Names reference a parent <see cref="IdentifiedExtensionType"/> (IET) node when applicable.<br/>
+        /// <br/>
+        /// <see cref="SdcUtil.CreateSimpleName"/><br/>
+        /// A generic name generation method that uses the sGuid of each node.<br/><br/>
+        /// Users may create their own method that returns a name value and matches the <see cref="SdcUtil.CreateName"/> delegate.
+        /// </summary>
+        /// <param name="node">The SDC node for which a name will be generated. </param>
+        /// <param name="initialTextToSkip">If an existing name value starts with this string, the existing name will be reused, and will not be replaced with a new value.</param>
+        /// <param name="changeType">Enum value contolling how new names are assigned. See <see cref="NameChangeEnum"/> for values.</param>
+        /// <param name="nameSpace">The suffix that is sometimes use after the period (".")" in an SDC ID property. </param>		
+        /// <returns>The new name that will be used to refresh <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
+        public delegate string CreateName(BaseType node, string initialTextToSkip = "", NameChangeEnum changeType = NameChangeEnum.Normal, string nameSpace = "");
 		
         //public delegate string CreateName(BaseType node, string initialStringToSkip = "");
 
@@ -430,7 +431,7 @@ namespace SDC.Schema
 							iet.ID = $"___{iet.sGuid}";
 					}
 					if (createNodeName is not null)
-						btProp.name = createNodeName(btProp) ?? btProp.name;
+						btProp.name = createNodeName(btProp, "",NameChangeEnum.Normal, "") ?? btProp.name;
 
 					if (print)
 					{
@@ -692,22 +693,23 @@ namespace SDC.Schema
 			UpdateNodeIdentity,
             /// <summary>
 			/// Clone (copy) an existing subtree (the source subtree) in the current SDC tree, and add it after the original source subtree as a repeated subtree block.<br/>
-			/// New sGuid, ObjectGuid, ObjectID will be assigned. <br/>
-			/// ID and name properties will receive a repeat suffix, ending with the current repeatCounter,<br/>
-			/// e.g., the suffix might look like "__1", where the repeatCounter is 1.<br/>
+			/// New sGuid, ObjectGuid, and ObjectID will be assigned. <br/>
+			/// ID and name properties will receive a repeat suffix (e.g., "__1" or "__2" etc.), ending with the current repeatCounter (1 or 2 etc.),<br/>
+			/// e.g., the suffix would look like "__2", when the repeatCounter is 2 (the 2nd copy).<br/>
 			/// Missing names will be created anew with the repeat suffix.
 			/// </summary>
 			CloneAndRepeatSubtree,
             /// <summary>
             /// This option will restore a subtree that existed in a previous version of the same SDC tree lineage,<br/>
-            /// but that subtree was subsequently deleted, and now we are restoring it into an SDC tree that is a new version of that lineage.<br/><br/>
+            /// but that subtree was subsequently deleted, and now we are restoring it into an SDC tree that is a new version of that lineage.<br/>
+			/// <br/>
             /// We want to copy (clone) a source subtree from an older version (v<b>1</b>) of an SDC tree of lineage L1 <br/>
             /// --This is SDC tree L1v<b>1</b>, and the subtree (s1) is L1v<b>1</b>s1. <br/>
             /// --The s1 subtree must have an <see cref="IdentifiedExtensionType"/> at its root. <br/>
             /// L1v<b>2</b> is newer version (v<b>2</b>) SDC tree from the same lineage (L1), but it lacks subtree L1v<b>1</b>s1. <br/>
             /// The L1v<b>1</b>s1 subtree clone will be attached under a target <see cref="ChildItemsType"/>node of newer tree L1v<b>2</b>. <br/>
             /// --while preserving sGuid, ObjectGuid, ID and name properties.<br/><br/>
-            /// Missing names will be created.<br/>
+            /// Missing name properties will be created.<br/>
             /// ObjectID and order will be updated.<br/>
             /// </summary>
             RestoreSubtreeFromOlderVersion
@@ -870,10 +872,11 @@ namespace SDC.Schema
 
 							{ //Fix up name properties
 								if (n is IdentifiedExtensionType iet)
-									iet.ID += $"__{fd.RepeatCounter}";//TODO: Add repeatCounter to TopNode
-								if (n.name.IsNullOrWhitespace()) n.name = CreateCAPname(node: n, "", nameChangeEnum);
+									iet.ID += $"__{fd.RepeatCounter}";
+								if (n.name.IsNullOrWhitespace() && createNodeName is not null) n.name = createNodeName(node: n, "", nameChangeEnum);
 								n.name += $"__{fd.RepeatCounter}";
-								nameChangeEnum = NameChangeEnum.PreserveAll;  //this will prevent any further name changes down below, with createNodeName
+								createNodeName = null; //this will prevent any further name changes down below
+								//nameChangeEnum = NameChangeEnum.PreserveAll; //this will prevent any further name changes down below
                             }
 
                         }
@@ -881,7 +884,8 @@ namespace SDC.Schema
                         {
 							//Ensure ObjectGUID is assigned correctly after clone
 							n.ObjectGUID = ShortGuid.Decode(n.sGuid);
-                            if (n.name.IsNullOrWhitespace()) n.name = CreateCAPname(node: n, "", nameChangeEnum);
+                            if (n.name.IsNullOrWhitespace()) n.name = CreateCAPname(node: n, "", nameChangeEnum, ".100004300");
+                            nameChangeEnum = NameChangeEnum.PreserveAll; //this will prevent any further name changes down below (in createNodeName)
                         }
                     }
                 }//!END Special actions-------------------------------:
@@ -2771,7 +2775,8 @@ namespace SDC.Schema
 		/// If the input node name begins with "_", the method will bypass new name creation and just return teh existting node.name with no modifications
 		/// </summary>
 		/// <returns>A consistent, CKey-aware value, for <see cref="BaseType.name"/> on <paramref name="node">.</paramref></returns>
-		public static string CreateCAPname(this BaseType node, string initialTextToSkip = "", NameChangeEnum changeType = NameChangeEnum.Normal)
+		public static string CreateCAPname(this BaseType node, string initialTextToSkip = "", 
+			NameChangeEnum changeType = NameChangeEnum.Normal, string nameSpace = ".100004300")
 		{
 			string nodeName = node.name ?? "";
 			string nodeBaseName = node.BaseName ?? "";
@@ -2821,11 +2826,11 @@ namespace SDC.Schema
 				//Try using the closest IdentifiedExtensionType node's Ckey-formatted (decimal format) ID to generate nameBody
 				//Use special names for headr/body/footer nodes
 				//use an sGuid if the Ckey/ID approach does not work.
-				const string nameSpace = ".100004300";
+				//const string nameSpace = ".100004300";
 
 				if (node is IdentifiedExtensionType iet)
 				{
-					if (iet.ID.Contains(nameSpace)) //&& iet.ID.Length > 10)
+					if (!string.IsNullOrWhiteSpace(nameSpace) && iet.ID.Contains(nameSpace)) //&& iet.ID.Length > 10)
 						nameBody = Regex.Replace(iet.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
 					else nameBody = (nodeBaseName != "") ? nodeBaseName : CreateBaseNameFromsGuid(node);
 
@@ -2839,7 +2844,7 @@ namespace SDC.Schema
 					if (ancestorIet is not null)
 					{
 						string ancBaseName = ancestorIet.BaseName ?? "";
-						if (ancestorIet.ID?.Contains(nameSpace) ?? false)
+						if ( !string.IsNullOrWhiteSpace(nameSpace) && (ancestorIet.ID?.Contains(nameSpace) ?? false))
 							nameBody = Regex.Replace(node.ParentIETnode?.ID.Replace(nameSpace, "") ?? "", @"\W+", ""); //remove namespace and special characters
 						else if (ancBaseName != "") nameBody = ancBaseName;
 						else nameBody = (nodeBaseName != "") ? nodeBaseName : CreateBaseNameFromsGuid(node);
@@ -2921,18 +2926,19 @@ namespace SDC.Schema
 		}
 
 
-		//
-		/// <summary>
-		/// Create a consistent unique name for the passed SDC node. The name is formatted like:<code><br/>
-		///	ElementPrefix_BaseNameOfParentIETNode_SubIETcounter</code><br/>
-		/// Requires that ElementPrefix and either sGuid or BaseName have values.  <br/>
-		/// To work properly, SubIETcounter requires that ancestor nodes are registered in their TopNode Dictionaries.
-		/// </summary>
-		/// <param name="bt">The node for which the name will be created.</param>
-		/// <param name="initialTextToSkip">If an existing name value starts with this string, the existing name will be reused, and will not be replaced with a new value. </param>
-		/// <param name="changeType">The value is ignored</param>
-		/// <returns>A consistent value for the @name attribute.</returns>
-		public static string CreateSimpleName(BaseType bt, string initialTextToSkip = "", NameChangeEnum changeType = NameChangeEnum.Normal)
+        //
+        /// <summary>
+        /// Create a consistent unique name for the passed SDC node. The name is formatted like:<code><br/>
+        ///	ElementPrefix_BaseNameOfParentIETNode_SubIETcounter</code><br/>
+        /// Requires that ElementPrefix and either sGuid or BaseName have values.  <br/>
+        /// To work properly, SubIETcounter requires that ancestor nodes are registered in their TopNode Dictionaries.
+        /// </summary>
+        /// <param name="bt">The node for which the name will be created.</param>
+        /// <param name="initialTextToSkip">If an existing name value starts with this string, the existing name will be reused, and will not be replaced with a new value. </param>
+        /// <param name="changeType">The value is ignored</param>
+        /// <param name="nameSpace"></param>
+        /// <returns>A consistent value for the @name attribute.</returns>
+        public static string CreateSimpleName(BaseType bt, string initialTextToSkip = "", NameChangeEnum changeType = NameChangeEnum.Normal, string nameSpace = "")
 		{
 			if (bt.name?.Length > 0 && bt.name.AsSpan(0, 1) == initialTextToSkip) return bt.name;  //Return the existing name, if it starts with "_"
 			string tempBaseName = bt.BaseName;
@@ -2957,7 +2963,8 @@ namespace SDC.Schema
 
 			string name = new StringBuilder(bt.ElementPrefix)
 						.Append('_')
-						.Append(tempBaseName).ToString();
+						.Append(tempBaseName)
+                        .Append(nameSpace).ToString();
 						//.Append('_')
 						//.Append(bt.SubIETcounter).ToString();
 			return name;

@@ -354,9 +354,8 @@ namespace SDC.Schema.Extensions
             if (!newName.IsValidVariableName()) return false;
 
             var tn = (_ITopNode)bt.TopNode;
-            if (tn._UniqueNames.Add(newName) == false) return false;
+            if (tn._UniqueNames.TryGetValue(newName, out _) == false) return false;
 
-            tn._UniqueNames.Remove(bt.name);
             bt.name = newName;
             return true;
         }
@@ -374,24 +373,9 @@ namespace SDC.Schema.Extensions
             if (!newBaseName.IsValidVariableName()) return false;
 
             var tn = (_ITopNode)bt.TopNode;
-            if (tn._UniqueBaseNames.Add(newBaseName) == false) return false;
-
-            tn._UniqueBaseNames.Remove(bt.BaseName);
+            if (tn._UniqueBaseNames.TryGetValue(newBaseName, out _) == false) return false;
             bt.BaseName = newBaseName;
             return true;
         }
-
-
-        /// <summary>
-        /// Not implemented.
-        /// </summary>
-        /// <param name="iet"></param>
-        /// <param name="targetType"></param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        private static bool X_IsItemChangeAllowed_(this IdentifiedExtensionType iet, IdentifiedExtensionType targetType)
-		=>	throw new NotImplementedException();
-
-
 	}
 }

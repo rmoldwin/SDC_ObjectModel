@@ -1,6 +1,7 @@
 using FastSerialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema.Extensions;
+using SDC.Schema.Tests.OMTests;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -333,11 +334,12 @@ namespace SDC.Schema.Tests.Functional
 			var Clone1 = SdcSerializer<SectionItemType>.Deserialize(xml1); //Clone of S1 subtree
 			var Clone2 = SdcSerializer<SectionItemType>.Deserialize(xml2); //Clone of S2 subtree
 
-			//Move the Clone2 subtree under S1 in FD.  FD will have a new copy of the Clone2 subtree;
-			//This is not a Move but actually a copy (Clone2 is a new copy of the S2 subtree)
-			//The Clone2 subtree will be found in FD.ChildItemsNode.Last(), but with all new identifiers:
-			//The Clone2 copy in FD will have new sGuids, name, ID for each node.
-			//var Clone2_1 = S2.Clone();
+			//Move the cloneBreastNew subtree under sBreastNew in FD.  FD will have a new copy of the S1 subtree;
+			//This simulates copying from an entirely different SDC tree, where we must replace all identifiers.
+			//This is not a "Move" but actually a clone/copy (cloneBreastNew is a new copy of the S2 subtree)
+			//The S1 subtree will be found in FD.ChildItemsNode.Last(), but with all new identifiers:
+			//The copy in FD will have new sGuids, name, ID for each node.
+			//var Clone2_1 = sAdrenalOld.Clone();
 			Clone2.Move(S1.ChildItemsNode, -1, false, SdcUtil.RefreshMode.UpdateNodeIdentity);
 
 			var newXml = FD.GetXml();
@@ -351,16 +353,110 @@ namespace SDC.Schema.Tests.Functional
 
 
 			Assert.IsTrue(childNodeClone2.sGuid != childNodeS2.sGuid);
-
 			Assert.IsTrue(childNodeClone2.ID != childNodeS2.ID);
 			Assert.IsTrue(childNodeClone2.name != childNodeS2.name);
 
-
-
-
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
-		}
-		[TestMethod]
+        }
+        [TestMethod]
+        public void CloneRestoreSdcSubtreeXmlTest()
+        {
+            Setup.TimerStart("==>[] Started");
+            BaseType.ResetLastTopNode();
+            string pathBreastNew = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
+            string pathAdrenalOld = Path.Combine("..", "..", "..", "Test files", "Adrenal.xml");
+            var fdBreastNew = FormDesignType.DeserializeFromXmlPath(pathBreastNew);
+            var fdAdrenalOld = FormDesignType.DeserializeFromXmlPath(pathAdrenalOld);
+            SectionItemType sBreastNew = fdBreastNew.IETnodes.OfType<SectionItemType>().Take(3).ToList()[1]; //ID = 16079, BaseName = "y1bxHm"
+            SectionItemType sAdrenalOld = fdAdrenalOld!.GetNodeByName("S_17537") as SectionItemType; 
+
+            sAdrenalOld!.Move(sBreastNew.ChildItemsNode, -1, false, SdcUtil.RefreshMode.RestoreSubtreeFromOlderVersion);
+
+            //var newXml = fdBreastNew.GetXml();
+			SectionItemType sAdrenalNew = sBreastNew.GetChildItemsList()!.Last() as SectionItemType;
+
+            Assert.IsTrue(sAdrenalNew!.ID == sAdrenalOld!.ID);
+            Assert.IsTrue(sAdrenalNew.ObjectGUID == sAdrenalOld.ObjectGUID);
+            Assert.IsTrue(sAdrenalNew.name == sAdrenalOld.name);
+            Assert.IsTrue(sAdrenalNew.sGuid == sAdrenalOld.sGuid);
+
+			var adrenalChildNew = sAdrenalNew.GetChildItemsList()!.Last() as QuestionItemType;
+            var adrenalChildOld = sAdrenalOld.GetChildItemsList()!.Last() as QuestionItemType;
+
+            Assert.AreNotSame(adrenalChildNew, adrenalChildOld);
+
+            Assert.IsTrue(adrenalChildNew!.ID == adrenalChildOld!.ID);
+            Assert.IsTrue(adrenalChildNew.ObjectGUID == adrenalChildOld.ObjectGUID);
+            Assert.IsTrue(adrenalChildNew.name == adrenalChildOld.name); //QM_53772 vs Q_53772
+            Assert.IsTrue(adrenalChildNew.sGuid == adrenalChildOld.sGuid);
+
+			Assert.IsTrue(sAdrenalNew.GetSubtreeList().Count == sAdrenalOld.GetSubtreeList().Count);
+			
+
+
+            Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+        }
+        [TestMethod]
+        public void CloneRepeatSdcSubtreeXmlTest()
+        {
+            Setup.TimerStart("==>[] Started");
+            BaseType.ResetLastTopNode();
+            string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
+            var FD = FormDesignType.DeserializeFromXmlPath(path);
+            var S1 = FD.IETnodes.OfType<SectionItemType>().Take(3).ToList()[1]; //ID = 16079, BaseName = "y1bxHm"
+            
+			ChildItemsType? S1par = S1.ParentNode! as ChildItemsType;
+			Assert.IsNotNull(S1par); 
+            S1.Move(S1par!, -1, false, SdcUtil.RefreshMode.CloneAndRepeatSubtree);
+
+			var S1copy = S1par!.GetNodeLastChild() as SectionItemType;
+			Assert.IsNotNull(S1copy);
+           
+            Assert.IsTrue(S1copy.ID == S1.ID + "__1");
+            Assert.IsTrue(S1copy.name == S1.name + "__1");
+            Assert.IsTrue(S1copy.sGuid != S1.sGuid);
+
+			QuestionItemType Q1copy = S1copy.ChildItemsNode.ChildItemsList[1] as QuestionItemType;
+			Assert.IsNotNull (Q1copy);
+			Assert.IsTrue(Q1copy!.name == "Q_21537__1");
+			Assert.IsTrue(Q1copy.ID == "21537.100004300__1");
+
+			var licopy1 = Q1copy.GetListItems()[2] as ListItemType;
+			Assert.IsNotNull (licopy1);
+			Assert.IsTrue(licopy1!.name == "LI_21539__1");
+			Assert.IsTrue(licopy1.ID == "21539.100004300__1");
+
+            //+-------Make a second copy of sBreastNew------------------------------------------------------------------------
+
+            S1.Move(S1par!, -1, false, SdcUtil.RefreshMode.CloneAndRepeatSubtree);
+            var S2copy = S1par!.GetNodeLastChild() as SectionItemType;
+            Assert.IsNotNull(S2copy);
+
+            Assert.IsTrue(S2copy!.ID == S1.ID + "__2");
+            Assert.IsTrue(S2copy.name == S1.name + "__2");
+            Assert.IsTrue(S2copy.sGuid != S1.sGuid);
+
+            QuestionItemType Q2copy = S2copy.ChildItemsNode.ChildItemsList[1] as QuestionItemType;
+            Assert.IsNotNull(Q2copy);
+            Assert.IsTrue(Q2copy!.name == "Q_21537__2");
+            Assert.IsTrue(Q2copy.ID == "21537.100004300__2");
+
+            var licopy2 = Q2copy.GetListItems()[0] as ListItemType;
+            Assert.IsNotNull(licopy2);
+            Assert.IsTrue(licopy2!.name == "LI_21536__2");
+            Assert.IsTrue(licopy2.ID == "21536.100004300__2");
+
+
+            var newXml = FD.GetXml();
+            //var newXElement = newXml.ToXmlElement();
+            Console.Write(newXml);
+            //Debug.Print(newXml);
+
+
+
+            Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+        }
+        [TestMethod]
 		public void CloneSdcSubtreeBsonTest()
 		{
 			Setup.TimerStart("==>[] Started");
@@ -393,17 +489,6 @@ namespace SDC.Schema.Tests.Functional
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
-
-
-
-
-
-
-
-
-
-
-
 
 		public bool Move(BaseType sourceNode, BaseType targetNode, DropPosition position)
 		{

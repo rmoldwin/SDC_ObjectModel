@@ -31,10 +31,9 @@ namespace SDC.Schema.Extensions
 
             var u = (_IUniqueIDs)iet.TopNode;            
 
-            if(u._UniqueIDs.Add(newID) == false) return false;  //ID already in use elsewhere
+            if(u._UniqueIDs.TryGetValue(newID, out _) == false) return false;  //ID already in use elsewhere
             
-            u._UniqueIDs.Remove(iet.ID); //remove old ID
-            iet.ID = newID; //newID was already added to _UniqueIDs
+            iet.ID = newID;
             return true;
         }
     }

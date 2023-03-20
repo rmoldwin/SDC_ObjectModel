@@ -713,12 +713,12 @@ public partial class FormDesignType : IdentifiedExtensionType
             _shouldSerializeapprovalStatus = true;
         }
     }
-    
+
     /// <summary>
-    /// The extent to which a report contains all of the requested
-    /// information pending: no information is yet available incomplete: some
-    /// requested information is not yet available complete: all information is
-    /// available in the requested report
+    /// The extent to which a report contains all of the requested information<br/>
+    /// pending: no information is yet available<br/>
+    /// incomplete: some requested information is not yet available<br/>
+    /// complete: all information is available in the requested report<br/>
     /// </summary>
     [XmlAttribute]
     [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
