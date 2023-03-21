@@ -830,7 +830,7 @@ namespace SDC.Schema
                 {
                     if (reRegisterNodes || refreshMode == RefreshMode.UpdateNodeIdentity)
 					{ //UnRegisterAll must run before TopNode and ObjectGUID are refreshed.  Requires that ObjectGuid exists,
-					  //and all _ITopNode doictionaries are correctly populated
+					  //and all _ITopNode dictionaries are correctly populated
 						if (n.TopNode is not null)
 							n.UnRegisterAll();
 					}

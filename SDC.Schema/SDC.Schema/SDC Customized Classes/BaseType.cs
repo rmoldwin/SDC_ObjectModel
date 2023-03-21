@@ -26,6 +26,8 @@ namespace SDC.Schema
     using System.Text;
     using System.ComponentModel.DataAnnotations;
     using System.Collections.Generic;
+    using CSharpVitamins;
+    using SDC.Schema.Extensions;
 
     /// <summary>
     /// BaseType is inherited by all SDC complex types.  It contains attributes for:
@@ -384,23 +386,49 @@ namespace SDC.Schema
                     validatorPropContext.MemberName = "sGuid";
                     Validator.ValidateProperty(value, validatorPropContext);
 
-                    _sGuid = value;
-                    OnPropertyChanged("sGuid", value);
 
-                    //RM 2023-03_20 Added-----------------------------------------------------------
-                    var u = ((_ITopNode)TopNode)?._UniqueBaseNames;
-                    if (u is not null)
+
+                    //RM 2023-03_20 Added-------------------------------------------------
+                    var itn = ((_ITopNode)TopNode);
+                    if (_sGuid is not null && itn is not null && itn._Nodes is not null)
                     {
-                        string? newBaseName = SdcUtil.CreateBaseNameFromsGuid(this, 6);
-                        if (!string.IsNullOrWhiteSpace(newBaseName))
+                        //if we're in here, than initialization of this node has been completed.
+                        this.UnRegisterAll();
+
+                        var oldsGuid = _sGuid;
+                        var oldObjectGUID = ObjectGUID;
+                        var oldBaseName = baseName;
+                        //_-----original code---------------------------------------
+                        _sGuid = value;
+                        OnPropertyChanged("sGuid", value);
+                        //_-----End original code---------------------------------------
+
+                        ObjectGUID = ShortGuid.Decode(value);
+
+                        this.RegisterAll();
+
+
+                        var u = itn?._UniqueBaseNames;
+                        if (u is not null)
                         {
-                            u.Remove(BaseName);
-                            BaseName = newBaseName;
-                            u.Add(newBaseName);
+                            string? newBaseName = SdcUtil.CreateBaseNameFromsGuid(this, 6);
+                            if (!string.IsNullOrWhiteSpace(newBaseName))
+                            {
+                                u.Remove(BaseName);
+                                BaseName = newBaseName;
+                                u.Add(newBaseName);
+                            }
                         }
-                    }
-                    else{ }//if u (_UniqueBaseNames) is null, then the SDC tree and/or this node is not yet initialized - e.g., it is still being deserialized or it is in the process of being constructed.
+                        else throw new InvalidOperationException(
+                            "sGuid may not be set until the node has been completely initialized");
+                    }                    
                     //End of Addition---------------------------------------------------------------                    
+
+                    else //we are initializing sGuid in the parameterless constructor, or otherwise the tree is not initialized yet.
+                    {
+                        _sGuid = value;
+                        OnPropertyChanged("sGuid", value);
+                    }
                 }
             }
         }

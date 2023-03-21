@@ -174,8 +174,8 @@ namespace SDC.Schema.Tests.Functional
 			Assert.IsTrue(LI_40307.ChildItemsNode is null);
 
 			//Move qLat under liOth
-			Move(Q_16214, LIR_16195, DropPosition.Over);
-			Assert.IsTrue(LIR_16195.GetChildNodes().Count == 3);//Has Property, and a ChildItems node
+			Move(Q_16214, LIR_16195, DropPosition.Over);//Has Property, and a ListItemResponseFieldType node
+            Assert.IsTrue(LIR_16195.GetChildNodes().Count == 3);//Has Property, and a ChildItems node
 			Assert.IsTrue(LI_40307.ChildItemsNode is null);
 			Assert.IsTrue(LI_39079.ChildItemsNode is null);
 

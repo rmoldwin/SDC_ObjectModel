@@ -37,7 +37,7 @@ namespace SDC.Schema.Extensions
 			//BUG: We need to also remove and reregister entries from IETnodes,
 			//BUG: and also from "meTopNode" dictionaries when the nodes are ITopNode and have entries in their own ITopNode dicts.
 			//btSource.UnRegisterIn_ParentNodes_ChildNodes(); //Does not remove IETnodes
-			btSource.UnRegisterAll();
+			btSource.UnRegisterAll(true);
 
 			//Re-register item node under new parent
 			//btSource.RegisterIn_ParentNodes_ChildNodes(targetParent, childNodesSort: true); //Does not touch IETnodes
@@ -93,8 +93,8 @@ namespace SDC.Schema.Extensions
 
 
                 //Remove btSource  from _ITopNode dictionaries.
-                //If btSource is an IET node, btSource also be removed from _IETnodes
-                if (result) btSource.UnRegisterAll();
+                //If btSource is an IET node, btSource will also be removed from _IETnodes
+                if (result) btSource.UnRegisterAll(false);
 				return result;
 			}
 			else
@@ -402,7 +402,7 @@ namespace SDC.Schema.Extensions
 									//Since it's now "childless," we can remove this orphan node from both the dictionaries and the SDC OM
 									//isSourceParentChildless = true;
 
-									UnRegisterAll(sourceParent); //this calls UnRegisterParent also
+									UnRegisterAll(sourceParent, false); //this calls UnRegisterParent also
 								}
 							}
 						}
@@ -741,19 +741,20 @@ namespace SDC.Schema.Extensions
 		/// ITopNode nodes may have a null parent node.</param>
         /// <param name="childNodesSort">Setting to true (the default) ensures that the _ChildNodes dictionary<br/>
 		/// is correctly sorted (by reflection) after this node is registered.</param>
-        /// <param name="isMoving">Only used for <see cref="IdentifiedExtensionType"/> (IET) nodes.<br/> 
+        /// <param name="addIETnodesRecursively">Only used for <see cref="IdentifiedExtensionType"/> (IET) nodes.<br/> 
 		/// False if a single <see cref="IdentifiedExtensionType"/> node should be added to the _IETnodes collection. <br/><br/>
         /// True if an <see cref="IdentifiedExtensionType"/> node (and its subnodes, if present) are being moved, <br/>
 		/// and thus all of the IET subnodes need to be added as well.<br/> 
 		/// The IET subnodes are inserted into the correct _IETnodes ordered location, as determined by reflection. <br/><br/>
 		/// </param>
         internal static BaseType RegisterAll(this BaseType node, BaseType? parentNode = null, 
-			bool childNodesSort = true, bool isMoving = false)
+			bool childNodesSort = true, bool addIETnodesRecursively = false)
 		{
-			//if node was initially created with a null parent node, even if the parent node was assigned later, 
-			//the node may still have a null ITopNode.  We can fix it here, so that we can register the node.
 
-			if (node is ITopNode tn && parentNode is null)
+            //if node was initially created with a null parent node, even if the parent node was assigned later, 
+            //the node may still have a null ITopNode.  We can fix it here, so that we can register the node.
+
+            if (node is ITopNode tn && parentNode is null)
 				node.TopNode = tn;
 			else if (node.TopNode is null && parentNode is not null)
 				node.TopNode = parentNode.TopNode;
@@ -776,7 +777,7 @@ namespace SDC.Schema.Extensions
 					node.RegisterIn_ParentNodes_ChildNodes(parentNode, childNodesSort);
 				//Add to _IETnodes
 				if (node is IdentifiedExtensionType iet)
-					iet.RegisterSubtreeIn_IETnodes(isMoving);
+					iet.RegisterSubtreeIn_IETnodes(addIETnodesRecursively);
 
 				//AddUniqueIDsToHashTables(node, out string nonUniqueErrors);
 			}
@@ -850,7 +851,7 @@ namespace SDC.Schema.Extensions
 				}
 			}
 		}
-		private static void RegisterSubtreeIn_IETnodes(this IdentifiedExtensionType iet, bool isMoving = false)
+		private static void RegisterSubtreeIn_IETnodes(this IdentifiedExtensionType iet, bool addIETnodesRecursively = false)
 		{
 			_ITopNode? itn = iet.TopNode as _ITopNode;
 			var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our new/moved node	
@@ -862,7 +863,7 @@ namespace SDC.Schema.Extensions
 				if (ietPrev is not null)
 					insertPosition = itn._IETnodes.IndexOf(ietPrev);  //TODO: this collection scan may be inefficient; we may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) or ConditionalWeakTable instead (using sGuid or the object ref as Key).
 
-				if (isMoving)
+				if (addIETnodesRecursively)
 					foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
 						itn._IETnodes.Insert(++insertPosition, n);
 				else //we are just adding a node here, not moving
@@ -964,16 +965,20 @@ namespace SDC.Schema.Extensions
 			}
 		} //!not tested
 
-		/// <summary>
-		/// Removes <b><paramref name="node"/></b> from the <see cref="_ITopNode._Nodes"/> dictionary.<br/>
-		/// Also calls <see cref="UnRegisterIn_ParentNodes_ChildNodes(BaseType)"/> to remove <b><paramref name="node"/></b> from <see cref="_ITopNode._ChildNodes"/>.  <br/>
-		/// Does not remove nodes recursively from <see cref="_ITopNode._Nodes"/> or <see cref="_ITopNode._ChildNodes"/><br/>
-		/// If the current <b><paramref name="node"/></b> is an IET node, then <b><paramref name="node"/></b> and all of its IET subnodes
-		/// will be removed from <see cref="_ITopNode._IETnodes"/>.
-		/// </summary>
-		/// <param name="node"></param>
-		/// <exception cref="Exception"></exception>
-		internal static void UnRegisterAll(this BaseType node)
+        /// <summary>
+        /// Removes <paramref name="node"/> from the <see href="_ITopNode._Nodes"/> dictionary.  Also calls <br/>
+		/// <see href="UnRegisterIn_ParentNodes_ChildNodes(BaseType)"/> to remove <paramref name="node"/> 
+		/// from <see href="_ITopNode._ChildNodes"/>, and <see href="_ITopNode._IETnodes"/>.  <br/>
+        /// Does not remove nodes recursively from <see href="_ITopNode._Nodes"/> or <see href="_ITopNode._ChildNodes"/><br/>
+		/// Optionally moves nodes recursively from <see href="_ITopNode._IETnodes"/>.  See <paramref name="removeIETnodesRecursively"/>.<br/>
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="removeIETnodesRecursively">If <paramref name="node"/> is moving to another location, then we need <br/>
+		/// to remove its entire subtree, and re-add it at the new target site.  Setting <paramref name="removeIETnodesRecursively"/><br/>
+		/// to true will remove the entire IET subtree from <see href="_ITopNode._IETnodes"/>
+		/// </param>
+        /// <exception href="Exception"></exception>
+        internal static void UnRegisterAll(this BaseType node, bool removeIETnodesRecursively = false)
 		{
 			var _topNode = (_ITopNode?)node.TopNode;
 			var par = node.ParentNode;  //save par now,because we won;t be able to use node.ParentNode after it's removed from dictionaries.
@@ -1003,15 +1008,23 @@ namespace SDC.Schema.Extensions
 					var inb = tn._IETnodes;
 					if(inb is null) 
 						throw new InvalidOperationException($"{nameof(tn._IETnodes)} was null; Node name: {iet.name ?? "(none)"}, Short Guid: {node.sGuid}");
-
-					foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
+					if (!removeIETnodesRecursively)
 					{
-						success = inb.Remove(n);
-
+						success = inb.Remove(iet);
 						if (!success)
-						throw new Exception($"Could not remove object from {nameof(tn._IETnodes)} collection. Node name: {node.name ?? "(none)"}, Short Guid: {node.sGuid}");
+							throw new Exception($"Could not remove object from {nameof(tn._IETnodes)} collection. Node name: {node.name ?? "(none)"}, Short Guid: {node.sGuid}");
 					}
-				}
+					else
+					{
+						foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
+						{
+							success = inb.Remove(n);
+
+							if (!success)
+								throw new Exception($"Could not remove object from {nameof(tn._IETnodes)} collection. Node name: {node.name ?? "(none)"}, Short Guid: {node.sGuid}");
+						}
+					}
+                }
 
                 tn._UniqueBaseNames.Remove(node.BaseName);
                 tn._TreeSort_NodeIds.Remove(node.ObjectID);
