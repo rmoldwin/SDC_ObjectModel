@@ -583,7 +583,8 @@ namespace SDC.Schema
 			return sortedList;
 		}
 		/// <summary>
-		/// Returns the input node n and all non-IET subnodes. Subnode search breaks at all IET nodes, <br/>
+		/// Returns the input node n and all non-IET subnodes. <br/>
+		/// The subnode top-bottom search breaks at the first encountered IET node, <br/>
 		/// so that IET subnodes and their descendants are not included.
 		/// </summary>
 		/// <param name="n"></param>
@@ -631,15 +632,15 @@ namespace SDC.Schema
 		}
 
 
-		/// <summary>
-		/// Get a sorted list of node n, plus of all of node n's sub-elements, <br/>
-		/// Includes the input node n, only if it is an IdentifiedExtensionType node.
-		/// </summary>
-		/// <param name="n">The node whose subtree we are retrieving</param>
-		/// <param name="resortChildNodes">Set to true if the child nodes may be incoreectly sorted.  This should not be needed.</param>
-		/// <param name="resetSortFlags">If true, the method will call <see cref="SdcUtil.TreeSort_ClearNodeIds"/> </param>
-		/// <returns></returns>
-		public static List<IdentifiedExtensionType> GetSortedSubtreeIET(BaseType n, bool resortChildNodes = false, bool resetSortFlags = true)
+        /// <summary>
+        /// Get a sorted list of node n, plus of all of node n's <see cref="IdentifiedExtensionType"/> sub-elements, <br/>
+        /// Includes the input node n, only if it is an IdentifiedExtensionType node.
+        /// </summary>
+        /// <param name="n">The node whose subtree we are retrieving</param>
+        /// <param name="resortChildNodes">Set to true if the child nodes may be incoreectly sorted.  This should not be needed.</param>
+        /// <param name="resetSortFlags">If true, the method will call <see cref="SdcUtil.TreeSort_ClearNodeIds"/> </param>
+        /// <returns></returns>
+        public static List<IdentifiedExtensionType> GetSortedSubtreeIET(BaseType n, bool resortChildNodes = false, bool resetSortFlags = true)
 		{
 			//var topNode = Get_ITopNode(n);
 			var cn = Get_ChildNodes(n);// topNode._ChildNodes;
@@ -1234,15 +1235,35 @@ namespace SDC.Schema
 			} while (bt is not null);
 
 			return null;
-		}
+        }
+        /// <summary>
+        /// Retrieve the next <see cref="IdentifiedExtensionType"/> SDC element node using _ITopNode dictionaries.<br/>
+        /// This node may be a distal sibling, or a non-sibling node lower in the SDC tree <br/>
+		/// (farther from the SDC root node), possibly under a different parent node.		
+        /// /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public static IdentifiedExtensionType? GetNextElementIET(BaseType n)
+        {
+            BaseType? bt = n;
+            do
+            {
+                bt = bt.GetNodeNext();
+                if (bt is IdentifiedExtensionType iet) return iet;
 
-		/// <summary>
-		/// Retrieve the previous <see cref="IdentifiedExtensionType"/> SDC element node by reflections.<br/>
-		/// This node may be a previous sibling, or a non-sibling node higher up in the SDC tree (closer to the SDC root node), under a different parent node.		
-		/// /// </summary>
-		/// <param name="n"></param>
-		/// <returns></returns>
-		public static IdentifiedExtensionType? ReflectPrevElementIET(BaseType n)
+            } while (bt is not null);
+
+            return null;
+        }
+
+        /// <summary>
+        /// Retrieve the previous <see cref="IdentifiedExtensionType"/> SDC element node by reflection.<br/>
+        /// This node may be a previous sibling, or a non-sibling node higher up in the SDC tree <br/>
+		/// (closer to the SDC root node), under a different parent node.		
+        /// /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public static IdentifiedExtensionType? ReflectPrevElementIET(BaseType n)
 		{
 			BaseType? bt = n;
 			do
@@ -1253,15 +1274,35 @@ namespace SDC.Schema
 			} while (bt is not null);
 
 			return null;
-		}
+        }
+        /// <summary>
+        /// Retrieve the next <see cref="IdentifiedExtensionType"/> SDC element node by reflection.<br/>
+        /// This node may be a distal sibling, or a non-sibling node lower in the SDC tree <br/>
+		/// (farther from the SDC root node), possibly under a different parent node.		
+        /// /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public static IdentifiedExtensionType? ReflectNextElementIET(BaseType n)
+        {
+            BaseType? bt = n;
+            do
+            {
+                bt = ReflectNextElement(n);
+                if (bt is IdentifiedExtensionType iet) return iet;
 
-		/// <summary>
-		/// Retrieve the previous <see cref="BaseType"/> SDC element node by reflection.<br/>
-		/// This node may be a previous sibling, or a non-sibling node higher up in the SDC tree (closer to the SDC root node), under a different parent node.
-		/// </summary>
-		/// <param name="n"></param>
-		/// <returns></returns>
-		public static BaseType? ReflectPrevElement(BaseType n)
+            } while (bt is not null);
+
+            return null;
+        }
+
+        /// <summary>
+        /// Retrieve the previous <see cref="BaseType"/> SDC element node by reflection.<br/>
+        /// This node may be a previous sibling, or a non-sibling node higher up in the SDC tree <br/>
+		/// (closer to the SDC root node), under a different parent node.
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public static BaseType? ReflectPrevElement(BaseType n)
 		{
 			if (n is null) return null;
 			BaseType? par = n.ParentNode;
@@ -3093,7 +3134,7 @@ namespace SDC.Schema
 				newGuid = Guid.NewGuid();
 				sGuid = ShortGuid.Encode(newGuid);
 				bt.ObjectGUID = newGuid;
-				bt.sGuid = sGuid;
+				bt._sGuid = sGuid;  //we assign to the internal backing field "_sGuid", because assigning to the "sGuid" setter may cause recursion here.
 				tempName = CreateBaseNameFromsGuid(bt, minNameBaseLength);
 			} while (tempName.Length != minNameBaseLength);  //pick an sGuid that is capable of producing a BaseName of the requested length (minNameBaseLength)
 

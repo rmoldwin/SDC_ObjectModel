@@ -1830,7 +1830,7 @@ namespace SDC.Schema
         public string BaseName
         {
             get => baseName;
-            set
+            internal set
             {
                 if (baseName == value)
                     return;

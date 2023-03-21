@@ -122,13 +122,15 @@ namespace SDC.Schema
 
 
 
-		/// <summary>
-		/// Given a parent node, determine whether nodeA or nodeB comes first in the child list.<br/>
-		/// Uses reflection only, and does not use any node dictionaries.
-		/// </summary>
-		/// <param name="parentNode"></param>
-		/// <returns><b>-1</b>: nodeA comes first; <b>1</b>: nodeB comes first; <b>0</b>: nodeA and nodeB reference the same node.</returns>
-		public static int SibComparer(BaseType parentNode, BaseType nodeA, BaseType nodeB, out int nodeIndex)
+        /// <summary>
+        /// Given a parent node, determine whether nodeA or nodeB comes first in the child list.<br/>
+        /// Uses reflection only, and does not use any node dictionaries.
+        /// </summary>
+        /// <param name="parentNode"></param>
+        /// <returns><b>-1</b>: nodeA comes first;<br/>
+		/// <b>1</b>: nodeB comes first; 
+		/// <br/><b>0</b>: nodeA and nodeB reference the same node.</returns>
+        public static int SibComparer(BaseType parentNode, BaseType nodeA, BaseType nodeB, out int nodeIndex)
 		{
 			nodeIndex = -1;
 			if (nodeA == nodeB) return 0;

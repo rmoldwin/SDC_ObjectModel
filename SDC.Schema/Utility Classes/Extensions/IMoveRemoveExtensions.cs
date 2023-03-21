@@ -7,8 +7,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using static SDC.Schema.SdcUtil;
 using static System.Collections.Specialized.BitVector32;
@@ -214,7 +216,7 @@ namespace SDC.Schema.Extensions
 		/// The subtree may be moving to another location in the same parent SDC tree or to a location in another SDC tree.		/// </param>
         /// <returns>True if the move was successful; false if the move was not allowed.</returns>
         /// <exception cref="NullReferenceException"/>
-        ///<exception cref="Exception"/>
+        ///<exception cref="InvalidOperationException"/>
         public static bool Move(this BaseType btSource, BaseType newParent, int newListIndex = -1
 			, bool deleteEmptyParentNode = false
 			, RefreshMode refreshMode = RefreshMode.NoChange
@@ -252,18 +254,40 @@ namespace SDC.Schema.Extensions
             List<BaseType>? sourceNodeList;
             if (refreshMode == RefreshMode.CloneAndRepeatSubtree)
             {  //TODO: do we need to process donor node/branch: baseURI?, Link?, Codes, events?, rule targets (name)?	
-
 				newListIndex = -1;  //Repeats are always added at the end of the attachment site (ChildItemsType) list, even if set by the caller to specific value
 
-                if (btSource is not IdentifiedExtensionType)
+                if (btSource is not IdentifiedExtensionType iet)
                     throw new InvalidOperationException(
                      $"When using {nameof(RefreshMode.CloneAndRepeatSubtree)}, " +
-                     $"the cloned subtree {nameof(btSource)} must be of type {nameof(IdentifiedExtensionType)}");
+                     $"the cloned subtree root ({nameof(btSource)}) must be of type {nameof(IdentifiedExtensionType)}");
                 
 				if (newParent is not ChildItemsType citTarget)
                     throw new InvalidOperationException(
                      $"When using {nameof(RefreshMode.CloneAndRepeatSubtree)}, " +
                      $"the {nameof(newParent)} hosting the cloned subtree must be of type {nameof(ChildItemsType)}");
+
+
+                newListIndex = iet.GetListIndex() + 1;
+
+                IdentifiedExtensionType? nxt = btSource.GetNodeNextSib() as IdentifiedExtensionType;
+                string repeatSuffixPattern = @"__\d+$";
+				//Find the last repeat of this subtree, if one exists:
+				while  (nxt is not null)
+					{
+						Match suffixMatch = Regex.Match(nxt.ID, repeatSuffixPattern);
+						if (suffixMatch.Success)
+						{
+							int suffixStartPos = suffixMatch.Index;
+							string idPart = nxt.ID.Substring(0, suffixStartPos);
+							if (iet.ID == idPart)
+								newListIndex++;
+						}
+						else break;
+
+						nxt = nxt.GetNodeNextSib() as IdentifiedExtensionType;
+						if (nxt is null) break;
+					};
+
 
                 IdentifiedExtensionType clone;
                 if (sameRoot)
@@ -272,13 +296,13 @@ namespace SDC.Schema.Extensions
 				else
                     throw new InvalidOperationException(
                          $"When using {nameof(RefreshMode.CloneAndRepeatSubtree)}, " +
-                         $"the root of the subtree to clone {nameof(btSource)} must be a member of the same SDC tree as {nameof(newParent)}");
+                         $"the root of the subtree to clone ({nameof(btSource)}) must be a member of the same SDC tree as {nameof(newParent)}");
 
                 if (newParent.TopNode is not FormDesignType fd)
 					throw new InvalidOperationException(
 					 $"When using {nameof(RefreshMode.CloneAndRepeatSubtree)}, " +
 				
-					 $"the {nameof(BaseType.TopNode)} of the cloned subtree must be of type {nameof(FormDesignType)}");
+					 $"the TopNode of the cloned subtree must be of type {nameof(FormDesignType)}");
 				else 
 					fd.RepeatCounter++;
 
@@ -303,7 +327,7 @@ namespace SDC.Schema.Extensions
                 if (btSource is not IdentifiedExtensionType ietSource)
                     throw new InvalidOperationException(
                      $"When using {nameof(RefreshMode.RestoreSubtreeFromOlderVersion)}, " +
-                     $"the donor subtree {nameof(btSource)} must be of type {nameof(IdentifiedExtensionType)}");
+                     $"the donor subtree ({nameof(btSource)}) must be of type {nameof(IdentifiedExtensionType)}");
 
                 BaseType clone;
                 if (!sameRoot)
@@ -312,7 +336,7 @@ namespace SDC.Schema.Extensions
                 else
                     throw new InvalidOperationException(
                          $"When using {nameof(RefreshMode.RestoreSubtreeFromOlderVersion)}, " +
-                         $"the root of the subtree to clone {nameof(btSource)} must not be a member of the same SDC tree as {nameof(newParent)}");
+                         $"the root of the subtree to clone ({nameof(btSource)}) must not be a member of the same SDC tree as {nameof(newParent)}");
                 
 				btSource = clone;  //btSource must be reset to the clone so that MoveSingleNode processes the new subtree correctly
 
@@ -403,11 +427,287 @@ namespace SDC.Schema.Extensions
 					throw new InvalidOperationException("Invalid targetObj: targetObj must be BaseType or IList");
 			}
 		}
-		
-		//This is a nodeWorkerFirst lambda designed for us in ReflectRefreshSubtreeList
-		//Not used
-		//TODO: We may need to modify this nodeWorker to detect and update duplicate sGuids and IDs (on IET nodes) in the target tree.
-		private static Func<BaseType, bool> X_UpdateObjectID = (BaseType node) =>
+
+        /// <summary>
+        /// For FDF-R instance versions, copy an SDC data element subtree with user responses and insert it after the <br/>
+        /// source block, but without user responses, so that the user may add new responses in the repeated block.<br/>
+        /// The name and ID properties receive a repeat suffix, and sGuid, ObjectGUID and ObjectID all receive new values.
+        /// </summary>
+        /// <param name="btSource">The root node of the SDC subtree to copy</param>
+        /// <returns></returns>
+        public static bool Copy(this IdentifiedExtensionType btSource)
+		{
+			var par = btSource.ParentNode;
+			if(par is null) throw new NullReferenceException($"The ParentNode of {nameof(btSource)} was null");
+
+			return btSource.Move(par, -1, false, SdcUtil.RefreshMode.CloneAndRepeatSubtree);
+        }
+        /// <summary>
+		/// Clone and then copy (graft) a subtree from one SDC template to another.  All identifiers will be replaced with new values,<br/>
+		/// including sGuid, ObjectGUID, name, ID, and ObjectID)
+		/// </summary>
+		/// <param name="btSource">The donor/source node or subtree root to graft.</param>
+		/// <param name="newParent">The target parent node that will subsume the grafted subtree.</param>
+		/// <param name="newListIndex">If <paramref name="newParent"/> contains a List of subsumed SDC nodes, then <paramref name="newListIndex"/> <br/>
+		/// contains the index of the grafted subtree in that List.</param>
+		/// <returns>True for success, false for failure.</returns>
+		public static bool Graft(this BaseType btSource, BaseType newParent, int newListIndex = -1)
+        {
+            return btSource.Move(newParent, newListIndex, false, SdcUtil.RefreshMode.UpdateNodeIdentity);
+        }
+        
+        /// <summary>
+        /// Restore a subtree that existed in a previous version of the same SDC tree lineage.<br/>
+        /// </summary>
+        /// <param name="btSource">The old SDC subtree containing donor/source node or subtree root to restore.</param>
+        /// <param name="newParent">The target parent node that will subsume the restored subtree.</param>
+        /// <param name="newListIndex">If <paramref name="newParent"/> contains a List of subsumed SDC nodes, then <paramref name="newListIndex"/> <br/>
+        /// contains the index of the restored subtree in that List.</param>
+        /// <returns>True for success, false for failure.</returns>
+        public static bool Restore(this BaseType btSource, BaseType newParent, int newListIndex = -1)
+        {
+            return btSource.Move(newParent, newListIndex, false, SdcUtil.RefreshMode.RestoreSubtreeFromOlderVersion);
+
+        }
+
+        /// <summary>
+		/// In a user interface with only <see cref="IdentifiedExtensionType"/> nodes, a node (<b><paramref name="sourceNode"/></b>) may be moved <br/>
+		/// (dragged and dropped) before, after or over (on top of) another node (<b><paramref name="targetNode"/></b>).  This method<br/>
+		///  alters the SDC tree based on the type of move, defined in the <b><paramref name="position"/></b> enum parameter.
+		/// </summary>
+		/// <param name="sourceNode">The node that was moved (dragged and dropped).</param>
+		/// <param name="targetNode">The node receiving the moved node, and firing the drop event.</param>
+		/// <param name="position">The type of move, defined in the enum <b><see cref="DropPosition"/></b>, 
+		/// and contained in the drop event from the <b><paramref name="targetNode"/></b>.</param>
+		/// <returns></returns>
+		/// <exception cref="NullReferenceException"></exception>
+		/// <exception cref="InvalidOperationException"></exception>
+		public static bool DropMove(IdentifiedExtensionType sourceNode, IdentifiedExtensionType targetNode, DropPosition position)
+        {
+            try
+            {
+                //Console.WriteLine("-------------------------------------------");
+                //Console.WriteLine($"{position.ToString().ToUpper()}: Source: {sourceNode.ElementName}: {sourceNode.As<DisplayedType>().title ?? "null"}, Target: {targetNode.ElementName}: {targetNode.As<DisplayedType>().title ?? "null"} ");
+
+                //!Handle some common illegal Move cases
+                if (sourceNode is null) return false;
+                if (sourceNode.ParentNode is null) return false;
+                if (targetNode is null) return false;
+
+                if (sourceNode is ListItemType && (targetNode is SectionItemType)) //can't drop LI on, before or after S
+                    return false;
+                if (targetNode.IsDescendantOf(sourceNode))
+                    return false;
+                if (targetNode.GetType() == typeof(DisplayedType) && position == DropPosition.Over)
+                    return false;
+
+                //!Begin SETUP_______________________________________________________            
+
+                IChildItemsParent? targetAsCIP = null; //This will not be null if the targetNode can subsume a ChildItems node
+                BaseType? targetAttachementSite;  //The object where sourceNode should be attached.  It will be either a List.Items or ChildItems.Items object, which contain a "List<T> Items" attachment property
+
+                //!Test if target is QS or QM
+                QuestionItemType? qsqmTarget = null; //qsqmTarget will not be null if targetNode is QS or QM
+                if (targetNode is QuestionItemType q &&
+                        (q.GetQuestionSubtype() & QuestionEnum.QuestionSingleOrMultiple) > 0) //"Bitwise And" test for QS or QM
+                    qsqmTarget = q;
+
+                //!Test if source is LI or DI
+                DisplayedType? listItemNodeSource = null; //source is LI or DI
+                if (sourceNode is ListItemType || sourceNode.GetType() == typeof(DisplayedType))
+                    listItemNodeSource = (DisplayedType)sourceNode;
+
+                int targetIndex = 0; //drop in first position of target (List or ChildItems node)
+                int sourceIndex = 0; //drop in first position of source (List or ChildItems node)
+                PropertyInfoMetadata pimTarget;
+                PropertyInfoMetadata pimSource;
+
+                ChildItemsType? sourceChildItemsNode = null;
+                ListType? sourceListNode = null;
+                if (sourceNode.ParentNode is ChildItemsType cit)
+                    sourceChildItemsNode = cit;
+                if (sourceNode.ParentNode is ListType lt)
+                    sourceListNode = lt;
+
+				//!End SETUP_______________________________________________________      
+
+				//Determine Drop Type:
+				if (position == DropPosition.Over) //Add as the first child item, at the top of the list (itemIndex = 0)
+				{
+					targetAsCIP = targetNode as IChildItemsParent; //childItemsParent is null only if targetNode is DI
+
+					if (targetNode is ListItemType li && sourceNode is ListItemType)
+						return false;
+
+					else if (qsqmTarget is not null && listItemNodeSource is not null) //If we drop LI/DI on QS/QM, add to Q LIST node
+					{
+						//Console.WriteLine("(qsqmTarget is not null &&  listItemNodeSource is not null");
+						if (sourceNode is QuestionItemType || sourceNode is SectionItemType)
+							Debugger.Break(); //We should never get here
+
+						ListType? targetTest = qsqmTarget.ListField_Item?.List;
+						if (targetTest is null)
+						{
+							Debugger.Break(); //We should never get here
+							qsqmTarget.GetListField().GetList();
+						}
+						targetAttachementSite = qsqmTarget.ListField_Item?.List;
+						if (targetAttachementSite is null) throw new NullReferenceException("targetAttachementSite (qsqmTarget.ListField_Item) cannot be null");
+					}
+					else if (targetAsCIP is not null) //i.e., targetNode != DI //includes all other IChildItemsParent drop targets,with any source type
+					{
+						//Console.WriteLine("Over: childItemsParent is not null");
+						if (sourceNode is ListItemType) return false;
+
+						targetAttachementSite = targetAsCIP.GetChildItemsNode(); //Create ChildItemsNode only when needed 
+
+					}
+					else //any other non-IChildItemsParent target nodes (only DI target nodes are left)
+					{
+						//Console.WriteLine("nop");
+
+						if (targetNode.GetType() != typeof(DisplayedType))
+							Debugger.Break(); //we should never get here
+						return false;
+
+					} // if we get here, user tried to drop on a DisplayedType node (not IChildItemsParent)
+				}
+				else if (position == DropPosition.After)
+				{
+					//Console.WriteLine("if (position == DropPosition.After)");
+					pimTarget = targetNode.GetPropertyInfoMetaData(sourceNode.ParentNode); //retrieve the IEnumerable object that contains targetNode
+					targetIndex = pimTarget.ItemIndex + 1;
+					pimSource = sourceNode.GetPropertyInfoMetaData(sourceNode.ParentNode); //retrieve the IEnumerable object that contains targetNode
+					sourceIndex = pimSource.ItemIndex;
+					if (sourceNode.ParentNode == targetNode.ParentNode
+						&& targetIndex > sourceIndex) targetIndex--;
+
+					if (targetNode.ParentNode is ListType) //targetNode is LI or DI
+					{
+						if (listItemNodeSource is not null)
+						{
+							//Console.WriteLine("A0");
+							targetAttachementSite = targetNode.ParentNode;  //(the List node)
+						}
+						else
+						{
+							//Console.WriteLine("A1");
+							return false; //The source node is not LI or DI
+						}
+					}
+					else if (sourceNode is ListItemType)
+					{
+						//Console.WriteLine("A2");
+						return false; //Can't drop LI before or after a non-LI target
+					}
+					else
+					{
+						//Console.WriteLine("A3");
+						targetAttachementSite = targetNode.ParentNode; //(ChildItemsNode)
+					}
+				}
+				else if (position == DropPosition.Before)
+				{
+					//Console.WriteLine("if (position == DropPosition.Before)");
+					pimTarget = targetNode.GetPropertyInfoMetaData(sourceNode.ParentNode); //retrieve the IEnumerable object that contains targetNode
+					targetIndex = pimTarget.ItemIndex;
+					pimSource = sourceNode.GetPropertyInfoMetaData(sourceNode.ParentNode); //retrieve the IEnumerable object that contains sourceNode
+					sourceIndex = pimSource.ItemIndex;
+					if (sourceNode.ParentNode == targetNode.ParentNode
+						&& targetIndex > sourceIndex) targetIndex--;  //we removed the sourceNode before re-adding in the new position, so we decrement index by one
+
+					if (targetNode is ListItemType)
+					{
+						if (listItemNodeSource is not null)
+						{
+							//Console.WriteLine("B0");
+							targetAttachementSite = targetNode.ParentNode;  //(the List node)
+						}
+						else
+						{
+							//Console.WriteLine("B1");
+							return false; //The source node is not LI or DI
+						}
+					}
+					else if (sourceNode is ListItemType)
+					{
+						//Console.WriteLine("B2");
+						return false; //Can't drop LI before or after a non-LI target
+					}
+					else
+					{
+						//Console.WriteLine("B3");
+						targetAttachementSite = targetNode.ParentNode; //(ChildItemsNode)		
+					}
+				}
+				else { return false; }//Console.WriteLine("No position");  }
+
+                //Console.WriteLine($"targetAsCIP: {targetAsCIP?.As<DisplayedType>()?.title ?? "null"}");
+                //Console.WriteLine($"targetNode: {targetNode?.As<DisplayedType>()?.title ?? "null"}");
+                //Console.WriteLine($"qsqmTarget: {(qsqmTarget?.As<DisplayedType>()?.title ?? "null")}; NewTarget: {targetNode?.ElementName ?? "null"}: {targetNode?.As<DisplayedType>()?.title ?? "null"}");
+                //Console.WriteLine($"targetAttachementSite: {targetAttachementSite?.ElementName ?? targetAttachementSite?.GetType().Name ?? "null"}");
+
+                if (targetAttachementSite is null) throw new InvalidOperationException("Could not determine targetAttachementSite");
+
+                bool result = false;
+                bool deleteEmptyParentNode = false;
+                if (targetAttachementSite is ChildItemsType) deleteEmptyParentNode = true; //delete the ChildItems node is it is "childless"
+
+                //Console.WriteLine("Before Move");
+
+                result = sourceNode.Move(targetAttachementSite, targetIndex, deleteEmptyParentNode);
+
+                //Console.WriteLine("After Move");
+                //Console.WriteLine("result: " + result);
+
+                //var subTree = targetAttachementSite.GetSubtreeIETList();
+				//if (subTree is not null && subTree.Count > 0)
+				//{
+				//	Console.WriteLine(subTree.Count);
+				//	foreach (IdentifiedExtensionType n in subTree)
+				//		Console.WriteLine(n.ElementPrefix + ": " + n.As<DisplayedType>().title ?? "(null)" + "; ");
+				//}
+				//else { Console.WriteLine("subTree.Count == 0"); }
+
+                //Console.WriteLine("END:--------------------------------------");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ex: {ex.Message}\r\n Inner Ex:{ex.InnerException?.Message}\r\nStack:\r\n{ex.StackTrace}");
+                if (ex.InnerException?.Data is not null)
+                {
+                    foreach (DictionaryEntry kv in ex.InnerException.Data)
+                        Console.WriteLine($"Key: {kv.Key}, Value: {kv.Value}");
+                }
+                return false;
+            }
+        }
+
+
+        /// <summary>
+		/// Describes where a source <see cref="IdentifiedExtensionType"/> node is dropped, relative to a target <see cref="IdentifiedExtensionType"/> node.
+		/// </summary>
+		public enum DropPosition
+        {
+            /// <summary>
+            /// The source node is dropped before the target node.
+            /// </summary>
+            Before,
+            /// <summary>
+			/// The source node is dropped over the target node.
+            /// </summary>
+            Over,
+            /// <summary>
+            /// The source node is dropped after the target node.
+            /// </summary>
+            After
+        }
+
+        //This is a nodeWorkerFirst lambda designed for us in ReflectRefreshSubtreeList
+        //Not used
+        //TODO: We may need to modify this nodeWorker to detect and update duplicate sGuids and IDs (on IET nodes) in the target tree.
+        private static Func<BaseType, bool> X_UpdateObjectID = (BaseType node) =>
 			{
 				if (node is ITopNode itn)
 				{
@@ -486,91 +786,6 @@ namespace SDC.Schema.Extensions
 
 			return node;
 		}
-		private static void X_AddUniqueIDsToHashTables(BaseType node, out string errors)
-		{
-			//TODO: Handle hashTable collisions (_UniqueIDs.Add returns false) and add to error log; do not throw exceptions here.
-
-			_ITopNode tn = node.TopNode as _ITopNode ?? throw new NullReferenceException($"{nameof(node.TopNode)} cannot be null");
-			BaseType? par = node.ParentNode;
-			errors = "";
-            //List<string> errorList = new();
-            StringBuilder sb = new();
-            //if (!string.IsNullOrWhiteSpace(node.name))
-            //{
-            //    if (!tn._UniqueNames.Add(node.name))
-            //        AddError(nameof(node.name), node.name);
-            //}
-            //if (!string.IsNullOrWhiteSpace(node.BaseName))
-            //{
-            //	if (!tn._UniqueBaseNames.Add(node.BaseName))
-            //		AddError(nameof(node.BaseName), node.BaseName);
-            //}
-
-
-            //Only SDC types that implement _IUniqueID contain the hashtable _UniqueIDs
-            //_IUniqueIDs includes FormDesignType, DataElementType, RetrieveFormPackageType, PackageListType, XMLPackageType (XMLPackageType does implement ITopNode)
-            if (tn is _IUniqueIDs u)
-            {
-                //if (node is IdentifiedExtensionType ietNode) //FormDesign, DemogFormDesign, DataElement, Section, DisplayedItem, Question, ListItem, Button, InjectForm
-                //{
-                //    if (!string.IsNullOrWhiteSpace(ietNode.ID))
-                //        if (!u._UniqueIDs.Add(ietNode.ID)) AddError(nameof(ietNode.ID), ietNode.ID);
-                //}
-                if (node is FormDesignType fd) //Includes DemogFormDesignType
-                {
-                    if (!string.IsNullOrWhiteSpace(fd.instanceVersionURI))
-                        if (!u._UniqueIDs.Add(fd.instanceVersionURI)) AddError(nameof(fd.instanceVersionURI), fd.instanceVersionURI);
-                }
-                else if (node is DataElementType de)
-                {
-                    if (!string.IsNullOrWhiteSpace(de.fullURI))
-                        if (!u._UniqueIDs.Add(de.fullURI)) AddError(nameof(de.fullURI), de.fullURI);
-                }
-                else if (node is RetrieveFormPackageType rf)
-                {
-                    if (!string.IsNullOrWhiteSpace(rf.packageID))
-                        if (!u._UniqueIDs.Add(rf.packageID)) AddError(nameof(rf.packageID), rf.packageID);
-                    if (!string.IsNullOrWhiteSpace(rf.instanceVersionURI))
-                        if (!u._UniqueIDs.Add(rf.instanceVersionURI)) AddError(nameof(rf.instanceVersionURI), rf.instanceVersionURI);
-                    if (!string.IsNullOrWhiteSpace(rf.fullURI))
-                        if (!u._UniqueIDs.Add(rf.fullURI)) AddError(nameof(rf.fullURI), rf.fullURI);
-                }
-
-                else if (node is PackageItemType pi)
-                {
-                    if (!string.IsNullOrWhiteSpace(pi.fullURI))
-                        if (!u._UniqueIDs.Add(pi.fullURI)) AddError(nameof(pi.fullURI), pi.fullURI);
-                    if (!string.IsNullOrWhiteSpace(pi.packageID))
-                        if (!u._UniqueIDs.Add(pi.packageID)) AddError(nameof(pi.packageID), pi.packageID);
-                    if (!string.IsNullOrWhiteSpace(pi.formInstanceVersionURI))
-                        if (!u._UniqueIDs.Add(pi.formInstanceVersionURI)) AddError(nameof(pi.formInstanceVersionURI), pi.formInstanceVersionURI);
-                }
-                else if (par is not null && par is XMLPackageType)
-                {
-                    if (node is MappingType m) //exists only under XMLPackageType parent
-                    {
-                        if (!string.IsNullOrWhiteSpace(m.templateID))
-                            if (!u._UniqueIDs.Add(m.templateID)) AddError(nameof(m.templateID), m.templateID);
-                    }
-                    else if (node is XMLPackageTypeHelperFile h) // exists only under XMLPackageType parent
-                    {
-                        if (!string.IsNullOrWhiteSpace(h.templateID))
-                            if (!u._UniqueIDs.Add(h.templateID)) AddError(nameof(h.templateID), h.templateID);
-                    }
-                    else if (node is LinkType lt)  // (named FormURL) uniqueness only important when under XMLPackageType parent, 
-                    {
-                        if (!string.IsNullOrWhiteSpace(lt.LinkURI.val))
-                            if (!u._UniqueIDs.Add(lt.LinkURI.val)) AddError(nameof(lt.LinkURI.val), lt.LinkURI.val);
-                    }
-                }
-            }
-            errors = sb.ToString();
-			if(!string.IsNullOrWhiteSpace(errors))
-				Console.WriteLine(errors);
-
-            void AddError(string property, string value)
-                => sb.Append($"Duplicate {property}: {value}, sGuid{node.sGuid}, TopNode: {((BaseType)tn).name}\r\n");
-        }
         private static void RegisterIn_Nodes(this BaseType node)
 		{
 			_ITopNode _topNode = ((_ITopNode)node.TopNode!);
@@ -840,6 +1055,91 @@ namespace SDC.Schema.Extensions
             }
         } //!not tested
         #endregion
+		private static void X_AddUniqueIDsToHashTables(BaseType node, out string errors)
+		{
+			//TODO: Handle hashTable collisions (_UniqueIDs.Add returns false) and add to error log; do not throw exceptions here.
+
+			_ITopNode tn = node.TopNode as _ITopNode ?? throw new NullReferenceException($"{nameof(node.TopNode)} cannot be null");
+			BaseType? par = node.ParentNode;
+			errors = "";
+            //List<string> errorList = new();
+            StringBuilder sb = new();
+            //if (!string.IsNullOrWhiteSpace(node.name))
+            //{
+            //    if (!tn._UniqueNames.Add(node.name))
+            //        AddError(nameof(node.name), node.name);
+            //}
+            //if (!string.IsNullOrWhiteSpace(node.BaseName))
+            //{
+            //	if (!tn._UniqueBaseNames.Add(node.BaseName))
+            //		AddError(nameof(node.BaseName), node.BaseName);
+            //}
+
+
+            //Only SDC types that implement _IUniqueID contain the hashtable _UniqueIDs
+            //_IUniqueIDs includes FormDesignType, DataElementType, RetrieveFormPackageType, PackageListType, XMLPackageType (XMLPackageType does implement ITopNode)
+            if (tn is _IUniqueIDs u)
+            {
+                //if (node is IdentifiedExtensionType ietNode) //FormDesign, DemogFormDesign, DataElement, Section, DisplayedItem, Question, ListItem, Button, InjectForm
+                //{
+                //    if (!string.IsNullOrWhiteSpace(ietNode.ID))
+                //        if (!u._UniqueIDs.Add(ietNode.ID)) AddError(nameof(ietNode.ID), ietNode.ID);
+                //}
+                if (node is FormDesignType fd) //Includes DemogFormDesignType
+                {
+                    if (!string.IsNullOrWhiteSpace(fd.instanceVersionURI))
+                        if (!u._UniqueIDs.Add(fd.instanceVersionURI)) AddError(nameof(fd.instanceVersionURI), fd.instanceVersionURI);
+                }
+                else if (node is DataElementType de)
+                {
+                    if (!string.IsNullOrWhiteSpace(de.fullURI))
+                        if (!u._UniqueIDs.Add(de.fullURI)) AddError(nameof(de.fullURI), de.fullURI);
+                }
+                else if (node is RetrieveFormPackageType rf)
+                {
+                    if (!string.IsNullOrWhiteSpace(rf.packageID))
+                        if (!u._UniqueIDs.Add(rf.packageID)) AddError(nameof(rf.packageID), rf.packageID);
+                    if (!string.IsNullOrWhiteSpace(rf.instanceVersionURI))
+                        if (!u._UniqueIDs.Add(rf.instanceVersionURI)) AddError(nameof(rf.instanceVersionURI), rf.instanceVersionURI);
+                    if (!string.IsNullOrWhiteSpace(rf.fullURI))
+                        if (!u._UniqueIDs.Add(rf.fullURI)) AddError(nameof(rf.fullURI), rf.fullURI);
+                }
+
+                else if (node is PackageItemType pi)
+                {
+                    if (!string.IsNullOrWhiteSpace(pi.fullURI))
+                        if (!u._UniqueIDs.Add(pi.fullURI)) AddError(nameof(pi.fullURI), pi.fullURI);
+                    if (!string.IsNullOrWhiteSpace(pi.packageID))
+                        if (!u._UniqueIDs.Add(pi.packageID)) AddError(nameof(pi.packageID), pi.packageID);
+                    if (!string.IsNullOrWhiteSpace(pi.formInstanceVersionURI))
+                        if (!u._UniqueIDs.Add(pi.formInstanceVersionURI)) AddError(nameof(pi.formInstanceVersionURI), pi.formInstanceVersionURI);
+                }
+                else if (par is not null && par is XMLPackageType)
+                {
+                    if (node is MappingType m) //exists only under XMLPackageType parent
+                    {
+                        if (!string.IsNullOrWhiteSpace(m.templateID))
+                            if (!u._UniqueIDs.Add(m.templateID)) AddError(nameof(m.templateID), m.templateID);
+                    }
+                    else if (node is XMLPackageTypeHelperFile h) // exists only under XMLPackageType parent
+                    {
+                        if (!string.IsNullOrWhiteSpace(h.templateID))
+                            if (!u._UniqueIDs.Add(h.templateID)) AddError(nameof(h.templateID), h.templateID);
+                    }
+                    else if (node is LinkType lt)  // (named FormURL) uniqueness only important when under XMLPackageType parent, 
+                    {
+                        if (!string.IsNullOrWhiteSpace(lt.LinkURI.val))
+                            if (!u._UniqueIDs.Add(lt.LinkURI.val)) AddError(nameof(lt.LinkURI.val), lt.LinkURI.val);
+                    }
+                }
+            }
+            errors = sb.ToString();
+			if(!string.IsNullOrWhiteSpace(errors))
+				Console.WriteLine(errors);
+
+            void AddError(string property, string value)
+                => sb.Append($"Duplicate {property}: {value}, sGuid{node.sGuid}, TopNode: {((BaseType)tn).name}\r\n");
+        }
 
 
 

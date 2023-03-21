@@ -135,7 +135,7 @@ namespace SDC.Schema
 		/// </summary>
 		[XmlIgnore]
 		[JsonIgnore]
-		public string BaseName { get; set; }
+		public string BaseName { get; }
 
 
 		//!+Added to support TE Blazor module.

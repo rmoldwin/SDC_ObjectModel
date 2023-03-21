@@ -15,10 +15,11 @@ using Newtonsoft.Json;
 namespace SDC.Schema
 {
     /// <summary>
-    /// Implemented by TopNode nodes that require unique Identifier properties <br/>
+    /// Implemented by TopNode nodes that require unique identifier properties. <br/>
     /// (i.e., ID or InstanceVersionURI [for instance documents]) among its members.<br/>
-    /// Includes FormDesignType, DataElementType, RetrieveFormPackageType, PackageListType, XMLPackageType
-    /// Contains a HashSet&lt;string> to help determine uniqueness
+    /// Implemented by FormDesignType, DataElementType, RetrieveFormPackageType, PackageListType, XMLPackageType.<br/>
+    /// Contains a HashSet&lt;string> to help determine uniqueness.<br/>
+    /// At this time, only ID is supported for enforcing ID uniqueness within a FormDesignType tree.
     /// </summary>
     internal interface _IUniqueIDs
     {

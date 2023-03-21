@@ -330,7 +330,7 @@ namespace SDC.Schema.Extensions
         /// <returns>SDC subtree that is a deep clone of the <paramref name="rootNode"/> subtree, <br/>
 		/// but stripped of all non-public values, including all TopNode dictionary and collection entries.<br/>
 		/// This clone may be grafted onto a valid location on any SDC tree node using <br/>
-		/// the extension method <see cref="IMoveRemoveExtensions.Move(BaseType, BaseType, int, bool, bool)"/>:<br/>
+		/// the extension method <see cref="IMoveRemoveExtensions.Move"/>:<br/>
 		/// cloneRootNode.Move(<b>newParent: targetNode</b>, newListIndex: -1, deleteEmptyParentNode: false, <b>updateMetadata: true</b>)
 		/// 
 		/// </returns>
@@ -359,23 +359,23 @@ namespace SDC.Schema.Extensions
             bt.name = newName;
             return true;
         }
-        /// <summary>
-        /// Set the BaseName property on any BaseType node only if it does not already exist for another node <br/>
-        /// in the current tree's _UniqueBaseNames hashable. <br/>
-        /// Returns false if the new BaseName already already exists for a different node in _UniqueBaseNames.<br/>
-        /// Returns true if the new BaseName is the same as the old BaseName.<br/>
-        /// Returns false if the new BaseName is null or empty.
-        /// </summary>
-		static bool TrySetBaseName(this BaseType bt, string newBaseName)
-        {
-            if (bt.TopNode is null || newBaseName == "") return false;
-            if (bt.BaseName == newBaseName) return true;
-            if (!newBaseName.IsValidVariableName()) return false;
+  //      /// <summary>
+  //      /// Set the BaseName property on any BaseType node only if it does not already exist for another node <br/>
+  //      /// in the current tree's _UniqueBaseNames hashable. <br/>
+  //      /// Returns false if the new BaseName already already exists for a different node in _UniqueBaseNames.<br/>
+  //      /// Returns true if the new BaseName is the same as the old BaseName.<br/>
+  //      /// Returns false if the new BaseName is null or empty.
+  //      /// </summary>
+		//static bool TrySetBaseName(this BaseType bt, string newBaseName)
+  //      {
+  //          if (bt.TopNode is null || newBaseName == "") return false;
+  //          if (bt.BaseName == newBaseName) return true;
+  //          if (!newBaseName.IsValidVariableName()) return false;
 
-            var tn = (_ITopNode)bt.TopNode;
-            if (tn._UniqueBaseNames.TryGetValue(newBaseName, out _) == false) return false;
-            bt.BaseName = newBaseName;
-            return true;
-        }
+  //          var tn = (_ITopNode)bt.TopNode;
+  //          if (tn._UniqueBaseNames.TryGetValue(newBaseName, out _) == false) return false;
+  //          bt.BaseName = newBaseName;
+  //          return true;
+  //      }
 	}
 }

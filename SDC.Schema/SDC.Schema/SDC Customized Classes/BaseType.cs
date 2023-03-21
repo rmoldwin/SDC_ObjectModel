@@ -255,7 +255,7 @@ namespace SDC.Schema
         private string _name;
         private string _type;
         private string _styleClass;
-        private string _sGuid;
+        internal string _sGuid;
         private decimal _order;
         #endregion
 
@@ -379,12 +379,28 @@ namespace SDC.Schema
                 }
                 if (((_sGuid == null)
                             || (_sGuid.Equals(value) != true)))
-                {
+                {      
                     ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                     validatorPropContext.MemberName = "sGuid";
                     Validator.ValidateProperty(value, validatorPropContext);
+
                     _sGuid = value;
                     OnPropertyChanged("sGuid", value);
+
+                    //RM 2023-03_20 Added-----------------------------------------------------------
+                    var u = ((_ITopNode)TopNode)?._UniqueBaseNames;
+                    if (u is not null)
+                    {
+                        string? newBaseName = SdcUtil.CreateBaseNameFromsGuid(this, 6);
+                        if (!string.IsNullOrWhiteSpace(newBaseName))
+                        {
+                            u.Remove(BaseName);
+                            BaseName = newBaseName;
+                            u.Add(newBaseName);
+                        }
+                    }
+                    else{ }//if u (_UniqueBaseNames) is null, then the SDC tree and/or this node is not yet initialized - e.g., it is still being deserialized or it is in the process of being constructed.
+                    //End of Addition---------------------------------------------------------------                    
                 }
             }
         }

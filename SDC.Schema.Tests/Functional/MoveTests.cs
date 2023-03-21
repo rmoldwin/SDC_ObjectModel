@@ -409,7 +409,8 @@ namespace SDC.Schema.Tests.Functional
 			Assert.IsNotNull(S1par); 
             S1.Move(S1par!, -1, false, SdcUtil.RefreshMode.CloneAndRepeatSubtree);
 
-			var S1copy = S1par!.GetNodeLastChild() as SectionItemType;
+			int listIndexS1 = S1.GetListIndex();
+			var S1copy = S1par!.GetChildNodes()![listIndexS1 + 1] as SectionItemType;
 			Assert.IsNotNull(S1copy);
            
             Assert.IsTrue(S1copy.ID == S1.ID + "__1");
@@ -429,7 +430,7 @@ namespace SDC.Schema.Tests.Functional
             //+-------Make a second copy of sBreastNew------------------------------------------------------------------------
 
             S1.Move(S1par!, -1, false, SdcUtil.RefreshMode.CloneAndRepeatSubtree);
-            var S2copy = S1par!.GetNodeLastChild() as SectionItemType;
+			var S2copy = S1par!.GetChildNodes()![listIndexS1 + 2] as SectionItemType;
             Assert.IsNotNull(S2copy);
 
             Assert.IsTrue(S2copy!.ID == S1.ID + "__2");
@@ -479,7 +480,7 @@ namespace SDC.Schema.Tests.Functional
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
 		[TestMethod]
-		public void RefreshSdcSubtreeOMTest()
+		public void _RefreshSdcSubtreeOMTest()
 		{
 			Setup.TimerStart("==>[] Started");
 			BaseType.ResetLastTopNode();
