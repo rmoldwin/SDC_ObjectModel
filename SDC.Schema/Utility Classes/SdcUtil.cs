@@ -429,8 +429,24 @@ namespace SDC.Schema
 					{
 						if (iet.ID.IsNullOrEmpty())
 							iet.ID = $"___{iet.sGuid}";
-					}
-					if (createNodeName is not null)
+
+                        //if applicable, for FDF-R instance documents,
+                        //set the maximum repeat tracker (FormDesignType's RepeatCounter)	
+                        //TODO: Test Extraction of FormDesignType's RepeatCounter					
+                        if (iet is RepeatingType rt)
+                        {
+                            if (current_ITopNode is FormDesignType fd)
+								if (rt.repeat > fd.RepeatCounter)
+									fd.RepeatCounter = rt.repeat;
+								else  //try again to extract a repeat integer, this time from the repeat suffix, if present
+								{
+									int rep = GetRepeatSuffix(rt);
+									if (rep > fd.RepeatCounter)
+                                        fd.RepeatCounter = rt.repeat;
+                                }
+                        }
+                    }
+                    if (createNodeName is not null)
 						btProp.name = createNodeName(btProp, "",NameChangeEnum.Normal, "") ?? btProp.name;
 
 					if (print)
@@ -464,12 +480,36 @@ namespace SDC.Schema
 			return SortedNodes;
 
 		}
-		/// <summary>
-		/// Reflects the SDC tree and re-registers all nodes in the tree in the main SDC OM dictionaries: _ITopNode._Nodes, _ITopNode._ParentNodes, _ITopNode._ChildNodes.
-		/// </summary>
-		/// <param name="tn"></param>
-		/// <returns> Sorted <b>List&lt;BaseType></b> containing all nodes subsumed under <paramref name="tn"/></returns>
-		public static List<BaseType> ReflectUpdateTreeDictionaries(ITopNode tn)
+        /// <summary>
+        /// Extract the positive integer part of the repeat suffix from the ID property of a RepeatingType node.
+        /// </summary>
+        /// <param name="rt">An IdentifiedExtensionType node that may have a repeat suffix in its "repeat" property</param>
+        /// <returns>Returns the repeat integer, if present.<br/>
+        /// Otherwise, returns 0.
+        /// </returns>
+        public static int GetRepeatSuffix(IdentifiedExtensionType rt)
+        {//TODO: Test GetRepeatSuffix
+            const string repeatSuffixPattern = @"__\d+$";
+			string repeat = "";
+
+            Match suffixMatch = Regex.Match(rt.ID, repeatSuffixPattern);
+            if (suffixMatch.Success)
+            {
+                int suffixStartPos = suffixMatch.Index;
+                //string idPart = rt.ID.Substring(0, suffixStartPos);
+                repeat = rt.ID.Substring(suffixStartPos + 2);
+				if (int.TryParse(repeat, out int intRepeat))
+					return intRepeat;
+            }
+			return 0;
+        }
+
+        /// <summary>
+        /// Reflects the SDC tree and re-registers all nodes in the tree in the main SDC OM dictionaries: _ITopNode._Nodes, _ITopNode._ParentNodes, _ITopNode._ChildNodes.
+        /// </summary>
+        /// <param name="tn"></param>
+        /// <returns> Sorted <b>List&lt;BaseType></b> containing all nodes subsumed under <paramref name="tn"/></returns>
+        public static List<BaseType> ReflectUpdateTreeDictionaries(ITopNode tn)
 		{
 			return ReflectRefreshSubtreeList((BaseType)tn.TopNode);
 		}

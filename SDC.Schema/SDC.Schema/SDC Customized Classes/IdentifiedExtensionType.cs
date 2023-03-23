@@ -75,8 +75,10 @@ namespace SDC.Schema
                             || (_id.Equals(value) != true)))
                 {
                     //RM added 2023_03_16-------------------------------------------------------------
-
-                    if (TopNode is not null) //if TopNode is null here, we are probably deserializing through the default constructor - probably we are cloning part of a object tree.
+                    //if TopNode is null here, we are probably deserializing through the default constructor -
+                    //or perhaps we are cloning part of a object tree.
+                    //In these cases, _UniqueIDs will be updated on a later pass through the SDC tree (e.g., with ReflectRefreshTree or ReflectRefreshSubtreeList).
+                    if (TopNode is not null) 
                     {
                         if (value is null || value == "")
                             throw new InvalidOperationException("ID cannot be null or empty");

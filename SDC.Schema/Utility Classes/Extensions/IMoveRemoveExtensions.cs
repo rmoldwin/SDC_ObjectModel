@@ -270,8 +270,9 @@ namespace SDC.Schema.Extensions
                 newListIndex = iet.GetListIndex() + 1;
 
                 IdentifiedExtensionType? nxt = btSource.GetNodeNextSib() as IdentifiedExtensionType;
-                string repeatSuffixPattern = @"__\d+$";
+                const string repeatSuffixPattern = @"__\d+$";
 				//Find the last repeat of this subtree, if one exists:
+				//TODO: Needs more testing on locating last repeatSuffix for copying/repeating subtrees in instance docs
 				while  (nxt is not null)
 					{
 						Match suffixMatch = Regex.Match(nxt.ID, repeatSuffixPattern);

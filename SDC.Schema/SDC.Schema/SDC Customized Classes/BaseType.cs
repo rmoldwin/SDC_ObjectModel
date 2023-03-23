@@ -28,6 +28,7 @@ namespace SDC.Schema
     using System.Collections.Generic;
     using CSharpVitamins;
     using SDC.Schema.Extensions;
+    using System.Net.Http.Headers;
 
     /// <summary>
     /// BaseType is inherited by all SDC complex types.  It contains attributes for:
@@ -254,7 +255,7 @@ namespace SDC.Schema
     {
         #region Private fields
         protected internal bool _shouldSerializeorder;
-        private string _name;
+        internal string _name;
         private string _type;
         private string _styleClass;
         internal string _sGuid;
@@ -282,16 +283,22 @@ namespace SDC.Schema
                             || (_name.Equals(value) != true)))
                 {
                     //!RM added 2023_03_16-------------------------------------------------------------
-                    if(!SdcUtil.IsValidVariableName(value))
+                    var itn = ((_ITopNode)TopNode);
+
+                    if (!SdcUtil.IsValidVariableName(value))
                         throw new InvalidOperationException($"The string \"{value}\" is not a legal variable name.");
 
-                    if (TopNode is not null) //if TopNode is null here, we are probably deserializing through the default constructor - probably we are cloning part of a object tree.
+                    //if TopNode is null here, we are probably deserializing through the default constructor -
+                    //or perhaps we are cloning part of a object tree.
+                    //In these cases, _UniqueNames will be updated on a later pass through the SDC tree (e.g., with ReflectRefreshTree or ReflectRefreshSubtreeList).
+
+                    if (itn is not null) 
                     {
-                        _ITopNode? tn = (_ITopNode)this.TopNode;
-                        if (tn._UniqueNames.Add(value) == false)
-                            throw new InvalidOperationException($"The string \"{value}\" already exists within the TopNode's tree.  A unique value is required.");
-                        
-                        tn._UniqueNames.Remove(_name);
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            if (itn._UniqueNames.Add(value) == false)
+                                throw new InvalidOperationException($"The string \"{value}\" already exists within the TopNode's tree.  A unique value is required.");
+                        }else itn._UniqueNames.Remove(_name);
                     }
 
                     //!End of addition --------------------------------------------------------------------
