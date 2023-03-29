@@ -282,8 +282,7 @@ namespace SDC.Schema
                 if (((_name == null)
                             || (_name.Equals(value) != true)))
                 {
-                    //!RM added 2023_03_16-------------------------------------------------------------
-                    var itn = ((_ITopNode)TopNode);
+                    //!RM added 2023_03_16-------------------------------------------------------------                    
 
                     if (!SdcUtil.IsValidVariableName(value))
                         throw new InvalidOperationException($"The string \"{value}\" is not a legal variable name.");
@@ -291,16 +290,16 @@ namespace SDC.Schema
                     //if TopNode is null here, we are probably deserializing through the default constructor -
                     //or perhaps we are cloning part of a object tree.
                     //In these cases, _UniqueNames will be updated on a later pass through the SDC tree (e.g., with ReflectRefreshTree or ReflectRefreshSubtreeList).
-
-                    if (itn is not null) 
+                    var itn = ((_ITopNode)TopNode);
+                    if (itn is not null)
                     {
                         if (!string.IsNullOrWhiteSpace(value))
-                        {
+                        {                            
                             if (itn._UniqueNames.Add(value) == false)
                                 throw new InvalidOperationException($"The string \"{value}\" already exists within the TopNode's tree.  A unique value is required.");
-                        }else itn._UniqueNames.Remove(_name);
+                        }
+                        else itn._UniqueNames.Remove(_name);
                     }
-
                     //!End of addition --------------------------------------------------------------------
 
                     _name = value;
@@ -386,57 +385,51 @@ namespace SDC.Schema
                 {
                     return;
                 }
-                if (((_sGuid == null)
-                            || (_sGuid.Equals(value) != true)))
-                {      
-                    ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                    validatorPropContext.MemberName = "sGuid";
-                    Validator.ValidateProperty(value, validatorPropContext);
-
-
-
-                    //RM 2023-03_20 Added-------------------------------------------------
-                    var itn = ((_ITopNode)TopNode);
-                    if (_sGuid is not null && itn is not null && itn._Nodes is not null)
-                    {
-                        //if we're in here, than initialization of this node has been completed.
-                        this.UnRegisterAll();
-
-                        var oldsGuid = _sGuid;
-                        var oldObjectGUID = ObjectGUID;
-                        var oldBaseName = baseName;
-                        //_-----original code---------------------------------------
-                        _sGuid = value;
-                        OnPropertyChanged("sGuid", value);
-                        //_-----End original code---------------------------------------
-
-                        ObjectGUID = ShortGuid.Decode(value);
-
-                        this.RegisterAll();
-
-
-                        var u = itn?._UniqueBaseNames;
-                        if (u is not null)
-                        {
-                            string? newBaseName = SdcUtil.CreateBaseNameFromsGuid(this, 6);
-                            if (!string.IsNullOrWhiteSpace(newBaseName))
-                            {
-                                u.Remove(BaseName);
-                                BaseName = newBaseName;
-                                u.Add(newBaseName);
-                            }
-                        }
-                        else throw new InvalidOperationException(
-                            "sGuid may not be set until the node has been completely initialized");
-                    }                    
-                    //End of Addition---------------------------------------------------------------                    
-
-                    else //we are initializing sGuid in the parameterless constructor, or otherwise the tree is not initialized yet.
-                    {
-                        _sGuid = value;
-                        OnPropertyChanged("sGuid", value);
-                    }
+                //RM 2023-03_20 Added-------------------------------------------------
+                Guid guid;
+                if (string.IsNullOrWhiteSpace(value))
+                { //Create new Guid
+                    guid = Guid.NewGuid();
+                    value = ShortGuid.Encode(guid);
                 }
+                else
+                { 
+                    if (!ShortGuid.TryDecode(value, out guid))
+                        throw new InvalidOperationException($"The string \"{value}\" is not a valid ShortGuid.");
+                        //Alternatively, we could create a new sGuid here, but that could generate surprise errors.
+                }
+
+                var itn = ((_ITopNode)TopNode);
+                if (itn?._Nodes.Count > 0)
+                {//If we're in here, than initialization of this node has been completed in the BaseType constructor.
+                    
+                    //Since we're changing sGuid, we need to remove (if present) and repopulate all of the
+                    //ObjectGUID-based dictionaries in the TopNode, as well as regenerate _UniqueBaseNames.
+                    this.UnRegisterAll();
+                    ObjectGUID = guid;  //set the new ObjectGUID, which is used as the key in all TopNode dictionaries.
+                    this.RegisterAll();
+
+                    //Regenerate BaseName and repopulate _UniqueBaseNames.
+                    HashSet<string> u = itn._UniqueBaseNames;  //This creates the HashSet, in case it was null;
+                    string? newBaseName = SdcUtil.CreateBaseNameFromsGuid(this, 6);
+
+                    u.Remove(BaseName);
+                    BaseName = newBaseName;
+                    u.Add(newBaseName);
+                }
+                else
+                    ObjectGUID = guid;
+                //End of Addition---------------------------------------------------------------                    
+
+
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "sGuid";
+                Validator.ValidateProperty(value, validatorPropContext);
+
+                _sGuid = value;
+                OnPropertyChanged("sGuid", value);
+
+                //}
             }
         }
 

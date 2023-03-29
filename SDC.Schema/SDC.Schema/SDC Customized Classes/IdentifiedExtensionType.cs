@@ -67,37 +67,41 @@ namespace SDC.Schema
             }
             set
             {
-                if ((_id == value))
+                //if ((_id == value))
+                if ((_id == value) && !string.IsNullOrWhiteSpace(value))
                 {
                     return;
                 }
-                if (((_id == null)
-                            || (_id.Equals(value) != true)))
+                //if (((_id == null)
+                //            || (_id.Equals(value) != true)))
+
+                //RM added 2023_03_16-------------------------------------------------------------
+                if (string.IsNullOrWhiteSpace(value))
+                    value = SdcUtil.CreateSimpleName(this);
+                
+                //if TopNode is null here, we are probably deserializing through the default constructor -
+                //or perhaps we are cloning part of a object tree.
+                //In these cases, _UniqueIDs will be updated on a later pass through the SDC tree (e.g., with ReflectRefreshTree or ReflectRefreshSubtreeList).
+                if (TopNode is not null)
                 {
-                    //RM added 2023_03_16-------------------------------------------------------------
-                    //if TopNode is null here, we are probably deserializing through the default constructor -
-                    //or perhaps we are cloning part of a object tree.
-                    //In these cases, _UniqueIDs will be updated on a later pass through the SDC tree (e.g., with ReflectRefreshTree or ReflectRefreshSubtreeList).
-                    if (TopNode is not null) 
-                    {
-                        if (value is null || value == "")
-                            throw new InvalidOperationException("ID cannot be null or empty");
+                    //if (!string.IsNullOrWhiteSpace(value))
+                    //    throw new InvalidOperationException("ID cannot be null or empty");
 
-                        _IUniqueIDs u;
-                        if (this.ParentNode is not null && this.ParentNode is XMLPackageType xp) //XMLPackageType holds the _UniqueIDs dictionary
-                            u = xp;
-                        else u = (_IUniqueIDs)this.TopNode; //TopNode holds the _UniqueIDs dictionary
+                    _IUniqueIDs u;
+                    if (this.ParentNode is not null && this.ParentNode is XMLPackageType xp) //XMLPackageType holds the _UniqueIDs dictionary
+                        u = xp;
+                    else u = (_IUniqueIDs)this.TopNode; //TopNode holds the _UniqueIDs dictionary
 
-                        if (u._UniqueIDs.Add(value) == false)
-                            throw new InvalidOperationException($"ID \"{value}\" already exists");
-                        u._UniqueIDs.Remove(_id);
-                    }
-                    
-                    //End of addition --------------------------------------------------------------------
-
-                    _id = value;
-                    OnPropertyChanged("ID", value);
+                    if (u._UniqueIDs.Add(value) == false)
+                        throw new InvalidOperationException($"ID \"{value}\" already exists");
+                    u._UniqueIDs.Remove(_id);
                 }
+
+                //End of addition --------------------------------------------------------------------
+
+                _id = value;
+                OnPropertyChanged("ID", value);
+                //}
             }
         }
 

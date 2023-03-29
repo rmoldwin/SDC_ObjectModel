@@ -401,6 +401,7 @@ namespace SDC.Schema
 					//Refill the node dictionaries with the current node
 					btProp.RegisterAll(parentNode, childNodesSort: false); //we are adding nodes in reflection-sorted order
 																		   //Debug.Print(btProp.sGuid + "; Obj ID: " + btProp.ObjectID);
+
 																		   //Adding is not thread-safe - need ConcurrentDictionary
 																		   //Mark parentNode as having its child nodes already sorted
 					TreeSort_Add(parentNode);  //Change ObjectID to ObjectGUID?  //Probably thread-safe, as it's a hashtable, but may need Concurrent Hashtable?
