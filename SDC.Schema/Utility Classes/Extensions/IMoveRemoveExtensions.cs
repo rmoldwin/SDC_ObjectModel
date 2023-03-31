@@ -122,9 +122,9 @@ namespace SDC.Schema.Extensions
 						remResult = lastKid.RemoveNodeObject(); //Remove from object tree
 						if (remResult) lastKid.UnRegisterAll(); //Remove from dictionaries
                         else { Debugger.Break(); break; } //exit early if failure to remove a node
-                        ((_ITopNode)nodeToRemove)._UniqueBaseNames.Remove(nodeToRemove.BaseName);
-                        ((_ITopNode)nodeToRemove)._UniqueNames.Remove(nodeToRemove.name);
-						if(nodeToRemove is IdentifiedExtensionType iet) ((_IUniqueIDs)iet)._UniqueIDs.Remove(iet.ID);
+                        topNode._UniqueBaseNames.Remove(nodeToRemove.BaseName);
+                        topNode._UniqueNames.Remove(nodeToRemove.name);
+						if(nodeToRemove is IdentifiedExtensionType iet) ((_IUniqueIDs)topNode)._UniqueIDs.Remove(iet.ID);
                     }
 					return remResult;
 				}

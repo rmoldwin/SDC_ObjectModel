@@ -2341,6 +2341,8 @@ namespace SDC.Schema
 			errorMsg = "";
 			int matchCount = 0;
 
+			if (parentTarget.IsDescendantOf(newNode)) return false; //can't attach a node to itself or one of its descendants.
+
 			Type newNodeType = newNode.GetType();
 
 			//+Try to match newNode to a parentTarget property, based on newNode's Type

@@ -55,8 +55,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="bin\Debug\net6.0\sdctemplate.css" />
-    <None Include="bin\Debug\net6.0\sdctemplate.xslt" />
     <None Include="Utility Classes\Extensions\Unimplemented Extensions.cs" />
     <None Include="Utility Classes\Extensions\_MappingTypeExtensions.cs" />
     <None Include="Utility Classes\Junk\SDC_CodeGeneratorTest.csproj_old" />
