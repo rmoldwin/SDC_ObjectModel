@@ -15,14 +15,22 @@ using Newtonsoft.Json;
 namespace SDC.Schema
 {
     /// <summary>
-    /// Implemented by TopNode nodes that require unique identifier properties. <br/>
-    /// (i.e., ID or InstanceVersionURI [for instance documents]) among its members.<br/>
-    /// Implemented by FormDesignType, DataElementType, RetrieveFormPackageType, PackageListType, XMLPackageType.<br/>
-    /// Contains a HashSet&lt;string> to help determine uniqueness.<br/>
-    /// At this time, only ID is supported for enforcing ID uniqueness within a FormDesignType tree.
+    /// <see cref="_IUniqueIDs"/> is an internal interface used to enforce uniqueness of SDC node identifier (ID) values.<br/>
+    /// It is implemented by TopNode nodes that require unique identifier properties within their subsumed subtree. <br/>
+    /// (e.g., ID or InstanceVersionURI [for instance documents]) properties contained in teh TopNode's subtree.<br/>
+    /// The interface is implemented by <see cref="FormDesignType"/>, <see cref="DataElementType"/>, 
+    /// <see cref="RetrieveFormPackageType"/>, <see cref="PackageListType"/>, and <see cref="XMLPackageType"/>.<br/><br/>
+    /// <see cref="_IUniqueIDs"/> contains a HashSet&lt;string> (<see cref="_UniqueIDs"/>) to help determine uniqueness.<br/><br/>
+    /// At this time, <see cref="_IUniqueIDs"/> is only supported for enforcing ID uniqueness within a <see cref="FormDesignType"/> (FD) tree,<br/>
+    /// where it contains ID values from all <see cref="IdentifiedExtensionType"/> (IET) nodes within that FD tree.
     /// </summary>
     internal interface _IUniqueIDs
     {
+        /// <summary>
+        /// <see cref="_UniqueIDs"/> contains a HashSet&lt;string> to help determine SDC node identifier (ID) uniqueness.<br/>
+        /// If an ID value has already been used, it will appear in this HashSet.<br/>
+        /// ID properties occur most prominently in in <see cref="IdentifiedExtensionType"/> (IET) and <see cref="FormDesignType"/> (FD) nodes.<br/>
+        /// </summary>
         internal HashSet<string> _UniqueIDs { get; }
     }
     /// <summary>

@@ -348,10 +348,12 @@ namespace SDC.Schema.Extensions
         /// Returns false if the new name is null or empty.
         /// </summary>
 		static bool TrySetName(this BaseType bt, string newName)
-        {
+        {//TEST TrySetName
+
             if (bt.TopNode is null || newName == "") return false;
             if (bt.name == newName) return true;
             if (!newName.IsValidVariableName()) return false;
+			
 
             var tn = (_ITopNode)bt.TopNode;
             if (tn._UniqueNames.TryGetValue(newName, out _) == false) return false;

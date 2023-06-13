@@ -122,9 +122,9 @@ namespace SDC.Schema.Extensions
 						remResult = lastKid.RemoveNodeObject(); //Remove from object tree
 						if (remResult) lastKid.UnRegisterAll(); //Remove from dictionaries
                         else { Debugger.Break(); break; } //exit early if failure to remove a node
-                        ((_ITopNode)nodeToRemove)._UniqueBaseNames.Remove(nodeToRemove.BaseName);
-                        ((_ITopNode)nodeToRemove)._UniqueNames.Remove(nodeToRemove.name);
-						if(nodeToRemove is IdentifiedExtensionType iet) ((_IUniqueIDs)iet)._UniqueIDs.Remove(iet.ID);
+                        topNode._UniqueBaseNames.Remove(nodeToRemove.BaseName);
+                        topNode._UniqueNames.Remove(nodeToRemove.name);
+						if(nodeToRemove is IdentifiedExtensionType iet) ((_IUniqueIDs)topNode)._UniqueIDs.Remove(iet.ID);
                     }
 					return remResult;
 				}
@@ -734,8 +734,8 @@ namespace SDC.Schema.Extensions
 
 
         /// <summary>
-        /// Register <b><paramref name="node"/></b> in all TopNode dictionaries.  
-        /// If <b><paramref name="node"/></b> is ITopNode, it is also registered in its own class's TopNode dictionaries
+        /// Register <b><paramref name="node"/></b> (this) in all TopNode dictionaries.  
+        /// If <b><paramref name="node"/></b> (this) is ITopNode, it is also registered in its own class's TopNode dictionaries
         /// </summary>
         /// <param name="node"/>
         /// <param name="parentNode">If adding nodes manually, i.e., using the BaseType constructor, a parent node should be provided.<br/>
@@ -781,6 +781,7 @@ namespace SDC.Schema.Extensions
 					iet.RegisterSubtreeIn_IETnodes(addIETnodesRecursively);
 
 				//AddUniqueIDsToHashTables(node, out string nonUniqueErrors);
+
 			}
 			else {
 				throw new InvalidOperationException($"TopNode could not be set for node {node.name}");
@@ -880,7 +881,7 @@ namespace SDC.Schema.Extensions
 		}
 
 		/// <summary>
-		/// Create a new @order value for the current node, and all its distal nodes in the same tree
+		/// Create a new @order value for the current node (this), and all its distal nodes in the same tree
 		/// </summary>
 		/// <param name="node"></param>
 		/// <param name="orderGap"></param>
@@ -925,7 +926,7 @@ namespace SDC.Schema.Extensions
 		}
 
 		/// <summary>
-		/// UnRegister <b><paramref name="node"/></b> in _ParentNodes and _ChildNodes dictionaries.  
+		/// UnRegister <b><paramref name="node"/></b> (this) in _ParentNodes and _ChildNodes dictionaries.  
 		/// If <b><paramref name="node"/></b> is ITopNode, it is also unregistered in <b><paramref name="node"/></b>'s own TopNode dictionaries
 		/// </summary>
 		/// <param name="node"></param>
@@ -967,12 +968,13 @@ namespace SDC.Schema.Extensions
 		} //!not tested
 
         /// <summary>
-        /// Removes <paramref name="node"/> from the <see href="_ITopNode._Nodes"/> dictionary.  Also calls <br/>
+        /// Removes <paramref name="node"/> (this) from the <see href="_ITopNode._Nodes"/> dictionary.  Also calls <br/>
 		/// <see href="UnRegisterIn_ParentNodes_ChildNodes(BaseType)"/> to remove <paramref name="node"/> 
 		/// from <see href="_ITopNode._ChildNodes"/>, and <see href="_ITopNode._IETnodes"/>.  <br/>
-        /// Does not remove nodes recursively from <see href="_ITopNode._Nodes"/> or <see href="_ITopNode._ChildNodes"/><br/>
+        /// By default, the method does not remove nodes recursively from <see href="_ITopNode._Nodes"/> or <see href="_ITopNode._ChildNodes"/><br/>
 		/// Optionally moves nodes recursively from <see href="_ITopNode._IETnodes"/>.  See <paramref name="removeIETnodesRecursively"/>.<br/>
-        /// </summary>
+        /// 
+		/// </summary>
         /// <param name="node"></param>
         /// <param name="removeIETnodesRecursively">If <paramref name="node"/> is moving to another location, then we need <br/>
 		/// to remove its entire subtree, and re-add it at the new target site.  Setting <paramref name="removeIETnodesRecursively"/><br/>

@@ -80,47 +80,61 @@ namespace SDC.Schema
         [XmlIgnore]
 		[JsonIgnore]
         public uint RepeatCounter { get; set; } = 0;
-        HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
+        HashSet<string> _IUniqueIDs._UniqueIDs
+		{
+			get
+			{
+				if (p_UniqueIDs is null) p_UniqueIDs = new();
+				return p_UniqueIDs;
+
+            }
+		}
+		HashSet<string>? p_UniqueIDs;
+
         #region ITopNode 
 
-        /// <summary>
-        /// ReadOnlyObservableCollection of all SDC nodes.
-        /// </summary>
+        /// <inheritdoc/>
         [XmlIgnore]
         [JsonIgnore]
         public ReadOnlyDictionary<Guid, BaseType> Nodes
         {
             get
             {
-                if (_nodesRO is null)
-                    _nodesRO = new(((_ITopNode)this)._Nodes);
-                return _nodesRO;
+                if (p_NodesRO is null)
+                    p_NodesRO = new(((_ITopNode)this)._Nodes);
+                return p_NodesRO;
             }
         }
+        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
+
+        /// <inheritdoc/>
         [XmlIgnore]
 		[JsonIgnore]
 		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
 		{
 			get
 			{				
-				if (_IETnodesRO is null)
+				if (p_IETnodesRO is null)
 				{
 					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
-					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
+					p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
 				}
-				return _IETnodesRO;
+				return p_IETnodesRO;
 			}
 		}
+        private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
 
-		[XmlIgnore]
+        /// <inheritdoc/>
+        [XmlIgnore]
 		[JsonIgnore]
-		public bool GlobalAutoNameFlag { get; set; } = true;
-		/// <summary>
-		/// Allows re-importing an SDC XML file into an existing top node object.
-		/// Clears all dictionaries, sets topNodeTemp (which is a static property) to null, sets top level objects to null. <br/>
-		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
-		/// </summary>
-		public void ResetRootNode()
+		public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
+
+        /// <summary>
+        /// Allows re-importing an SDC XML file into an existing top node object.
+        /// Clears all dictionaries, sets topNodeTemp (which is a static property) to null, sets top level objects to null. <br/>
+        /// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
+        /// </summary>
+        public void ResetRootNode()
 		{
 			BaseType.ResetLastTopNode();
 			((_ITopNode)this)._ClearDictionaries();
@@ -137,26 +151,78 @@ namespace SDC.Schema
 		}
 
 
-		#region _ITopNode
+        #region _ITopNode
 
-		private ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
-		int _ITopNode._MaxObjectID { get; set; } = 0;
+        /// <inheritdoc/>		
+        int _ITopNode._MaxObjectID { get; set; } = 0;
 
-		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-	
-		Dictionary<Guid, BaseType> _ITopNode._ParentNodes { get; } = new ();
+		Dictionary<Guid, BaseType> _ITopNode._Nodes
+        {
+            get
+            {
+                if (p_Nodes is null) p_Nodes = new();
+                return p_Nodes;
+            }
+        }
+        Dictionary<Guid, BaseType>? p_Nodes;
 
-		Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes { get; } = new ();
+        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
+        {
+            get
+            {
+                if (p_ParentNodes is null) p_ParentNodes = new();
+                return p_ParentNodes;
+            }
+        }
+        Dictionary<Guid, BaseType>? p_ParentNodes;
 
-		HashSet<int> _ITopNode._TreeSort_NodeIds { get; } = new ();
+        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        {
+            get
+            {
+                if (p_ChildNodes is null) p_ChildNodes = new();
+                return p_ChildNodes;
+            }
+        }
+        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
 
-		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
+        HashSet<int> _ITopNode._TreeSort_NodeIds
+        {
+            get
+            {
+                if (p_TreeSort_NodeIds is null) p_TreeSort_NodeIds = new();
+                return p_TreeSort_NodeIds;
+            }
+        }
+        HashSet<int>? p_TreeSort_NodeIds;
 
-		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		HashSet<string> _ITopNode._UniqueBaseNames { get; } = new();
-        
-        HashSet<string> _ITopNode._UniqueNames { get; } = new();
+        /// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
+        ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes 
+		{ get { 
+				if(p_IETNodes is null) p_IETNodes = new();
+				return p_IETNodes;
+			}
+		} 
+        ObservableCollection<IdentifiedExtensionType>? p_IETNodes;
+        HashSet<string> _ITopNode._UniqueBaseNames
+        {
+            get
+            {
+                if (p_UniqueBaseNames is null) p_UniqueBaseNames = new();
+                return p_UniqueBaseNames;
+            }
+        } 
+		HashSet<string>? p_UniqueBaseNames;
+
+        HashSet<string> _ITopNode._UniqueNames
+        {
+            get
+            {
+                if (p_UniqueNames is null) p_UniqueNames = new();
+                return p_UniqueNames;
+            }
+        }
+        HashSet<string>? p_UniqueNames;
 
         /// <summary> Clears all internal dictionaries
         /// </summary>
@@ -167,8 +233,8 @@ namespace SDC.Schema
 			topNode._ParentNodes.Clear();
 			topNode._ChildNodes.Clear();
 			topNode._IETnodes.Clear();
-			_IETnodesRO = null;
-			_nodesRO = null;
+			p_IETnodesRO = null;
+			p_NodesRO = null;
 			topNode._IETnodes.Clear();
 		}
 
@@ -303,86 +369,157 @@ namespace SDC.Schema
 		}
         HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
-        #region ITopNode
+        #region ITopNode 
 
+        /// <inheritdoc/>
         [XmlIgnore]
-		[JsonIgnore]
-		public ReadOnlyDictionary<Guid, BaseType> Nodes
-		{
-			get
-			{
-				if (_nodesRO is null)
-					_nodesRO = new(((_ITopNode)this)._Nodes);
-				return _nodesRO;
-			}
-		}
-		[XmlIgnore]
-		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
-		{
-			get
-			{
-				if (_IETnodesRO is null)
-				{
-					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
-					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
-				}
-				return _IETnodesRO;
-			}
-		}
+        [JsonIgnore]
+        public ReadOnlyDictionary<Guid, BaseType> Nodes
+        {
+            get
+            {
+                if (p_NodesRO is null)
+                    p_NodesRO = new(((_ITopNode)this)._Nodes);
+                return p_NodesRO;
+            }
+        }
+        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
 
-		[XmlIgnore]
-		[JsonIgnore]
-		public bool GlobalAutoNameFlag { get; set; } = true;
-		/// <summary>
-		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to new(). <br/>
-		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
-		/// </summary>
-		public void ResetRootNode()
-		{
-			BaseType.ResetLastTopNode();
-			((_ITopNode)this)._ClearDictionaries();
-			//((_ITopNode)this)._MaxObjectIDint = 0;
-			Property = new();
-			Extension = new();
-			Comment = new();
+        /// <inheritdoc/>
+        [XmlIgnore]
+        [JsonIgnore]
+        public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+        {
+            get
+            {
+                if (p_IETnodesRO is null)
+                {
+                    if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+                    p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
+                }
+                return p_IETnodesRO;
+            }
+        }
+        private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
 
-			Items = new();
-		}
-		#region _ITopNode
-		private ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
+        /// <inheritdoc/>
+        [XmlIgnore]
+        [JsonIgnore]
+        public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
 
-		int _ITopNode._MaxObjectID { get; set; } = 0;
-		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		Dictionary<Guid, BaseType> _ITopNode._ParentNodes { get; } = new Dictionary<Guid, BaseType>();
-		Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes { get; } = new Dictionary<Guid, List<BaseType>>();
-		HashSet<int> _ITopNode._TreeSort_NodeIds { get; } = new();
-
-		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
-		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		HashSet<string> _ITopNode._UniqueBaseNames { get; } = new();
-        HashSet<string> _ITopNode._UniqueNames { get; } = new();
         /// <summary>
-        /// 
+        /// Allows re-importing an SDC XML file into an existing top node object.
+        /// Clears all dictionaries, sets topNodeTemp (which is a static property) to null, sets top level objects to null. <br/>
+        /// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
+        /// </summary>
+        public void ResetRootNode()
+        {
+            BaseType.ResetLastTopNode();
+            ((_ITopNode)this)._ClearDictionaries();
+            ((_ITopNode)this)._MaxObjectID = 0;
+            Property = null;
+            Extension = null;
+            Comment = null;
+        }
+
+
+        #region _ITopNode
+
+        /// <inheritdoc/>		
+        int _ITopNode._MaxObjectID { get; set; } = 0;
+
+        Dictionary<Guid, BaseType> _ITopNode._Nodes
+        {
+            get
+            {
+                if (p_Nodes is null) p_Nodes = new();
+                return p_Nodes;
+            }
+        }
+        Dictionary<Guid, BaseType>? p_Nodes;
+
+        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
+        {
+            get
+            {
+                if (p_ParentNodes is null) p_ParentNodes = new();
+                return p_ParentNodes;
+            }
+        }
+        Dictionary<Guid, BaseType>? p_ParentNodes;
+
+        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        {
+            get
+            {
+                if (p_ChildNodes is null) p_ChildNodes = new();
+                return p_ChildNodes;
+            }
+        }
+        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
+
+        HashSet<int> _ITopNode._TreeSort_NodeIds
+        {
+            get
+            {
+                if (p_TreeSort_NodeIds is null) p_TreeSort_NodeIds = new();
+                return p_TreeSort_NodeIds;
+            }
+        }
+        HashSet<int>? p_TreeSort_NodeIds;
+
+        /// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
+        ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes
+        {
+            get
+            {
+                if (p_IETNodes is null) p_IETNodes = new();
+                return p_IETNodes;
+            }
+        }
+        ObservableCollection<IdentifiedExtensionType>? p_IETNodes;
+        HashSet<string> _ITopNode._UniqueBaseNames
+        {
+            get
+            {
+                if (p_UniqueBaseNames is null) p_UniqueBaseNames = new();
+                return p_UniqueBaseNames;
+            }
+        }
+        HashSet<string>? p_UniqueBaseNames;
+
+        HashSet<string> _ITopNode._UniqueNames
+        {
+            get
+            {
+                if (p_UniqueNames is null) p_UniqueNames = new();
+                return p_UniqueNames;
+            }
+        }
+        HashSet<string>? p_UniqueNames;
+
+        /// <summary> Clears all internal dictionaries
         /// </summary>
         void _ITopNode._ClearDictionaries()
-		{
-			var topNode = (_ITopNode)this;
-			topNode._Nodes.Clear();
-			topNode._ParentNodes.Clear();
-			topNode._ChildNodes.Clear();
-			_nodesRO = null;
-			topNode._IETnodes.Clear();
+        {
+            var topNode = (_ITopNode)this;
+            topNode._Nodes.Clear();
+            topNode._ParentNodes.Clear();
+            topNode._ChildNodes.Clear();
+            topNode._IETnodes.Clear();
+            p_IETnodesRO = null;
+            p_NodesRO = null;
+            topNode._IETnodes.Clear();
+        }
 
-		}
-		#endregion
+        #endregion
 
-		#endregion
-		#region Deserialization
 
-		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
-		public static DataElementType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+        #endregion
+        #region Deserialization
+
+        ///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+        public static DataElementType DeserializeFromXmlPath(string sdcPath, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
 			=> TopNodeSerializer<DataElementType>.DeserializeFromXmlPath(sdcPath, refreshSdc: true, createNameDelegate, orderStart, orderGap);
 
 		///<inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXml(string, bool, SdcUtil.CreateName?, int, int)"/>
@@ -434,48 +571,60 @@ namespace SDC.Schema
 			this.ComplianceRule = new();
 			this.SDCPackage = new();
 		}
-        HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
+        HashSet<string> _IUniqueIDs._UniqueIDs
+        {
+            get
+            {
+                if (p_UniqueIDs is null) p_UniqueIDs = new();
+                return p_UniqueIDs;
 
-        #region ITopNode
+            }
+        }
+        HashSet<string>? p_UniqueIDs;
+
+        #region ITopNode 
+
+        /// <inheritdoc/>
         [XmlIgnore]
-		[JsonIgnore]
-		public int MaxObjectID { get; internal set; } = 0;
-		[XmlIgnore]
-		[JsonIgnore]
-		public ReadOnlyDictionary<Guid, BaseType> Nodes
-		{
-			get
-			{
-				if (_nodesRO is null)
-					_nodesRO = new(((_ITopNode)this)._Nodes);
-				return _nodesRO;
-			}
-		}
-		[XmlIgnore]
-		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
-		{
-			get
-			{
-				if (_IETnodesRO is null)
-				{
-					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
-					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
-				}
-				return _IETnodesRO;
-			}
-		}
+        [JsonIgnore]
+        public ReadOnlyDictionary<Guid, BaseType> Nodes
+        {
+            get
+            {
+                if (p_NodesRO is null)
+                    p_NodesRO = new(((_ITopNode)this)._Nodes);
+                return p_NodesRO;
+            }
+        }
+        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
 
-		public List<BaseType> GetSortedNodesList() => ((ITopNode)this).GetSortedNodes();
-		public ObservableCollection<BaseType> GetSortedNodesObsCol() => ((ITopNode)this).GetSortedNodesObsCol();
-		[XmlIgnore]
-		[JsonIgnore]
-		public bool GlobalAutoNameFlag { get; set; } = true;
-		/// <summary>
-		/// Clears all dictionaries, sets top level objects to new(). <br/>
-		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
-		/// </summary>
-		public void ResetRootNode()
+        /// <inheritdoc/>
+        [XmlIgnore]
+        [JsonIgnore]
+        public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+        {
+            get
+            {
+                if (p_IETnodesRO is null)
+                {
+                    if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+                    p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
+                }
+                return p_IETnodesRO;
+            }
+        }
+        private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
+
+        /// <inheritdoc/>
+        [XmlIgnore]
+        [JsonIgnore]
+        public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
+
+        /// <summary>
+        /// Clears all dictionaries, sets top level objects to new(). <br/>
+        /// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
+        /// </summary>
+        public void ResetRootNode()
 		{
 			BaseType.ResetLastTopNode();
 			((_ITopNode)this)._ClearDictionaries();
@@ -490,33 +639,100 @@ namespace SDC.Schema
 			SDCPackage = new();
 		}
 
-		#region _ITopNode
-		private ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
 
-		int _ITopNode._MaxObjectID { get; set; } = 0;
-		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		Dictionary<Guid, BaseType> _ITopNode._ParentNodes { get; } = new Dictionary<Guid, BaseType>();
-		Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes { get; } = new Dictionary<Guid, List<BaseType>>();
-		HashSet<int> _ITopNode._TreeSort_NodeIds { get; } = new();
-		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
-		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		HashSet<string> _ITopNode._UniqueBaseNames { get; } = new();
-        HashSet<string> _ITopNode._UniqueNames { get; } = new();
+        #region _ITopNode
+
+        /// <inheritdoc/>		
+        int _ITopNode._MaxObjectID { get; set; } = 0;
+
+        Dictionary<Guid, BaseType> _ITopNode._Nodes
+        {
+            get
+            {
+                if (p_Nodes is null) p_Nodes = new();
+                return p_Nodes;
+            }
+        }
+        Dictionary<Guid, BaseType>? p_Nodes;
+
+        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
+        {
+            get
+            {
+                if (p_ParentNodes is null) p_ParentNodes = new();
+                return p_ParentNodes;
+            }
+        }
+        Dictionary<Guid, BaseType>? p_ParentNodes;
+
+        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        {
+            get
+            {
+                if (p_ChildNodes is null) p_ChildNodes = new();
+                return p_ChildNodes;
+            }
+        }
+        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
+
+        HashSet<int> _ITopNode._TreeSort_NodeIds
+        {
+            get
+            {
+                if (p_TreeSort_NodeIds is null) p_TreeSort_NodeIds = new();
+                return p_TreeSort_NodeIds;
+            }
+        }
+        HashSet<int>? p_TreeSort_NodeIds;
+
+        /// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
+        ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes
+        {
+            get
+            {
+                if (p_IETNodes is null) p_IETNodes = new();
+                return p_IETNodes;
+            }
+        }
+        ObservableCollection<IdentifiedExtensionType>? p_IETNodes;
+        HashSet<string> _ITopNode._UniqueBaseNames
+        {
+            get
+            {
+                if (p_UniqueBaseNames is null) p_UniqueBaseNames = new();
+                return p_UniqueBaseNames;
+            }
+        }
+        HashSet<string>? p_UniqueBaseNames;
+
+        HashSet<string> _ITopNode._UniqueNames
+        {
+            get
+            {
+                if (p_UniqueNames is null) p_UniqueNames = new();
+                return p_UniqueNames;
+            }
+        }
+        HashSet<string>? p_UniqueNames;
+
+        /// <summary> Clears all internal dictionaries
+        /// </summary>
         void _ITopNode._ClearDictionaries()
-		{
-			var topNode = (_ITopNode)this;
-			topNode._Nodes.Clear();
-			topNode._ParentNodes.Clear();
-			topNode._ChildNodes.Clear();
-			_nodesRO = null;
-			topNode._IETnodes.Clear();
-		}
+        {
+            var topNode = (_ITopNode)this;
+            topNode._Nodes.Clear();
+            topNode._ParentNodes.Clear();
+            topNode._ChildNodes.Clear();
+            topNode._IETnodes.Clear();
+            p_IETnodesRO = null;
+            p_NodesRO = null;
+            topNode._IETnodes.Clear();
+        }
+
+        #endregion
 
 
-		#endregion
-		#endregion
-
+        #endregion
 
 
 		#region Deserialization
@@ -597,9 +813,18 @@ namespace SDC.Schema
 			ElementName = "XMLPackage";
 			ElementPrefix = "xmlPkg";
 		}
-		HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
+        HashSet<string> _IUniqueIDs._UniqueIDs
+        {
+            get
+            {
+                if (p_UniqueIDs is null) p_UniqueIDs = new();
+                return p_UniqueIDs;
+
+            }
+        }
+        HashSet<string>? p_UniqueIDs;
     }
-	public partial class PackageItemType : ExtensionBaseType
+    public partial class PackageItemType : ExtensionBaseType
 	{
 		protected PackageItemType()
 		{ }
@@ -626,42 +851,60 @@ namespace SDC.Schema
 			ElementName = "SDCPackageList";
 			ElementPrefix = "PL";
 		}
-        HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
+        HashSet<string> _IUniqueIDs._UniqueIDs
+        {
+            get
+            {
+                if (p_UniqueIDs is null) p_UniqueIDs = new();
+                return p_UniqueIDs;
 
-        #region ITopNode
+            }
+        }
+        HashSet<string>? p_UniqueIDs;
+
+        #region ITopNode 
+
+        /// <inheritdoc/>
         [XmlIgnore]
-		[JsonIgnore]
-		public ReadOnlyDictionary<Guid, BaseType> Nodes
-		{
-			get
-			{
-				if (_nodesRO is null)
-					_nodesRO = new(((_ITopNode)this)._Nodes);
-				return _nodesRO;
-			}
-		}
-		[XmlIgnore]
-		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
-		{
-			get
-			{
-				if (_IETnodesRO is null)
-				{
-					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
-					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
-				}
-				return _IETnodesRO;
-			}
-		}
-		[XmlIgnore]
-		[JsonIgnore]
-		public bool GlobalAutoNameFlag { get; set; } = true;
-		/// <summary>
-		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
-		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
-		/// </summary>
-		public void ResetRootNode()
+        [JsonIgnore]
+        public ReadOnlyDictionary<Guid, BaseType> Nodes
+        {
+            get
+            {
+                if (p_NodesRO is null)
+                    p_NodesRO = new(((_ITopNode)this)._Nodes);
+                return p_NodesRO;
+            }
+        }
+        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
+
+        /// <inheritdoc/>
+        [XmlIgnore]
+        [JsonIgnore]
+        public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+        {
+            get
+            {
+                if (p_IETnodesRO is null)
+                {
+                    if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+                    p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
+                }
+                return p_IETnodesRO;
+            }
+        }
+        private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
+
+        /// <inheritdoc/>
+        [XmlIgnore]
+        [JsonIgnore]
+        public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
+
+        /// <summary>
+        /// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
+        /// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
+        /// </summary>
+        public void ResetRootNode()
 		{
 			BaseType.ResetLastTopNode();
 			((_ITopNode)this)._ClearDictionaries();
@@ -673,37 +916,99 @@ namespace SDC.Schema
 			this.PackageItem = null;
 			this.HTML = null;
 		}
-		#region _ITopNode
+        #region _ITopNode
 
-		private ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
+        /// <inheritdoc/>		
+        int _ITopNode._MaxObjectID { get; set; } = 0;
 
-		int _ITopNode._MaxObjectID { get; set; } = 0;
-		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();	
-		Dictionary<Guid, BaseType> _ITopNode._ParentNodes { get; } = new Dictionary<Guid, BaseType>();
-		Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes { get; } = new Dictionary<Guid, List<BaseType>>();
-		HashSet<int> _ITopNode._TreeSort_NodeIds { get; } = new();
-		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
-		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		HashSet<string> _ITopNode._UniqueBaseNames { get; } = new();
-        HashSet<string> _ITopNode._UniqueNames { get; } = new();
-        /// <summary>
-        /// 
+        Dictionary<Guid, BaseType> _ITopNode._Nodes
+        {
+            get
+            {
+                if (p_Nodes is null) p_Nodes = new();
+                return p_Nodes;
+            }
+        }
+        Dictionary<Guid, BaseType>? p_Nodes;
+
+        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
+        {
+            get
+            {
+                if (p_ParentNodes is null) p_ParentNodes = new();
+                return p_ParentNodes;
+            }
+        }
+        Dictionary<Guid, BaseType>? p_ParentNodes;
+
+        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        {
+            get
+            {
+                if (p_ChildNodes is null) p_ChildNodes = new();
+                return p_ChildNodes;
+            }
+        }
+        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
+
+        HashSet<int> _ITopNode._TreeSort_NodeIds
+        {
+            get
+            {
+                if (p_TreeSort_NodeIds is null) p_TreeSort_NodeIds = new();
+                return p_TreeSort_NodeIds;
+            }
+        }
+        HashSet<int>? p_TreeSort_NodeIds;
+
+        /// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
+        ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes
+        {
+            get
+            {
+                if (p_IETNodes is null) p_IETNodes = new();
+                return p_IETNodes;
+            }
+        }
+        ObservableCollection<IdentifiedExtensionType>? p_IETNodes;
+        HashSet<string> _ITopNode._UniqueBaseNames
+        {
+            get
+            {
+                if (p_UniqueBaseNames is null) p_UniqueBaseNames = new();
+                return p_UniqueBaseNames;
+            }
+        }
+        HashSet<string>? p_UniqueBaseNames;
+
+        HashSet<string> _ITopNode._UniqueNames
+        {
+            get
+            {
+                if (p_UniqueNames is null) p_UniqueNames = new();
+                return p_UniqueNames;
+            }
+        }
+        HashSet<string>? p_UniqueNames;
+
+        /// <summary> Clears all internal dictionaries
         /// </summary>
         void _ITopNode._ClearDictionaries()
-		{
-			var topNode = (_ITopNode)this;
-			topNode._Nodes.Clear();
-			topNode._ParentNodes.Clear();
-			topNode._ChildNodes.Clear();
-			_nodesRO = null;
-			topNode._IETnodes.Clear();
-		}
-		#endregion
+        {
+            var topNode = (_ITopNode)this;
+            topNode._Nodes.Clear();
+            topNode._ParentNodes.Clear();
+            topNode._ChildNodes.Clear();
+            topNode._IETnodes.Clear();
+            p_IETnodesRO = null;
+            p_NodesRO = null;
+            topNode._IETnodes.Clear();
+        }
+
+        #endregion
 
 
-
-		#endregion
+        #endregion
 
 
 		#region Deserialization
@@ -768,40 +1073,49 @@ namespace SDC.Schema
 		{
 			ElementPrefix = "MAP";
 		}
-		#region ITopNode
-		[XmlIgnore]
-		[JsonIgnore]
-		public ReadOnlyDictionary<Guid, BaseType> Nodes
-		{
-			get
-			{
-				if (_nodesRO is null)
-					_nodesRO = new(((_ITopNode)this)._Nodes);
-				return _nodesRO;
-			}
-		}
-		[XmlIgnore]
-		[JsonIgnore]
-		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
-		{
-			get
-			{
-				if (_IETnodesRO is null)
-				{
-					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
-					_IETnodesRO = new(((_ITopNode)TopNode)!._IETnodes);
-				}
-				return _IETnodesRO;
-			}
-		}
-		[XmlIgnore]
-		[JsonIgnore]
-		public bool GlobalAutoNameFlag { get; set; } = true;
-		/// <summary>
-		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
-		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
-		/// </summary>
-		public void ResetRootNode()
+        #region ITopNode 
+
+        /// <inheritdoc/>
+        [XmlIgnore]
+        [JsonIgnore]
+        public ReadOnlyDictionary<Guid, BaseType> Nodes
+        {
+            get
+            {
+                if (p_NodesRO is null)
+                    p_NodesRO = new(((_ITopNode)this)._Nodes);
+                return p_NodesRO;
+            }
+        }
+        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
+
+        /// <inheritdoc/>
+        [XmlIgnore]
+        [JsonIgnore]
+        public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+        {
+            get
+            {
+                if (p_IETnodesRO is null)
+                {
+                    if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+                    p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
+                }
+                return p_IETnodesRO;
+            }
+        }
+        private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
+
+        /// <inheritdoc/>
+        [XmlIgnore]
+        [JsonIgnore]
+        public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
+
+        /// <summary>
+        /// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
+        /// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
+        /// </summary>
+        public void ResetRootNode()
 		{
 			BaseType.ResetLastTopNode();
 			((_ITopNode)this)._ClearDictionaries();
@@ -812,35 +1126,100 @@ namespace SDC.Schema
 			this.ItemMap = null;
 			this.DefaultCodeSystem = null;
 		}
-		#region _ITopNode
-		private ReadOnlyDictionary<Guid, BaseType>? _nodesRO;
-		private ReadOnlyObservableCollection<IdentifiedExtensionType>? _IETnodesRO;
+        #region _ITopNode
 
-		int _ITopNode._MaxObjectID { get; set; } = 0;
-		Dictionary<Guid, BaseType> _ITopNode._Nodes { get; } = new Dictionary<Guid, BaseType>();
-		Dictionary<Guid, BaseType> _ITopNode._ParentNodes { get; } = new ();
-		Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes { get;} = new ();
-		HashSet<int> _ITopNode._TreeSort_NodeIds { get; } = new();
-		/// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
-		ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes { get; } = new();
-		HashSet<string> _ITopNode._UniqueBaseNames { get; } = new();
-        HashSet<string> _ITopNode._UniqueNames { get; } = new();
-        /// <summary>
-        /// 
+        /// <inheritdoc/>		
+        int _ITopNode._MaxObjectID { get; set; } = 0;
+
+        Dictionary<Guid, BaseType> _ITopNode._Nodes
+        {
+            get
+            {
+                if (p_Nodes is null) p_Nodes = new();
+                return p_Nodes;
+            }
+        }
+        Dictionary<Guid, BaseType>? p_Nodes;
+
+        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
+        {
+            get
+            {
+                if (p_ParentNodes is null) p_ParentNodes = new();
+                return p_ParentNodes;
+            }
+        }
+        Dictionary<Guid, BaseType>? p_ParentNodes;
+
+        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        {
+            get
+            {
+                if (p_ChildNodes is null) p_ChildNodes = new();
+                return p_ChildNodes;
+            }
+        }
+        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
+
+        HashSet<int> _ITopNode._TreeSort_NodeIds
+        {
+            get
+            {
+                if (p_TreeSort_NodeIds is null) p_TreeSort_NodeIds = new();
+                return p_TreeSort_NodeIds;
+            }
+        }
+        HashSet<int>? p_TreeSort_NodeIds;
+
+        /// <summary>Base object for the ReadOnlyObservableCollection IETnodes.</summary>
+        ObservableCollection<IdentifiedExtensionType> _ITopNode._IETnodes
+        {
+            get
+            {
+                if (p_IETNodes is null) p_IETNodes = new();
+                return p_IETNodes;
+            }
+        }
+        ObservableCollection<IdentifiedExtensionType>? p_IETNodes;
+        HashSet<string> _ITopNode._UniqueBaseNames
+        {
+            get
+            {
+                if (p_UniqueBaseNames is null) p_UniqueBaseNames = new();
+                return p_UniqueBaseNames;
+            }
+        }
+        HashSet<string>? p_UniqueBaseNames;
+
+        HashSet<string> _ITopNode._UniqueNames
+        {
+            get
+            {
+                if (p_UniqueNames is null) p_UniqueNames = new();
+                return p_UniqueNames;
+            }
+        }
+        HashSet<string>? p_UniqueNames;
+
+        /// <summary> Clears all internal dictionaries
         /// </summary>
         void _ITopNode._ClearDictionaries()
-		{
-			var topNode = (_ITopNode)this;
-			topNode._Nodes.Clear();
-			topNode._ParentNodes.Clear();
-			topNode._ChildNodes.Clear();
-			_nodesRO = null;
-			topNode._IETnodes.Clear();
-		}
-		#endregion
+        {
+            var topNode = (_ITopNode)this;
+            topNode._Nodes.Clear();
+            topNode._ParentNodes.Clear();
+            topNode._ChildNodes.Clear();
+            topNode._IETnodes.Clear();
+            p_IETnodesRO = null;
+            p_NodesRO = null;
+            topNode._IETnodes.Clear();
+        }
 
-		#endregion
+        #endregion
 
+
+        #endregion
+  
 
 		#region Deserialization
 
@@ -1287,25 +1666,25 @@ namespace SDC.Schema
 		/// </summary>
 		protected BaseType()
 		{			
-
 			if (this is ITopNode tn)
 			{
 				this.ObjectID = 0;
-				((_ITopNode)this)._MaxObjectID = 1;
+				var itn = ((_ITopNode)this);
+                itn._MaxObjectID = 1;
 
-				if (LastTopNode is null)
+                if (LastTopNode is null)
 				{
 					LastTopNode = tn; //Point to myself as the TopNode
 					TopNode = tn;
-					//ObjectID = ((_ITopNode)this)._MaxObjectID++;
-				}
-				else
+                    //ObjectID = itn._MaxObjectID++;
+                }
+                else
 				{
 					TopNode = LastTopNode; //Point to LastTopNode as the TopNode
 					LastTopNode = tn;
-					//ObjectID = ((_ITopNode)this)._MaxObjectID++;
-				}
-			}//not ITopNode below here
+                    //ObjectID = itn._MaxObjectID++;
+                }
+            }//not ITopNode below here
 			else if (LastTopNode is not null)
 			{
 				TopNode = LastTopNode;
@@ -1331,7 +1710,9 @@ namespace SDC.Schema
 		/// <see cref="DataTypes_SType"/>, <see cref="CallFuncBaseType"/>, <see cref="RegistrySummaryType"/>, <see cref="ActionsType"/></param>
 		protected BaseType(BaseType? parentNode, int position = -1, string elementName = "")
 		{
-			if (parentNode is null && this is not ITopNode)
+            //TODO: Consider adding the Init method to IBaseType so we can initialize ElementName and ElementPrefix here, instead of later in the subclass constructor
+
+            if (parentNode is null && this is not ITopNode)
 				throw new NullReferenceException($"{nameof(parentNode)} can only be null if this object implements ITopNode.");
 			InitBaseType(parentNode);
 			if (parentNode is not null)
@@ -1707,10 +2088,10 @@ namespace SDC.Schema
 
 			}
 		}
-		/// <summary>
-		/// Retrieve the BaseType object that is the SDC Package containing the current object in the object tree
-		/// </summary>
-		[XmlIgnore]
+        /// <summary>
+        /// Retrieve the SDC Package (RetrieveFormPackageType) containing the current object in the object tree
+        /// </summary>
+        [XmlIgnore]
 		[JsonIgnore]
 		public RetrieveFormPackageType? PackageNode
 		{
@@ -1868,7 +2249,7 @@ namespace SDC.Schema
 
 		#region Private Members
 		private int elementOrder;
-		 private string _elementName = "";
+		private string _elementName = "";
 		private string _elementPrefix = "";
 		private RetrieveFormPackageType? _PackageNode;
 		private static ITopNode? LastTopNode;

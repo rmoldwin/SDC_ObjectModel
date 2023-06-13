@@ -21,10 +21,10 @@ namespace SDC.Schema
 	//If SdcSerializer<T> used T: BaseType, its methods would not accept ITopNode, since an interface cannot inherit a class (BaseType)
 	{
 
-		/// <summary>
-		/// ReadOnlyObservableCollection of all SDC nodes.
-		/// </summary>
-		[XmlIgnore]
+        /// <summary>
+        /// ReadOnlyDictionary of all SDC nodes.
+        /// </summary>
+        [XmlIgnore]
 		[JsonIgnore]
 		ReadOnlyDictionary<Guid, BaseType> Nodes { get; }
 
@@ -79,58 +79,67 @@ namespace SDC.Schema
 
 	}
 
-	/// <summary>
-	/// This interface (ITopNode) hides its Internal members, and also imports public members from ITopNodePublic.
-	/// <br/><br/>
-	/// See here for a description of an internal interface inheriting a public interface:
-	/// https://www.csharp411.com/c-internal-interface/ <br/><br/>
-	/// Note that all interface members use the access level of their defining interface (e.g., internal, in this case), 
-	/// regardless of the access modifier on each member.  
-	/// Inheritance of a less restrictive interface (e.g., ITopNodePublic) leaves those inherited members with their less restrictive access, 
-	/// even though the top-level interface is more restrictive.<br/><br/>
-	/// Note that all internal interface member names are prefixed with "_" and start with a capital letter. 
-	/// </summary>
-	internal interface _ITopNode : ITopNode
+    /// <summary>
+    /// This interface (ITopNode) hides its Internal members, and also imports public members from ITopNodePublic.<br/>
+    /// Since _ITopNode is internal, it can only be used by classes in the SDC.Schema assembly.<br/>
+    /// The interface and all its members use the "_" prefix to indicate that they are internal.<br/>
+    /// <br/><br/>
+    /// See here for a description of an internal interface inheriting a public interface:
+    /// <see href="https://www.csharp411.com/c-internal-interface/"/> <br/><br/>
+    /// Note that all <see cref="_ITopNode"/> interface members use the access level of their defining interface (e.g., internal, in this case), 
+    /// regardless of the access modifier on each member. <br/>
+    /// Inheritance of a less restrictive interface (<see cref="ITopNode"/>) leaves those inherited <see cref="ITopNode"/>members with their less restrictive (public) access, 
+    /// even though the top-level interface is more restrictive.<br/><br/>
+    /// Note that all internal <see cref="ITopNode"/> interface member names are prefixed with "_" and start with a capital letter. 
+    /// </summary>
+    internal interface _ITopNode : ITopNode
 	{
-		///Holds the largest ObjectID that was most-recently assigned to a new node.  <br/>
-		///The _MaxObjectID is incremented by 1 each time a new node is added to an SDC object tree. <br/>
-		///_MaxObjectID can be reset to 0 by calling ITopNode.ResetRootNode()
-		int _MaxObjectID { get; set; }
+        /// <summary>
+        /// Gets or sets the maximum object identifier.
+        /// </summary>
+        int _MaxObjectID { get; set; }
 
-		/// <summary>
-		/// Internal base object for initializing IETnodesRO.
+		///<summary>
+		/// Internal base object for initializing IETnodes.<br/>
+		/// The contents of this list are copied (as a read-only collection) to the public IETnodes when the IETnodes property is accessed.
 		/// </summary>
 		ObservableCollection<IdentifiedExtensionType> _IETnodes { get; }
 
-		/// <summary>
-		/// Dictionary.  Given an Node ObjectGUID, returns the node's object reference.
-		/// </summary>
-		Dictionary<Guid, BaseType> _Nodes { get; }
+        /// <summary>
+        /// Internal Dictionary.  Given an Node ObjectGUID, returns the node's object reference.
+        /// </summary>
+        Dictionary<Guid, BaseType> _Nodes { get; }
+
+        /// <summary>
+        /// Internal Dictionary.  Given a Node ObjectGUID, return the *parent* node's object reference
+        /// </summary>
+        Dictionary<Guid, BaseType> _ParentNodes { get;}
+        /// <summary>
+        /// Internal Dictionary.  Given a NodeID ObjectGUID, return a list of the child nodes object reference
+        /// </summary>
+        Dictionary<Guid, List<BaseType>> _ChildNodes { get;}
+
+        /// <summary>
+        /// This internal HashSet contains the ObjectID of each parent node that has had its child nodes sorted by ITreeSibComparer. <br/>
+        /// The presence of an ObjectID entry in this HashSet indicates that parent node's child nodes have already been sorted. <br/>
+        /// Checking for a parent node in this HashSet is used to skip the resorting of child nodes during a tree sorting operation. <br/>
+        /// The HashSet may be cleared using TreeSort_ClearNodeIds().  This action clears all entries from the HashSet and will thus <br/>
+		/// cause all parent nodes to resort their child nodes when a request is made for the parent node's _ChildItems entries.
+        /// </summary>
+        HashSet<int> _TreeSort_NodeIds { get; }
 
 		/// <summary>
-		/// Dictionary.  Given a Node ObjectGUID, return the *parent* node's object reference
+		/// Internal HashSet that contains every BaseName generated inside a TopNode's tree. It ensures that all BaseNames are unique. 
 		/// </summary>
-		Dictionary<Guid, BaseType> _ParentNodes { get; }
-		/// <summary>
-		/// Dictionary.  Given a NodeID ObjectGUID, return a list of the child nodes object reference
+		HashSet<string> _UniqueBaseNames { get; }
+        /// <summary>
+		/// Internal HashSet that contains every BaseType.name property generated inside a TopNode's tree. It ensures that all name values are unique. 
 		/// </summary>
-		Dictionary<Guid, List<BaseType>> _ChildNodes { get; }
-
-		/// <summary>
-		/// This HashSet contains the ObjectID of each parent node that has had its child nodes sorted by ITreeSibComparer.  
-		/// Each entry in this HashSet indicates that parent node's child nodes have already been sorted.  
-		/// Checking for a parent node in this HashSet is used to bypass the resorting of child nodes during a tree sorting operation.  
-		/// The HashSet may be cleared using TreeSort_ClearNodeIds().  This will cause all parent nodes to resort their child nodes when 
-		/// a request is made for the parent node's _ChildItems entries.
+		HashSet<string> _UniqueNames { get; }
+        /// <summary>
+		/// Remove all entries from internal <see cref="_ITopNode"/> dictionaries
 		/// </summary>
-		HashSet<int> _TreeSort_NodeIds { get; }
-
-		/// <summary>
-		/// Ensure that all BaseNames are unique. The key is a node's BaseName, The value is a node's sGuid; 
-		/// </summary>
-		internal HashSet<string> _UniqueBaseNames { get; }
-        internal HashSet<string> _UniqueNames { get; }
-        protected internal void _ClearDictionaries();
+		internal void _ClearDictionaries();
 	}
 }
 
