@@ -1,1 +1,1 @@
-SDC_CodeGeneratorTests
+SDC_ObjectModel
