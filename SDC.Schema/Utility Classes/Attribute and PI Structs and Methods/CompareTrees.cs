@@ -194,7 +194,14 @@ namespace SDC.Schema.Tests.Utils
 			//With _slAttNew and _slAttPrev, we are only looking at nodes that have attributes that will be serialized to XML.  All other nodes are skipped.
 			//Since we are parellelizing the algorith, the results will not be in node order.  They can be sorted later
 
-			_slAttNew.AsParallel().ForAll(kvNewIET =>
+
+
+			//Try this with Parallel.ForEach and compare to AsParallel().ForAll
+			//var partitioner = 
+			//	Partitioner.Create(_slAttNew, EnumerablePartitionerOptions.NoBuffering);
+			//Parallel.ForEach(partitioner, kvNewIET => 
+
+            _slAttNew.AsParallel().ForAll(kvNewIET =>
 			//slAttNew.All(kvNewIET =>
 			{
 				//Setup IET node data;

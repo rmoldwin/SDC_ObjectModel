@@ -72,7 +72,8 @@ public partial class LinkType : ExtensionBaseType
     /// Link to external information.
     /// </summary>
     [XmlElement(Order=1)]
-    [RequiredAttribute()]
+    //[RequiredAttribute()]  // Throws error when removing the node.
+    //TODO: Remove validation for RequiredAttribute, wherever it occurs.
     [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual anyURI_Stype LinkURI
     {

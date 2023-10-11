@@ -408,9 +408,9 @@ namespace SDC.Schema.Tests.Utils
 			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[0].aiNew?.ValueString == "Nunc non nisi a arcu tempus dapibus*****"); //Section title
 			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[1].displayName == "ReportText*****");  //Property with ReportText
 			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[2].displayName == "altText*****");  //Property with altText
-			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[2].elementName == "Property");  
+			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[2].elementName == "Property");
 
 
-		}
+        }
 	}
 }

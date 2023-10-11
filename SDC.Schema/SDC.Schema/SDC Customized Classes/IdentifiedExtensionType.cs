@@ -77,7 +77,7 @@ namespace SDC.Schema
 
                 //RM added 2023_03_16-------------------------------------------------------------
                 if (string.IsNullOrWhiteSpace(value))
-                    value = SdcUtil.CreateSimpleName(this);
+                    value = "_" + sGuid.ToString();
                 
                 //if TopNode is null here, we are probably deserializing through the default constructor -
                 //or perhaps we are cloning part of a object tree.

@@ -2,6 +2,7 @@
 //using SDC.Type.Interfaces;
 using SDC.Schema;
 using SDC.Schema.Extensions;
+using System.Linq;
 
 namespace SDC.Schema.Tests.OMTests
 {
@@ -63,7 +64,24 @@ namespace SDC.Schema.Tests.OMTests
 			QuestionItemType q = new(de, "q");
 			de.Items.Add(q);
 			var li = q.AddListItem("li");
+            li.name = "li_Name";
 			var rf = li.AddListItemResponseField();
+
+            //_______sample manipulation of new LIR response value
+            var lir = q.AddListItemResponse("lir", out var dt, 
+                "lir_Title", -1, ItemChoiceType.@string );
+            lir.name = "lir_Name";
+            var myStr = (string_DEtype) dt.Item;
+            myStr.val = "test";
+            myStr.maxLength = 4000;
+
+            //sample SDC coded rule:
+            var findLInode = de.GetListItemByName("lir_Name");
+            var dtLIR = findLInode?.GetResponseDataTypeNode() as string_DEtype;
+            if (dtLIR?.val is not null && !dtLIR.val.IsNullOrWhitespace())
+                lir.selected = true;
+            //____________________
+
             Assert.IsNotNull(rf);
         }
 
@@ -89,6 +107,7 @@ namespace SDC.Schema.Tests.OMTests
 
 			var li = q.AddListItem("li");
 			var e = li.AddOnSelect();
+            //li.selected = true;
             Assert.IsNotNull(e);
             Assert.AreEqual(1, li.OnSelect.Count);
         }

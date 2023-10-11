@@ -14,7 +14,8 @@ namespace SDC.Schema.Extensions
 		public static LinkType AddLink(this DisplayedType dtParent, int insertPosition = -1)
 		{
 			var link = new LinkType(dtParent, insertPosition, "Link");
-			var rtf = new RichTextType(link, -1, "LinkText");
+			link.LinkText = new RichTextType(link, -1, "LinkText");
+			link.LinkURI = new anyURI_Stype(link);
 			return link;
 		}
 		public static ContactType AddContact(this DisplayedType dtParent, int insertPosition = -1)

@@ -136,6 +136,9 @@ namespace SDC.Schema.Tests.Functional
 			li.Move(list2, 2);
 			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li, li.ParentNode).ItemIndex == 2);
 			Assert.AreEqual(list2, li.ParentNode);
+			//li.Move(list2, -1, false, SdcUtil.RefreshMode.UpdateNodeIdentity);
+
+
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
 			Setup.Reset(); //reset after moving nodes.
 		}
@@ -384,7 +387,7 @@ namespace SDC.Schema.Tests.Functional
             var adrenalChildOld = sAdrenalOld.GetChildItemsList()!.Last() as QuestionItemType;
 
             Assert.AreNotSame(adrenalChildNew, adrenalChildOld);
-
+			
             Assert.IsTrue(adrenalChildNew!.ID == adrenalChildOld!.ID);
             Assert.IsTrue(adrenalChildNew.ObjectGUID == adrenalChildOld.ObjectGUID);
             Assert.IsTrue(adrenalChildNew.name == adrenalChildOld.name); //QM_53772 vs Q_53772
@@ -404,8 +407,39 @@ namespace SDC.Schema.Tests.Functional
             string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
             var FD = FormDesignType.DeserializeFromXmlPath(path);
             var S1 = FD.IETnodes.OfType<SectionItemType>().Take(3).ToList()[1]; //ID = 16079, BaseName = "y1bxHm"
-            
-			ChildItemsType? S1par = S1.ParentNode! as ChildItemsType;
+
+            /*  sample code to run rules in an SDC tree
+			//find the first questionItemType node in FD
+			var Q1 = FD.IETnodes.OfType<QuestionItemType>().First();
+			//find the first list item node under that question node
+			var LI1 = Q1.GetListItems()?.First();
+			//find the list item node with name = "LI_21539"
+			var LI2 = Q1.GetListItems()?.Where(n => n.name == "LI_21539").First();
+            //I have three list items nodes, with names LI_53211, LI_42099, LI_43573.  if any one of those LI nodes is selected, then I want to find node LI_37678 and set IsSelected on node LI_37678 to true
+
+            try{ListItemType celiac = (ListItemType)Q1.GetListItems()?.Where(n => n.name == "LI_53211")?.First()!;ListItemType sma = (ListItemType)Q1.GetListItems()?.Where(n => n.name == "LI_42099").First()!;ListItemType cha = (ListItemType)Q1.GetListItems()?.Where(n => n.name == "LI_43573").First()!;ListItemType t4 = (ListItemType)Q1.GetListItems()?.Where(n => n.name == "LI_37678").First()!;if (celiac.selected || sma.selected || cha.selected) t4.selected = true;}catch (Exception ex){Debug.Print(ex.Message);} 
+
+				try { 
+					ListItemType celiac = (ListItemType)Q1.GetListItems()?
+						.Where(n => n.name == "LI_53211")?.First()!; 
+					ListItemType sma = (ListItemType)Q1.GetListItems()?
+						.Where(n => n.name == "LI_42099").First()!; 
+					ListItemType cha = (ListItemType)Q1.GetListItems()?
+						.Where(n => n.name == "LI_43573").First()!; 
+					ListItemType t4 = (ListItemType)Q1.GetListItems()?
+						.Where(n => n.name == "LI_37678").First()!; 
+					if (celiac.selected || sma.selected || cha.selected) t4.selected = true; 
+				} 
+				catch (Exception ex) { Debug.Print(ex.Message); }
+			*/
+
+            //var myLink = S1.AddLink();
+            //myLink.LinkText.val = "Note A:";
+            //myLink.LinkURI.val = "87698476b0sfssdff85657b";
+            //myLink.RemoveRecursive();
+
+
+            ChildItemsType? S1par = S1.ParentNode! as ChildItemsType;
 			Assert.IsNotNull(S1par); 
             S1.Move(S1par!, -1, false, SdcUtil.RefreshMode.CloneAndRepeatSubtree);
 

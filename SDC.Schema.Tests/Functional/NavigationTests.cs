@@ -81,8 +81,8 @@ namespace SDC.Schema.Tests.Functional
 			string content;
 			while (n != null)
 			{
-				if (n is DisplayedType) content = ": title: " + (n as DisplayedType).title;
-				else if (n is PropertyType) content = ": " + (n as PropertyType).propName + ": " + (n as PropertyType).val;
+				if (n is DisplayedType) content = ": title: " + (n as DisplayedType)?.title;
+				else if (n is PropertyType) content = ": " + (n as PropertyType)?.propName + ": " + (n as PropertyType)?.val;
 				else content = string.Empty;
 
 				Debug.Print(n.ObjectID.ToString().PadLeft(4) + ": " + i.ToString().PadLeft(4) + ": " + (n.name ?? string.Empty).PadRight(20) + ": " + (n.ElementName ?? string.Empty).PadRight(25) + content);
