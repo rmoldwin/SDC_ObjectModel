@@ -34,19 +34,19 @@ namespace SDC.Schema.Tests.Utils
 		private SDCsGuidEqualityComparer<IdentifiedExtensionType> _sGuidEqComparerIET = new();
 		#region     ctor   
 		/// <summary>
-		/// 
+		/// Creates a comparer for two versions of the same SDC object model.
 		/// </summary>
-		/// <param name="prevVersion">The older version of an SDC Object MOdel(OM)</param>
-		/// <param name="newVersion">The newer version of an SDC Object MOdel(OM)</param>
+		/// <param name="prevVersion">The previous version of the SDC <see cref="ITopNode"/> object model.</param>
+		/// <param name="newVersion">The newer version of the SDC <see cref="ITopNode"/> object model.</param>
 		public CompareTrees(T prevVersion, T newVersion)
 		{
 			CtorCompareTrees(prevVersion, newVersion);
 		}
 		/// <summary>
-		/// Compare newVersion XML to preVersion XML.  Each XML file will be converted to an SDC object model. 
+		/// Creates a comparer from two serialized SDC XML documents.
 		/// </summary>
-		/// <param name="prevXml">The older version of an SDC XML template</param>
-		/// <param name="newXml">The newer version of an SDC XML template</param>
+		/// <param name="prevXml">The XML for the previous SDC version.</param>
+		/// <param name="newXml">The XML for the newer SDC version.</param>
 		public CompareTrees(string prevXml, string newXml)
 		{
 			try
@@ -101,10 +101,10 @@ namespace SDC.Schema.Tests.Utils
 			CtorCompareTrees(_prevVersion, _newVersion);
 		}
 		/// <summary>
-		/// Compare newVersion SDC Object model to preVersion SDC Object model. 
+		/// Initializes this instance from two versions of an SDC object model.
 		/// </summary>
-		/// <param name="prevVersion">The older version of an SDC Object MOdel(OM)</param>
-		/// <param name="newVersion">The newer version of an SDC Object MOdel(OM)</param>
+		/// <param name="prevVersion">The previous version of the SDC <see cref="ITopNode"/> object model.</param>
+		/// <param name="newVersion">The newer version of the SDC <see cref="ITopNode"/> object model.</param>
 		private void CtorCompareTrees(T prevVersion, T newVersion)
 		{
 			_prevVersion = prevVersion;
@@ -120,7 +120,7 @@ namespace SDC.Schema.Tests.Utils
 		#endregion
 
 		/// <summary>
-		/// The newer version of an SDC Object Model(OM) 
+		/// The newer version of the compared SDC <see cref="ITopNode"/> object model.
 		/// </summary>
 		public T NewVersion
 		{
@@ -128,7 +128,7 @@ namespace SDC.Schema.Tests.Utils
 			set => ChangeNewVersion(value);
 		}
 		/// <summary>
-		/// The older version of an SDC Object Model(OM)
+		/// The previous version of the compared SDC <see cref="ITopNode"/> object model.
 		/// </summary>
 		public T PrevVersion
 		{
@@ -137,10 +137,10 @@ namespace SDC.Schema.Tests.Utils
 		}
 
 		/// <summary>
-		/// Change the older version of an SDC Object Model(OM)
+		/// Replaces <see cref="PrevVersion"/> and recomputes comparison state.
 		/// </summary>
-		/// <param name="prevVersion"></param>
-		/// <returns></returns>
+		/// <param name="prevVersion">The previous version of the SDC <see cref="ITopNode"/> object model.</param>
+		/// <returns>A reference to this <see cref="CompareTrees{T}"/> instance.</returns>
 		private CompareTrees<T> ChangePrevVersion(T prevVersion)
 		{
 			_prevVersion = prevVersion;
@@ -150,10 +150,10 @@ namespace SDC.Schema.Tests.Utils
 			return this;
 		}
 		/// <summary>
-		/// Change the newer version of an SDC Object Model (OM)
+		/// Replaces <see cref="NewVersion"/> and recomputes comparison state.
 		/// </summary>
-		/// <param name="newVersion"></param>
-		/// <returns>A reference to this CompareTrees object</returns>
+		/// <param name="newVersion">The newer version of the SDC <see cref="ITopNode"/> object model.</param>
+		/// <returns>A reference to this <see cref="CompareTrees{T}"/> instance.</returns>
 		private CompareTrees<T> ChangeNewVersion(T newVersion)
 		{
 			_newVersion = newVersion;
@@ -164,7 +164,7 @@ namespace SDC.Schema.Tests.Utils
 		}
 
 		/// <summary>
-		/// Compute added and removed nodes by comparing the older and newer versions of an SDC object model (NewVersion and PrevVesion)
+		/// Computes the nodes and IET nodes that were added or removed between <see cref="PrevVersion"/> and <see cref="NewVersion"/>.
 		/// </summary>
 		private void ComputeAddedRemovedNodes()
 		{
@@ -180,10 +180,9 @@ namespace SDC.Schema.Tests.Utils
 
 		}
 		/// <summary>
-		/// Fill and return _dDifNodeIET, a dictionary of all NewVersion IET nodes that are new in this version, 
-		/// or have had XML attribute changes when compared to PrevVersion.  
+		/// Populates and returns <c>_dDifNodeIET</c> with one <see cref="DifNodeIET"/> entry for each <see cref="NewVersion"/> IET node that is new or differs from <see cref="PrevVersion"/>.
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>The populated IET-difference dictionary, or null when attribute caches are unavailable.</returns>
 		private ConcurrentDictionary<string, DifNodeIET>? CompareVersionAttributes()
 		{
 			var eqAttCompare = new SdcSerializedAttComparer(); //should be thread-safe
@@ -363,8 +362,8 @@ namespace SDC.Schema.Tests.Utils
 				//finished looking for subNodes with attribute differences, as well as missing subnodes
 				//Construct difNodeIET and add to _dDifNodeIET for each IET node 
 
-				DifNodeIET difNodeIET = new(sGuidNewIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged, 
-					hasAddedSubNodes, hasRemovedSubNodes, addedSubNodes, removedSubNodes, dlaiDifIET);
+				DifNodeIET difNodeIET = new(sGuidNewIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged,
+					hasAddedSubNodes, hasRemovedSubNodes, null, null, null, false, addedSubNodes, removedSubNodes, dlaiDifIET);
 
 				_dDifNodeIET.AddOrUpdate(sGuidNewIET, difNodeIET, (sGuidIET, difNodeIET) => difNodeIET);
 
@@ -401,10 +400,10 @@ namespace SDC.Schema.Tests.Utils
 
 
 		/// <summary>
-		/// Starting from an <see cref="IdentifiedExtensionType"/> node (<paramref name="ietNew"/>) from the newer version of an SDC object model (<see cref="NewVersion"/>), <br/>
-		/// this method determines all of the node, subnode and attribute differences from the old version of <paramref name="ietNew"/>, if it's sGuid is present in <see cref="PrevVersion"/>.
+		/// Compares one newer <see cref="IdentifiedExtensionType"/> node against its previous-version counterpart and returns the resulting <see cref="DifNodeIET"/> summary.
 		/// </summary>
-		/// <returns></returns>
+		/// <param name="ietNew">The IET node from <see cref="NewVersion"/> to compare.</param>
+		/// <returns>A <see cref="DifNodeIET"/> value describing attribute, subnode, parent, and sibling differences for the supplied IET node.</returns>
 		public DifNodeIET CompareIET(IdentifiedExtensionType ietNew)
 		{
 			var eqAttCompare = new SdcSerializedAttComparer(); //should be thread-safe
@@ -449,9 +448,9 @@ namespace SDC.Schema.Tests.Utils
 
 				//Check for added or removed subnodes, by comparing the the matching ietPrev node:
 				lock (locker) removedSubNodes = FindRemovedIETsubNodes(sGuidNewIET);
-				if (removedSubNodes is not null && removedSubNodes.Count > 0) hasRemovedSubNodes = true;
+				if (removedSubNodes is not null && removedSubNodes.Count > 0) hasRemovedSubNodes = true; 
 				lock (locker) addedSubNodes = FindAddedIETsubNodes(sGuidNewIET);
-				if (addedSubNodes is not null && addedSubNodes.Count > 0) hasAddedSubNodes = true;  //this step is required to flag possibly changed attributes on IET subNodes.																										
+				if (addedSubNodes is not null && addedSubNodes.Count > 0) hasAddedSubNodes = true;  //this step is required to flag possibly changed attributes on IET subNodes.											
 
 				//var ietNew = _newVersion.Nodes[GuidIET] as IdentifiedExtensionType;
 
@@ -548,18 +547,76 @@ namespace SDC.Schema.Tests.Utils
 					Debugger.Break();
 					//throw error here?
 				}
-			}//Find matching Prev IET node ends here			
-			isNewIET = true;
+			}
+			else
+			{
+				isNewIET = true;
+				var ietNewSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietNew, -1, 0, false);
+				if (ietNewSubNodes is not null)
+				{
+					addedSubNodes = ietNewSubNodes.Skip(1).ToList();
+					hasAddedSubNodes = addedSubNodes.Count > 0;
+					AddAllSerializedAttributesAsAdded(ietNew, dlaiNewIET, laiDifSubNodes);
+					isAttListChanged = laiDifSubNodes.Count > 0;
+				}
+			}
 
-			//finished looking for subNodes with attribute differences, as well as missing subnodes
+			var (addedAttributes, removedAttributes, changedAttributes) = BuildAttributeChangeSummaries(dlaiDifIET);
+			bool isChanged = !isNewIET && !isRemovedIET && (isParChangedIET || isMovedIET || isAttListChanged || hasAddedSubNodes || hasRemovedSubNodes);
 
 			DifNodeIET difNodeIET = new(sGuidNewIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged,
-				hasAddedSubNodes, hasRemovedSubNodes, addedSubNodes, removedSubNodes, dlaiDifIET);
+				hasAddedSubNodes, hasRemovedSubNodes, addedAttributes, removedAttributes, changedAttributes, isChanged, addedSubNodes, removedSubNodes, dlaiDifIET.ToDictionary(kvp => kvp.Key, kvp => (IReadOnlyList<AttInfoDif>)kvp.Value));
 			return difNodeIET;
 		}
+		private static (IReadOnlyDictionary<string, AttributeInfo>? AddedAttributes, IReadOnlyDictionary<string, AttributeInfo>? RemovedAttributes, IReadOnlyDictionary<string, AttributeInfo>? ChangedAttributes) BuildAttributeChangeSummaries(Dictionary<string, List<AttInfoDif>> dlaiDif)
+		{
+			Dictionary<string, AttributeInfo>? addedAttributes = null;
+			Dictionary<string, AttributeInfo>? removedAttributes = null;
+			Dictionary<string, AttributeInfo>? changedAttributes = null;
+
+			foreach (var kvDif in dlaiDif)
+			{
+				foreach (var aiDif in kvDif.Value)
+				{
+					if (aiDif.aiPrev is null && aiDif.aiNew is not null)
+					{
+						addedAttributes ??= new();
+						addedAttributes.TryAdd(kvDif.Key, aiDif.aiNew.Value);
+						changedAttributes ??= new();
+						changedAttributes.TryAdd(kvDif.Key, aiDif.aiNew.Value);
+					}
+					else if (aiDif.aiPrev is not null && aiDif.aiNew is null)
+					{
+						removedAttributes ??= new();
+						removedAttributes.TryAdd(kvDif.Key, aiDif.aiPrev.Value);
+						changedAttributes ??= new();
+						changedAttributes.TryAdd(kvDif.Key, aiDif.aiPrev.Value);
+					}
+					else if (aiDif.aiPrev is not null && aiDif.aiNew is not null && aiDif.aiPrev.Value.ValueString != aiDif.aiNew.Value.ValueString)
+					{
+						changedAttributes ??= new();
+						changedAttributes.TryAdd(kvDif.Key, aiDif.aiNew.Value);
+					}
+				}
+			}
+
+			return (addedAttributes, removedAttributes, changedAttributes);
+		}
+
+		private void AddAllSerializedAttributesAsAdded(IdentifiedExtensionType ietNew, IReadOnlyDictionary<string, List<AttributeInfo>> dlaiNewIET, List<AttInfoDif> laiDifSubNodes)
+		{
+			foreach (var kvp in dlaiNewIET)
+			{
+				(string elementName, string propertyName, string displayName) names = GetDisplayName(kvp.Key, ietNew.TopNode);
+				foreach (var aiNewSubNode in kvp.Value)
+				{
+					laiDifSubNodes.Add(new AttInfoDif(kvp.Key, null, aiNewSubNode, names.elementName, names.propertyName, names.displayName));
+				}
+			}
+		}
+
 		private (string elementName, string propertyName, string displayName) GetDisplayName(string sGuid, ITopNode? topNode = null)
 		{
-			//string elementName;
 			string? propertyName = "", displayName;
 
 			if (topNode?.Nodes.TryGetValue(ShortGuid.Decode(sGuid), out BaseType? bt) ?? false)
@@ -575,11 +632,10 @@ namespace SDC.Schema.Tests.Utils
 			return ("", "", "");
 		}
 		/// <summary>
-		/// Find all XML attributes that will be serialized to XML from the input <see cref="ITopNode"/> node, <br/>
-		/// and from all of its descendant nodes. 
+		/// Finds all serialized XML attributes for each IET node in the supplied <see cref="ITopNode"/> tree.
 		/// </summary>
-		/// <param name="topNode"></param>
-		/// <returns></returns>
+		/// <param name="topNode">The root <see cref="ITopNode"/> whose IET nodes will be scanned.</param>
+		/// <returns>A sorted lookup keyed by IET sGuid, where each value maps node sGuid to that node's serialized <see cref="AttributeInfo"/> list.</returns>
 		public SortedList<string, Dictionary<string, List<AttributeInfo>>> FindSerializedXmlAttributesFromTree(ITopNode topNode)
 		{
 			SortedList<string, Dictionary<string, List<AttributeInfo>>> dictAttr = new();
@@ -628,11 +684,10 @@ namespace SDC.Schema.Tests.Utils
 			}
 		}
 		/// <summary>
-		/// Find all XML attributes that will be serialized to XML from the input <see cref="IdentifiedExtensionType"/> (IET) node, <br/>
-		/// and from all of its non-IET descendant nodes.
+		/// Finds all serialized XML attributes for the supplied <see cref="IdentifiedExtensionType"/> node and its non-IET descendants.
 		/// </summary>
-		/// <param name="iet">Input IET node</param>
-		/// <returns>Dictionary of <see cref="AttributeInfo"/> structs, one struct per node, starting with the input IET node </returns>
+		/// <param name="iet">The IET node whose non-IET subtree will be scanned.</param>
+		/// <returns>A dictionary keyed by node sGuid, where each value is that node's serialized <see cref="AttributeInfo"/> list.</returns>
 		public Dictionary<string, List<AttributeInfo>> FindSerializedXmlAttributesIET(IdentifiedExtensionType iet)
 		{
 			Dictionary<string, List<AttributeInfo>> dlai = new();
@@ -722,14 +777,12 @@ namespace SDC.Schema.Tests.Utils
 			return null; //no matching ietPrev node was present in _prevVersion			
 		}
 		/// <summary>
-		/// Retrieves a collection of <see cref="IdentifiedExtensionType"/> nodes that were removed from <see cref="PrevVersion"/><br/>,
-		/// compared with <see cref="NewVersion"/>.  
+		/// Gets the <see cref="IdentifiedExtensionType"/> nodes that exist in <see cref="PrevVersion"/> but not in <see cref="NewVersion"/>.
 		/// </summary>
 		public ReadOnlyCollection<IdentifiedExtensionType> GetIETnodesRemovedInNew
 		{ get => new (_IETnodesRemovedInNew); }
 		/// <summary>
-		/// Retrieves a collection of <see cref="IdentifiedExtensionType"/> nodes that were added to <see cref="PrevVersion"/><br/>,
-		/// and are now found in <see cref="NewVersion"/>.  
+		/// Gets the <see cref="IdentifiedExtensionType"/> nodes that exist in <see cref="NewVersion"/> but not in <see cref="PrevVersion"/>.
 		/// </summary>
 		public ReadOnlyCollection<IdentifiedExtensionType> GetIETnodesAddedInNew
 		{ get => new (_IETnodesAddedInNew); }
@@ -738,47 +791,45 @@ namespace SDC.Schema.Tests.Utils
 
 
 		/// <summary>
-		/// Retrieves a collection of all nodes that were removed from <see cref="PrevVersion"/><br/>,
-		/// compared with <see cref="NewVersion"/>.   
+		/// Gets all nodes that exist in <see cref="PrevVersion"/> but not in <see cref="NewVersion"/>.
 		/// </summary>
 		public ReadOnlyCollection<BaseType> GetNodesRemovedInNew
 		{ get => new(_nodesRemovedInNew); }
 
 		/// <summary>
-		/// Retrieves a collection of all nodes that were added to <see cref="PrevVersion"/><br/>,
-		/// and are now found in <see cref="NewVersion"/>.  
+		/// Gets all nodes that exist in <see cref="NewVersion"/> but not in <see cref="PrevVersion"/>.
 		/// </summary>
 		public ReadOnlyCollection<BaseType> GetNodesAddedInNew
 		{ get => new(_nodesAddedInNew); }
 		/// <summary>
-		/// Given an <see cref="IdentifiedExtensionType"/> (<paramref name="IETnode"/>) node, returns a struct identifying all attribute changes on <paramref name="IETnode"/>/>
+		/// Gets the <see cref="DifNodeIET"/> summary for the supplied <see cref="IdentifiedExtensionType"/> node.
 		/// </summary>
-		/// <param name="IETnode"></param>
-		/// <returns></returns>
+		/// <param name="IETnode">The IET node whose comparison summary is requested.</param>
+		/// <returns>The matching <see cref="DifNodeIET"/> value, or null when no comparison summary exists for that node.</returns>
 		public DifNodeIET? GetIETattributes(IdentifiedExtensionType IETnode)
 		{ return _dDifNodeIET.TryGetValue(IETnode.sGuid, out DifNodeIET dni) ? dni : null; }
 		/// <summary>
-		/// 
+		/// Gets the <see cref="DifNodeIET"/> summary for the IET node identified by the supplied <see cref="ShortGuid"/>.
 		/// </summary>
-		/// <param name="sGuidIET"></param>
-		/// <returns></returns>
+		/// <param name="sGuidIET">The sGuid of the IET node whose comparison summary is requested.</param>
+		/// <returns>The matching <see cref="DifNodeIET"/> value, or null when no comparison summary exists for that node.</returns>
 		public DifNodeIET? GetIETattributes(ShortGuid sGuidIET)
 		{ return _dDifNodeIET.TryGetValue(sGuidIET, out DifNodeIET dni )?dni:null ; }
 		public ReadOnlyDictionary<string, DifNodeIET>? GetIETattDiffs { get => new(_dDifNodeIET); }
 		/// <summary>
-		/// 
+		/// Determines whether the supplied node is present in <see cref="PrevVersion"/>.
 		/// </summary>
-		/// <param name="nodeNew"></param>
-		/// <param name="NodePrev"></param>
-		/// <returns></returns>
+		/// <param name="nodeNew">The node from <see cref="NewVersion"/> to look up in <see cref="PrevVersion"/>.</param>
+		/// <param name="NodePrev">The matching node from <see cref="PrevVersion"/>, when one exists.</param>
+		/// <returns>True when <paramref name="nodeNew"/> exists in <see cref="PrevVersion"/>; otherwise, false.</returns>
 		public bool IsNewNodeAdded(BaseType nodeNew, out BaseType? NodePrev)
 		=> _prevVersion.Nodes.TryGetValue(nodeNew.ObjectGUID, out NodePrev);
 		/// <summary>
-		/// 
+		/// Determines whether the supplied previous-version node is present in <see cref="NewVersion"/>.
 		/// </summary>
-		/// <param name="prevNode"></param>
-		/// <param name="newNode"></param>
-		/// <returns></returns>
+		/// <param name="prevNode">The node from <see cref="PrevVersion"/> to look up in <see cref="NewVersion"/>.</param>
+		/// <param name="newNode">The matching node from <see cref="NewVersion"/>, when one exists.</param>
+		/// <returns>True when <paramref name="prevNode"/> exists in <see cref="NewVersion"/>; otherwise, false.</returns>
 		public bool IsPrevNodeRemoved(BaseType prevNode, out BaseType? newNode)
 		=> _newVersion.Nodes.TryGetValue(prevNode.ObjectGUID, out newNode);
 

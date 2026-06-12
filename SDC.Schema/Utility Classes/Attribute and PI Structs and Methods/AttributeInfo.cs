@@ -13,18 +13,18 @@ using System.Threading.Tasks;
 namespace SDC.Schema
 {
 	/// <summary>
-	/// Immutable record struct to hold information about SDC object properties that will become XML attributes when serialized to XML.
+	/// Immutable record struct that captures serialized XML attribute data for an SDC <see cref="BaseType"/> node.
 	/// </summary>
 	public readonly record struct AttributeInfo
 	{
 		/// <summary>
-		/// Holds information for one XML attribute of the supplied SDC node parameter/>
+		/// Creates an <see cref="AttributeInfo"/> record for one serialized XML attribute on an SDC <see cref="BaseType"/> node.
 		/// </summary>
-		/// <param name="node">The SDC node that is the subject of this record.</param>
-		/// <param name="attributeValue">The value of this attribute instance.</param>
-		/// <param name="attributePropInfo">The PropertyInfo object that describes this attribute on its parent object node (which is represented by SdcElementNodeSguid).</param>
+		/// <param name="node">The SDC node that owns the attribute.</param>
+		/// <param name="attributeValue">The current value of the attribute.</param>
+		/// <param name="attributePropInfo">The <see cref="PropertyInfo"/> that describes the attribute on the owning node.</param>
 		/// <param name="order">The serialized ordinal position of the attribute in the current element.</param>
-		/// <param name="name">The name of the property, and the text of the attribute as it will appear in XML.</param>
+		/// <param name="name">The XML attribute name; when omitted, <paramref name="attributePropInfo"/> supplies the name.</param>
 		public AttributeInfo(BaseType node,
 			object? attributeValue,
 			PropertyInfo? attributePropInfo,
@@ -61,7 +61,7 @@ namespace SDC.Schema
 
 
 		/// <summary>
-		/// Name of the attribute, as it will appear in XML.
+		/// XML attribute name.
 		/// </summary>
 		public string? Name { get; }
 
@@ -86,32 +86,26 @@ namespace SDC.Schema
 		/// </summary>
 		public string? DefaultValueString { get; }
 		/// <summary>
-		/// ShortGuid (sGuid) for the SDC node.
+		/// The <see cref="ShortGuid"/> for the owning SDC node.
 		/// </summary>
 		public ShortGuid? sGuid { get; }
 
 		/// <summary>
-		/// The ShortGuid property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.
-		/// The sGuid can be used to retrieve an SDC object, while not holding onto an object reference inside this struct.
+		/// The <see cref="ShortGuid"/> of the immediate parent <see cref="BaseType"/> node.
 		/// </summary>
 		public ShortGuid? ParentNodesGuid { get; }
 		/// <summary>
-		/// The ObjectID property of the SDC node (serialized to an XML element) that holds the attribute repesented by this struct.
-		/// The ObjectID can be used to retrieve an SDC object, while not holding an object reference inside this struct.
+		/// The <see cref="BaseType.ObjectID"/> of the immediate parent <see cref="BaseType"/> node.
 		/// </summary>
 		public int? ParentNodeObjectID { get; }
 
 
 		/// <summary>
-		/// The ShortGuid property of the ParentIEType
-		/// The sGuid can be used to retrieve an SDC object, while not holding onto an object reference inside this struct.
-		/// The ParentIETNode may be null, generating a null value for ParentIETNodesGuid.
+		/// The <see cref="ShortGuid"/> of the parent <see cref="IdentifiedExtensionType"/> node.
 		/// </summary>
 		public ShortGuid? ParentIETNodesGuid { get; }
 		/// <summary>
-		/// The ObjectID property of the ParentIEType
-		/// The ObjectID can be used to retrieve an SDC object, while not holding an object reference inside this struct.
-		/// The ParentIETNode may be null, generating a null value for ParentIETNodeObjectID.
+		/// The <see cref="BaseType.ObjectID"/> of the parent <see cref="IdentifiedExtensionType"/> node.
 		/// </summary>
 		public int? ParentIETNodeObjectID { get; }
 		/// <summary>
@@ -126,24 +120,25 @@ namespace SDC.Schema
 		public PropertyInfo? AttributePropInfo { get; }
 
 		/// <summary>
-		/// If true, if the source node's sGuid is populated, then the attribute is not serialized, and all other fields are uninitialized. <br/>
-		/// if sGuid is null or has a default value ("AAAAAAAAAAAAAAAAAAAAAA"), then the node is also null.  This is a default value for a <see cref="ShortGuid"/>. 
+		/// Indicates whether the record is the default, uninitialized value.
 		/// </summary>
 		//public bool? IsEmpty { get; }
 
 	}
 	/// <summary>
-	/// Immutable record struct to hold information about SDC object properties that will become XML attributes when serialized to XML.<br/>
-	/// Does not include information about the SDC object itself, or any parent node properties
+	/// Immutable record struct that captures attribute metadata for a single property value on an SDC <see cref="BaseType"/> node.
 	/// </summary>
+	/// <remarks>
+	/// This type does not include the owning SDC object or parent-node metadata.
+	/// </remarks>
 	public readonly record struct AttributeInfoLite
 	{
 		/// <summary>
-		/// Constructor for <see cref="AttributeInfo"/>
+		/// Creates an <see cref="AttributeInfoLite"/> value for one XML attribute.
 		/// </summary>
-		/// <param name="attributeValue">The value of this attribute instance.</param>
-		/// <param name="attributePropInfo">The PropertyInfo object that describes this attribute on its parent object node (which is represented by SdcElementNodeSguid).</param>
-		/// <param name="order">The serialized ordinal position of the attribute in the current element</param>
+		/// <param name="attributeValue">The current value of the attribute.</param>
+		/// <param name="attributePropInfo">The <see cref="PropertyInfo"/> that describes the attribute.</param>
+		/// <param name="order">The serialized ordinal position of the attribute in the current element.</param>
 		public AttributeInfoLite(
 			object? attributeValue,
 			PropertyInfo attributePropInfo,
@@ -178,7 +173,7 @@ namespace SDC.Schema
 
 
 		/// <summary>
-		/// Name of the attribute, as it will appear in XML
+		/// XML attribute name.
 		/// </summary>
 		public string Name { get; }
 		/// <summary>
@@ -187,8 +182,7 @@ namespace SDC.Schema
 		public int Order { get; }
 
 		/// <summary>
-		/// If true, then if the source node's sGuid is populated, then the attribute is not serialized, and all other fields are uninitialized. <br/>
-		/// if sGuid has a default value ("AAAAAAAAAAAAAAAAAAAAAA"), then the node is also null.  This is a default value for this struct. 
+		/// Indicates whether the record is the default, uninitialized value.
 		/// </summary>
 		public bool IsEmpty { get; }
 
@@ -196,25 +190,28 @@ namespace SDC.Schema
 
 
 	/// <summary>
-	/// public readonly record struct DifNodeIET 
+	/// Captures comparison results for an IET node.
 	/// </summary>
-	/// <param name="sGuidIET"></param>
-	/// <param name="isParChanged"></param>
-	/// <param name="isMoved"></param>
-	/// <param name="isNew"></param>
-	/// <param name="isRemoved"></param>
-	/// <param name="isAttListChanged"></param>
-	/// <param name="dlaiDif"></param>
+	/// <remarks>
+	/// Use the nested <see cref="DifNodeIET"/> type for the full change summary that includes added, removed, and changed attributes, plus subnode changes.
+	/// </remarks>
+	/// <param name="sGuidIET">The sGuid of the IET node being compared.</param>
+	/// <param name="isParChanged">True when the IET node's parent node sGuid differs between versions.</param>
+	/// <param name="isMoved">True when the IET node's previous sibling sGuid differs between versions.</param>
+	/// <param name="isNew">True when the IET node exists only in the newer version.</param>
+	/// <param name="isRemoved">True when the IET node exists only in the previous version.</param>
+	/// <param name="isAttListChanged">True when one or more serialized attributes differ on this IET node or on a non-IET descendant node.</param>
+	/// <param name="dlaiDif">Mutable attribute-difference data keyed by node sGuid.</param>
 	public readonly record struct DifNodeIET2
 	{
 		public DifNodeIET2(
 			string sGuidIET,
 			bool isParChanged, //parent node has changed
-			bool isMoved, //prev sibling node has changed
-			bool isNew, //Node present in V2 only
-			bool isRemoved, //Node present in V1 only
+			bool isMoved, //True when the IET node's previous sibling sGuid differs between versions.
+			bool isNew, //True when the IET node exists only in the newer version.
+			bool isRemoved, //True when the IET node exists only in the previous version.
 			bool isAttListChanged = true,
-			Dictionary<string, List<AttInfoDif>>? dlaiDif = null //in case we need to look up attribute Diffs by subnode sGuid
+			Dictionary<string, List<AttInfoDif>>? dlaiDif = null //Mutable attribute-difference data keyed by node sGuid.
 			)
 		{
 			this.sGuidIET = sGuidIET;
@@ -231,40 +228,40 @@ namespace SDC.Schema
 		/// </summary>
 		public readonly string sGuidIET;
 		/// <summary>
-		/// True if oarent node has changed
+		/// True when the IET node's parent node sGuid differs between versions.
 		/// </summary>
 		public readonly bool isParChanged; //parent node has changed		
 		/// <summary>
-		/// True if the prev sibling node has changed	
+		/// True when the IET node's previous sibling sGuid differs between versions.
 		/// </summary>
 		public readonly bool isMoved; //prev sibling node has changed		
 		/// <summary>
-		/// True if the node is present in V2 (new version) only
+		/// True when the IET node exists only in the newer version.
 		/// </summary>
 		public readonly bool isNew; //Node present in V2 only		
 		/// <summary>
-		/// True if the node is present in V1 (previous version) only	
+		/// True when the IET node exists only in the previous version.
 		/// </summary>
 		public readonly bool isRemoved; //Node present in V1 only		
 		/// <summary>
-		/// True if the node's list of attributes has changed across versions
+		/// True when one or more serialized attributes differ on this IET node or on a non-IET descendant node.
 		/// </summary>
 		public readonly bool isAttListChanged;
 		/// <summary>
-		/// This dictionary is used to look up attribute changes (as a <see cref="AttInfoDif"/> struct) <br/> 
-		/// across new and previous node versions, using the subnode sGuid as the dictionary key.
+		/// Mutable attribute-difference data keyed by node sGuid.
 		/// </summary>
 		public readonly Dictionary<string, List<AttInfoDif>> dlaiDif; //in case we need to look up attribute Diffs by subnode sGuid
 
 	};
 	/// <summary>
-	/// Holds the non-default attribute values for 2 SDC nodes (aiPrev and aiNew) whose attribtues are being compared.<br/>
-	/// The nodes must be of the same SDC type, and represent the same node (i.e., share the same sGuid) <br/>
-	/// from two different versions of the same SDC tree.
+	/// Holds serialized attribute comparison data for one logical node across two versions of the same SDC tree.
 	/// </summary>
-	/// <param name="sGuidSubnode">The sGuid shared by both SDC nodes (the older [aiPrev] node, and the newer [aiNew] node)</param>
-	/// <param name="aiPrev">An <see cref="AttributeInfo"/> record containing attribute information for the older SDC tree's node.</param>
-	/// <param name="aiNew">An <see cref="AttributeInfo"/> record containing attribute information for the newer SDC tree's node.</param>
+	/// <remarks>
+	/// The compared nodes must be the same SDC type and represent the same logical node, identified by the same sGuid.
+	/// </remarks>
+	/// <param name="sGuidSubnode">The sGuid shared by the compared node in the previous and newer versions.</param>
+	/// <param name="aiPrev">Attribute information from the previous version, or null when the attribute did not exist there.</param>
+	/// <param name="aiNew">Attribute information from the newer version, or null when the attribute does not exist there.</param>
 	public readonly record struct AttInfoDif
 	{
 
@@ -281,74 +278,104 @@ namespace SDC.Schema
 			 
 		}
 		/// <summary>
-		/// The ShortGuid (sGuid) identifying the same compared node in the new and previous versions of 2 compared SDC trees.
+		/// The <see cref="ShortGuid"/> identifying the compared node in both versions.
 		/// </summary>
 		public readonly string sGuidSubnode;
 		/// <summary>
-		/// <see cref="AttributeInfo"/> record struct holding attribute information for the compared node in the previous version
+		/// <see cref="AttributeInfo"/> data for the compared node in the previous version.
 		/// </summary>
 		public readonly AttributeInfo? aiPrev;
 		/// <summary>
-		/// <see cref="AttributeInfo"/> record struct holding attribute information for the compared node in the new version
+		/// <see cref="AttributeInfo"/> data for the compared node in the newer version.
 		/// </summary>
 		public readonly AttributeInfo? aiNew;
 
 
 		/// <summary>
-		/// 
+		/// The XML element name for the compared node.
 		/// </summary>
 		public readonly string? elementName;
 		/// <summary>
-		/// 
+		/// The property name for the compared node, if the node is represented by a PropertyType.
 		/// </summary>
 		public readonly string? propertyName;
 		/// <summary>
-		/// 
+		/// The display name used when reporting the compared node.
 		/// </summary>
 		public readonly string? displayName;
 	}
 
 	/// <summary>
-	/// Records the differences, if any, between the current (new) IET node (V2), and a <br/>
+	/// Records the differences, if any, between the current (new) IET node (V2), and the
 	/// previous version (V1) of that same node (which shares the same sGuid).
 	/// </summary>
-	/// <param name="sGuidIET">sGuid of the IET node</param>
-	/// <param name="isParChanged">True if the parent node has changed</param>
-	/// <param name="isMoved">True if the prev sibling node has changed</param>
-	/// <param name="isNew">True if the node is present in V2 (new version) only</param>
-	/// <param name="isRemoved">True if the node is present in V1 (previous version) only</param>
-	/// <param name="isAttListChanged">True if the node's list of attributes has changed across versions</param>
-	/// <param name="hasAddedSubNodes">True if the node has gained new sub-nodes</param>
-	/// <param name="hasRemovedSubNodes"></param>
-	/// <param name="addedSubNodes">List&lt;;BaseType> of sub-nodes that were added since the previous version of the IET.<br/>
-	/// If no previous version exists for the IET node, then this list will be empty (Count = 0)</param>
-	/// <param name="removedSubNodes"></param>
-	/// <param name="dlaiDif">This dictionary is used to look up attribute changes (as a <see cref="AttInfoDif"/> struct) <br/> 
-	/// across new and previous node versions, using the subnode sGuid as the dictionary key.</param>
-	public readonly record struct DifNodeIET( //using simplified init-only, readonly, auto-implemented property syntax
+	/// <param name="sGuidIET">sGuid of the IET node.</param>
+	/// <param name="isParChanged">True if the IET node's parent node sGuid differs between versions.</param>
+	/// <param name="isMoved">True if the IET node's previous sibling sGuid differs between versions.</param>
+	/// <param name="isNew">True if the IET node exists in V2 only.</param>
+	/// <param name="isRemoved">True if the IET node exists in V1 only.</param>
+	/// <param name="isAttListChanged">True if one or more serialized attributes changed on the IET node itself or on any non-IET descendant node.</param>
+	/// <param name="hasAddedSubNodes">True if one or more non-IET descendant nodes exist in V2 but not in V1, or were moved under a different direct or IET parent.</param>
+	/// <param name="hasRemovedSubNodes">True if one or more non-IET descendant nodes exist in V1 but not in V2, or were moved away from this IET node.</param>
+	/// <param name="AddedAttributes">Read-only lookup of nodes that gained serialized attributes. The key is the node sGuid, and the value is one representative <see cref="AttributeInfo"/> for that node. This includes the IET node itself and non-IET descendant nodes. A change from a default value to a non-default serialized value is treated as an added attribute.</param>
+	/// <param name="RemovedAttributes">Read-only lookup of nodes that lost serialized attributes. The key is the node sGuid, and the value is one representative <see cref="AttributeInfo"/> for that node. This includes the IET node itself and non-IET descendant nodes. A change from a non-default serialized value to a default value is treated as a removed attribute.</param>
+	/// <param name="ChangedAttributes">Read-only lookup of nodes whose serialized attribute value changed between versions. The key is the node sGuid, and the value is one representative <see cref="AttributeInfo"/> for that node. This includes the IET node itself and non-IET descendant nodes. Default-value transitions are included here when the serialized form changed.</param>
+	/// <param name="isChanged">True if an existing IET node has changed because its parent changed, its previous sibling changed, it gained or lost non-IET subnodes, or one or more serialized attributes changed on the IET node or on any non-IET descendant node. This does not include <paramref name="isNew"/> or <paramref name="isRemoved"/>.</param>
+	/// <param name="addedSubNodes">Read-only list of non-IET descendant nodes that were added under this IET node in V2.</param>
+	/// <param name="removedSubNodes">Read-only list of non-IET descendant nodes that were removed from this IET node in V2.</param>
+	/// <param name="dlaiDif">Read-only lookup of attribute differences by node sGuid. Each value is a read-only list of <see cref="AttInfoDif"/> entries for that node.</param>
+	public readonly record struct DifNodeIET(
 			string sGuidIET,
-			bool isParChanged, //parent node has changed
-			bool isMoved, //prev sibling node has changed		
-			bool isNew, //Node present in V2 only			
-			bool isRemoved, //Node present in V1 only
-			bool isAttListChanged, //one or more of the node's XML attributes have changed
-			bool hasAddedSubNodes, //Node has gained new sub-nodes
-			bool hasRemovedSubNodes, //Node has removed sub-nodes
-			List<BaseType>? addedSubNodes,
-			List<BaseType>? removedSubNodes,
-			Dictionary<string, List<AttInfoDif>> dlaiDif //in case we need to look up attribute Diffs by subnode sGuid
+			bool isParChanged,
+			bool isMoved,
+			bool isNew,
+			bool isRemoved,
+			bool isAttListChanged,
+			bool hasAddedSubNodes,
+			bool hasRemovedSubNodes,
+			IReadOnlyDictionary<string, AttributeInfo>? AddedAttributes,
+			IReadOnlyDictionary<string, AttributeInfo>? RemovedAttributes,
+			IReadOnlyDictionary<string, AttributeInfo>? ChangedAttributes,
+			bool isChanged,
+			IReadOnlyList<BaseType>? addedSubNodes,
+			IReadOnlyList<BaseType>? removedSubNodes,
+			IReadOnlyDictionary<string, IReadOnlyList<AttInfoDif>> dlaiDif
 			)
 	{
-		//testing of init-only, readonly, auto-implemented props:
-		//readonly string s = sGuidIET;
-		//void testMethod ()
-		//{ 
-		//	var a = hasAddedSubNodes;
-		//	//hasAddedSubNodes = false;
-		//}
-
-		//readonly DifNodeIET2 test = new("", true, true, true, true, true, new());
-
+		public DifNodeIET(
+			string sGuidIET,
+			bool isParChanged,
+			bool isMoved,
+			bool isNew,
+			bool isRemoved,
+			bool isAttListChanged,
+			bool hasAddedSubNodes,
+			bool hasRemovedSubNodes,
+			Dictionary<string, AttributeInfo>? AddedAttributes,
+			Dictionary<string, AttributeInfo>? RemovedAttributes,
+			Dictionary<string, AttributeInfo>? ChangedAttributes,
+			bool isChanged,
+			List<BaseType>? addedSubNodes,
+			List<BaseType>? removedSubNodes,
+			Dictionary<string, List<AttInfoDif>>? dlaiDif)
+			: this(
+				sGuidIET,
+				isParChanged,
+				isMoved,
+				isNew,
+				isRemoved,
+				isAttListChanged,
+				hasAddedSubNodes,
+				hasRemovedSubNodes,
+				AddedAttributes,
+				RemovedAttributes,
+				ChangedAttributes,
+				isChanged,
+				addedSubNodes,
+				removedSubNodes,
+				dlaiDif is null ? null : dlaiDif.ToDictionary(kvp => kvp.Key, kvp => (IReadOnlyList<AttInfoDif>)kvp.Value))
+		{
+		}
 	};
 
 

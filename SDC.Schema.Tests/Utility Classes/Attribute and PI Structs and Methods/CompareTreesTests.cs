@@ -151,10 +151,16 @@ namespace SDC.Schema.Tests.Utils
 				}
 				Assert.AreEqual(dif.isAttListChanged, true);
 				Assert.AreEqual(dif.isNew, false);
+				Assert.AreEqual(dif.isRemoved, false);
+				Assert.AreEqual(dif.isChanged, true);
 				Assert.AreEqual(dif.isParChanged, false);
 				Assert.AreEqual(dif.isMoved, true);
 				Assert.AreEqual(dif.hasAddedSubNodes, false);
 				Assert.AreEqual(dif.hasRemovedSubNodes, false);
+				Assert.IsNotNull(dif.ChangedAttributes);
+				Assert.IsTrue(dif.ChangedAttributes!.Count >= 1);
+				Assert.IsTrue(dif.AddedAttributes is null || dif.AddedAttributes.Count == 0);
+				Assert.IsTrue(dif.RemovedAttributes is null || dif.RemovedAttributes.Count == 0);
 				Assert.AreEqual(newNodeIET.order, 250m);
 				//Expected:
 				//IET: Section =================== Name: S_49193 ============= sGuid: Ke_ZH_naV0ui - W7MBuNSHQ ===== NamePrev: S_49193
@@ -257,7 +263,7 @@ namespace SDC.Schema.Tests.Utils
 						$"\tParent Changed: {n.isParChanged.ToString().PadRight(8)} Moved:            {n.isMoved}\r\n" +
 						$"\tNew SubNodes:   {n.hasAddedSubNodes.ToString().PadRight(8)} Removed SubNodes: {n.hasRemovedSubNodes.ToString().PadRight(8)} Order: {newNodeIET.order}");
 
-					if (n.dlaiDif.Values.Count == 0) Console.WriteLine($"\tNo SubNodes present");
+					if (n.dlaiDif.Count == 0) Console.WriteLine($"\tNo SubNodes present");
 
 					if (n.addedSubNodes is not null) //"added" means added below this IET since the previous version;  If this is a completely new IET node, it will not have added subnodes.
 					{
@@ -347,6 +353,13 @@ namespace SDC.Schema.Tests.Utils
 			DifNodeIET2 b = new();
 
 			Assert.AreEqual(a.isNew, true);
+			Assert.AreEqual(a.isRemoved, false);
+			Assert.AreEqual(a.isChanged, false);
+			Assert.IsNotNull(a.AddedAttributes);
+			Assert.IsNotNull(a.ChangedAttributes);
+			Assert.IsTrue(a.AddedAttributes!.Count > 0);
+			Assert.IsTrue(a.ChangedAttributes!.Count > 0);
+			Assert.IsTrue(a.RemovedAttributes is null || a.RemovedAttributes.Count == 0);
 
 		}
 		[TestMethod()]
@@ -414,3 +427,5 @@ namespace SDC.Schema.Tests.Utils
         }
 	}
 }
+
+
