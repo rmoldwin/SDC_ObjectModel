@@ -39,30 +39,112 @@ namespace SDC.Schema.Extensions
 		}
 
 		/// <summary>
+		/// Returns the live editable XmlAnyAttribute collection for the current node when supported.
+		/// Edits made to this collection directly mutate the underlying SDC object model and participate in XML round-tripping.
+		/// </summary>
+		/// <param name="bt">The node whose XmlAnyAttribute collection should be exposed for editing.</param>
+		/// <returns>
+		/// A live <see cref="List{XmlAttribute}"/> reference bound to the underlying node storage when supported;
+		/// otherwise null for nodes that do not host XmlAnyAttribute values.
+		/// </returns>
+		public static List<XmlAttribute>? GetEditableAdHocAttributes(this BaseType bt)
+		{
+			if (bt is null) return null;
+
+			var anyAttrProp = bt.GetType()
+				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+				.FirstOrDefault(pi => pi.GetCustomAttributes<XmlAnyAttributeAttribute>().Any()
+					&& typeof(IEnumerable).IsAssignableFrom(pi.PropertyType));
+
+			if (anyAttrProp is null) return null;
+			if (anyAttrProp.GetValue(bt) is List<XmlAttribute> editable) return editable;
+
+			var created = new List<XmlAttribute>();
+			anyAttrProp.SetValue(bt, created);
+			return created;
+		}
+
+		/// <summary>
 		/// Determines whether the current node has one or more populated ad-hoc XML attributes.
 		/// </summary>
 		/// <param name="bt">The node to inspect for populated XmlAnyAttribute values.</param>
 		/// <returns>true when an XmlAnyAttribute-decorated property contains at least one attribute; otherwise false.</returns>
 		public static bool HasFilledAdHocAttributes(this BaseType bt)
 		{
-			if (bt is null) return false;
+			var editable = bt.GetEditableAdHocAttributes();
+			return editable is not null && editable.Count > 0;
+		}
 
-			var anyAttrProps = bt.GetType()
-				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-				.Where(pi => pi.GetCustomAttributes<XmlAnyAttributeAttribute>().Any());
+		/// <summary>
+		/// Finds one ad-hoc attribute by local name and optional namespace URI.
+		/// </summary>
+		/// <param name="bt">The node that hosts ad-hoc attributes.</param>
+		/// <param name="localName">The local XML attribute name to match.</param>
+		/// <param name="namespaceUri">Optional namespace URI filter. When null, any namespace matches.</param>
+		/// <returns>The matching <see cref="XmlAttribute"/>, or null when not found.</returns>
+		public static XmlAttribute? FindAdHocAttribute(this BaseType bt, string localName, string? namespaceUri = null)
+		{
+			var editable = bt.GetEditableAdHocAttributes();
+			if (editable is null) return null;
+			if (string.IsNullOrWhiteSpace(localName)) return null;
 
-			foreach (var pAny in anyAttrProps)
+			return editable.FirstOrDefault(a => a.LocalName == localName
+				&& (namespaceUri is null || a.NamespaceURI == namespaceUri));
+		}
+
+		/// <summary>
+		/// Adds a new ad-hoc attribute when absent, or updates an existing one by local name and optional namespace URI.
+		/// Supports mixed namespaces by matching local name plus namespace URI.
+		/// </summary>
+		/// <param name="bt">The node that hosts ad-hoc attributes.</param>
+		/// <param name="document">The XML document used to create new XmlAttribute instances.</param>
+		/// <param name="prefix">Optional namespace prefix for new attributes.</param>
+		/// <param name="localName">The local XML attribute name.</param>
+		/// <param name="namespaceUri">The namespace URI for the attribute.</param>
+		/// <param name="value">The attribute value to set.</param>
+		/// <returns>The added or updated <see cref="XmlAttribute"/>; null for unsupported nodes or invalid names.</returns>
+		public static XmlAttribute? AddOrUpdateAdHocAttribute(this BaseType bt, XmlDocument document, string? prefix, string localName, string namespaceUri, string value)
+		{
+			var editable = bt.GetEditableAdHocAttributes();
+			if (editable is null) return null;
+			if (document is null) return null;
+			if (string.IsNullOrWhiteSpace(localName)) return null;
+			try
 			{
-				if (pAny.GetValue(bt) is IEnumerable values)
-				{
-					foreach (var item in values)
-					{
-						if (item is XmlAttribute) return true;
-					}
-				}
+				XmlConvert.VerifyName(localName);
+			}
+			catch (XmlException)
+			{
+				return null;
 			}
 
-			return false;
+			var existing = bt.FindAdHocAttribute(localName, namespaceUri);
+			if (existing is not null)
+			{
+				existing.Value = value;
+				return existing;
+			}
+
+			var created = document.CreateAttribute(prefix ?? string.Empty, localName, namespaceUri ?? string.Empty);
+			created.Value = value;
+			editable.Add(created);
+			return created;
+		}
+
+		/// <summary>
+		/// Removes one ad-hoc attribute by local name and optional namespace URI.
+		/// </summary>
+		/// <param name="bt">The node that hosts ad-hoc attributes.</param>
+		/// <param name="localName">The local XML attribute name to remove.</param>
+		/// <param name="namespaceUri">Optional namespace URI filter. When null, any namespace matches.</param>
+		/// <returns>true when an attribute is removed; otherwise false.</returns>
+		public static bool RemoveAdHocAttribute(this BaseType bt, string localName, string? namespaceUri = null)
+		{
+			var editable = bt.GetEditableAdHocAttributes();
+			if (editable is null) return false;
+			var existing = bt.FindAdHocAttribute(localName, namespaceUri);
+			if (existing is null) return false;
+			return editable.Remove(existing);
 		}
 
 		/// <summary>

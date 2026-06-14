@@ -339,6 +339,39 @@ namespace SDC.Schema.Tests.Utils.Extensions
 
 		}
 
+		[TestMethod]
+		public void GetEditableAdHocAttributes_UnsupportedNode_ReturnsNull()
+		{
+			// Rationale:
+			// Nodes without XmlAnyAttribute support must fail safely by returning null
+			// so callers can branch without exceptions for unsupported types.
+			Setup.Reset();
+			FormDesignType fd = Setup.FD;
+
+			var editable = fd.GetEditableAdHocAttributes();
+
+			Assert.IsNull(editable,
+				"Unsupported nodes should return null editable ad-hoc attribute collections.");
+		}
+
+		[TestMethod]
+		public void GetEditableAdHocAttributes_SupportedEmptyNode_ReturnsEditableEmptyCollection()
+		{
+			// Rationale:
+			// Supported nodes should expose a live editable collection even when no ad-hoc attributes exist yet,
+			// enabling callers to add values without direct property reflection.
+			Setup.Reset();
+			FormDesignType fd = Setup.FD;
+			var ext = fd.Body.AddExtension();
+
+			var editable = ext.GetEditableAdHocAttributes();
+
+			Assert.IsNotNull(editable,
+				"Supported nodes should expose an editable ad-hoc collection.");
+			Assert.AreEqual(0, editable!.Count,
+				"Supported nodes with no existing AnyAttr values should expose an empty editable collection.");
+		}
+
 		public readonly record struct Attribute(BaseType node, string sGuid, string attName, string? attVal, bool isDefault = true);
 		public readonly record struct AttributeDiff(BaseType oldNode, BaseType newNode, string sGuidOld, string sGuidNew, string attName, string? attValOld, string? attValNew);
 		public readonly record struct SDCattributeName(string AttName, string? AttVal, bool IsSerialized, bool IsDefault);

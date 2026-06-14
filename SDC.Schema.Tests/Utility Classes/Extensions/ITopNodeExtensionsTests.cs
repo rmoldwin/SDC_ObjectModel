@@ -124,6 +124,24 @@ namespace SDC.Schema.Tests.Utils.Extensions
 			Debug.Print(log);
 		}
 
+		[TestMethod]
+		public void GetNodesWithEditableAdHocAttributes_ReturnsHostCapableNodesOnly()
+		{
+			// Rationale:
+			// Tree-level helper should surface only nodes that can host editable ad-hoc attributes,
+			// enabling callers to bulk-discover candidate edit targets without manual reflection.
+			Setup.Reset();
+			FormDesignType fd = Setup.FD;
+			fd.Body.AddExtension();
+
+			var hostNodes = fd.GetNodesWithEditableAdHocAttributes().ToList();
+
+			Assert.IsTrue(hostNodes.Count > 0,
+				"Tree-level helper should return at least one host-capable node after adding an ExtensionType node.");
+			Assert.IsTrue(hostNodes.All(n => n.CanHostAdHocAttributes()),
+				"Tree-level helper should only return nodes that advertise ad-hoc host capability.");
+		}
+
 		[TestMethod()]
 		public void GetDescendantDictionaryTest()
 		{

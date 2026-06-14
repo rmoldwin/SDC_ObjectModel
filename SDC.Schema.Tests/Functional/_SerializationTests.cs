@@ -44,7 +44,7 @@ namespace SDC.Schema.Tests.Functional
 
 		}
 		[TestMethod]
-		public void RoundtripIdr()
+		public void RoundtripIntegratedDiseaseReport()
 		{
 
 		}
