@@ -1751,7 +1751,9 @@ namespace SDC.Schema
 		private static AttributeMethods attMethods = new();
 
 		/// <summary>
-		/// 
+		/// Reflects XML attributes for <paramref name="n"/> that are eligible for serialization.
+		/// Attribute results include both schema-based attributes (for example, properties marked with <see cref="XmlAttributeAttribute"/>)
+		/// and ad-hoc attributes contributed through <see cref="XmlAnyAttributeAttribute"/> collections.
 		/// </summary>
 		/// <param name="n">The see<see cref="BaseType"/> node for which attribtues will be determined</param>
 		/// <param name="getAllXmlAttributes"></param>
@@ -1814,6 +1816,9 @@ namespace SDC.Schema
 				}
 				if (piIE is null) continue;
 
+				var anyAttrProps = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+					.Where(pi => pi.GetCustomAttributes<XmlAnyAttributeAttribute>().Any());
+
 				foreach (var p in piIE)
 				{
 					nodeIndex++;
@@ -1873,6 +1878,22 @@ namespace SDC.Schema
 					{
 						nodeIndex++;
 						attributes.Add(FillAttributeInfo(p, n));
+					}
+				}
+
+				foreach (var pAny in anyAttrProps)
+				{
+					if (attributesToExclude is not null && attributesToExclude.Contains(pAny.Name)) continue;
+					if (pAny.GetValue(n) is not IEnumerable<XmlAttribute> anyAttrs) continue;
+
+					foreach (var xa in anyAttrs)
+					{
+						if (string.IsNullOrWhiteSpace(xa.LocalName)) continue;
+						if (attributesToExclude is not null && (attributesToExclude.Contains(xa.LocalName) || attributesToExclude.Contains(xa.Name))) continue;
+						if (attributesToInclude is not null && !attributesToInclude.Contains(xa.LocalName) && !attributesToInclude.Contains(xa.Name) && !attributesToInclude.Contains(pAny.Name)) continue;
+
+						nodeIndex++;
+						attributes.Add(new AttributeInfo(n, xa.Value, null, nodeIndex, xa.LocalName, isAdHocAttribute: true));
 					}
 				}
 			}

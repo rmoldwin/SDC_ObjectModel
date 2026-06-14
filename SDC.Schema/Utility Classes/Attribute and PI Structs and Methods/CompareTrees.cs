@@ -362,8 +362,11 @@ namespace SDC.Schema.Tests.Utils
 				//finished looking for subNodes with attribute differences, as well as missing subnodes
 				//Construct difNodeIET and add to _dDifNodeIET for each IET node 
 
+				var (addedAttributes, removedAttributes, changedAttributes) = BuildAttributeChangeSummaries(dlaiDifIET);
+				bool isChanged = !isNewIET && !isRemovedIET && (isParChangedIET || isMovedIET || isAttListChanged || hasAddedSubNodes || hasRemovedSubNodes);
+
 				DifNodeIET difNodeIET = new(sGuidNewIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged,
-					hasAddedSubNodes, hasRemovedSubNodes, null, null, null, false, addedSubNodes, removedSubNodes, dlaiDifIET);
+					hasAddedSubNodes, hasRemovedSubNodes, addedAttributes, removedAttributes, changedAttributes, isChanged, addedSubNodes, removedSubNodes, dlaiDifIET.ToDictionary(kvp => kvp.Key, kvp => (IReadOnlyList<AttInfoDif>)kvp.Value));
 
 				_dDifNodeIET.AddOrUpdate(sGuidNewIET, difNodeIET, (sGuidIET, difNodeIET) => difNodeIET);
 
@@ -379,9 +382,6 @@ namespace SDC.Schema.Tests.Utils
 			//Add Prev nodes that are not in New
 			return _dDifNodeIET;
 
-			void CompareNodes()
-			{
-			}
 
 			//  ------------------------------------------------------------------------------------
 			void Log(BaseType subNode, List<AttributeInfo> lai)
@@ -813,8 +813,14 @@ namespace SDC.Schema.Tests.Utils
 		/// </summary>
 		/// <param name="sGuidIET">The sGuid of the IET node whose comparison summary is requested.</param>
 		/// <returns>The matching <see cref="DifNodeIET"/> value, or null when no comparison summary exists for that node.</returns>
+		/// <exception cref="ArgumentException">Thrown when the supplied sGuid resolves to a non-IET node in <see cref="NewVersion"/>.</exception>
 		public DifNodeIET? GetIETattributes(ShortGuid sGuidIET)
-		{ return _dDifNodeIET.TryGetValue(sGuidIET, out DifNodeIET dni )?dni:null ; }
+		{
+			if (_newVersion.Nodes.TryGetValue(ShortGuid.Decode(sGuidIET), out BaseType? node) && node is not IdentifiedExtensionType)
+				throw new ArgumentException("The supplied sGuid identifies a non-IET node and cannot be used for an IET comparison summary.", nameof(sGuidIET));
+
+			return _dDifNodeIET.TryGetValue(sGuidIET, out DifNodeIET dni) ? dni : null;
+		}
 		public ReadOnlyDictionary<string, DifNodeIET>? GetIETattDiffs { get => new(_dDifNodeIET); }
 		/// <summary>
 		/// Determines whether the supplied node is present in <see cref="PrevVersion"/>.

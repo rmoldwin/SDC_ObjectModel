@@ -1,8 +1,11 @@
 ﻿//using SDC;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Xml;
+using System.Xml.Serialization;
 using static SDC.Schema.SdcUtil;
 
 namespace SDC.Schema.Extensions
@@ -22,6 +25,46 @@ namespace SDC.Schema.Extensions
 		//{
 		//	return SdcUtil.GetChildElements(bt);
 		//}
+		/// <summary>
+		/// Determines whether the current node type can host ad-hoc XML attributes via <see cref="XmlAnyAttributeAttribute"/>.
+		/// </summary>
+		/// <param name="bt">The node to inspect for XmlAnyAttribute hosting capability.</param>
+		/// <returns>true when at least one public instance property is decorated with <see cref="XmlAnyAttributeAttribute"/>; otherwise false.</returns>
+		public static bool CanHostAdHocAttributes(this BaseType bt)
+		{
+			if (bt is null) return false;
+			return bt.GetType()
+				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+				.Any(pi => pi.GetCustomAttributes<XmlAnyAttributeAttribute>().Any());
+		}
+
+		/// <summary>
+		/// Determines whether the current node has one or more populated ad-hoc XML attributes.
+		/// </summary>
+		/// <param name="bt">The node to inspect for populated XmlAnyAttribute values.</param>
+		/// <returns>true when an XmlAnyAttribute-decorated property contains at least one attribute; otherwise false.</returns>
+		public static bool HasFilledAdHocAttributes(this BaseType bt)
+		{
+			if (bt is null) return false;
+
+			var anyAttrProps = bt.GetType()
+				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+				.Where(pi => pi.GetCustomAttributes<XmlAnyAttributeAttribute>().Any());
+
+			foreach (var pAny in anyAttrProps)
+			{
+				if (pAny.GetValue(bt) is IEnumerable values)
+				{
+					foreach (var item in values)
+					{
+						if (item is XmlAttribute) return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
 		/// <summary>
 		/// Determine if the current node is an ancestor (i.e., a node closer to the root node) of parameter <paramref name="descendantNode"/>.
 		/// </summary>
@@ -98,6 +141,7 @@ namespace SDC.Schema.Extensions
 		/// <summary>
 		/// For the current node, retrieves a <see cref="List&lt;AttributeInfo>"/> containing <see cref="AttributeInfo"/> (AI) definitions <br/>
 		/// for all XML attributes of the current node that will be serialized to XML. <br/>
+		/// Returned attributes may originate from schema-based XML attributes and ad-hoc XmlAnyAttribute content.<br/>
 		/// Each AI struct can be used to obtain the type, name and other features of each attribute.<br/>
 		/// Also, each AI can be used to create a reference to the object by calling the underlying PropertyInfo object:<br/>
 		/// AI.AttributePropInfo.GetValue(parentObject)
