@@ -9,28 +9,28 @@ namespace SDC.Schema.Tests.Functional
 	{
 
 		[TestMethod]
-		public void LItoDI()
+		public void ListItemToDisplayedItem()
 		{
 			Setup.TimerStart("==>[] Started");
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
 		[TestMethod]
-		public void DItoLI()
+		public void DisplayedItemToListItem()
 		{
 			Setup.TimerStart("==>[] Started");
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
 		[TestMethod]
-		public void DItoQ()
+		public void DisplayedItemToQuestion()
 		{
 			Setup.TimerStart("==>[] Started");
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
 		[TestMethod]
-		public void DItoS()
+		public void DisplayedItemToSection()
 		{
 			Setup.TimerStart("==>[] Started");
 

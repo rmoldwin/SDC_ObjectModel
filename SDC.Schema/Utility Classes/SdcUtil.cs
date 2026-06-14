@@ -2812,15 +2812,8 @@ namespace SDC.Schema
 		/// <returns></returns>
 		public static T[] RemoveArrayNullsNew<T>(T[] array) where T : class
 		{
-			int i = 0;
-			var newarray = new T[array.Length - 1];
-
-			foreach (var n in array)
-			{
-				if (n != null) newarray[i] = n;
-				i++;
-			}
-			return newarray;
+			if (array is null) throw new ArgumentNullException(nameof(array));
+			return array.Where(n => n is not null).ToArray();
 		}
 
 		#endregion

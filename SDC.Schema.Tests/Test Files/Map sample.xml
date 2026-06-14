@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Map xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	 xsi:schemaLocation="urn:ihe:qrph:sdc:2016 ../../../sdc-schema-package/SDCMapping.xsd"
+	 xmlns="urn:ihe:qrph:sdc:2016"
+	 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	 templateID="urn:example:template:source"
+	 targetTemplateID="urn:example:template:target"
+	 order="0">
+  <DefaultCodeSystem order="10">
+	<CodeSystemName val="SNOMED CT" order="20" />
+	<Version val="2024-09" order="30" />
+  </DefaultCodeSystem>
+  <ItemMap order="40">
+	<TemplateTarget order="50">
+	  <TargetItemID val="urn:example:item:Question.001" order="60" />
+	</TemplateTarget>
+	<DataSource order="70">
+	  <MappedCode order="80">
+		<Code val="123456" order="90" />
+		<CodeText val="Example coded concept" order="100" />
+	  </MappedCode>
+	</DataSource>
+  </ItemMap>
+  <ItemMap order="110">
+	<TemplateTarget order="120">
+	  <TargetItemID val="urn:example:item:Question.002" order="130" />
+	</TemplateTarget>
+	<DataSource order="140">
+	  <MappedCode order="150">
+		<Code val="654321" order="160" />
+		<CodeText val="Secondary coded concept" order="170" />
+	  </MappedCode>
+	</DataSource>
+	<MapComment order="180" val="Map comment with escaped symbols: &lt;alpha&gt; &amp; beta" />
+  </ItemMap>
+</Map>
