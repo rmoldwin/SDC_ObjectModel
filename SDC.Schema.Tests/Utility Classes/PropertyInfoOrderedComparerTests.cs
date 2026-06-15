@@ -5,7 +5,7 @@ using System.Linq;
 namespace SDC.Schema.Tests.Utils
 {
 	[TestClass()]
-	public class _PropertyInfoOrderedComparerTests
+	public class PropertyInfoOrderedComparerTests
 	{
 		[TestMethod()]
 		public void CompareTest()

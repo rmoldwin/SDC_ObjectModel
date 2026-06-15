@@ -5,7 +5,7 @@ using System.Linq;
 namespace SDC.Schema.Tests.TopNode
 {
 	[TestClass()]
-	public class _FormDesignTypeTests
+	public class FormDesignTypeTests
 	{
 		[TestMethod()]
 		public void FormDesignTypeTest()

@@ -1,17 +1,16 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Linq;
 
 namespace SDC.Schema.Tests.Utils.Extensions
 {
 	[TestClass()]
-	public class __INavigateExtensionsTests
+	public class INavigateExtensionsTests
 	{
 		[TestInitialize()]
 		public void Setup()
 		{
 
 		}
+
 		[TestMethod()]
 		public void GetNodeFirstSibTest()
 		{
@@ -25,12 +24,9 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		}
 
 		[TestMethod()]
-		[DataRow(1, new string[] { "1", "1" }, "val 1")]
-		[DataRow(1, new string[] { "2", "2" }, "val 2")]
-		[DataRow(1, new string[] { "3", "3" }, "val 3")]
-		public void GetNodePreviousSibTest(int v1, string[] v2, string v3)
+		public void GetNodePreviousSibTest()
 		{
-			Assert.IsTrue(true);
+
 		}
 
 		[TestMethod()]
@@ -41,6 +37,18 @@ namespace SDC.Schema.Tests.Utils.Extensions
 
 		[TestMethod()]
 		public void GetNodePreviousTest()
+		{
+
+		}
+
+		[TestMethod()]
+		public void GetNodePreviousIETTest()
+		{
+
+		}
+
+		[TestMethod()]
+		public void GetNodeReflectNextTest()
 		{
 
 		}
@@ -70,13 +78,13 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		}
 
 		[TestMethod()]
-		public void HasChildrenTest()
+		public void TryGetChildNodesTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void GetChildListTest()
+		public void GetChildNodesTest()
 		{
 
 		}
@@ -95,6 +103,12 @@ namespace SDC.Schema.Tests.Utils.Extensions
 
 		[TestMethod()]
 		public void GetPropertyInfoTest()
+		{
+
+		}
+
+		[TestMethod()]
+		public void GetFullTreeTest()
 		{
 
 		}

@@ -5,7 +5,7 @@ using System.Linq;
 namespace SDC.Schema.Tests.OMTests
 {
 	[TestClass()]
-	public class _QuestionItemTypeTests
+	public class QuestionItemTypeTests
 	{
 		[TestMethod()]
 		public void QuestionItemTypeTest()
@@ -74,37 +74,37 @@ namespace SDC.Schema.Tests.OMTests
 		}
 
 		[TestMethod()]
-		public void ConvertToQRTest()
+		public void AddQuestionResponseFieldTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ConvertToQSTest()
+		public void GetListFieldTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ConvertToQMTest()
+		public void GetListItemsTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ConvertToDITest()
+		public void GetResponseDataTypeNodeTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ConvertToSectionTest()
+		public void GetListAndChildItemsListTest()
 		{
 
 		}
 
 		[TestMethod()]
-		public void ConvertToLookupTest()
+		public void TryGetListAndChildIETNodesTest()
 		{
 
 		}

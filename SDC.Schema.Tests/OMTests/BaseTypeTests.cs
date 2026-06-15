@@ -5,7 +5,7 @@ using System.Linq;
 namespace SDC.Schema.Tests.OMTests
 {
 	[TestClass()]
-	public class _BaseTypeTests
+	public class BaseTypeTests
 	{
 		[TestMethod()]
 		public void IsMoveAllowedTest()

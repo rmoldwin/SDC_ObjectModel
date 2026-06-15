@@ -5,7 +5,7 @@ using System.Linq;
 namespace SDC.Schema.Tests.OMTests
 {
 	[TestClass()]
-	public class _ListItemTypeTests
+	public class ListItemTypeTests
 	{
 		[TestMethod()]
 		public void ListItemTypeTest()
@@ -38,7 +38,13 @@ namespace SDC.Schema.Tests.OMTests
 		}
 
 		[TestMethod()]
-		public void AddDeSelectIfTest()
+		public void AddDeselectIfTest()
+		{
+
+		}
+
+		[TestMethod()]
+		public void GetResponseDataTypeNodeTest()
 		{
 
 		}

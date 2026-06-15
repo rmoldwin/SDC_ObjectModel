@@ -5,7 +5,7 @@ using System.Linq;
 namespace SDC.Schema.Tests.OMTests
 {
 	[TestClass()]
-	public class _DisplayedTypeTests
+	public class DisplayedTypeTests
 	{
 		[TestMethod()]
 		public void DisplayedTypeTest()

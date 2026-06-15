@@ -5,7 +5,7 @@ using System.Linq;
 namespace SDC.Schema.Tests.OMTests
 {
 	[TestClass()]
-	public class _ActionsTypeTests
+	public class ActionsTypeTests
 	{
 		[TestMethod()]
 		public void ActionsTypeTest()
@@ -33,12 +33,6 @@ namespace SDC.Schema.Tests.OMTests
 
 		[TestMethod()]
 		public void AddActInjectTest()
-		{
-
-		}
-
-		[TestMethod()]
-		public void AddActShowURLTest()
 		{
 
 		}
@@ -111,12 +105,6 @@ namespace SDC.Schema.Tests.OMTests
 
 		[TestMethod()]
 		public void AddActRunCodeTest()
-		{
-
-		}
-
-		[TestMethod()]
-		public void AddActCallFunctionTest()
 		{
 
 		}
