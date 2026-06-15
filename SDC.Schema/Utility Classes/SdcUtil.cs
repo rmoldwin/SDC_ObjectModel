@@ -1310,18 +1310,22 @@ namespace SDC.Schema
         /// /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public static IdentifiedExtensionType? ReflectPrevElementIET(BaseType n)
+		public static IdentifiedExtensionType? ReflectPrevElementIET(BaseType n)
 		{
 			BaseType? bt = n;
+			var visited = new HashSet<Guid>();
 			do
 			{
-				bt = ReflectPrevElement(n);
+				//FIX: Always advance traversal cursor from the previously returned node (bt),
+				//not the original input node, and break any cyclic traversal to prevent hangs.
+				if (!visited.Add(bt.ObjectGUID)) return null;
+				bt = ReflectPrevElement(bt);
 				if (bt is IdentifiedExtensionType iet) return iet;
 
 			} while (bt is not null);
 
 			return null;
-        }
+		}
         /// <summary>
         /// Retrieve the next <see cref="IdentifiedExtensionType"/> SDC element node by reflection.<br/>
         /// This node may be a distal sibling, or a non-sibling node lower in the SDC tree <br/>
@@ -1332,9 +1336,13 @@ namespace SDC.Schema
         public static IdentifiedExtensionType? ReflectNextElementIET(BaseType n)
         {
             BaseType? bt = n;
+            var visited = new HashSet<Guid>();
             do
             {
-                bt = ReflectNextElement(n);
+                //FIX: Always advance traversal cursor from the previously returned node (bt),
+                //not the original input node, and break any cyclic traversal to prevent hangs.
+                if (!visited.Add(bt.ObjectGUID)) return null;
+                bt = ReflectNextElement(bt);
                 if (bt is IdentifiedExtensionType iet) return iet;
 
             } while (bt is not null);
@@ -1349,7 +1357,7 @@ namespace SDC.Schema
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public static BaseType? ReflectPrevElement(BaseType n)
+		public static BaseType? ReflectPrevElement(BaseType n)
 		{
 			if (n is null) return null;
 			BaseType? par = n.ParentNode;
@@ -1365,9 +1373,8 @@ namespace SDC.Schema
 
 			if (par is null) return null; //item is the top node
 
-			lastDesc = ReflectLastDescendantElement(par);
-			if (lastDesc is not null) return lastDesc;
-
+			//FIX: when no previous sibling exists, the previous node is the parent.
+			//Returning the parent's last descendant can re-return the current node and create reflection traversal cycles.
 			return par;
 		}
 		/// <summary>

@@ -194,6 +194,191 @@ namespace SDC.Schema.Tests.Functional
 			Assert.IsTrue(xmlAtts.Count > 0);
 		}
 
+		[TestMethod]
+		public void TryAttachNewNode_BranchCoverage_Stub()
+		{
+			BaseType.ResetLastTopNode();
+			var targetForm = new FormDesignType(null, "FD.Attach.Target");
+			var existingFooter = targetForm.AddFooter();
+			existingFooter.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.Footer.Existing", "Existing Footer Child");
+
+			var sourceForm = new FormDesignType(null, "FD.Attach.Source");
+			var newFooter = sourceForm.AddFooter();
+
+			var tryAttach = typeof(SdcUtil).GetMethod("TryAttachNewNode", BindingFlags.NonPublic | BindingFlags.Static);
+			Assert.IsNotNull(tryAttach);
+
+			var argsNoOverwrite = new object?[]
+			{
+				newFooter,
+				"Footer",
+				targetForm,
+				null,
+				null,
+				null,
+				null,
+				null,
+				-1,
+				false,
+				false
+			};
+
+			var blocked = (bool)tryAttach!.Invoke(null, argsNoOverwrite)!;
+			Assert.IsFalse(blocked);
+			Assert.IsTrue((argsNoOverwrite[7] as string)?.Contains("overwriteExistingObject") ?? false);
+			Assert.AreSame(existingFooter, SdcUtil.GetPropertyObject(targetForm, "Footer"));
+
+			var argsOverwrite = new object?[]
+			{
+				newFooter,
+				"Footer",
+				targetForm,
+				null,
+				null,
+				null,
+				null,
+				null,
+				-1,
+				true,
+				true
+			};
+
+			var overwriteBlockedByChildNodes = (bool)tryAttach.Invoke(null, argsOverwrite)!;
+			Assert.IsFalse(overwriteBlockedByChildNodes);
+			Assert.IsTrue((argsOverwrite[7] as string)?.Contains("cancelWhenChildNodes") ?? false);
+			Assert.AreSame(existingFooter, SdcUtil.GetPropertyObject(targetForm, "Footer"));
+		}
+
+		[TestMethod]
+		public void TryRemoveItemChoiceEnumValue_BranchCoverage_Stub()
+		{
+			var tryRemove = typeof(SdcUtil).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+				.FirstOrDefault(m => m.Name == "TryRemoveItemChoiceEnumValue" && m.GetParameters().Length == 2);
+			Assert.IsNotNull(tryRemove);
+
+			var orphan = new DataElementType(null);
+			var argsNoParent = new object?[] { orphan, null };
+			var noParentResult = (bool)tryRemove!.Invoke(null, argsNoParent)!;
+			Assert.IsFalse(noParentResult);
+			Assert.AreEqual("ParentNode was null", argsNoParent[1]);
+
+			var tryRemoveOverload = typeof(SdcUtil).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+				.FirstOrDefault(m => m.Name == "TryRemoveItemChoiceEnumValue" && m.GetParameters().Length == 5);
+			Assert.IsNotNull(tryRemoveOverload);
+
+			BaseType.ResetLastTopNode();
+			var fd = new FormDesignType(null, "FD.Remove.Enum");
+			var body = fd.AddBody();
+			var question = body.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.Remove", "Remove");
+
+			var targetList = new List<BaseType> { question };
+			var enumList = new List<DayOfWeek> { DayOfWeek.Monday };
+			var piChoiceEnum = typeof(FormDesignType).GetProperty(nameof(FormDesignType.ID), BindingFlags.Public | BindingFlags.Instance);
+			Assert.IsNotNull(piChoiceEnum);
+
+			var argsEnumMismatch = new object?[] { question, targetList, piChoiceEnum, enumList, null };
+			var enumMismatchResult = (bool)tryRemoveOverload!.Invoke(null, argsEnumMismatch)!;
+			Assert.IsFalse(enumMismatchResult);
+			Assert.IsTrue((argsEnumMismatch[4] as string)?.Contains("did not match") ?? false);
+		}
+
+		[TestMethod]
+		public void GetNamePrefix_BranchCoverage_Stub()
+		{
+			BaseType.ResetLastTopNode();
+			var fd = new FormDesignType(null, "FD.NamePrefix");
+			var body = fd.AddBody();
+
+			var q = body.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.Prefix", "Prefix Q");
+			Assert.AreEqual("QS", SdcUtil.GetNamePrefix(q));
+
+			var pReport = new PropertyType(q) { propName = "reportText", name = "p_reportText" };
+			Assert.AreEqual("p_rptText", SdcUtil.GetNamePrefix(pReport));
+
+			var pAlt = new PropertyType(q) { propName = "altText", name = "p_altText" };
+			Assert.AreEqual("p_altText", SdcUtil.GetNamePrefix(pAlt));
+
+			var pCustom = new PropertyType(q) { propName = "customProperty", name = "MyCustom" };
+			Assert.AreEqual(string.Empty, SdcUtil.GetNamePrefix(pCustom));
+
+			q.ElementPrefix = "";
+			var fallback = SdcUtil.GetNamePrefix(q);
+			Assert.IsFalse(string.IsNullOrWhiteSpace(fallback));
+		}
+
+		[TestMethod]
+		[Timeout(1000)]
+		public void ReflectTreeList_BranchCoverage_Stub()
+		{
+			BaseType.ResetLastTopNode();
+			var fd = new FormDesignType(null, "FD.ReflectTreeList");
+			fd.AddBody().AddChildQuestion(QuestionEnum.QuestionSingle, "Q.Reflect.1", "Reflect 1");
+
+			var list = SdcUtil.ReflectTreeList(fd, out var treeText, print: false);
+			Assert.IsNotNull(list);
+			Assert.AreEqual(string.Empty, treeText);
+		}
+
+		[TestMethod]
+		[Timeout(1000)]
+		public void FindTopNode_And_IetTraversal_BranchCoverage_Stub()
+		{
+			var (fd, _, q1, q2, _) = BuildNavigationFixture();
+
+			var foundTopFromChild = SdcUtil.FindTopNode(q1);
+			Assert.IsNotNull(foundTopFromChild);
+			Assert.AreSame(fd, foundTopFromChild);
+
+			var foundTopFromTop = SdcUtil.FindTopNode(fd);
+			Assert.IsNull(foundTopFromTop);
+
+			var nextIet = SdcUtil.GetNextElementIET(q1);
+			Assert.AreSame(q2, nextIet);
+
+			var prevIet = SdcUtil.GetPrevElementIET(q2);
+			Assert.AreSame(q1, prevIet);
+		}
+
+		[TestMethod]
+		[Timeout(1000)]
+		public void ReflectIetTraversal_Next_CompletesWithinTimeout()
+		{
+			var (_, _, q1, q2, _) = BuildNavigationFixture();
+
+			//Regression coverage for previous non-advancing traversal loop.
+			var reflectNextIet = SdcUtil.ReflectNextElementIET(q1);
+			Assert.AreSame(q2, reflectNextIet);
+		}
+
+		[TestMethod]
+		[Timeout(1000)]
+		public void ReflectIetTraversal_Prev_CompletesWithinTimeout()
+		{
+			var (_, _, q1, _, _) = BuildNavigationFixture();
+			var reflectPrevIet = SdcUtil.ReflectPrevElementIET(q1);
+			Assert.IsNotNull(reflectPrevIet);
+		}
+
+		[TestMethod]
+		[Timeout(1000)]
+		public void DescendantAndWrapperHelpers_BranchCoverage_Stub()
+		{
+			var (fd, body, _, q2, _) = BuildNavigationFixture();
+			q2.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.Wrap.2.1", "Wrap Child");
+			var bodyItems = body.ChildItemsNode;
+
+			var lastDescSimple = SdcUtil.GetLastDescendantElementSimple(bodyItems);
+			Assert.IsNotNull(lastDescSimple);
+
+			var reflected = SdcUtil.ReflectUpdateTreeDictionaries(fd);
+			Assert.IsNotNull(reflected);
+			Assert.IsTrue(reflected.Count > 0);
+
+			var sortedTree = SdcUtil.GetSortedTreeList(fd);
+			Assert.IsNotNull(sortedTree);
+			Assert.IsTrue(sortedTree.Count > 0);
+		}
+
 		private static (FormDesignType fd, SectionItemType body, QuestionItemType q1, QuestionItemType q2, QuestionItemType q3) BuildNavigationFixture()
 		{
 			BaseType.ResetLastTopNode();
