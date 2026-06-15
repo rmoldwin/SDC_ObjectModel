@@ -67,8 +67,14 @@ namespace SDC.Schema
 
 		public static T DeserializeJson<T>(string input)
 		{
+			// Bug fix: allow Json.NET to use protected/internal parameterless constructors generated across the schema model,
+			// so deserialization does not incorrectly bind to parent-dependent parameterized constructors.
+			var settings = new JsonSerializerSettings
+			{
+				ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
+			};
 			//return J.JsonSerializer.Deserialize<T>(input); //System.Text.Json
-			return JsonConvert.DeserializeObject<T>(input);
+			return JsonConvert.DeserializeObject<T>(input, settings);
 		}
 		#endregion
 
