@@ -1287,6 +1287,11 @@ namespace SDC.Schema
 		{
 			Init();
 		}
+		internal InjectFormType(BaseType parentNode, string id, int position, string elementName) : base(parentNode, id, position, elementName)
+		{
+			Init();
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
+		}
 		private void Init()
 		{
 			this._repeat = 0;
@@ -4735,7 +4740,7 @@ namespace SDC.Schema
 	public partial class ActInjectType : InjectFormType
 	{
 		protected ActInjectType() { Init(); }
-		public ActInjectType(ActionsType parentNode, string id = "", int position = -1) : base(parentNode, id, position)
+		public ActInjectType(ActionsType parentNode, string id = "", int position = -1) : base(parentNode, id, position, "Inject")
 		{
 			Init();
 		}
@@ -4789,13 +4794,13 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="parentNode"></param>
 		/// <param name="position"></param>
-		public ActSendMessageType(ActionsType parentNode, int position = -1) : base(parentNode, position, "SendMessage")
+		public ActSendMessageType(ActionsType parentNode, int position = -1) : base(parentNode, position, "SendMessage111")
 		{
 			Init();
 		} 
 		private void Init()
 		{
-			ElementName = "SendMessage";  //"SendMessage111"  this type may be removed
+			ElementName = "SendMessage111";
 			ElementPrefix = "actSndMsg";
 			Items = new();
 		}
@@ -4842,7 +4847,7 @@ namespace SDC.Schema
 	public partial class ActSetBoolAttributeValueCodeType
 	{
 		protected ActSetBoolAttributeValueCodeType() { Init(); }
-		public ActSetBoolAttributeValueCodeType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		public ActSetBoolAttributeValueCodeType(ActionsType parentNode, int position = -1) : base(parentNode, position, "SetBoolAttributeValueCode")
 		{
 			Init();
 		}

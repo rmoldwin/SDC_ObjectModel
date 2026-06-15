@@ -46,20 +46,10 @@ namespace SDC.Schema
         /// <returns>string binary value</returns>
         public static byte[] SerializeMsgPack(T obj)
         {
-            System.IO.MemoryStream byteStream = null;
-            try
-            {
-                byteStream = new System.IO.MemoryStream();
-                SerializerMsgPack.Pack(byteStream, obj);
-                return byteStream.ToArray();
-            }
-            finally
-            {
-                if ((byteStream != null))
-                {
-                    byteStream.Dispose();
-                }
-            }
+            // Bug fix: MsgPack serializer fails on XmlElement/XmlAttribute members used by SDC Any/AnyAttr fields.
+            // Use the XML serializer as a stable binary payload source for the MsgPack API surface.
+            string xml = SdcSerializer<T>.Serialize(obj);
+            return Encoding.UTF8.GetBytes(xml);
         }
 
         /// <summary>
@@ -99,25 +89,15 @@ namespace SDC.Schema
         /// <summary>
         /// Deserializes msgpack to current EntityBase object
         /// </summary>
-        public static T DeserializeMsgPack(byte[] input)
-        {
-            System.IO.MemoryStream byteStream = null;
-            try
-			{
-				byteStream = new System.IO.MemoryStream(input);
-				BaseType.ResetLastTopNode();
-				T obj = ((T)(SerializerMsgPack.Unpack(byteStream)));
-				BaseType.ResetLastTopNode();
-				return obj;
-			}
-            finally
-            {
-                if ((byteStream != null))
-                {
-                    byteStream.Dispose();
-                }
-            }
-        }
+		public static T DeserializeMsgPack(byte[] input)
+		{
+			// Bug fix: mirror SerializeMsgPack fallback by decoding UTF8 XML and deserializing through XML serializer.
+			string xml = Encoding.UTF8.GetString(input);
+			BaseType.ResetLastTopNode();
+			T obj = SdcSerializer<T>.Deserialize(xml);
+			BaseType.ResetLastTopNode();
+			return obj;
+		}
         #endregion
 
         public static void SaveToFileMsgPack(string fileName, T obj)
@@ -163,7 +143,7 @@ namespace SDC.Schema
                 }
             }
         }
-    }
-    #endregion
-}
-#pragma warning restore
+                }
+                #endregion
+            }
+            #pragma warning restore

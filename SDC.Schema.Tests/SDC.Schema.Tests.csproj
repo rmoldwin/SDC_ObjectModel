@@ -17,9 +17,6 @@
   <ItemGroup>
     <None Include="Core Tests.csproj" />
     <None Include="Core Tests.csproj.user" />
-    <None Include="TopNode\_MappingTypeExtensionTests.cs" />
-    <None Include="TopNode\_PackageListTypeExtensionTests.cs" />
-    <None Include="TopNode\_XMLPackagetTypeExtensionTests.cs" />
   </ItemGroup>
 
   <ItemGroup>

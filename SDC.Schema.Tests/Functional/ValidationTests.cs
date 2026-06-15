@@ -46,43 +46,58 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void ValidateJsonFormDesign()
 		{
-
+			var json = fd.GetJson();
+			var result = SdcValidate.ValidateSdcJson(json);
+			Assert.IsNotNull(result);
 		}
 		[TestMethod]
 		public void ValidateXmlFormDesign()
 		{
 			var xml = fd.GetXml();
 			var result = SdcValidate.ValidateSdcXml(xml);
-
-			Console.WriteLine("***" + result ?? string.Empty);
-
+			Assert.IsNotNull(result);
 		}
 
 		[TestMethod]
 		public void ValidateXmlDemogFormDesign()
 		{
-
+			var dfd = new DemogFormDesignType(null, "Demog1");
+			var result = dfd.ValidateSdcObjectTree();
+			Assert.IsNotNull(result);
 		}
 
+		[TestMethod]
 		public void ValidateXmlPackage()
 		{
-
+			var pkg = new RetrieveFormPackageType(null, "Pkg1");
+			var result = pkg.ValidateSdcObjectTree();
+			Assert.IsNotNull(result);
 		}
+
+		[TestMethod]
 		public void ValidateJsonPackage()
 		{
-
+			var pkg = new RetrieveFormPackageType(null, "Pkg2");
+			var json = pkg.GetJson();
+			var result = SdcValidate.ValidateSdcJson(json);
+			Assert.IsNotNull(result);
 		}
 
 		[TestMethod]
 		public void ValidateXmlDataElement()
 		{
-
+			var de = new DataElementType(null);
+			de.ID = "De1";
+			var result = de.ValidateSdcObjectTree();
+			Assert.IsNotNull(result);
 		}
 
 		[TestMethod]
 		public void ValidateXmlMap()
 		{
-
+			var map = new MappingType(null, "Map1", -1, "Map");
+			var result = map.ValidateSdcObjectTree();
+			Assert.IsNotNull(result);
 		}
 
 	}
