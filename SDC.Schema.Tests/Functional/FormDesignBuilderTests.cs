@@ -31,7 +31,8 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void AssignNamesFromXmlDoc()
 		{
-			var fd = FormDesignType.DeserializeFromXml(Setup.FD_XML ?? Setup.FD.GetXml());
+			// Bug fix: use a per-test fresh XML source and avoid shared Setup.FD warm-state dependency.
+			var fd = FormDesignType.DeserializeFromXml(Setup.GetXml());
 
 			fd.AssignElementNamesByReflection();
 

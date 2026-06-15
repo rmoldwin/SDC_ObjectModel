@@ -49,9 +49,10 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void GetIetNodesTest()
 		{
-			Setup.Reset();
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var FD = Setup.FD;
+			// Bug fix: use a per-test fresh object graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			var FD = FormDesignType.DeserializeFromXml(Setup.GetXml());
 			Debug.Print((FD.Nodes.Equals(FD.TopNode.Nodes)).ToString());
 			foreach (BaseType n in FD.Nodes.Values)
 			{
@@ -64,8 +65,9 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void GetHtmlItems()
 		{
-			Setup.Reset();
-			var fd = Setup.FD;
+			// Bug fix: use a per-test fresh object graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			var fd = FormDesignType.DeserializeFromXml(Setup.GetXml());
 			foreach (var iet in fd.IETnodes)
 			{
 				string? title;

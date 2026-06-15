@@ -38,10 +38,12 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void MoveListItemInList()
 		{
-			Setup.Reset();
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
+			// Bug fix: use a per-test fresh object graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			var fd = FormDesignType.DeserializeFromXml(Setup.GetXml());
 			//FD.TopNode.ReorderNodes();
-			var li = Setup.FD.Nodes.Where(n =>
+			var li = fd.Nodes.Where(n =>
 				n.Value is ListItemType liTest &&
 				liTest.ID == "38493.100004300").FirstOrDefault().Value
 				as ListItemType;
@@ -51,17 +53,17 @@ namespace SDC.Schema.Tests.Functional
 			List<BaseType> lst2;
 			List<BaseType> lst3;
 
-			lst1 = SdcUtil.ReflectChildElements(Setup.FD.GetListItemByID("51689.100004300"));
-			lst2 = SdcUtil.ReflectChildElements(Setup.FD.GetListItemByID("38493.100004300"));
-			lst3 = SdcUtil.ReflectChildElements(Setup.FD.GetNodeByName("lst_44135_3"));
+			lst1 = SdcUtil.ReflectChildElements(fd.GetListItemByID("51689.100004300"));
+			lst2 = SdcUtil.ReflectChildElements(fd.GetListItemByID("38493.100004300"));
+			lst3 = SdcUtil.ReflectChildElements(fd.GetNodeByName("lst_44135_3"));
 
-			lst3 = SdcUtil.ReflectRefreshSubtreeList(Setup.FD.GetSectionByID("43969.100004300"));
+			lst3 = SdcUtil.ReflectRefreshSubtreeList(fd.GetSectionByID("43969.100004300"));
 			//foreach (var n in lst3) Debug.Print(n.name);
 			var tc = new TreeComparer();
 			lst3.Sort(tc);
 			foreach (var n in lst3) Debug.Print(n.name + ": " + n.ElementName + ", " + n.ObjectID);
 
-			var lst4 = Setup.FD.Nodes.Values.ToList();
+			var lst4 = fd.Nodes.Values.ToList();
 			var res = lst4[0].GetType().GetProperties()
 				.Where(p => p.GetCustomAttributes<XmlElementAttribute>().Count() > 0 && p.GetValue(lst4[0]) != null)
 				.Select(p => p.GetValue(lst4[0])).ToList();
@@ -112,21 +114,22 @@ namespace SDC.Schema.Tests.Functional
 			li.Move(list);
 			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li, li.ParentNode).ItemIndex == list.Items.Count() - 1);
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-			Setup.Reset(); //reset after moving nodes.
 		}
 		[TestMethod]
 		public void MoveListItemToOtherList()
 		{
-			Setup.Reset();
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var li = Setup.FD.Nodes.Where(n =>
+			// Bug fix: use a per-test fresh object graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			var fd = FormDesignType.DeserializeFromXml(Setup.GetXml());
+			var li = fd.Nodes.Where(n =>
 				n.Value is ListItemType liTest &&
 				liTest.ID == "38493.100004300").FirstOrDefault().Value
 				as ListItemType;
 			Assert.IsTrue(li is ListItemType);
 			var list = (ListType)li.ParentNode;
 
-			var list2 = Setup.FD.Nodes.Where(n =>
+			var list2 = fd.Nodes.Where(n =>
 				n.Value is ListType liTest &&
 				liTest.name == "lst_58267_3").FirstOrDefault().Value
 				as ListType;
@@ -140,7 +143,6 @@ namespace SDC.Schema.Tests.Functional
 
 
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-			Setup.Reset(); //reset after moving nodes.
 		}
 
 		[TestMethod]
@@ -189,8 +191,8 @@ namespace SDC.Schema.Tests.Functional
 			Assert.IsTrue(LI_39079.ChildItemsNode is null);
 
 
+			// Bug fix: this test uses a per-test local graph, so no shared Setup reset is required.
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
-			Setup.Reset(); //reset after moving nodes.
 		}
 		[TestMethod]
 		public void CountNodesAfterDropAfter()
@@ -274,8 +276,8 @@ namespace SDC.Schema.Tests.Functional
 			var liPos = lst1.IndexOf(LI_16255);
 			Assert.IsTrue(liPos - qPos == 1);
 
+			// Bug fix: this test uses a per-test local graph, so no shared Setup reset is required.
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
-			Setup.Reset(); //reset after moving nodes.
 		}
 		[TestMethod]
 		public void _MoveListDIinList()
