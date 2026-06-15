@@ -38,12 +38,6 @@ namespace SDC.Schema.Tests.OMTests
 		}
 
 		[TestMethod()]
-		public void AddActShowURLTest()
-		{
-
-		}
-
-		[TestMethod()]
 		public void AddActSaveResponsesTest()
 		{
 
@@ -111,12 +105,6 @@ namespace SDC.Schema.Tests.OMTests
 
 		[TestMethod()]
 		public void AddActRunCodeTest()
-		{
-
-		}
-
-		[TestMethod()]
-		public void AddActCallFunctionTest()
 		{
 
 		}

@@ -1,40 +1,53 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Linq;
 
 namespace SDC.Schema.Tests.Functional
 {
 	[TestClass]
 	public class _ChangeTypeTests
 	{
-
 		[TestMethod]
-		public void ListItemToDisplayedItem()
+		public void ChangeTypeTest()
 		{
-			Setup.TimerStart("==>[] Started");
-
-			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
-		[TestMethod]
-		public void DisplayedItemToListItem()
-		{
-			Setup.TimerStart("==>[] Started");
 
-			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		[TestMethod]
+		public void TargetItemIDPropertyTest()
+		{
 		}
-		[TestMethod]
-		public void DisplayedItemToQuestion()
-		{
-			Setup.TimerStart("==>[] Started");
 
-			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		[TestMethod]
+		public void TargetItemNamePropertyTest()
+		{
 		}
-		[TestMethod]
-		public void DisplayedItemToSection()
-		{
-			Setup.TimerStart("==>[] Started");
 
-			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		[TestMethod]
+		public void TargetItemXPathPropertyTest()
+		{
+		}
+
+		[TestMethod]
+		public void NewValuePropertyTest()
+		{
+		}
+
+		[TestMethod]
+		public void ShouldSerializeTargetItemIDTest()
+		{
+		}
+
+		[TestMethod]
+		public void ShouldSerializeTargetItemNameTest()
+		{
+		}
+
+		[TestMethod]
+		public void ShouldSerializeTargetItemXPathTest()
+		{
+		}
+
+		[TestMethod]
+		public void ShouldSerializeNewValueTest()
+		{
 		}
 	}
 }

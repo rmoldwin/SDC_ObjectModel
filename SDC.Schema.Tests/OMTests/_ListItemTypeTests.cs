@@ -38,7 +38,13 @@ namespace SDC.Schema.Tests.OMTests
 		}
 
 		[TestMethod()]
-		public void AddDeSelectIfTest()
+		public void AddDeselectIfTest()
+		{
+
+		}
+
+		[TestMethod()]
+		public void GetResponseDataTypeNodeTest()
 		{
 
 		}
