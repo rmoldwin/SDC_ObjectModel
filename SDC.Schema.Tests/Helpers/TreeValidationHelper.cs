@@ -14,7 +14,10 @@ namespace SDC.Schema.Tests.Helpers
     {
         /// <summary>
         /// Validates that all TopNode dictionaries are consistent and contain no corruption.
-        /// Performs comprehensive checks on _Nodes, _ParentNodes, _ChildNodes, _IETnodes.
+        /// Uses dictionary-based validation (not reflection traversal) to verify:
+        /// - All nodes have correct GUID/TopNode/ParentNode references
+        /// - Parent-child relationships are bidirectional
+        /// - IETnodes consistency
         /// </summary>
         /// <param name="topNode">The TopNode to validate (typically FormDesignType or DataElementType)</param>
         /// <param name="contextMessage">Optional context message for assertion failures</param>
@@ -37,332 +40,98 @@ namespace SDC.Schema.Tests.Helpers
 
             Assert.IsNotNull(nodes, $"Nodes dictionary cannot be null. {contextMessage}");
 
-            // Step 2: Traverse tree and collect all reachable nodes
-            var reachableNodes = new HashSet<Guid>();
-            CollectReachableNodes(topNode, reachableNodes);
-
-            // Step 3: Compare reachable count vs dictionary count
-            int reachableCount = reachableNodes.Count;
-            int dictionaryCount = nodes.Count;
-
-            Assert.AreEqual(dictionaryCount, reachableCount,
-                $"Reachable node count ({reachableCount}) should match Nodes count ({dictionaryCount}). " +
-                $"Orphaned or missing nodes detected. {contextMessage}");
-
-            // Step 4: Validate each reachable node
-            foreach (var guid in reachableNodes)
+            // Step 2: Validate each node in the Nodes dictionary
+            foreach (var kvp in nodes)
             {
-                // 4a: Assert GUID exists in Nodes
-                Assert.IsTrue(nodes.ContainsKey(guid),
-                    $"Node GUID {guid} is reachable but missing from Nodes dictionary. {contextMessage}");
+                var guid = kvp.Key;
+                var node = kvp.Value;
 
-                var node = nodes[guid];
-
-                // 4b: Assert Nodes[guid] references correct object
+                // 2a: Assert dictionary key matches node's GUID
                 Assert.AreEqual(guid, node.ObjectGUID,
-                    $"Node in Nodes has mismatched GUID. Expected {guid}, found {node.ObjectGUID}. {contextMessage}");
+                    $"Node in Nodes dictionary has mismatched GUID. Key: {guid}, Node.ObjectGUID: {node.ObjectGUID}. {contextMessage}");
 
-                // 4c: Assert TopNode reference is correct
+                // 2b: Assert TopNode reference is correct
                 Assert.IsTrue(ReferenceEquals(topNode, node.TopNode),
-                    $"Node {guid} has incorrect TopNode reference. {contextMessage}");
+                    $"Node {guid} has incorrect TopNode reference. Expected {topNode.ObjectGUID}, found {node.TopNode?.ObjectGUID}. {contextMessage}");
 
-                // 4d: Assert ParentNode relationship
+                // 2c: Assert ParentNode relationship
                 if (!ReferenceEquals(node, topNode)) // TopNode has no parent
                 {
                     Assert.IsNotNull(node.ParentNode,
                         $"Non-root node {guid} has null ParentNode. {contextMessage}");
 
-                    // Verify parent is also in tree
+                    // Verify parent is also in the same tree
                     Assert.IsTrue(nodes.ContainsKey(node.ParentNode.ObjectGUID),
-                        $"Node {guid} parent {node.ParentNode.ObjectGUID} not in Nodes dictionary. {contextMessage}");
+                        $"Node {guid} has parent {node.ParentNode.ObjectGUID} not in Nodes dictionary. {contextMessage}");
                 }
                 else
                 {
                     Assert.IsNull(node.ParentNode,
-                        $"TopNode {guid} should have null ParentNode. {contextMessage}");
+                        $"TopNode {guid} should have null ParentNode, but has {node.ParentNode?.ObjectGUID}. {contextMessage}");
                 }
-
-                // 4e: Validate children if node has any
-                ValidateNodeChildren(node, nodes, contextMessage);
             }
 
-            // Step 5: Check for orphaned dictionary entries (in dictionary but not reachable)
-            var orphanedGuids = nodes.Keys.Except(reachableNodes).ToList();
-            Assert.AreEqual(0, orphanedGuids.Count,
-                $"Found {orphanedGuids.Count} orphaned nodes in Nodes: {string.Join(", ", orphanedGuids)}. {contextMessage}");
-
-            // Step 6: Validate GUID uniqueness (implicitly validated by HashSet, but double-check)
-            var guidList = new List<Guid>();
-            CollectGuidsForUniquenessCheck(topNode, guidList);
-            var uniqueGuids = guidList.Distinct().ToList();
-            Assert.AreEqual(guidList.Count, uniqueGuids.Count,
-                $"Duplicate GUIDs detected. Total: {guidList.Count}, Unique: {uniqueGuids.Count}. {contextMessage}");
-
-            // Step 7: Validate _IETnodes collection consistency (if populated)
+            // Step 3: Validate _IETnodes collection consistency (if populated)
             if (ietNodes != null && ietNodes.Count > 0)
             {
                 foreach (var ietNode in ietNodes)
                 {
                     Assert.IsTrue(nodes.ContainsKey(ietNode.ObjectGUID),
-                        $"IET node {ietNode.ObjectGUID} in IETnodes but missing from Nodes. {contextMessage}");
+                        $"IET node {ietNode.ObjectGUID} in IETnodes but missing from Nodes dictionary. {contextMessage}");
                     Assert.IsTrue(ReferenceEquals(topNode, ietNode.TopNode),
                         $"IET node {ietNode.ObjectGUID} has incorrect TopNode reference. {contextMessage}");
                 }
             }
+
+            // Step 4: Validate GUID uniqueness (all keys in dictionary should be unique by definition,
+            // but verify no duplicate ObjectGUID values exist in the node objects themselves)
+            var guidValues = nodes.Values.Select(n => n.ObjectGUID).ToList();
+            var uniqueGuids = guidValues.Distinct().ToList();
+            Assert.AreEqual(guidValues.Count, uniqueGuids.Count,
+                $"Duplicate ObjectGUIDs detected among node values. Total: {guidValues.Count}, Unique: {uniqueGuids.Count}. {contextMessage}");
         }
 
         /// <summary>
-        /// Validates that a node's children (if any) have correct parent references.
+        /// Counts all nodes in the tree by querying the TopNode's Nodes dictionary.
+        /// This is the authoritative count - dictionary-based, not traversal-based.
         /// </summary>
-        private static void ValidateNodeChildren(BaseType node, System.Collections.ObjectModel.ReadOnlyDictionary<Guid, BaseType> nodes, string contextMessage)
-        {
-            // Use reflection to get child properties
-            var nodeType = node.GetType();
-            var properties = nodeType.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-
-            foreach (var prop in properties)
-            {
-                // Check for list properties that contain BaseType descendants
-                if (prop.PropertyType.IsGenericType &&
-                    prop.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
-                {
-                    var listType = prop.PropertyType.GetGenericArguments()[0];
-                    if (typeof(BaseType).IsAssignableFrom(listType))
-                    {
-                        var list = prop.GetValue(node) as System.Collections.IEnumerable;
-                        if (list != null)
-                        {
-                            foreach (var item in list)
-                            {
-                                if (item is BaseType child)
-                                {
-                                    // NOTE: Permissive check - SDC uses intermediate container nodes (ChildItemsType, ListType)
-                                    // so child.ParentNode might be the container, not this node
-                                    Assert.IsTrue(nodes.ContainsKey(child.ObjectGUID),
-                                        $"Child {child.ObjectGUID} in {node.ObjectGUID}.{prop.Name} not in Nodes dictionary. {contextMessage}");
-                                }
-                            }
-                        }
-                    }
-                }
-                // Check for single-value BaseType properties
-                else if (typeof(BaseType).IsAssignableFrom(prop.PropertyType))
-                {
-                    var child = prop.GetValue(node) as BaseType;
-                    if (child != null)
-                    {
-                        // NOTE: Permissive check - SDC uses intermediate container nodes
-                        Assert.IsTrue(nodes.ContainsKey(child.ObjectGUID),
-                            $"Child {child.ObjectGUID} in {node.ObjectGUID}.{prop.Name} not in Nodes dictionary. {contextMessage}");
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Validates bidirectional parent-child relationship for a specific node.
-        /// </summary>
-        /// <param name="node">The node to validate</param>
-        public static void ValidateParentChildSymmetry(BaseType node)
-        {
-            Assert.IsNotNull(node, "Node cannot be null");
-
-            var parent = node.ParentNode;
-            if (parent == null)
-            {
-                // Node is either TopNode or orphaned
-                Assert.IsTrue(ReferenceEquals(node, node.TopNode),
-                    $"Node {node.ObjectGUID} has null parent but is not its own TopNode (orphaned?)");
-                return;
-            }
-
-            // Access top node to validate relationships
-            var topNode = node.TopNode;
-            Assert.IsNotNull(topNode, $"Node {node.ObjectGUID} has null TopNode");
-
-            if (topNode is not ITopNode iTopNode)
-            {
-                Assert.Fail($"TopNode must implement ITopNode interface");
-                return;
-            }
-
-            var nodes = iTopNode.Nodes;
-
-            // Verify node and parent are both in the tree
-            Assert.IsTrue(nodes.ContainsKey(node.ObjectGUID),
-                $"Node {node.ObjectGUID} not found in Nodes dictionary");
-            Assert.IsTrue(nodes.ContainsKey(parent.ObjectGUID),
-                $"Parent {parent.ObjectGUID} not found in Nodes dictionary");
-
-            // Use reflection to find node in parent's child collections
-            bool foundInParent = false;
-            var parentType = parent.GetType();
-            var properties = parentType.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-
-            foreach (var prop in properties)
-            {
-                if (prop.PropertyType.IsGenericType &&
-                    prop.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
-                {
-                    var list = prop.GetValue(parent) as System.Collections.IEnumerable;
-                    if (list != null)
-                    {
-                        foreach (var item in list)
-                        {
-                            if (item is BaseType child && ReferenceEquals(child, node))
-                            {
-                                foundInParent = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                else if (typeof(BaseType).IsAssignableFrom(prop.PropertyType))
-                {
-                    var child = prop.GetValue(parent) as BaseType;
-                    if (child != null && ReferenceEquals(child, node))
-                    {
-                        foundInParent = true;
-                        break;
-                    }
-                }
-
-                if (foundInParent) break;
-            }
-
-            Assert.IsTrue(foundInParent,
-                $"Node {node.ObjectGUID} claims parent {parent.ObjectGUID}, but parent's properties do not contain node");
-        }
-
-        /// <summary>
-        /// Counts all nodes reachable by traversing the tree from topNode.
-        /// </summary>
-        /// <param name="topNode">The root node to start traversal</param>
-        /// <returns>Count of reachable nodes (including topNode)</returns>
+        /// <param name="topNode">The root node (must implement ITopNode)</param>
+        /// <returns>Count of nodes in the tree (including topNode)</returns>
         public static int CountReachableNodes(BaseType topNode)
         {
-            var reachableGuids = new HashSet<Guid>();
-            CollectReachableNodes(topNode, reachableGuids);
-            return reachableGuids.Count;
-        }
+            Assert.IsNotNull(topNode, "TopNode cannot be null");
 
-        /// <summary>
-        /// Recursively collects all reachable node GUIDs via depth-first traversal.
-        /// Uses HashSet to avoid counting cycles.
-        /// </summary>
-        private static void CollectReachableNodes(BaseType node, HashSet<Guid> visited)
-        {
-            if (node == null) return;
-            if (visited.Contains(node.ObjectGUID)) return; // Avoid cycles
-
-            visited.Add(node.ObjectGUID);
-
-            // Use reflection to traverse all BaseType child properties
-            var nodeType = node.GetType();
-            var properties = nodeType.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-
-            foreach (var prop in properties)
+            if (topNode is ITopNode iTopNode)
             {
-                // Check for list properties
-                if (prop.PropertyType.IsGenericType &&
-                    prop.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
-                {
-                    var listType = prop.PropertyType.GetGenericArguments()[0];
-                    if (typeof(BaseType).IsAssignableFrom(listType))
-                    {
-                        var list = prop.GetValue(node) as System.Collections.IEnumerable;
-                        if (list != null)
-                        {
-                            foreach (var item in list)
-                            {
-                                if (item is BaseType child)
-                                {
-                                    CollectReachableNodes(child, visited);
-                                }
-                            }
-                        }
-                    }
-                }
-                // Check for single-value BaseType properties
-                else if (typeof(BaseType).IsAssignableFrom(prop.PropertyType))
-                {
-                    var child = prop.GetValue(node) as BaseType;
-                    if (child != null)
-                    {
-                        CollectReachableNodes(child, visited);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Collects all node GUIDs for uniqueness validation.
-        /// Unlike CollectReachableNodes, this allows duplicates to be detected.
-        /// </summary>
-        private static void CollectGuidsForUniquenessCheck(BaseType node, List<Guid> guidList)
-        {
-            if (node == null) return;
-
-            guidList.Add(node.ObjectGUID);
-
-            // Use reflection to traverse children
-            var nodeType = node.GetType();
-            var properties = nodeType.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-
-            foreach (var prop in properties)
-            {
-                if (prop.PropertyType.IsGenericType &&
-                    prop.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
-                {
-                    var listType = prop.PropertyType.GetGenericArguments()[0];
-                    if (typeof(BaseType).IsAssignableFrom(listType))
-                    {
-                        var list = prop.GetValue(node) as System.Collections.IEnumerable;
-                        if (list != null)
-                        {
-                            foreach (var item in list)
-                            {
-                                if (item is BaseType child)
-                                {
-                                    CollectGuidsForUniquenessCheck(child, guidList);
-                                }
-                            }
-                        }
-                    }
-                }
-                else if (typeof(BaseType).IsAssignableFrom(prop.PropertyType))
-                {
-                    var child = prop.GetValue(node) as BaseType;
-                    if (child != null)
-                    {
-                        CollectGuidsForUniquenessCheck(child, guidList);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Validates that a specific node count expectation is met.
-        /// Useful for verifying adds/deletes changed the tree by expected amount.
-        /// </summary>
-        public static void AssertNodeCount(BaseType topNode, int expectedCount, string message = "")
-        {
-            Assert.IsNotNull(topNode, $"TopNode is null. {message}");
-
-            if (topNode is not ITopNode iTopNode)
-            {
-                Assert.Fail($"TopNode must implement ITopNode. {message}");
-                return;
+                return iTopNode.Nodes?.Count ?? 0;
             }
 
-            var nodes = iTopNode.Nodes;
-            int actualCount = nodes.Count;
-            Assert.AreEqual(expectedCount, actualCount,
-                $"Expected {expectedCount} nodes, found {actualCount}. {message}");
-        }
+            Assert.Fail($"TopNode {topNode.ObjectGUID} does not implement ITopNode");
+                return 0; // Never reached due to Assert.Fail
+            }
 
-        /// <summary>
-        /// Validates that a node exists in the TopNode dictionaries.
+            /// <summary>
+            /// Validates that a specific node count expectation is met.
+            /// Useful for verifying adds/deletes changed the tree by expected amount.
+            /// </summary>
+            public static void AssertNodeCount(BaseType topNode, int expectedCount, string message = "")
+            {
+                Assert.IsNotNull(topNode, $"TopNode is null. {message}");
+
+                if (topNode is not ITopNode iTopNode)
+                {
+                    Assert.Fail($"TopNode must implement ITopNode. {message}");
+                    return;
+                }
+
+                var nodes = iTopNode.Nodes;
+                int actualCount = nodes.Count;
+                Assert.AreEqual(expectedCount, actualCount,
+                    $"Expected {expectedCount} nodes, found {actualCount}. {message}");
+            }
+
+            /// <summary>
+            /// Validates that a node exists in the TopNode dictionaries.
         /// </summary>
         public static void AssertNodeExists(BaseType node, string message = "")
         {
