@@ -1,0 +1,1066 @@
+{
+  "settings": {
+    "components": {
+      "code": true,
+      "binaries": false
+    },
+    "targetId": "net11.0",
+    "targetDisplayName": ".NETCoreApp,Version=v11.0"
+  },
+  "analysisStartTime": "2026-06-16T05:57:42.5508993Z",
+  "analysisEndTime": "2026-06-16T05:57:44.8618748Z",
+  "privacyModeHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2270980",
+  "stats": {
+    "summary": {
+      "projects": 3,
+      "issues": 5,
+      "incidents": 33,
+      "effort": 33
+    },
+    "charts": {
+      "severity": {
+        "Mandatory": 13,
+        "Optional": 0,
+        "Potential": 20,
+        "Information": 0
+      },
+      "category": {
+        "NuGet": 1,
+        "Project": 3,
+        "Api": 29
+      }
+    }
+  },
+  "projects": [
+    {
+      "path": "Benchmarks\\Benchmarks.csproj",
+      "startingProject": true,
+      "issues": 1,
+      "storyPoints": 1,
+      "properties": {
+        "appName": "Benchmarks",
+        "projectKind": "DotNetCoreApp",
+        "frameworks": [
+          "net7.0"
+        ],
+        "languages": [
+          "C#"
+        ],
+        "tools": [
+          "MSBuild"
+        ],
+        "isSdkStyle": true,
+        "numberOfFiles": 2,
+        "numberOfCodeFiles": 2,
+        "linesTotal": 491,
+        "linesOfCode": 491,
+        "totalApiScanned": 470,
+        "minLinesOfCodeToChange": 0,
+        "maxLinesOfCodeToChange": 0
+      },
+      "ruleInstances": [
+        {
+          "incidentId": "880fb129-065f-4bac-a686-c8e2e1d35372",
+          "ruleId": "Project.0002",
+          "projectPath": "Benchmarks\\Benchmarks.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Current target framework: net7.0\nRecommended target framework: net11.0",
+              "protected": "Current target framework: net7.0\nRecommended target framework: net11.0"
+            },
+            "kind": "File",
+            "path": "Benchmarks\\Benchmarks.csproj",
+            "snippet": "Current target framework: net7.0\nRecommended target framework: net11.0",
+            "protectedSnippet": "Current target framework: net7.0\nRecommended target framework: net11.0",
+            "properties": {
+              "CurrentTargetFramework": "net7.0",
+              "RecommendedTargetFramework": "net11.0"
+            }
+          }
+        }
+      ],
+      "features": []
+    },
+    {
+      "path": "SDC.Schema\\SDC.Schema.csproj",
+      "startingProject": true,
+      "issues": 5,
+      "storyPoints": 30,
+      "properties": {
+        "appName": "SDC.Schema",
+        "projectKind": "ClassLibrary",
+        "frameworks": [
+          "net7.0"
+        ],
+        "languages": [
+          "C#"
+        ],
+        "tools": [
+          "MSBuild"
+        ],
+        "isSdkStyle": true,
+        "numberOfFiles": 328,
+        "numberOfCodeFiles": 327,
+        "linesTotal": 68099,
+        "linesOfCode": 67998,
+        "totalApiScanned": 36100,
+        "minLinesOfCodeToChange": 28,
+        "maxLinesOfCodeToChange": 28
+      },
+      "ruleInstances": [
+        {
+          "incidentId": "38b2b678-27db-4603-baf5-7bfafdee0c4c",
+          "ruleId": "NuGet.0002",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Newtonsoft.Json, 13.0.2\n\nRecommendation:\n\nRemove Newtonsoft.Json, and replace with new package Newtonsoft.Json 13.0.4",
+              "protected": "Newtonsoft.Json, 13.0.2\n\nRecommendation:\n\nRemove Newtonsoft.Json, and replace with new package Newtonsoft.Json 13.0.4"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema.csproj",
+            "snippet": "Newtonsoft.Json, 13.0.2\n\nRecommendation:\n\nRemove Newtonsoft.Json, and replace with new package Newtonsoft.Json 13.0.4",
+            "protectedSnippet": "Newtonsoft.Json, 13.0.2\n\nRecommendation:\n\nRemove Newtonsoft.Json, and replace with new package Newtonsoft.Json 13.0.4",
+            "label": "Newtonsoft.Json 13.0.2",
+            "properties": {
+              "PackageId": "Newtonsoft.Json",
+              "PackageVersion": "13.0.2",
+              "PackageNewVersion": "13.0.4",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "7a6eab00-0fb5-4957-ad99-dff98e6272e8",
+          "ruleId": "Project.0002",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Current target framework: net7.0\nRecommended target framework: net11.0",
+              "protected": "Current target framework: net7.0\nRecommended target framework: net11.0"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema.csproj",
+            "snippet": "Current target framework: net7.0\nRecommended target framework: net11.0",
+            "protectedSnippet": "Current target framework: net7.0\nRecommended target framework: net11.0",
+            "properties": {
+              "CurrentTargetFramework": "net7.0",
+              "RecommendedTargetFramework": "net11.0"
+            }
+          }
+        },
+        {
+          "incidentId": "42939741-a681-43b8-9ae1-b820b8f4b62e",
+          "ruleId": "Api.0001",
+          "description": "Breaking change: \u0027DynamicallyAccessedMembers\u0027 annotation removed from \u0027DefaultValueAttribute\u0027 ctor ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "DefaultValue(typeof(short), \u00221\u0022)",
+              "protected": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Constructor Removed\\Constructor Commented Out Only\\PredSingleSelectionSetsType.cs",
+            "snippet": "DefaultValue(typeof(short), \u00221\u0022)",
+            "protectedSnippet": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "label": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/10.0/defaultvalueattribute-dynamically-accessed-members.md",
+                "isCustom": false
+              }
+            ],
+            "line": 93,
+            "column": 5
+          }
+        },
+        {
+          "incidentId": "edf33a34-55cb-4d9c-bc40-251b9dc540c9",
+          "ruleId": "Api.0001",
+          "description": "Breaking change: \u0027DynamicallyAccessedMembers\u0027 annotation removed from \u0027DefaultValueAttribute\u0027 ctor ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "DefaultValue(typeof(uint), \u00220\u0022)",
+              "protected": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Constructor Removed\\Constructor Commented Out Only\\ListItemBaseType.cs",
+            "snippet": "DefaultValue(typeof(uint), \u00220\u0022)",
+            "protectedSnippet": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "label": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/10.0/defaultvalueattribute-dynamically-accessed-members.md",
+                "isCustom": false
+              }
+            ],
+            "line": 368,
+            "column": 5
+          }
+        },
+        {
+          "incidentId": "1231b3ee-50fa-4ec5-825a-832d5fdecfd3",
+          "ruleId": "Api.0001",
+          "description": "Breaking change: \u0027DynamicallyAccessedMembers\u0027 annotation removed from \u0027DefaultValueAttribute\u0027 ctor ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "DefaultValue(typeof(uint), \u00221\u0022)",
+              "protected": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Constructor Removed\\Constructor and ShouldSerialize\\ListFieldType.cs",
+            "snippet": "DefaultValue(typeof(uint), \u00221\u0022)",
+            "protectedSnippet": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "label": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/10.0/defaultvalueattribute-dynamically-accessed-members.md",
+                "isCustom": false
+              }
+            ],
+            "line": 369,
+            "column": 3
+          }
+        },
+        {
+          "incidentId": "0c4bbdae-2701-474a-a6e0-0f7ecb1b88a8",
+          "ruleId": "Api.0001",
+          "description": "Breaking change: \u0027DynamicallyAccessedMembers\u0027 annotation removed from \u0027DefaultValueAttribute\u0027 ctor ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "DefaultValue(typeof(uint), \u00221\u0022)",
+              "protected": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Constructor Removed\\Constructor and ShouldSerialize\\ListFieldType.cs",
+            "snippet": "DefaultValue(typeof(uint), \u00221\u0022)",
+            "protectedSnippet": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "label": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/10.0/defaultvalueattribute-dynamically-accessed-members.md",
+                "isCustom": false
+              }
+            ],
+            "line": 340,
+            "column": 3
+          }
+        },
+        {
+          "incidentId": "c04089c1-7898-4f1f-9162-8004f8cae63d",
+          "ruleId": "Api.0001",
+          "description": "Breaking change: \u0027DynamicallyAccessedMembers\u0027 annotation removed from \u0027DefaultValueAttribute\u0027 ctor ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "DefaultValue(typeof(byte), \u00221\u0022)",
+              "protected": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Constructor Removed\\Constructor and ShouldSerialize\\ListFieldType.cs",
+            "snippet": "DefaultValue(typeof(byte), \u00221\u0022)",
+            "protectedSnippet": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "label": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/10.0/defaultvalueattribute-dynamically-accessed-members.md",
+                "isCustom": false
+              }
+            ],
+            "line": 314,
+            "column": 3
+          }
+        },
+        {
+          "incidentId": "2e900836-9f03-462d-8b29-19874ad341ea",
+          "ruleId": "Api.0001",
+          "description": "Breaking change: \u0027DynamicallyAccessedMembers\u0027 annotation removed from \u0027DefaultValueAttribute\u0027 ctor ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "DefaultValue(typeof(byte), \u00221\u0022)",
+              "protected": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Constructor Removed\\Constructor and ShouldSerialize\\ListFieldType.cs",
+            "snippet": "DefaultValue(typeof(byte), \u00221\u0022)",
+            "protectedSnippet": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "label": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/10.0/defaultvalueattribute-dynamically-accessed-members.md",
+                "isCustom": false
+              }
+            ],
+            "line": 290,
+            "column": 3
+          }
+        },
+        {
+          "incidentId": "aa429cd7-8ddf-4593-b567-6178d867f03e",
+          "ruleId": "Api.0001",
+          "description": "Breaking change: \u0027DynamicallyAccessedMembers\u0027 annotation removed from \u0027DefaultValueAttribute\u0027 ctor ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "DefaultValue(typeof(uint), \u00220\u0022)",
+              "protected": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Constructor Removed\\Constructor Commented Out Only\\InjectFormType.cs",
+            "snippet": "DefaultValue(typeof(uint), \u00220\u0022)",
+            "protectedSnippet": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "label": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/10.0/defaultvalueattribute-dynamically-accessed-members.md",
+                "isCustom": false
+              }
+            ],
+            "line": 181,
+            "column": 5
+          }
+        },
+        {
+          "incidentId": "238258c5-d3d1-4e2c-8253-da2072bad1b6",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var obj = ((T)(Serializer.Deserialize(s)));",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Customized Classes\\SDC Serializers\\SdcSerializer.cs",
+            "snippet": "var obj = ((T)(Serializer.Deserialize(s)));",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 140,
+            "column": 3
+          }
+        },
+        {
+          "incidentId": "ef366bbe-0c6f-4d95-8af5-aaeb4b7b8bbd",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "T obj = ((T)(Serializer.Deserialize(XmlReader.Create(stringReader))));",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Customized Classes\\SDC Serializers\\SdcSerializer.cs",
+            "snippet": "T obj = ((T)(Serializer.Deserialize(XmlReader.Create(stringReader))));",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 124,
+            "column": 4
+          }
+        },
+        {
+          "incidentId": "3ad21dc5-19be-4dd7-ada3-6419a5cea30f",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Serializer.Serialize(xmlWriter, obj);",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Customized Classes\\SDC Serializers\\SdcSerializer.cs",
+            "snippet": "Serializer.Serialize(xmlWriter, obj);",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 59,
+            "column": 4
+          }
+        },
+        {
+          "incidentId": "84707348-a49b-4324-a158-99dfae75ece9",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "get\r\n\t\t\t{\r\n\t\t\t\tif ((serializer == null))\r\n\t\t\t\t{\r\n\t\t\t\t\tserializer = new XmlSerializerFactory().CreateSerializer(typeof(T));\r\n\t\t\t\t\tserializer.UnknownAttribute \u002B= Serializer_UnknownAttribute;\r\n\t\t\t\t\tserializer.UnknownElement \u002B= Serializer_UnknownElement;\r\n\t\t\t\t\tserializer.UnreferencedObject \u002B= Serializer_UnreferencedObject;\r\n\t\t\t\t\tserializer.UnknownNode \u002B= Serializer_UnknownNode;\r\n\t\t\t\t}\r\n\t\t\t\treturn serializer;\r\n\t\t\t}",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Customized Classes\\SDC Serializers\\SdcSerializer.cs",
+            "snippet": "get\r\n\t\t\t{\r\n\t\t\t\tif ((serializer == null))\r\n\t\t\t\t{\r\n\t\t\t\t\tserializer = new XmlSerializerFactory().CreateSerializer(typeof(T));\r\n\t\t\t\t\tserializer.UnknownAttribute \u002B= Serializer_UnknownAttribute;\r\n\t\t\t\t\tserializer.UnknownElement \u002B= Serializer_UnknownElement;\r\n\t\t\t\t\tserializer.UnreferencedObject \u002B= Serializer_UnreferencedObject;\r\n\t\t\t\t\tserializer.UnknownNode \u002B= Serializer_UnknownNode;\r\n\t\t\t\t}\r\n\t\t\t\treturn serializer;\r\n\t\t\t}",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 29,
+            "column": 3
+          }
+        },
+        {
+          "incidentId": "cee8ce1b-ab7d-4bb3-9e7a-6b5aa6689dfb",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return serializer;",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Customized Classes\\SDC Serializers\\SdcSerializer.cs",
+            "snippet": "return serializer;",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 39,
+            "column": 4
+          }
+        },
+        {
+          "incidentId": "8eb12568-89ce-43a8-832d-3d327b1edaa2",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "serializer.UnknownNode \u002B= Serializer_UnknownNode;",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Customized Classes\\SDC Serializers\\SdcSerializer.cs",
+            "snippet": "serializer.UnknownNode \u002B= Serializer_UnknownNode;",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 37,
+            "column": 5
+          }
+        },
+        {
+          "incidentId": "618d5025-b570-4045-b160-ca671e3c678c",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "serializer.UnreferencedObject \u002B= Serializer_UnreferencedObject;",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Customized Classes\\SDC Serializers\\SdcSerializer.cs",
+            "snippet": "serializer.UnreferencedObject \u002B= Serializer_UnreferencedObject;",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 36,
+            "column": 5
+          }
+        },
+        {
+          "incidentId": "481efd3c-54bf-4dc2-b4ef-d164ff2e797a",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "serializer.UnknownElement \u002B= Serializer_UnknownElement;",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Customized Classes\\SDC Serializers\\SdcSerializer.cs",
+            "snippet": "serializer.UnknownElement \u002B= Serializer_UnknownElement;",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 35,
+            "column": 5
+          }
+        },
+        {
+          "incidentId": "ac917a53-28ef-4416-bd51-7568b0e87a9e",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "serializer.UnknownAttribute \u002B= Serializer_UnknownAttribute;",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Customized Classes\\SDC Serializers\\SdcSerializer.cs",
+            "snippet": "serializer.UnknownAttribute \u002B= Serializer_UnknownAttribute;",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 34,
+            "column": 5
+          }
+        },
+        {
+          "incidentId": "7bf788c0-9df5-45be-91dc-9bf55ccfbbc7",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "serializer = new XmlSerializerFactory().CreateSerializer(typeof(T));",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Customized Classes\\SDC Serializers\\SdcSerializer.cs",
+            "snippet": "serializer = new XmlSerializerFactory().CreateSerializer(typeof(T));",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 33,
+            "column": 5
+          }
+        },
+        {
+          "incidentId": "23ae52ce-fa66-4b68-b535-3eb7cc80080c",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "serializer = new XmlSerializerFactory().CreateSerializer(typeof(T));",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Customized Classes\\SDC Serializers\\SdcSerializer.cs",
+            "snippet": "serializer = new XmlSerializerFactory().CreateSerializer(typeof(T));",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 33,
+            "column": 5
+          }
+        },
+        {
+          "incidentId": "43bb98b0-2e29-4738-93cc-40c07798dfde",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "if ((serializer == null))\r\n\t\t\t\t{\r\n\t\t\t\t\tserializer = new XmlSerializerFactory().CreateSerializer(typeof(T));\r\n\t\t\t\t\tserializer.UnknownAttribute \u002B= Serializer_UnknownAttribute;\r\n\t\t\t\t\tserializer.UnknownElement \u002B= Serializer_UnknownElement;\r\n\t\t\t\t\tserializer.UnreferencedObject \u002B= Serializer_UnreferencedObject;\r\n\t\t\t\t\tserializer.UnknownNode \u002B= Serializer_UnknownNode;\r\n\t\t\t\t}",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Customized Classes\\SDC Serializers\\SdcSerializer.cs",
+            "snippet": "if ((serializer == null))\r\n\t\t\t\t{\r\n\t\t\t\t\tserializer = new XmlSerializerFactory().CreateSerializer(typeof(T));\r\n\t\t\t\t\tserializer.UnknownAttribute \u002B= Serializer_UnknownAttribute;\r\n\t\t\t\t\tserializer.UnknownElement \u002B= Serializer_UnknownElement;\r\n\t\t\t\t\tserializer.UnreferencedObject \u002B= Serializer_UnreferencedObject;\r\n\t\t\t\t\tserializer.UnknownNode \u002B= Serializer_UnknownNode;\r\n\t\t\t\t}",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 31,
+            "column": 4
+          }
+        },
+        {
+          "incidentId": "c814637e-ab36-4f0f-872f-be44f91a468e",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "private static XmlSerializer Serializer",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Customized Classes\\SDC Serializers\\SdcSerializer.cs",
+            "snippet": "private static XmlSerializer Serializer",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 27,
+            "column": 2
+          }
+        },
+        {
+          "incidentId": "a3d4827b-6f6c-481d-a8ee-4210ff6ccb86",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "serializer",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Customized Classes\\SDC Serializers\\SdcSerializer.cs",
+            "snippet": "serializer",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 25,
+            "column": 31
+          }
+        },
+        {
+          "incidentId": "d0f7b025-0a0f-4b2d-83bc-030cb243a4a5",
+          "ruleId": "Api.0001",
+          "description": "Breaking change: \u0027DynamicallyAccessedMembers\u0027 annotation removed from \u0027DefaultValueAttribute\u0027 ctor ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "DefaultValue(typeof(uint), \u00220\u0022)",
+              "protected": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Constructor Removed\\Constructor Commented Out Only\\RepeatingType.cs",
+            "snippet": "DefaultValue(typeof(uint), \u00220\u0022)",
+            "protectedSnippet": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "label": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/10.0/defaultvalueattribute-dynamically-accessed-members.md",
+                "isCustom": false
+              }
+            ],
+            "line": 121,
+            "column": 5
+          }
+        },
+        {
+          "incidentId": "b0110f1f-0d34-4f09-ba9f-880f0dd94db8",
+          "ruleId": "Api.0001",
+          "description": "Breaking change: \u0027DynamicallyAccessedMembers\u0027 annotation removed from \u0027DefaultValueAttribute\u0027 ctor ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "DefaultValue(typeof(uint), \u00221\u0022)",
+              "protected": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Constructor Removed\\Constructor Commented Out Only\\RepeatingType.cs",
+            "snippet": "DefaultValue(typeof(uint), \u00221\u0022)",
+            "protectedSnippet": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "label": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/10.0/defaultvalueattribute-dynamically-accessed-members.md",
+                "isCustom": false
+              }
+            ],
+            "line": 101,
+            "column": 5
+          }
+        },
+        {
+          "incidentId": "2e10c2de-8dc8-415a-95da-eebf2308bb31",
+          "ruleId": "Api.0001",
+          "description": "Breaking change: \u0027DynamicallyAccessedMembers\u0027 annotation removed from \u0027DefaultValueAttribute\u0027 ctor ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "DefaultValue(typeof(uint), \u00221\u0022)",
+              "protected": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\SDC.Schema\\SDC Constructor Removed\\Constructor Commented Out Only\\RepeatingType.cs",
+            "snippet": "DefaultValue(typeof(uint), \u00221\u0022)",
+            "protectedSnippet": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "label": "M:System.ComponentModel.DefaultValueAttribute.#ctor(System.Type,System.String)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/10.0/defaultvalueattribute-dynamically-accessed-members.md",
+                "isCustom": false
+              }
+            ],
+            "line": 74,
+            "column": 5
+          }
+        },
+        {
+          "incidentId": "a3d6a31c-5af6-4612-ab36-792280cc6378",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: BigInteger maximum length ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "public static NumericRelationship Compare(ValueType value1, BigInteger bigint2)",
+              "protected": "T:System.Numerics.BigInteger"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\Utility Classes\\Extensions\\ObjectExtensions.cs",
+            "snippet": "public static NumericRelationship Compare(ValueType value1, BigInteger bigint2)",
+            "protectedSnippet": "T:System.Numerics.BigInteger",
+            "label": "T:System.Numerics.BigInteger",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/biginteger-limit.md",
+                "isCustom": false
+              }
+            ],
+            "line": 288,
+            "column": 1
+          }
+        },
+        {
+          "incidentId": "84672f68-3338-4678-aeb3-371cbec0cc71",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: BigInteger maximum length ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "public static NumericRelationship Compare(BigInteger bigint1, ValueType value2)",
+              "protected": "T:System.Numerics.BigInteger"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\Utility Classes\\Extensions\\ObjectExtensions.cs",
+            "snippet": "public static NumericRelationship Compare(BigInteger bigint1, ValueType value2)",
+            "protectedSnippet": "T:System.Numerics.BigInteger",
+            "label": "T:System.Numerics.BigInteger",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/biginteger-limit.md",
+                "isCustom": false
+              }
+            ],
+            "line": 281,
+            "column": 1
+          }
+        },
+        {
+          "incidentId": "92718d87-edd0-4847-9f62-6a3d115327ae",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: BigInteger maximum length ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return (NumericRelationship)BigInteger.Compare(bigint1, bigint2);",
+              "protected": "T:System.Numerics.BigInteger"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\Utility Classes\\Extensions\\ObjectExtensions.cs",
+            "snippet": "return (NumericRelationship)BigInteger.Compare(bigint1, bigint2);",
+            "protectedSnippet": "T:System.Numerics.BigInteger",
+            "label": "T:System.Numerics.BigInteger",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/biginteger-limit.md",
+                "isCustom": false
+              }
+            ],
+            "line": 286,
+            "column": 2
+          }
+        },
+        {
+          "incidentId": "a787f3e4-df0f-4749-8c5a-a3fae816552b",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: BigInteger maximum length ",
+          "projectPath": "SDC.Schema\\SDC.Schema.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return (NumericRelationship)BigInteger.Compare(long1, long2);",
+              "protected": "T:System.Numerics.BigInteger"
+            },
+            "kind": "File",
+            "path": "SDC.Schema\\Utility Classes\\Extensions\\ObjectExtensions.cs",
+            "snippet": "return (NumericRelationship)BigInteger.Compare(long1, long2);",
+            "protectedSnippet": "T:System.Numerics.BigInteger",
+            "label": "T:System.Numerics.BigInteger",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/biginteger-limit.md",
+                "isCustom": false
+              }
+            ],
+            "line": 255,
+            "column": 3
+          }
+        }
+      ],
+      "features": []
+    },
+    {
+      "path": "SDC.Schema.Tests\\SDC.Schema.Tests.csproj",
+      "startingProject": true,
+      "issues": 2,
+      "storyPoints": 2,
+      "properties": {
+        "appName": "SDC.Schema.Tests",
+        "projectKind": "DotNetCoreApp",
+        "frameworks": [
+          "net7.0"
+        ],
+        "languages": [
+          "C#"
+        ],
+        "tools": [
+          "MSBuild"
+        ],
+        "isSdkStyle": true,
+        "numberOfFiles": 35,
+        "numberOfCodeFiles": 33,
+        "linesTotal": 9021,
+        "linesOfCode": 7464,
+        "totalApiScanned": 8313,
+        "minLinesOfCodeToChange": 1,
+        "maxLinesOfCodeToChange": 1
+      },
+      "ruleInstances": [
+        {
+          "incidentId": "4067a93f-6b7b-49e3-a9da-003714460e99",
+          "ruleId": "Project.0002",
+          "projectPath": "SDC.Schema.Tests\\SDC.Schema.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Current target framework: net7.0\nRecommended target framework: net11.0",
+              "protected": "Current target framework: net7.0\nRecommended target framework: net11.0"
+            },
+            "kind": "File",
+            "path": "SDC.Schema.Tests\\SDC.Schema.Tests.csproj",
+            "snippet": "Current target framework: net7.0\nRecommended target framework: net11.0",
+            "protectedSnippet": "Current target framework: net7.0\nRecommended target framework: net11.0",
+            "properties": {
+              "CurrentTargetFramework": "net7.0",
+              "RecommendedTargetFramework": "net11.0"
+            }
+          }
+        },
+        {
+          "incidentId": "50e19866-c9a2-4c2a-8e5c-7e9aaf14126d",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: XmlSerializer no longer ignores properties marked with ObsoleteAttribute ",
+          "projectPath": "SDC.Schema.Tests\\SDC.Schema.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var serializer = new XmlSerializer(typeof(BaseType));",
+              "protected": "T:System.Xml.Serialization.XmlSerializer"
+            },
+            "kind": "File",
+            "path": "SDC.Schema.Tests\\Functional\\MiscTests.cs",
+            "snippet": "var serializer = new XmlSerializer(typeof(BaseType));",
+            "protectedSnippet": "T:System.Xml.Serialization.XmlSerializer",
+            "label": "T:System.Xml.Serialization.XmlSerializer",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/10/xmlserializer-obsolete-properties.md",
+                "isCustom": false
+              }
+            ],
+            "line": 35,
+            "column": 3
+          }
+        }
+      ],
+      "features": []
+    }
+  ],
+  "rules": {
+    "NuGet.0002": {
+      "id": "NuGet.0002",
+      "isFeature": false,
+      "description": "NuGet package upgrade is recommended for selected target framework.\n\nStandard .NET packages are recommended to have versions matching version of .NET that project targets.\n\nSome other packages also are known to work better for selected target frameworks.",
+      "label": "NuGet package upgrade is recommended",
+      "severity": "Potential",
+      "effort": 1,
+      "links": [
+        {
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262530",
+          "isCustom": false
+        }
+      ]
+    },
+    "Project.0002": {
+      "id": "Project.0002",
+      "isFeature": false,
+      "description": "Project\u0027s target framework(s) needs to be changed to the new target framework that you selected for this upgrade.\n\nDuring upgrade target framework will be adjusted to corresponding platform when applicable. In some cases project would result in multiple target frameworks after the upgrade if it was using features that now have their own platforms in modern .NET frameworks (windows, iOS, Android etc).",
+      "label": "Project\u0027s target framework(s) needs to be changed",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Overview of porting from .NET Framework to .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2265227",
+          "isCustom": false
+        },
+        {
+          "title": ".NET project SDKs",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2265226",
+          "isCustom": false
+        }
+      ]
+    },
+    "Api.0001": {
+      "id": "Api.0001",
+      "isFeature": false,
+      "description": "API is binary incompatible for selected .NET version: affects existing binaries, often requiring recompilation, because the API has changed in a way that prevents older binaries from loading or executing.",
+      "label": "Binary incompatible for selected .NET version",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Breaking changes in .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262679",
+          "isCustom": false
+        }
+      ]
+    },
+    "Api.0003": {
+      "id": "Api.0003",
+      "isFeature": false,
+      "description": "API has a behavioral change in selected .NET version: code and binaries may behave differently at runtime without needing recompilation, but the new behavior might be undesirable and require updates.",
+      "label": "Behavioral change in selected .NET version",
+      "severity": "Potential",
+      "effort": 1
+    },
+    "Api.0002": {
+      "id": "Api.0002",
+      "isFeature": false,
+      "description": "API is source incompatible for selected .NET version: requires code changes to compile successfully when targeting a new version, such as removing obsolete APIs or changing method signatures.",
+      "label": "Source incompatible for selected .NET version",
+      "severity": "Potential",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Breaking changes in .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262679",
+          "isCustom": false
+        }
+      ]
+    }
+  }
+}

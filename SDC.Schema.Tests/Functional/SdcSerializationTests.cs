@@ -215,7 +215,7 @@ namespace SDC.Schema.Tests.Functional
 			Assert.IsNotNull(existing);
 
 			// Bug fix: isolate the intentional failing branch; adding a second ListItemResponseField must throw.
-			Assert.ThrowsException<InvalidOperationException>(() => listItem.AddListItemResponseField());
+			Assert.Throws<InvalidOperationException>(() => listItem.AddListItemResponseField());
 		}
 		[TestMethod]
 		public void DeserializePkgFromPath()
