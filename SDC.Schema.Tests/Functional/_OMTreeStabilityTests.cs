@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema.Extensions;
+using SDC.Schema.Tests.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,22 +21,14 @@ namespace SDC.Schema.Tests.Functional
     [TestClass()]
     public class OMTreeStabilityTests
     {
-        // Test stubs follow repository convention: leading '_' indicates stub file
-        // Remove '_' from filename and test names once implementation is complete
 
         #region Helper Methods
 
+        // Validation helpers moved to TreeValidationHelper.cs for reuse across test classes
+
         /// <summary>
         /// Creates a realistic complex SDC form tree for testing.
-        /// Structure: FormDesign → Body → Header/Footer → Multiple Sections → Questions with responses
-        /// Returns a tree with:
-        /// - 1 FormDesignType (root)
-        /// - 1 Body with Header (2 display items) and Footer (1 display item)
-        /// - 3 Sections in Body
-        ///   - Section 1: 5 questions (3 single-choice, 2 multi-choice) with list items
-        ///   - Section 2: 3 questions (1 text, 1 numeric, 1 datetime) with response fields
-        ///   - Section 3: nested section with 2 questions
-        /// - Total ~40+ nodes for realistic stress testing
+        /// Structure: FormDesign → Body → 3 Sections → 10 Questions → ListItems/ResponseFields
         /// </summary>
         private static FormDesignType CreateComplexFormTree(string formId)
         {
@@ -97,65 +90,6 @@ namespace SDC.Schema.Tests.Functional
             q10.AddListItem("LI.No", "No");
 
             return form;
-        }
-
-        /// <summary>
-        /// Validates that all TopNode dictionaries are consistent and contain no corruption.
-        /// Checks:
-        /// - All nodes in tree are registered in _Nodes
-        /// - Every node's ParentNode matches _ParentNodes dictionary
-        /// - Child nodes in _ChildNodes match actual object tree structure
-        /// - No orphaned nodes (nodes in dictionaries but not reachable from TopNode)
-        /// - No dangling references (references to nodes not in _Nodes)
-        /// - GUID uniqueness across all nodes
-        /// </summary>
-        private static void ValidateTreeIntegrity(BaseType topNode, string contextMessage = "")
-        {
-            // Stub: Comprehensive validation implementation
-            // When implemented, should:
-            // 1. Get ITopNode interface and access all dictionaries
-            // 2. Traverse tree from topNode and collect all reachable nodes
-            // 3. Compare reachable count vs dictionary counts
-            // 4. For each reachable node:
-            //    - Assert node.ObjectGUID exists in _Nodes
-            //    - Assert _Nodes[guid] == node (same reference)
-            //    - Assert node.ParentNode matches _ParentNodes[guid]
-            //    - If node has children, assert they exist in _ChildNodes[guid]
-            // 5. Check for orphaned entries (in dictionaries but not reachable)
-            // 6. Validate GUID uniqueness (no duplicates)
-            // 7. For IET nodes, validate _IETnodes collection consistency
-            throw new NotImplementedException($"ValidateTreeIntegrity stub: {contextMessage}");
-        }
-
-        /// <summary>
-        /// Validates parent-child relationship symmetry for a specific node.
-        /// Ensures the node appears in its parent's child collection and vice versa.
-        /// </summary>
-        private static void ValidateParentChildSymmetry(BaseType node)
-        {
-            // Stub: Bidirectional link validation
-            // When implemented, should:
-            // 1. If node.ParentNode != null:
-            //    - Get parent's _ChildNodes entry
-            //    - Assert node appears in parent's child list
-            // 2. Get node's _ChildNodes entry (if it has children)
-            // 3. For each child, assert child.ParentNode == node
-            throw new NotImplementedException("ValidateParentChildSymmetry stub");
-        }
-
-        /// <summary>
-        /// Counts all nodes reachable by traversing the tree from topNode.
-        /// Used to detect orphaned nodes when compared to dictionary counts.
-        /// </summary>
-        private static int CountReachableNodes(BaseType topNode)
-        {
-            // Stub: Tree traversal counter
-            // When implemented, should:
-            // 1. Use depth-first or breadth-first traversal
-            // 2. Track visited nodes to avoid cycles
-            // 3. Count each unique node once
-            // 4. Return total count
-            throw new NotImplementedException("CountReachableNodes stub");
         }
 
         #endregion
