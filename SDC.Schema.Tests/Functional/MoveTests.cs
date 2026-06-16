@@ -38,10 +38,12 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void MoveListItemInList()
 		{
-			Setup.Reset();
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
+			// Bug fix: use a per-test fresh object graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			var fd = FormDesignType.DeserializeFromXml(Setup.GetXml());
 			//FD.TopNode.ReorderNodes();
-			var li = Setup.FD.Nodes.Where(n =>
+			var li = fd.Nodes.Where(n =>
 				n.Value is ListItemType liTest &&
 				liTest.ID == "38493.100004300").FirstOrDefault().Value
 				as ListItemType;
@@ -51,17 +53,17 @@ namespace SDC.Schema.Tests.Functional
 			List<BaseType> lst2;
 			List<BaseType> lst3;
 
-			lst1 = SdcUtil.ReflectChildElements(Setup.FD.GetListItemByID("51689.100004300"));
-			lst2 = SdcUtil.ReflectChildElements(Setup.FD.GetListItemByID("38493.100004300"));
-			lst3 = SdcUtil.ReflectChildElements(Setup.FD.GetNodeByName("lst_44135_3"));
+			lst1 = SdcUtil.ReflectChildElements(fd.GetListItemByID("51689.100004300"));
+			lst2 = SdcUtil.ReflectChildElements(fd.GetListItemByID("38493.100004300"));
+			lst3 = SdcUtil.ReflectChildElements(fd.GetNodeByName("lst_44135_3"));
 
-			lst3 = SdcUtil.ReflectRefreshSubtreeList(Setup.FD.GetSectionByID("43969.100004300"));
+			lst3 = SdcUtil.ReflectRefreshSubtreeList(fd.GetSectionByID("43969.100004300"));
 			//foreach (var n in lst3) Debug.Print(n.name);
 			var tc = new TreeComparer();
 			lst3.Sort(tc);
 			foreach (var n in lst3) Debug.Print(n.name + ": " + n.ElementName + ", " + n.ObjectID);
 
-			var lst4 = Setup.FD.Nodes.Values.ToList();
+			var lst4 = fd.Nodes.Values.ToList();
 			var res = lst4[0].GetType().GetProperties()
 				.Where(p => p.GetCustomAttributes<XmlElementAttribute>().Count() > 0 && p.GetValue(lst4[0]) != null)
 				.Select(p => p.GetValue(lst4[0])).ToList();
@@ -112,21 +114,22 @@ namespace SDC.Schema.Tests.Functional
 			li.Move(list);
 			Assert.IsTrue(SdcUtil.GetElementPropertyInfoMeta(li, li.ParentNode).ItemIndex == list.Items.Count() - 1);
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-			Setup.Reset(); //reset after moving nodes.
 		}
 		[TestMethod]
 		public void MoveListItemToOtherList()
 		{
-			Setup.Reset();
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
-			var li = Setup.FD.Nodes.Where(n =>
+			// Bug fix: use a per-test fresh object graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			var fd = FormDesignType.DeserializeFromXml(Setup.GetXml());
+			var li = fd.Nodes.Where(n =>
 				n.Value is ListItemType liTest &&
 				liTest.ID == "38493.100004300").FirstOrDefault().Value
 				as ListItemType;
 			Assert.IsTrue(li is ListItemType);
 			var list = (ListType)li.ParentNode;
 
-			var list2 = Setup.FD.Nodes.Where(n =>
+			var list2 = fd.Nodes.Where(n =>
 				n.Value is ListType liTest &&
 				liTest.name == "lst_58267_3").FirstOrDefault().Value
 				as ListType;
@@ -140,7 +143,6 @@ namespace SDC.Schema.Tests.Functional
 
 
 			Setup.TimerPrintSeconds("  seconds: ", $"\r\n<=={Setup.CallerName()} Complete");
-			Setup.Reset(); //reset after moving nodes.
 		}
 
 		[TestMethod]
@@ -189,8 +191,8 @@ namespace SDC.Schema.Tests.Functional
 			Assert.IsTrue(LI_39079.ChildItemsNode is null);
 
 
+			// Bug fix: this test uses a per-test local graph, so no shared Setup reset is required.
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
-			Setup.Reset(); //reset after moving nodes.
 		}
 		[TestMethod]
 		public void CountNodesAfterDropAfter()
@@ -274,49 +276,112 @@ namespace SDC.Schema.Tests.Functional
 			var liPos = lst1.IndexOf(LI_16255);
 			Assert.IsTrue(liPos - qPos == 1);
 
+			// Bug fix: this test uses a per-test local graph, so no shared Setup reset is required.
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
-			Setup.Reset(); //reset after moving nodes.
 		}
 		[TestMethod]
 		public void _MoveListDIinList()
 		{
-			Setup.TimerStart("==>[] Started");
+			BaseType.ResetLastTopNode();
+			var fd = new FormDesignType(null, "FD.Move.List.Internal");
+			fd.AddBody();
+			var q = fd.Body.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.1", "Q1");
+			var li1 = q.AddListItem("LI.1", "LI1");
+			var di1 = q.AddDisplayedTypeToList("DI.1", "DI1");
+			var li2 = q.AddListItem("LI.2", "LI2");
 
-			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+			var ok = IMoveRemoveExtensions.DropMove(li2, li1, IMoveRemoveExtensions.DropPosition.Before);
+			Assert.IsTrue(ok);
+
+			var listItems = q.GetListItems();
+			Assert.IsNotNull(listItems);
+			Assert.AreEqual("LI.2", ((IdentifiedExtensionType)listItems![0]).ID);
+			Assert.AreEqual("LI.1", ((IdentifiedExtensionType)listItems[1]).ID);
+			Assert.AreEqual("DI.1", ((IdentifiedExtensionType)listItems[2]).ID);
 		}
 		[TestMethod]
 		public void _MoveListDItoOtherList()
 		{
-			Setup.TimerStart("==>[] Started");
+			BaseType.ResetLastTopNode();
+			var fd = new FormDesignType(null, "FD.Move.List.Cross");
+			fd.AddBody();
+			var q1 = fd.Body.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.Source", "Source");
+			var q2 = fd.Body.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.Target", "Target");
+			var li = q1.AddListItem("LI.Move", "Move");
+			q1.AddDisplayedTypeToList("DI.Source", "Source DI");
+			q2.AddListItem("LI.Target", "Existing");
 
-			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+			var targetList = q2.GetListField().GetList();
+			var moved = li.Move(targetList, 0);
+			Assert.IsTrue(moved);
+
+			Assert.AreEqual(1, q1.GetListItems()!.Count);
+			Assert.AreEqual(2, q2.GetListItems()!.Count);
+			Assert.AreEqual("LI.Move", ((IdentifiedExtensionType)q2.GetListItems()![0]).ID);
 		}
 		[TestMethod]
 		public void _MoveListDIQuestionChild()
 		{
-			Setup.TimerStart("==>[] Started");
+			BaseType.ResetLastTopNode();
+			var fd = new FormDesignType(null, "FD.Move.List.OverQuestion");
+			fd.AddBody();
+			var q1 = fd.Body.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.Source2", "Source");
+			var q2 = fd.Body.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.Target2", "Target");
+			var di = q1.AddDisplayedTypeToList("DI.Move", "Move DI");
 
-			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+			var ok = IMoveRemoveExtensions.DropMove(di, q2, IMoveRemoveExtensions.DropPosition.Over);
+			Assert.IsTrue(ok);
+			Assert.AreEqual(0, q1.GetListItems()!.Count);
+			Assert.AreEqual(1, q2.GetListItems()!.Count);
+			Assert.AreEqual("DI.Move", ((IdentifiedExtensionType)q2.GetListItems()![0]).ID);
 		}
 		[TestMethod]
 		public void _MoveQuestionInChildItems()
 		{
-			Setup.TimerStart("==>[] Started");
+			BaseType.ResetLastTopNode();
+			var fd = new FormDesignType(null, "FD.Move.Question.Internal");
+			fd.AddBody();
+			var section = fd.Body.AddChildSection("S.1", "Section");
+			var q1 = section.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.First", "First");
+			var q2 = section.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.Second", "Second");
 
-			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+			var ok = IMoveRemoveExtensions.DropMove(q2, q1, IMoveRemoveExtensions.DropPosition.Before);
+			Assert.IsTrue(ok);
+
+			var kids = section.GetChildItemsList();
+			Assert.IsNotNull(kids);
+			Assert.AreEqual("Q.Second", kids![0].ID);
+			Assert.AreEqual("Q.First", kids[1].ID);
 		}
 		[TestMethod]
 		public void _MoveQuestionToNewChildItems()
 		{
-			Setup.TimerStart("==>[] Started");
+			BaseType.ResetLastTopNode();
+			var fd = new FormDesignType(null, "FD.Move.Question.Cross");
+			fd.AddBody();
+			var sourceSection = fd.Body.AddChildSection("S.Source", "Source");
+			var targetSection = fd.Body.AddChildSection("S.Target", "Target");
+			var q = sourceSection.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.Move", "Move");
 
-			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+			var moved = q.Move(targetSection.GetChildItemsNode(), 0, true);
+			Assert.IsTrue(moved);
+			Assert.IsNull(sourceSection.ChildItemsNode);
+			Assert.IsNotNull(targetSection.ChildItemsNode);
+			Assert.AreEqual("Q.Move", targetSection.GetChildItemsList()![0].ID);
 		}
+		[TestMethod]
 		public void _MoveSectionToNewChildItems()
 		{
-			Setup.TimerStart("==>[] Started");
+			BaseType.ResetLastTopNode();
+			var fd = new FormDesignType(null, "FD.Move.Section.Cross");
+			fd.AddBody();
+			var s1 = fd.Body.AddChildSection("S.1", "S1");
+			var s2 = fd.Body.AddChildSection("S.2", "S2");
 
-			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+			var moved = s2.Move(s1.GetChildItemsNode(), 0, true);
+			Assert.IsTrue(moved);
+			Assert.AreEqual("S.2", s1.GetChildItemsList()![0].ID);
+			Assert.AreEqual(1, fd.Body.GetChildItemsList()!.Count);
 		}
 
 

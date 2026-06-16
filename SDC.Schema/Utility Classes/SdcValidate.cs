@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SDC.Schema.Extensions;
 using System.Xml;
 using System.Xml.Schema;
@@ -152,8 +153,25 @@ namespace SDC.Schema
 
 		public static string GetXmlFromJson(string json)
 		{
-			var doc = JsonConvert.DeserializeXmlNode(json);
-			return doc?.OuterXml??"";
+			if (string.IsNullOrWhiteSpace(json)) return string.Empty;
+
+			try
+			{
+				var doc = JsonConvert.DeserializeXmlNode(json);
+				if (doc is not null) return doc.OuterXml;
+			}
+			catch (JsonSerializationException)
+			{
+				// Fall back for JSON payloads with multiple root properties by wrapping in a synthetic root.
+			}
+
+			var token = JToken.Parse(json);
+			var wrapped = token is JObject
+				? JsonConvert.SerializeObject(new JObject { ["Root"] = token })
+				: JsonConvert.SerializeObject(new JObject { ["Root"] = new JArray(token) });
+
+			var wrappedDoc = JsonConvert.DeserializeXmlNode(wrapped);
+			return wrappedDoc?.OuterXml ?? string.Empty;
 		}
 
 	}

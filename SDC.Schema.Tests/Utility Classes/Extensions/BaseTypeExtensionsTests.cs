@@ -19,15 +19,21 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		[TestMethod()]
 		public void GetChildrenTest()
 		{
-
+			// Bug fix: use per-test fresh graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			var fd = FormDesignType.DeserializeFromXml(Setup.GetXml());
+			var children = fd.GetChildNodes();
+			Assert.IsNotNull(children);
+			Assert.IsTrue(children!.Count > 0);
 		}
 		[TestMethod]
 		public void GetXmlAttributesAllOneNode()
 		{
-			Setup.Reset();
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 
-			var FD = Setup.FD;
+			// Bug fix: use per-test fresh graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			var FD = FormDesignType.DeserializeFromXml(Setup.GetXml());
 			var lst = FD.TopNode?.GetNodeByName("S_57219")?
 				.GetXmlAttributesAll();
 			foreach (var n in lst) Debug.Print($"{n.Name}");
@@ -37,10 +43,11 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		[TestMethod]
 		public void GetXmlAttributesFilledOneNode()
 		{
-			Setup.Reset();
 			Setup.TimerStart($"==>{Setup.CallerName()} Started");
 
-			var FD = Setup.FD;
+			// Bug fix: use per-test fresh graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			var FD = FormDesignType.DeserializeFromXml(Setup.GetXml());
 			var lst = FD.TopNode?.GetNodeByName("S_57219")?
 				.GetXmlAttributesSerialized();
 			foreach (var n in lst) Debug.Print($"{n.Name}");
@@ -300,14 +307,22 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		[TestMethod()]
 		public void GetPropertyInfoListTest()
 		{
-
+			// Bug fix: use per-test fresh graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			var fd = FormDesignType.DeserializeFromXml(Setup.GetXml());
+			var child = fd.GetChildNodes()?.FirstOrDefault();
+			Assert.IsNotNull(child);
+			var info = child!.GetPropertyInfoMetaData(fd);
+			Assert.IsNotNull(info.PropertyInfo);
 		}
 		[TestMethod()]
 		public void GetDotLevelIET()
 		{
-			Setup.Reset();
+			// Bug fix: use per-test fresh graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			var fd = FormDesignType.DeserializeFromXml(Setup.GetXml());
 			int i = 0;
-			foreach (var n in Setup.FD.IETnodes)
+			foreach (var n in fd.IETnodes)
 			{
 				i++;
 				Console.WriteLine($"#: {i}, DotLevel: {n.DotLevelIET ?? "{error}"}, name: {n.name ?? "{none}"}, ID: {n.ID}, title: {((n as DisplayedType)?.title) ?? "{none}"}\r\n");
@@ -318,25 +333,84 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		[TestMethod()]
 		public void GetPropertyInfoMetaDataTest()
 		{
-
+			// Bug fix: use per-test fresh graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			var fd = FormDesignType.DeserializeFromXml(Setup.GetXml());
+			var first = fd.GetChildNodes()?.FirstOrDefault();
+			Assert.IsNotNull(first);
+			var md = first!.GetPropertyInfoMetaData(fd);
+			Assert.IsNotNull(md.XmlElementName);
 		}
 
 		[TestMethod()]
 		public void GetSubtreeTest()
 		{
-
+			// Bug fix: use per-test fresh graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			var fd = FormDesignType.DeserializeFromXml(Setup.GetXml());
+			var subtree = fd.GetSubtreeList();
+			Assert.IsNotNull(subtree);
+			Assert.IsTrue(subtree.Count > 0);
 		}
 
 		[TestMethod()]
 		public void GetSibsTest()
 		{
-
+			BaseType.ResetLastTopNode();
+			var fd = new FormDesignType(null, "FD.Sibs");
+			fd.AddBody();
+			var q1 = fd.Body.AddChildQuestion(QuestionEnum.QuestionSingle, "Q1", "One");
+			var q2 = fd.Body.AddChildQuestion(QuestionEnum.QuestionSingle, "Q2", "Two");
+			var sibs = q1.GetSibNodes();
+			Assert.IsNotNull(sibs);
+			Assert.IsTrue(sibs!.Count >= 2);
+			Assert.IsTrue(sibs.Contains(q2));
 		}
 
 		[TestMethod()]
 		public void IsItemChangeAllowedTest()
 		{
+			// Bug fix: use per-test fresh graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			var fd = FormDesignType.DeserializeFromXml(Setup.GetXml());
+			var body = fd.Body;
+			var result = body.Move(fd.Body, 0);
+			Assert.IsFalse(result);
+		}
 
+		[TestMethod]
+		public void GetEditableAdHocAttributes_UnsupportedNode_ReturnsNull()
+		{
+			// Rationale:
+			// Nodes without XmlAnyAttribute support must fail safely by returning null
+			// so callers can branch without exceptions for unsupported types.
+			// Bug fix: use per-test fresh graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			FormDesignType fd = FormDesignType.DeserializeFromXml(Setup.GetXml());
+
+			var editable = fd.GetEditableAdHocAttributes();
+
+			Assert.IsNull(editable,
+				"Unsupported nodes should return null editable ad-hoc attribute collections.");
+		}
+
+		[TestMethod]
+		public void GetEditableAdHocAttributes_SupportedEmptyNode_ReturnsEditableEmptyCollection()
+		{
+			// Rationale:
+			// Supported nodes should expose a live editable collection even when no ad-hoc attributes exist yet,
+			// enabling callers to add values without direct property reflection.
+			// Bug fix: use per-test fresh graph to avoid shared Setup.FD warm-state/order dependencies.
+			BaseType.ResetLastTopNode();
+			FormDesignType fd = FormDesignType.DeserializeFromXml(Setup.GetXml());
+			var ext = fd.Body.AddExtension();
+
+			var editable = ext.GetEditableAdHocAttributes();
+
+			Assert.IsNotNull(editable,
+				"Supported nodes should expose an editable ad-hoc collection.");
+			Assert.AreEqual(0, editable!.Count,
+				"Supported nodes with no existing AnyAttr values should expose an empty editable collection.");
 		}
 
 		public readonly record struct Attribute(BaseType node, string sGuid, string attName, string? attVal, bool isDefault = true);

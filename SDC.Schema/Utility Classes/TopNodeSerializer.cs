@@ -100,12 +100,12 @@ namespace SDC.Schema
 		/// The default value is 10.<br/></param>
 		/// <returns>SDC object tree</returns>
 		public static T DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
-        {
-            T obj = SdcSerializerJson<T>.DeserializeJson<T>(sdcJson);
-            //return InitParentNodesFromXml<T>(sdcXml, obj);
-            if (refreshSdc) SdcUtil.ReflectRefreshTree(obj, out _, false, refreshSdc, createNameDelegate, orderStart, orderGap);
-            return obj;
-        }
+		{
+			T obj = SdcSerializerJson<T>.DeserializeJson<T>(sdcJson);
+			//return InitParentNodesFromXml<T>(sdcXml, obj);
+			if (refreshSdc) SdcUtil.ReflectRefreshTree(obj, out _, false, refreshSdc, createNameDelegate, orderStart, orderGap);
+			return obj;
+		}
 		/// <summary>
 		/// Serialize the current SDC object tree to an SDC Json string.
 		/// </summary>

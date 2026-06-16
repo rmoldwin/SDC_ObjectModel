@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SDCPackage xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:schemaLocation="urn:ihe:qrph:sdc:2016 ../../../sdc-schema-package/SDCRetrieveForm.xsd"
+			xmlns="urn:ihe:qrph:sdc:2016"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			packageID="ComplexPkg.001"
+			version="1"
+			lineage="Complex.Package"
+			fullURI="https://example.org/sdc/package/complex"
+			order="0">
+  <XMLPackage order="10">
+	<DemogFormDesign ID="DemogTemplate.001"
+					 baseURI="example.org"
+					 version="1"
+					 lineage="Demog"
+					 fullURI="https://example.org/sdc/demog"
+					 order="20">
+	  <Body ID="Demog.Body.001" order="30">
+		<ChildItems order="40">
+		  <Question ID="Demog.Question.001" title="Patient Id" order="50">
+			<ResponseField order="60">
+			  <Response order="70">
+				<string maxLength="64" order="80" />
+			  </Response>
+			</ResponseField>
+		  </Question>
+		</ChildItems>
+	  </Body>
+	</DemogFormDesign>
+
+	<FormDesign ID="FormTemplate.001"
+				baseURI="example.org"
+				formTitle="Complex Package Form"
+				version="1"
+				lineage="Complex.Form"
+				fullURI="https://example.org/sdc/form"
+				order="90">
+	  <Body ID="Form.Body.001" order="100">
+		<ChildItems order="110">
+		  <Section ID="Section.001" title="Section A" order="120">
+			<ChildItems order="130">
+			  <Question ID="Question.001" title="Select one" order="140">
+				<ListField maxSelections="1" minSelections="0" order="150">
+				  <List order="160">
+					<ListItem ID="ListItem.001" title="Alpha" order="170" />
+					<ListItem ID="ListItem.002" title="Beta" order="180" />
+				  </List>
+				</ListField>
+			  </Question>
+			</ChildItems>
+		  </Section>
+		</ChildItems>
+	  </Body>
+	</FormDesign>
+
+	<DataElement ID="DataElement.001"
+				 baseURI="example.org"
+				 version="1"
+				 lineage="Complex.DE"
+				 fullURI="https://example.org/sdc/de"
+				 order="190">
+	  <Question ID="DE.Question.001" title="Measured Value" order="200">
+		<ResponseField order="210">
+		  <Response order="220">
+			<decimal quantEnum="EQ" fractionDigits="2" order="230" />
+		  </Response>
+		</ResponseField>
+	  </Question>
+	</DataElement>
+
+	<MapTemplate templateID="urn:example:template:source"
+				 targetTemplateID="urn:example:template:target"
+				 order="240">
+	  <DefaultCodeSystem order="250">
+		<CodeSystemName val="SNOMED CT" order="260" />
+	  </DefaultCodeSystem>
+	  <ItemMap order="270">
+		<TemplateTarget itemID="Question.001" order="280" />
+		<DataSource itemID="DE.Question.001" order="290" />
+	  </ItemMap>
+	</MapTemplate>
+  </XMLPackage>
+
+  <SDCPackage packageID="NestedPkg.001"
+			  version="1"
+			  lineage="Nested.Package"
+			  fullURI="https://example.org/sdc/package/nested"
+			  order="300">
+	<XMLPackage order="310">
+	  <DataElement ID="Nested.DE.001"
+				   baseURI="example.org"
+				   version="1"
+				   lineage="Nested.DE"
+				   fullURI="https://example.org/sdc/nested/de"
+				   order="320">
+		<Question ID="Nested.Question.001" title="Nested Question" order="330">
+		  <ResponseField order="340">
+			<Response order="350">
+			  <string maxLength="32" order="360" />
+			</Response>
+		  </ResponseField>
+		</Question>
+	  </DataElement>
+	</XMLPackage>
+  </SDCPackage>
+</SDCPackage>

@@ -79,6 +79,37 @@ namespace SDC.Schema.Extensions
 		=> new (itn.GetSortedNodes());
 
 		/// <summary>
+		/// Enumerates all nodes in the current top-node tree that can host editable ad-hoc XML attributes.
+		/// Returned nodes expose live editable XmlAnyAttribute collections through BaseType extensions.
+		/// </summary>
+		/// <param name="itn">The top node whose complete registered tree will be scanned.</param>
+		/// <returns>A sequence of host-capable <see cref="BaseType"/> nodes.</returns>
+		public static IEnumerable<BaseType> GetNodesWithEditableAdHocAttributes(this ITopNode itn)
+		{
+			if (itn is null) yield break;
+			foreach (BaseType node in itn.Nodes.Values)
+			{
+				if (node.CanHostAdHocAttributes())
+					yield return node;
+			}
+		}
+
+		/// <summary>
+		/// Determines whether the current top-node tree contains one or more filled ad-hoc XML attributes.
+		/// </summary>
+		/// <param name="itn">The top node whose complete registered tree will be scanned.</param>
+		/// <returns>true when any node in the tree has populated XmlAnyAttribute values; otherwise false.</returns>
+		public static bool TreeHasAnyFilledAdHocAttributes(this ITopNode itn)
+		{
+			if (itn is null) return false;
+			foreach (BaseType node in itn.Nodes.Values)
+			{
+				if (node.HasFilledAdHocAttributes()) return true;
+			}
+			return false;
+		}
+
+		/// <summary>
 		/// Attempt to retrieve an <see cref="IdentifiedExtensionType"/> node by its SDC @ID attribute.
 		/// </summary>
 		/// <param name="itn">The ITopNode node instance</param>

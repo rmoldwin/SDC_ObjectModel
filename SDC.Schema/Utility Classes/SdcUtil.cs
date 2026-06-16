@@ -1310,18 +1310,22 @@ namespace SDC.Schema
         /// /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public static IdentifiedExtensionType? ReflectPrevElementIET(BaseType n)
+		public static IdentifiedExtensionType? ReflectPrevElementIET(BaseType n)
 		{
 			BaseType? bt = n;
+			var visited = new HashSet<Guid>();
 			do
 			{
-				bt = ReflectPrevElement(n);
+				//FIX: Always advance traversal cursor from the previously returned node (bt),
+				//not the original input node, and break any cyclic traversal to prevent hangs.
+				if (!visited.Add(bt.ObjectGUID)) return null;
+				bt = ReflectPrevElement(bt);
 				if (bt is IdentifiedExtensionType iet) return iet;
 
 			} while (bt is not null);
 
 			return null;
-        }
+		}
         /// <summary>
         /// Retrieve the next <see cref="IdentifiedExtensionType"/> SDC element node by reflection.<br/>
         /// This node may be a distal sibling, or a non-sibling node lower in the SDC tree <br/>
@@ -1332,9 +1336,13 @@ namespace SDC.Schema
         public static IdentifiedExtensionType? ReflectNextElementIET(BaseType n)
         {
             BaseType? bt = n;
+            var visited = new HashSet<Guid>();
             do
             {
-                bt = ReflectNextElement(n);
+                //FIX: Always advance traversal cursor from the previously returned node (bt),
+                //not the original input node, and break any cyclic traversal to prevent hangs.
+                if (!visited.Add(bt.ObjectGUID)) return null;
+                bt = ReflectNextElement(bt);
                 if (bt is IdentifiedExtensionType iet) return iet;
 
             } while (bt is not null);
@@ -1349,7 +1357,7 @@ namespace SDC.Schema
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public static BaseType? ReflectPrevElement(BaseType n)
+		public static BaseType? ReflectPrevElement(BaseType n)
 		{
 			if (n is null) return null;
 			BaseType? par = n.ParentNode;
@@ -1365,9 +1373,8 @@ namespace SDC.Schema
 
 			if (par is null) return null; //item is the top node
 
-			lastDesc = ReflectLastDescendantElement(par);
-			if (lastDesc is not null) return lastDesc;
-
+			//FIX: when no previous sibling exists, the previous node is the parent.
+			//Returning the parent's last descendant can re-return the current node and create reflection traversal cycles.
 			return par;
 		}
 		/// <summary>
@@ -1751,7 +1758,9 @@ namespace SDC.Schema
 		private static AttributeMethods attMethods = new();
 
 		/// <summary>
-		/// 
+		/// Reflects XML attributes for <paramref name="n"/> that are eligible for serialization.
+		/// Attribute results include both schema-based attributes (for example, properties marked with <see cref="XmlAttributeAttribute"/>)
+		/// and ad-hoc attributes contributed through <see cref="XmlAnyAttributeAttribute"/> collections.
 		/// </summary>
 		/// <param name="n">The see<see cref="BaseType"/> node for which attribtues will be determined</param>
 		/// <param name="getAllXmlAttributes"></param>
@@ -1814,6 +1823,9 @@ namespace SDC.Schema
 				}
 				if (piIE is null) continue;
 
+				var anyAttrProps = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+					.Where(pi => pi.GetCustomAttributes<XmlAnyAttributeAttribute>().Any());
+
 				foreach (var p in piIE)
 				{
 					nodeIndex++;
@@ -1873,6 +1885,23 @@ namespace SDC.Schema
 					{
 						nodeIndex++;
 						attributes.Add(FillAttributeInfo(p, n));
+					}
+				}
+
+				foreach (var pAny in anyAttrProps)
+				{
+					if (attributesToExclude is not null && attributesToExclude.Contains(pAny.Name)) continue;
+					if (pAny.GetValue(n) is not IEnumerable<XmlAttribute> anyAttrs) continue;
+
+					foreach (var xa in anyAttrs)
+					{
+						if (string.IsNullOrWhiteSpace(xa.LocalName)) continue;
+						if (attributesToExclude is not null && (attributesToExclude.Contains(xa.LocalName) || attributesToExclude.Contains(xa.Name))) continue;
+						if (attributesToInclude is not null && !attributesToInclude.Contains(xa.LocalName) && !attributesToInclude.Contains(xa.Name) && !attributesToInclude.Contains(pAny.Name)) continue;
+
+						nodeIndex++;
+						// Bug fix: preserve ad-hoc origin per attribute so schema-defined attributes on the same node are not misclassified.
+						attributes.Add(new AttributeInfo(n, xa.Value, null, nodeIndex, xa.LocalName, isAdHocAttribute: true));
 					}
 				}
 			}
@@ -2292,7 +2321,7 @@ namespace SDC.Schema
 		private static string? GetElementNameFromItemChoiceEnum(PropertyInfo piItem, BaseType item, BaseType parentNode, ref int itemIndex, out string? errorMsg)
 		{
 			errorMsg = null;
-			object? choiceIdentifierObject = GetItemChoiceEnumFromItemChoiceIdentifier(piItem, item, out _);
+			object? choiceIdentifierObject = GetItemChoiceEnumFromItemChoiceIdentifier(piItem, item, parentNode, out _);
 			if (choiceIdentifierObject is null)
 				return null; //An enum is not used to determine the XML Element name			
 
@@ -2311,13 +2340,13 @@ namespace SDC.Schema
 			return null;
 		}
 
-		private static object? GetItemChoiceEnumFromItemChoiceIdentifier(PropertyInfo piItem, BaseType item, out PropertyInfo? piChoiceEnum)
+		private static object? GetItemChoiceEnumFromItemChoiceIdentifier(PropertyInfo piItem, BaseType item, BaseType parentNode, out PropertyInfo? piChoiceEnum)
 		{//old name: ItemChoiceEnum
 			string? enumName = GetItemChoiceEnumFromAttribute(piItem);
 			piChoiceEnum = null;
 			if (enumName == null) return null!;
-			piChoiceEnum = item.ParentNode?.GetType()?.GetProperty(enumName);
-			var choiceEnumObj = piChoiceEnum?.GetValue(item.ParentNode);
+			piChoiceEnum = parentNode.GetType().GetProperty(enumName);
+			var choiceEnumObj = piChoiceEnum?.GetValue(parentNode);
 			if (choiceEnumObj is Enum e) return e;
 			if (choiceEnumObj is IEnumerable ie) return ie;
 			return null;
@@ -2421,11 +2450,11 @@ namespace SDC.Schema
 
 			//Try to find Item(s)ChoiceType object for piTarget, if it exists
 			//piChoiceEnum will tell us if Item(s)ChoiceType is defined as a property. choiceEnum will be non-null if Item(s)ChoiceType has been instantiated
-			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, out piChoiceEnum);
+			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, parentTarget, out piChoiceEnum);
 
 			//+Try to find Item(s)ChoiceType object for piTarget, if it exists
 			//piChoiceEnum will tell us if Item(s)ChoiceType is defined as a property.  choiceEnum will be non-null if Item(s)ChoiceType has been instantiated
-			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, out piChoiceEnum);
+			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, parentTarget, out piChoiceEnum);
 
 			return true;
 		}
@@ -2481,14 +2510,74 @@ namespace SDC.Schema
 			{
 				if (choiceEnum is null)
 				{ //Create a new Enum or List<Enum> object, and attach it to parentTarget:
-					choiceEnum = Activator.CreateInstance(piChoiceEnum.PropertyType);
+					if (piChoiceEnum.PropertyType.IsArray)
+					{
+						Type elementType = piChoiceEnum.PropertyType.GetElementType()!;
+						choiceEnum = Array.CreateInstance(elementType, 0);
+					}
+					else
+					{
+						choiceEnum = Activator.CreateInstance(piChoiceEnum.PropertyType);
+					}
 					piChoiceEnum.SetValue(parentTarget, choiceEnum);
 				}
 
-				if (choiceEnum is IList itemsChoiceType) //itemsChoiceType is always List<EnumSubtype> 
+				string elementNameForChoice = newNodeElementName;
+				if (string.IsNullOrWhiteSpace(elementNameForChoice))
 				{
-					Type enumType = itemsChoiceType.GetType().GetElementType()!;
-					bool result = Enum.TryParse(enumType!, newNodeElementName, out object? newEnumObj);
+					var newNodeType = newNode.GetType();
+					var choiceXmlElements = piTargetProperty.GetCustomAttributes<XmlElementAttribute>(true)
+						.Where(att => att.Type == newNodeType || att.Type.IsAssignableFrom(newNodeType) || newNodeType.IsAssignableFrom(att.Type))
+						.ToArray();
+					if (choiceXmlElements.Length == 1 && !string.IsNullOrWhiteSpace(choiceXmlElements[0].ElementName))
+						elementNameForChoice = choiceXmlElements[0].ElementName;
+				}
+
+				if (choiceEnum is Array itemsChoiceArray)
+				{
+					Type enumType = itemsChoiceArray.GetType().GetElementType()!;
+					bool result = Enum.TryParse(enumType, elementNameForChoice, out object? newEnumObj);
+					if (!result) return false;
+
+					Array nodeArray;
+					if (targetPropertyObject is null)
+					{
+						Type nodeElementType = piTargetProperty.PropertyType.GetElementType()!;
+						nodeArray = Array.CreateInstance(nodeElementType, 0);
+					}
+					else nodeArray = (Array)targetPropertyObject;
+
+					var enumList = itemsChoiceArray.Cast<object?>().ToList();
+					var nodeList = nodeArray.Cast<object?>().ToList();
+
+					if (insertPosition == -1 || insertPosition > nodeList.Count - 1)
+					{
+						enumList.Add(newEnumObj);
+						nodeList.Add(newNode);
+					}
+					else
+					{
+						enumList.Insert(insertPosition, newEnumObj);
+						nodeList.Insert(insertPosition, newNode);
+					}
+
+					Array newChoiceArray = Array.CreateInstance(enumType, enumList.Count);
+					for (int i = 0; i < enumList.Count; i++) newChoiceArray.SetValue(enumList[i], i);
+					Type targetElementType = piTargetProperty.PropertyType.GetElementType()!;
+					Array newNodeArray = Array.CreateInstance(targetElementType, nodeList.Count);
+					for (int i = 0; i < nodeList.Count; i++) newNodeArray.SetValue(nodeList[i], i);
+
+					piChoiceEnum.SetValue(parentTarget, newChoiceArray);
+					piTargetProperty.SetValue(parentTarget, newNodeArray);
+					choiceEnum = newChoiceArray;
+					targetPropertyObject = newNodeArray;
+					return true;
+				}
+				else if (choiceEnum is IList itemsChoiceType) //itemsChoiceType is always List<EnumSubtype> 
+				{
+					Type enumType = itemsChoiceType.GetType().GetGenericArguments().FirstOrDefault()
+						?? itemsChoiceType.GetType().GetElementType()!;
+					bool result = Enum.TryParse(enumType, elementNameForChoice, out object? newEnumObj);
 					if (result)
 					{
 						//Create target List object if not present
@@ -2501,7 +2590,7 @@ namespace SDC.Schema
 						IList tpoList = (IList)targetPropertyObject!;
 
 						if (insertPosition == -1 || insertPosition > tpoList.Count - 1)
-						{ 
+						{
 							itemsChoiceType.Add(newEnumObj);
 							tpoList.Add(newNode);
 						}
@@ -2517,8 +2606,9 @@ namespace SDC.Schema
 				else if (choiceEnum is Enum itemChoiceType) //itemChoiceType is a simple Enum subtype.
 				{
 					Type enumType = itemChoiceType.GetType();
-					bool result = Enum.TryParse(enumType, newNodeElementName, out object? newEnumObj);
-					
+					// Bug fix: use the resolved XML element name (derived from type when caller omits elementName) so ItemChoice enums bind correctly for single-choice nodes like DataTypes_DEType.Item.
+					bool result = Enum.TryParse(enumType, elementNameForChoice, out object? newEnumObj);
+
 					if (result)
 					{
 						piChoiceEnum.SetValue(parentTarget, newEnumObj);
@@ -2791,15 +2881,8 @@ namespace SDC.Schema
 		/// <returns></returns>
 		public static T[] RemoveArrayNullsNew<T>(T[] array) where T : class
 		{
-			int i = 0;
-			var newarray = new T[array.Length - 1];
-
-			foreach (var n in array)
-			{
-				if (n != null) newarray[i] = n;
-				i++;
-			}
-			return newarray;
+			if (array is null) throw new ArgumentNullException(nameof(array));
+			return array.Where(n => n is not null).ToArray();
 		}
 
 		#endregion

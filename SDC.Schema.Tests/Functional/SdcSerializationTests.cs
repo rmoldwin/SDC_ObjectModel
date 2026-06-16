@@ -79,7 +79,6 @@ namespace SDC.Schema.Tests.Functional
 			Debug.Print(myJson);
 		}
 		[TestMethod]
-		[ExpectedException(typeof(InvalidOperationException))]
 		public void DeserializeFormDesignFromPath()
 		{
 			BaseType.ResetLastTopNode();
@@ -139,22 +138,23 @@ namespace SDC.Schema.Tests.Functional
 			//li.ListItemResponseField.TextAfterResponse.val = "myText";
 			//li.ListItemResponseField.ResponseUnits.val = "myResponseUnits";
 			//var r = li.ListItemResponseField.Response;
-			DataTypes_DEType r1 = li.AddListItemResponseField().AddDataType(ItemChoiceType.@string);
+			var listItemResponseField = li.ListItemResponseField ?? li.AddListItemResponseField();
+			DataTypes_DEType r1 = listItemResponseField.AddDataType(ItemChoiceType.@string);
 
 			var dtItem = r1.DataTypeDE_Item;
 			var elName = r1.ElementName;
 			var dtEnum = Enum.Parse<ItemChoiceType>("string", true);
 
-			DataTypes_DEType response1 = li.AddListItemResponseField().AddDataType(ItemChoiceType.@string);
+			DataTypes_DEType response1 = listItemResponseField.AddDataType(ItemChoiceType.@string);
 			var myString = (string_DEtype)response1.Item;
 			myString.maxLength = 4000;
 
-			DataTypes_DEType response2 = li.AddListItemResponseField().AddDataType(ItemChoiceType.integer);
+			DataTypes_DEType response2 = listItemResponseField.AddDataType(ItemChoiceType.integer);
 			var myInteger = (integer_DEtype)response2.Item;
 			myInteger.minInclusive = 0;
 			myInteger.maxInclusive = 100;
 
-			DataTypes_DEType response3 = li.AddListItemResponseField().AddDataType(ItemChoiceType.@decimal);
+			DataTypes_DEType response3 = listItemResponseField.AddDataType(ItemChoiceType.@decimal);
 			var myDecimal = (decimal_DEtype)response3.DataTypeDE_Item;
 			myDecimal.minInclusive = 0;
 			myDecimal.maxInclusive = 100;
@@ -201,6 +201,21 @@ namespace SDC.Schema.Tests.Functional
 			//FD.SaveMsgPackToFile("C:\\MPfile");  //also support REST transactions, like sending packages to SDC endpoints; consider FHIR support
 			var myJson = FD.GetJson();
 			Debug.Print(myJson);
+		}
+
+		[TestMethod]
+		public void AddListItemResponseField_WhenAlreadyExists_ThrowsInvalidOperationException()
+		{
+			BaseType.ResetLastTopNode();
+			var de = new DataElementType(null);
+			var question = new QuestionItemType(de, "q");
+			de.Items.Add(question);
+			var listItem = question.AddListItem("li");
+			var existing = listItem.AddListItemResponseField();
+			Assert.IsNotNull(existing);
+
+			// Bug fix: isolate the intentional failing branch; adding a second ListItemResponseField must throw.
+			Assert.ThrowsException<InvalidOperationException>(() => listItem.AddListItemResponseField());
 		}
 		[TestMethod]
 		public void DeserializePkgFromPath()
