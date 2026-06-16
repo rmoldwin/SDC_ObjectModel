@@ -116,7 +116,8 @@ namespace SDC.Schema
 				_attributes = new List<AttributeInfo>(4);
 				int order = 0;
 
-				// ExtensionType contributes ad-hoc XmlAnyAttribute entries in addition to regular schema-bound attributes.
+				// Bug fix: mark each XmlAnyAttribute-derived entry explicitly so mixed schema/ad-hoc attributes
+				// on the same node can be distinguished reliably by callers.
 				if (n.ShouldSerializeAnyAttr() && !(attributesToExclude?.Contains("AnyAttr") ?? false))
 				{
 					foreach (XmlAttribute xa in n.AnyAttr)

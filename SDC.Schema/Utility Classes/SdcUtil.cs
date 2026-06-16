@@ -1900,6 +1900,7 @@ namespace SDC.Schema
 						if (attributesToInclude is not null && !attributesToInclude.Contains(xa.LocalName) && !attributesToInclude.Contains(xa.Name) && !attributesToInclude.Contains(pAny.Name)) continue;
 
 						nodeIndex++;
+						// Bug fix: preserve ad-hoc origin per attribute so schema-defined attributes on the same node are not misclassified.
 						attributes.Add(new AttributeInfo(n, xa.Value, null, nodeIndex, xa.LocalName, isAdHocAttribute: true));
 					}
 				}

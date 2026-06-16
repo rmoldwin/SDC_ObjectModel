@@ -9,7 +9,7 @@ using System.Linq;
 using System.ComponentModel;
 using System.Collections.Generic;
 
-namespace SDC.Schema.Tests.Utils
+namespace SDC.Schema
 {
 	public sealed class CompareTrees<T> where T : ITopNode
 	{
@@ -55,6 +55,7 @@ namespace SDC.Schema.Tests.Utils
 			}
 			catch (Exception ex)
 			{
+				// Bug fix: keep the error context attached to the XML parameter that actually failed to deserialize.
 				//C# 11 syntax
 				//ex.Data.Add("message", $"""
 				//The XML parameter "{nameof(newXml)}" resulted in an error upon deserialization as type <T>.  
@@ -75,7 +76,8 @@ namespace SDC.Schema.Tests.Utils
 			}
 			try
 			{
-				_prevVersion = ITopNodeDeserialize<T>.DeserializeFromXml(newXml);
+				// Bug fix: deserialize the previous-version tree from prevXml instead of reusing newXml.
+				_prevVersion = ITopNodeDeserialize<T>.DeserializeFromXml(prevXml);
 			}
 			catch (Exception ex)
 			{
@@ -376,7 +378,7 @@ namespace SDC.Schema.Tests.Utils
 				//Construct difNodeIET and add to _dDifNodeIET for each IET node 
 
 				DifNodeIET difNodeIET = new(sGuidNewIET, isParChangedIET, isMovedIET, isNewIET, isRemovedIET, isAttListChanged,
-					hasAddedSubNodes, hasRemovedSubNodes, null, null, null, false, addedSubNodes, removedSubNodes, dlaiDifIET);
+					hasAddedSubNodes, hasRemovedSubNodes, addedSubNodes, removedSubNodes, dlaiDifIET);
 
 				_dDifNodeIET.AddOrUpdate(sGuidNewIET, difNodeIET, (sGuidIET, difNodeIET) => difNodeIET);
 

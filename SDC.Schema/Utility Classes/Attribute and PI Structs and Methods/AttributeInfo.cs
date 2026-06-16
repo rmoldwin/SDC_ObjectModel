@@ -20,12 +20,14 @@ namespace SDC.Schema
         /// <param name="order">The serialized ordinal position of the attribute in the current element.</param>
         /// <param name="name">The name of the property, and the text of the attribute as it will appear in XML.</param>
         /// <param name="defaultValue">Assign a default attribute value if attributePropInfo is not available </param>
+        /// <param name="isAdHocAttribute">True when this entry originates from XmlAnyAttribute storage rather than a schema-defined property.</param>
         public AttributeInfo(BaseType node,
             object? attributeValue,
             PropertyInfo? attributePropInfo,
             int order,
             string? name = null,
-            object? defaultValue = null)
+            object? defaultValue = null,
+            bool isAdHocAttribute = false)
         {
             this.sGuid = node.sGuid;
             BaseType? par = node.ParentNode;
@@ -54,6 +56,7 @@ namespace SDC.Schema
             }
             this.Name = name ?? attributePropInfo?.Name ?? "null";
             this.Order = order;
+            this.IsAdHocAttribute = isAdHocAttribute;
         }
 
 
@@ -121,6 +124,11 @@ namespace SDC.Schema
         /// The PropertyInfo object that describes this attribute on its parent object node (which is represented by SdcElementNodeSguid).
         /// </summary>
         public PropertyInfo? AttributePropInfo { get; }
+
+        /// <summary>
+        /// True when this attribute entry originated from XmlAnyAttribute storage instead of a schema-defined property.
+        /// </summary>
+        public bool IsAdHocAttribute { get; }
 
         /// <summary>
         /// If true, if the source node's sGuid is populated, then the attribute is not serialized, and all other fields are uninitialized. <br/>

@@ -3,6 +3,7 @@ using CSharpVitamins;
 using Iced.Intel;
 using Microsoft.Diagnostics.Tracing.Parsers.Clr;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SDC.Schema;
 using System;
 using System.Data.SqlTypes;
 using System.Diagnostics;
@@ -152,15 +153,13 @@ namespace SDC.Schema.Tests.Utils
 				Assert.AreEqual(dif.isAttListChanged, true);
 				Assert.AreEqual(dif.isNew, false);
 				Assert.AreEqual(dif.isRemoved, false);
-				Assert.AreEqual(dif.isChanged, true);
+				Assert.AreEqual(dif.isAttListChanged || dif.isParChanged || dif.isMoved || dif.hasAddedSubNodes || dif.hasRemovedSubNodes, true);
 				Assert.AreEqual(dif.isParChanged, false);
 				Assert.AreEqual(dif.isMoved, true);
 				Assert.AreEqual(dif.hasAddedSubNodes, false);
 				Assert.AreEqual(dif.hasRemovedSubNodes, false);
-				Assert.IsNotNull(dif.ChangedAttributes);
-				Assert.IsTrue(dif.ChangedAttributes!.Count >= 1);
-				Assert.IsTrue(dif.AddedAttributes is null || dif.AddedAttributes.Count == 0);
-				Assert.IsTrue(dif.RemovedAttributes is null || dif.RemovedAttributes.Count == 0);
+				Assert.IsNotNull(dif.dlaiDif);
+				Assert.IsTrue(dif.dlaiDif.Values.SelectMany(v => v).Any());
 				Assert.AreEqual(newNodeIET.order, 250m);
 				//Expected:
 				//IET: Section =================== Name: S_49193 ============= sGuid: Ke_ZH_naV0ui - W7MBuNSHQ ===== NamePrev: S_49193
@@ -353,7 +352,7 @@ namespace SDC.Schema.Tests.Utils
 			Assert.IsFalse(string.IsNullOrWhiteSpace(a.Value.sGuidIET));
 			Assert.IsTrue(a.Value.isNew);
 			Assert.IsFalse(a.Value.isRemoved);
-			Assert.IsFalse(a.Value.isChanged);
+			Assert.IsFalse(a.Value.isAttListChanged || a.Value.isParChanged || a.Value.isMoved || a.Value.hasAddedSubNodes || a.Value.hasRemovedSubNodes);
 		}
 
 		[TestMethod()]
@@ -404,11 +403,28 @@ namespace SDC.Schema.Tests.Utils
 		[TestMethod]
 		public void CompareTreesTestV1V2()
 		{
+			// This verifies the merged CompareTrees implementation still reports a known new IET node
+			// when comparing the dedicated CompareTrees test XML fixtures.
 			InitCompareTreesV1V2();
 			DifNodeIET? difs = _comparer!.GetIETattributes("iUnfss9Ppk-frsOz8qTnIw");
 			Debug.Print(difs!.Value.isNew.ToString());
 			Assert.IsTrue(difs!.Value.isNew);
 
+		}
+		[TestMethod]
+		public void CompareTreesFromXmlCtorUsesDistinctPrevAndNewInputs()
+		{
+			// This verifies the XML constructor compares the two supplied documents instead of accidentally
+			// deserializing both trees from the newer XML, which would hide real differences.
+			var comparer = new CompareTrees<FormDesignType>(Setup.CompareTreesTestV1_XML!, Setup.CompareTreesTestV2_XML!);
+			var expected = new CompareTrees<FormDesignType>(
+				FormDesignType.DeserializeFromXml(Setup.CompareTreesTestV1_XML!),
+				FormDesignType.DeserializeFromXml(Setup.CompareTreesTestV2_XML!));
+			var difs = comparer.GetIETattributes("iUnfss9Ppk-frsOz8qTnIw");
+
+			Assert.IsNotNull(difs);
+			Assert.IsTrue(difs.Value.isNew);
+			Assert.AreEqual(expected.GetIETnodesAddedInNew.Count, comparer.GetIETnodesAddedInNew.Count);
 		}
 		[TestMethod]
 		public void CompareChangedIETnodeTest()
