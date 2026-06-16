@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema;
 using SDC.Schema.Extensions;
 using SDC.Schema.UtilityClasses.Extensions;
+using System.Collections.Generic;
 using System.Linq;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -279,8 +280,8 @@ namespace SDC.Schema.Tests.OMTests
 
 		}
 		[TestMethod]
-        public void QuestionResponseTest_SRS524_ChangeDatatype()
-        {
+		public void QuestionResponseTest_SRS524_ChangeDatatype()
+		{
 			var de = new DataElementType(null, "DE1");
 			//var q1 = new QuestionItemType(de, "q1", "q1");
 			//de.Items.Add(q1); //must explicitly add q1 to Items before creating q2 - will throw if this is not done - due to error in sorting.  
@@ -295,11 +296,11 @@ namespace SDC.Schema.Tests.OMTests
 
 
 			var rf3 = q3.AddQuestionResponseField(out var dt1, ItemChoiceType.date);
-            var rf4 = q4.AddQuestionResponseField(out var dt2, ItemChoiceType.@int);
+			var rf4 = q4.AddQuestionResponseField(out var dt2, ItemChoiceType.@int);
 
 			var response3 = rf3.Response;
-            var response4 = rf4.Response;
-            //response1.Item = new string_DEtype(null); //error - does not run ItemMutator
+			var response4 = rf4.Response;
+			//response1.Item = new string_DEtype(null); //error - does not run ItemMutator
 			//response1.DataTypeDE_Item = new string_DEtype(null); //note the null parent - this node is not completely initialized
 
 			response3.DataTypeDE_Item = new string_DEtype(response3); //
@@ -314,6 +315,75 @@ namespace SDC.Schema.Tests.OMTests
 
 
 
-        }
-    }
+		}
+
+		[TestMethod]
+		public void ItemMutator_SameTreeReparent_UpdatesParentAndClearsFormerOwner()
+		{
+			BaseType.ResetLastTopNode();
+			var de = new DataElementType(null, "DE_ItemMutator_SameTree");
+			var q1 = de.AddQuestion(QuestionEnum.QuestionRaw, "Q1", "Q1");
+			var q2 = de.AddQuestion(QuestionEnum.QuestionRaw, "Q2", "Q2");
+			var rf1 = q1.AddQuestionResponseField(out _, ItemChoiceType.@string);
+			var rf2 = q2.AddQuestionResponseField(out _, ItemChoiceType.@string);
+
+			// Create a datatype node attached under response1, then reassign it to response2.
+			// Rationale: this exercises the same-tree ItemMutator branch that must detach from the old owner
+			// and fix ParentNode dictionary links without corrupting the top-node dictionaries.
+			var moved = new boolean_DEtype(rf1.Response);
+			var oldGuid = moved.ObjectGUID;
+			rf2.Response.DataTypeDE_Item = moved;
+
+			Assert.AreSame(rf2.Response, moved.ParentNode, "Moved datatype must be re-parented to the new Response node.");
+			Assert.IsNull(rf1.Response.Item, "Former owner Response should no longer hold the moved datatype node.");
+			Assert.IsTrue(de.Nodes.ContainsKey(oldGuid), "Moved node must remain registered in the top-node dictionary after reassignment.");
+		}
+
+		[TestMethod]
+		public void ItemMutator_CrossTreeReparent_MovesNodeToTargetTree()
+		{
+			BaseType.ResetLastTopNode();
+			var source = new DataElementType(null, "DE_Source");
+			var sourceQuestion = source.AddQuestion(QuestionEnum.QuestionRaw, "QS", "QS");
+			var sourceResponseField = sourceQuestion.AddQuestionResponseField(out _, ItemChoiceType.@string);
+			var donor = new string_DEtype(sourceResponseField.Response);
+			var donorGuidBeforeMove = donor.ObjectGUID;
+
+			var target = new DataElementType(null, "DE_Target");
+			var targetQuestion = target.AddQuestion(QuestionEnum.QuestionRaw, "QT", "QT");
+			var targetResponseField = targetQuestion.AddQuestionResponseField(out _, ItemChoiceType.@string);
+
+			// Rationale: cross-tree assignment must move the node into the target tree, including dictionary ownership.
+			targetResponseField.Response.DataTypeDE_Item = donor;
+
+			Assert.AreSame(targetResponseField.Response, donor.ParentNode, "Cross-tree moved node must attach to target Response.");
+			Assert.IsNull(sourceResponseField.Response.Item, "Source Response should no longer reference the moved node.");
+			Assert.IsFalse(source.Nodes.ContainsKey(donorGuidBeforeMove), "Source tree must no longer contain moved node dictionary entry.");
+			Assert.IsTrue(target.Nodes.ContainsKey(donor.ObjectGUID), "Target tree must contain moved node dictionary entry after reassignment.");
+		}
+
+		[TestMethod]
+		public void ItemsMutator_ListReplacement_UpdatesNodeRegistration()
+		{
+			BaseType.ResetLastTopNode();
+			var de = new DataElementType(null, "DE_ItemsMutator");
+			var qOld = de.AddQuestion(QuestionEnum.QuestionSingle, "Q_Old", "Old");
+			var qOldGuid = qOld.ObjectGUID;
+
+			var donor = new DataElementType(null, "DE_Donor");
+			var incoming = donor.AddQuestion(QuestionEnum.QuestionSingle, "Q_New", "New");
+			var incomingGuidBeforeMove = incoming.ObjectGUID;
+
+			// Replace the DataElement question list (ItemsMutator path).
+			// Rationale: verifies old nodes are unregistered and incoming nodes are re-registered under new parent.
+			de.DataElement_Items = new List<IdentifiedExtensionType> { incoming };
+
+			Assert.AreEqual(1, de.DataElement_Items.Count, "DataElement list replacement should keep only the incoming node.");
+			Assert.AreSame(incoming, de.DataElement_Items[0], "Incoming node should become the sole list member after replacement.");
+			Assert.AreSame(de, incoming.ParentNode, "Incoming node must be re-parented to the target DataElement.");
+			Assert.IsFalse(de.Nodes.ContainsKey(qOldGuid), "Old list member should be removed from the target top-node dictionary.");
+			Assert.IsFalse(donor.Nodes.ContainsKey(incomingGuidBeforeMove), "Donor tree should no longer track the moved incoming node.");
+			Assert.IsTrue(de.Nodes.ContainsKey(incoming.ObjectGUID), "Target tree should register the incoming node after replacement.");
+		}
+	}
 }

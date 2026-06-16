@@ -2201,14 +2201,23 @@ namespace SDC.Schema
 			if(itemsListOld == valueListNew)
 				return valueListNew;  //this will prevent running RemoveRecursive when we are reassigning the same object.
 
+			// Bug fix: snapshot old list to avoid collection-modified-during-enumeration when RemoveRecursive
+			// removes each node from its parent collection (which is itemsListOld).
 			if (itemsListOld is not null  && itemsListOld.Count > 0)
-				foreach (T n in itemsListOld) n.RemoveRecursive(false);
+			{
+				T[] oldSnapshot = itemsListOld.ToArray();
+				foreach (T n in oldSnapshot) n.RemoveRecursive(false);
+			}
 
 			if (valueListNew is not null)
 			{
 				if (valueListNew.Count > 0)
 				{
-					foreach (T n in valueListNew) n.Move(this); //We may wish to use RemoveRecursive instead
+					// Bug fix: create snapshot array to avoid collection-modified-during-enumeration exception
+					// when valueListNew members are reparented via Move(this), which may detach them from
+					// their original parent collection (which could be valueListNew itself).
+					T[] snapshot = valueListNew.ToArray();
+					foreach (T n in snapshot) n.Move(this);
 					return valueListNew;
 				}
 				throw new InvalidOperationException($"The supplied {nameof(valueListNew)} could not be used to set {nameof(itemsListOld)}.");
