@@ -234,36 +234,37 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var de = new DataElementType(null, "DE1");
 			var q2 = de.AddQuestion(QuestionEnum.QuestionSingle, "q2", "q2", 0);//should finish in pos.[2]
-			Assert.ReferenceEquals(de.IETnodes[1], q2); //[1] is the first q node under de (which is the [0] node]
+			Assert.AreSame(de.IETnodes[1], q2); //[1] is the first q node under de (which is the [0] node]
 			var q1 = de.AddQuestion(QuestionEnum.QuestionSingle, "q1", "q1", 0);//should finish in pos.[1]
-			Assert.ReferenceEquals(de.IETnodes[1], q1);
-			Assert.ReferenceEquals(de.IETnodes[2], q2);
+			Assert.AreSame(de.IETnodes[1], q1);
+			Assert.AreSame(de.IETnodes[2], q2);
 			var q0 = de.AddQuestion(QuestionEnum.QuestionSingle, "q0", "q0", 0);//should finish in pos.[0]
-			Assert.ReferenceEquals(de.IETnodes[1], q0);
-			Assert.ReferenceEquals(de.IETnodes[2], q1);
-			Assert.ReferenceEquals(de.IETnodes[3], q2);
+			Assert.AreSame(de.IETnodes[1], q0);
+			Assert.AreSame(de.IETnodes[2], q1);
+			Assert.AreSame(de.IETnodes[3], q2);
 			var q3 = de.AddQuestion(QuestionEnum.QuestionSingle, "q3", "q3", 3);//should finish in pos.[3]
-			Assert.ReferenceEquals(de.IETnodes[1], q0);
-			Assert.ReferenceEquals(de.IETnodes[2], q1);
-			Assert.ReferenceEquals(de.IETnodes[3], q2);
-			Assert.ReferenceEquals(de.IETnodes[4], q3);
+			Assert.AreSame(de.IETnodes[1], q0);
+			Assert.AreSame(de.IETnodes[2], q1);
+			Assert.AreSame(de.IETnodes[3], q2);
+			Assert.AreSame(de.IETnodes[4], q3);
 
 
 
 			var li2 = q0.AddListItem("li2", "li2"); //should finish up in position [2]
-			Assert.ReferenceEquals(de.IETnodes[2], li2);
+			Assert.AreSame(de.IETnodes[2], li2);
 			var li1 = q0.AddListItem("li1", "li1", 0); //should finish up in position [1]
-			Assert.ReferenceEquals(de.IETnodes[2], li1);
-			Assert.ReferenceEquals(de.IETnodes[3], li2);
+			Assert.AreSame(de.IETnodes[2], li1);
+			Assert.AreSame(de.IETnodes[3], li2);
 			var li0 = q0.AddListItem("li0", "li0", 0);//should finish up in position [0]
-			Assert.ReferenceEquals(de.IETnodes[2], li0);
-			Assert.ReferenceEquals(de.IETnodes[3], li1);
-			Assert.ReferenceEquals(de.IETnodes[4], li2);
+			Assert.AreSame(de.IETnodes[2], li0);
+			Assert.AreSame(de.IETnodes[3], li1);
+			Assert.AreSame(de.IETnodes[4], li2);
 
-			Assert.ReferenceEquals(de.IETnodes[2], q0);
-			Assert.ReferenceEquals(de.IETnodes[5], q1);
-			Assert.ReferenceEquals(de.IETnodes[6], q2);
-			Assert.ReferenceEquals(de.IETnodes[7], q3);
+			// After inserting list items under q0, q0 itself remains the first question node in the IET list.
+			Assert.AreSame(de.IETnodes[1], q0);
+			Assert.AreSame(de.IETnodes[5], q1);
+			Assert.AreSame(de.IETnodes[6], q2);
+			Assert.AreSame(de.IETnodes[7], q3);
 
 
 			Assert.AreEqual(de.DataElement_Items.Last().As<DisplayedType>().title, "q3");
@@ -302,13 +303,13 @@ namespace SDC.Schema.Tests.OMTests
 			//response1.DataTypeDE_Item = new string_DEtype(null); //note the null parent - this node is not completely initialized
 
 			response3.DataTypeDE_Item = new string_DEtype(response3); //
-			Assert.ReferenceEquals(response3.Item.ParentNode, response3); //Check that ItemMutator detected and fixed the parent node for Item
-            Assert.IsTrue(de.GetChildNodes()?[0] == q1); //Show the the _ChildNodes dict has an entry for Item
+			Assert.AreSame(response3.Item.ParentNode, response3); //Check that ItemMutator detected and fixed the parent node for Item
+			Assert.IsTrue(de.GetChildNodes()?[0] == q1); //Show the the _ChildNodes dict has an entry for Item
 			Assert.IsTrue(de.GetChildNodes()?[1] == q2); //Show the the _ChildNodes dict has an entry for Item
 			Assert.IsTrue(de.GetChildNodes()?[2] == q3); //Show the the _ChildNodes dict has an entry for Item
 			Assert.IsTrue(de.GetChildNodes()?[3] == q4); //Show the the _ChildNodes dict has an entry for Item
 			response4.DataTypeDE_Item = new boolean_DEtype(response3); //response3 is the wrong parent - this will test if it's detected and fixed by ItemMutator
-			Assert.ReferenceEquals(response4.Item.ParentNode, response4);
+			Assert.AreSame(response4.Item.ParentNode, response4);
 
 
 

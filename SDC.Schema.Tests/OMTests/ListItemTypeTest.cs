@@ -30,7 +30,7 @@ namespace SDC.Schema.Tests.OMTests
 			//de.Items.Add(q);
 			var li = q.AddListItem("li");
 			var dsi = li.AddDeselectIf();
-            Assert.ReferenceEquals(dsi, q.GetListItems()?[0].As<ListItemType>().DeselectIf);
+			Assert.AreSame(dsi, q.GetListItems()?[0].As<ListItemType>().DeselectIf);
         }
 
         [TestMethod]

@@ -574,7 +574,7 @@ namespace SDC.Schema.Tests.Functional
 				false
 			};
 
-			var ex = Assert.ThrowsException<TargetInvocationException>(() => tryAttach!.Invoke(null, args));
+			var ex = Assert.Throws<TargetInvocationException>(() => tryAttach!.Invoke(null, args));
 			Assert.IsInstanceOfType(ex.InnerException, typeof(InvalidOperationException));
 		}
 
@@ -950,7 +950,7 @@ namespace SDC.Schema.Tests.Functional
 		public void ReflectRefreshSubtreeList_NodeWorkerFirstFailure_Throws_CoverageGap()
 		{
 			var (_, body, _, _, _) = BuildNavigationFixture();
-			Assert.ThrowsException<InvalidOperationException>(() =>
+			Assert.Throws<InvalidOperationException>(() =>
 				SdcUtil.ReflectRefreshSubtreeList(body, nodeWorkerFirst: n => false));
 		}
 
@@ -1350,7 +1350,7 @@ namespace SDC.Schema.Tests.Functional
 					BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 				Assert.IsNotNull(sGuidField, "_sGuid backing field must be locatable via reflection");
 				sGuidField!.SetValue(de, "!!!notvalid!!!");
-				Assert.ThrowsException<ArgumentException>(() => SdcUtil.CreateBaseNameFromsGuid(de));
+				Assert.Throws<ArgumentException>(() => SdcUtil.CreateBaseNameFromsGuid(de));
 		}
 
 		// ─────────────────────────────────────────────────────────────────────────
@@ -1360,7 +1360,7 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void ReflectNodeXmlAttributes_NullNode_ThrowsNullRef_CoverageGap()
 		{
-			Assert.ThrowsException<NullReferenceException>(() =>
+			Assert.Throws<NullReferenceException>(() =>
 				SdcUtil.ReflectNodeXmlAttributes(null!));
 		}
 

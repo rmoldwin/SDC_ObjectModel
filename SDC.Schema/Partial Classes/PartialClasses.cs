@@ -2167,12 +2167,22 @@ namespace SDC.Schema
 			if (item is not null)
 				item.RemoveRecursive(false);
 
-			if (valueNew is not null && valueNew.TopNode != this.TopNode)
+			if (valueNew is not null && valueNew.ParentNode != this)
 			{
-				//we have a node or subtree that is being grafted from a different SDC tree.
-				//in most cases like this, we will want new sGuid, ObjectID, ObjectGUID, name, ID
-				//Later, we can also reorder the entire tree.
-				valueNew.Move(this, -1, true, SdcUtil.RefreshMode.UpdateNodeIdentity); //checks if  ParentNode is allowed
+				// Bug fix: same-tree property reassignment (for example replacing Response.DataTypeDE_Item)
+				// cannot always be expressed through Move(), because some single-value attachment paths do not
+				// resolve to a reflected BaseType/IList target. For same-tree assignments, detach from the old
+				// parent object and update ParentNodes directly; for cross-tree grafts, continue using Move().
+				if (valueNew.TopNode == this.TopNode)
+				{
+					((BaseType)valueNew).RemoveRecursive(false);
+					if (this.TopNode is _ITopNode topNode)
+						topNode._ParentNodes[valueNew.ObjectGUID] = this;
+				}
+				else
+				{
+					valueNew.Move(this, -1, true, SdcUtil.RefreshMode.UpdateNodeIdentity); //checks if ParentNode is allowed
+				}
 			}
 			return valueNew;
 		}

@@ -102,7 +102,7 @@ namespace SDC.Schema.Tests.OMTests
 		{
 			var sut = CreateDisplayedType();
 			var ev = sut.AddOnEnter();
-			Assert.ThrowsException<System.NotImplementedException>(() => sut.MoveEvent_(ev));
+			Assert.Throws<System.NotImplementedException>(() => sut.MoveEvent_(ev));
 		}
 	}
 }

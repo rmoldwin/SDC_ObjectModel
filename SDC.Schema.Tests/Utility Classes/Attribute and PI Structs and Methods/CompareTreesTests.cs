@@ -364,7 +364,7 @@ namespace SDC.Schema.Tests.Utils
 			InitV1V2();
 			ShortGuid nonIetSguid = "PdQi6PiXV06AIv-Tvlh5Xw";
 
-			Assert.ThrowsException<ArgumentException>(() => _comparer!.GetIETattributes(nonIetSguid));
+			Assert.Throws<ArgumentException>(() => _comparer!.GetIETattributes(nonIetSguid));
 		}
 		[TestMethod()]
 		public void GetIETnodesRemovedInNewTest()

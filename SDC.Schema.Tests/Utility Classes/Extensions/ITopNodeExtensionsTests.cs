@@ -213,14 +213,14 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		public void GetDescendantDictionaryTest()
 		{
 			var fx = CreateFixture();
-			Assert.ThrowsException<InvalidCastException>(() => fx.fd.GetDescendantDictionary(fx.fd));
+			Assert.Throws<InvalidCastException>(() => fx.fd.GetDescendantDictionary(fx.fd));
 		}
 
 		[TestMethod()]
 		public void GetDescendantListTest()
 		{
 			var fx = CreateFixture();
-			Assert.ThrowsException<InvalidCastException>(() => fx.fd.GetDescendantList(fx.fd));
+			Assert.Throws<InvalidCastException>(() => fx.fd.GetDescendantList(fx.fd));
 		}
 
 		[TestMethod()]

@@ -364,7 +364,7 @@ namespace SDC.Schema.Extensions
 					btSource.MoveInDictionaries(targetParent: newParent);
 					btSource.AssignOrder(); //Requires that dictionaries are first populated for the entire btSource subtree
 
-                    return true;
+					return true;
 				}
 				//else if: btSource can be attached to a member of a List
 				else if (targetPropertyObject is IList propList)
