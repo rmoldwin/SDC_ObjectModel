@@ -99,86 +99,262 @@ namespace SDC.Schema.Tests.Functional
         // These tests verify dictionary integrity when adding nodes in various patterns
 
         [TestMethod()]
-        public void _ComplexAddition_BulkSiblingInsertion_MaintainsDictionaryConsistency()
+        public void ComplexAddition_BulkSiblingInsertion_MaintainsDictionaryConsistency()
         {
-            // Test: Add 50 list items to a single question
-            // Validates: _ChildNodes list maintains correct order and count
-            // Validates: All 50 items registered in _Nodes and _IETnodes
-            // Validates: Sibling navigation (GetNodeNextSib) works across all 50 items
-            // Thread-safety note: Concurrent bulk additions would corrupt _ChildNodes List<>
-            // Implementation should:
-            // 1. Create form with question
-            // 2. Add 50 list items in a loop
-            // 3. After each addition, verify node count increases by 1
-            // 4. After all additions, call ValidateTreeIntegrity()
-            // 5. Verify list order matches insertion order
-            // 6. Test sibling navigation from first to last item
+            // Arrange
+            BaseType.ResetLastTopNode();
+            var form = new FormDesignType(null, "FD.BulkSibling");
+            form.AddBody();
+            var section = form.Body.AddChildSection("S.Test", "Test Section");
+            var question = section.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.BulkTest", "Bulk Test");
+
+            int initialCount = TreeValidationHelper.CountReachableNodes(form);
+            TreeValidationHelper.ValidateTreeIntegrity(form, "Initial state before bulk additions");
+
+            // Act: Add 50 list items
+            var items = new List<ListItemType>();
+            for (int i = 1; i <= 50; i++)
+            {
+                var item = question.AddListItem($"LI.Item{i}", $"Item {i}");
+                items.Add(item);
+
+                // Rationale: verify node count increases by exactly 1 after each addition
+                int expectedCount = initialCount + i;
+                TreeValidationHelper.AssertNodeCount(form, expectedCount, $"After adding item {i}");
+            }
+
+            // Assert: Comprehensive validation after all additions
+            // Rationale: validates all 50 items are properly registered in dictionaries
+            TreeValidationHelper.ValidateTreeIntegrity(form, "After all 50 bulk additions");
+
+            // Rationale: verifies exact count of nodes added (50 list items)
+            int finalExpectedCount = initialCount + 50;
+            TreeValidationHelper.AssertNodeCount(form, finalExpectedCount, "Final node count");
+
+            // Rationale: validates sibling navigation works across all 50 items (first to last)
+            var firstItem = items[0];
+            var lastItem = items[49];
+            Assert.AreSame(lastItem, firstItem.GetNodeLastSib(), "First item should navigate to last sibling");
+            Assert.AreSame(firstItem, lastItem.GetNodeFirstSib(), "Last item should navigate to first sibling");
+
+            // Rationale: validates sequential sibling navigation through the entire list
+            var current = firstItem;
+            for (int i = 0; i < 49; i++)
+            {
+                var next = current.GetNodeNextSib();
+                Assert.AreSame(items[i + 1], next, $"Sibling navigation from item {i} to {i + 1} failed");
+                current = (ListItemType)next;
+            }
         }
 
         [TestMethod()]
-        public void _ComplexAddition_DeeplyNestedChildSequence_MaintainsParentChain()
+        public void ComplexAddition_DeeplyNestedChildSequence_MaintainsParentChain()
         {
-            // Test: Create deeply nested structure (6+ levels)
-            // Structure: Section → Question → ListField → List → ListItem → Response → DataType
-            // Validates: Each level's ParentNode correctly points to parent
-            // Validates: _ParentNodes dictionary matches actual parent chain
-            // Implementation should:
-            // 1. Build nested structure level by level
-            // 2. At each level, verify node.ParentNode == expected parent
-            // 3. Verify _ParentNodes[node.ObjectGUID] == expected parent
-            // 4. Walk back up parent chain to TopNode
-            // 5. Call ValidateTreeIntegrity() at end
+            // Arrange
+            BaseType.ResetLastTopNode();
+            var form = new FormDesignType(null, "FD.DeepNest");
+            form.AddBody();
+            TreeValidationHelper.ValidateTreeIntegrity(form, "Initial state");
+
+            // Act: Build deeply nested structure (7 levels)
+            // Level 1: Section
+            var section = form.Body.AddChildSection("S.Deep", "Deep Section");
+            // Rationale: verify parent chain after each level addition
+            Assert.AreSame(form.Body, section.ParentNode, "Section parent should be Body");
+
+            // Level 2: Question
+            var question = section.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.Deep", "Deep Question");
+            Assert.AreSame(section, question.ParentNode, "Question parent should be Section");
+
+            // Level 3: ListItem
+            var listItem = question.AddListItem("LI.Deep", "Deep Item");
+            Assert.AreSame(question, listItem.ParentNode, "ListItem parent should be Question");
+
+            // Level 4: ListItemResponseField
+            var listItemRespField = listItem.AddListItemResponseField();
+            Assert.AreSame(listItem, listItemRespField.ParentNode, "ListItemResponseField parent should be ListItem");
+
+            // Level 5: Response DataType
+            var response = new DataTypes_DEType(listItemRespField);
+            listItemRespField.Response = response;
+            Assert.AreSame(listItemRespField, response.ParentNode, "Response parent should be ListItemResponseField");
+
+            // Level 6: DataType (string)
+            var dataType = new string_DEtype(response);
+            response.DataTypeDE_Item = dataType;
+            Assert.AreSame(response, dataType.ParentNode, "DataType parent should be Response");
+
+            // Assert: Validate entire tree integrity
+            // Rationale: validates all parent-child relationships are properly registered in dictionaries
+            TreeValidationHelper.ValidateTreeIntegrity(form, "After deep nesting");
+
+            // Rationale: walk back up parent chain from deepest node to TopNode
+            BaseType current = dataType;
+            var expectedParents = new BaseType[] { response, listItemRespField, listItem, question, section, form.Body, form };
+            foreach (var expectedParent in expectedParents)
+            {
+                current = current.ParentNode;
+                Assert.AreSame(expectedParent, current, $"Parent chain broken at {expectedParent?.GetType().Name ?? "null"}");
+            }
+
+            // Rationale: verify all nodes in chain share the same TopNode
+            Assert.AreSame(form, dataType.TopNode, "Deepest node should reference form as TopNode");
+            Assert.AreSame(form, response.TopNode, "Mid-level node should reference form as TopNode");
+            Assert.AreSame(form, section.TopNode, "High-level node should reference form as TopNode");
         }
 
         [TestMethod()]
-        public void _ComplexAddition_InterleavedSectionAndQuestionAddition_PreservesTreeOrder()
+        public void ComplexAddition_InterleavedSectionAndQuestionAddition_PreservesTreeOrder()
         {
-            // Test: Add sections and questions in interleaved pattern
-            // Pattern: Add S1, add Q1 to S1, add S2, add Q2 to S1, add Q3 to S2, add S3
-            // Validates: Section order maintained in Body.ChildItems
-            // Validates: Question order maintained within each section
-            // Validates: _IETnodes maintains global insertion order
-            // Implementation should:
-            // 1. Create form with body
-            // 2. Follow interleaved addition pattern
-            // 3. After each add, capture _IETnodes order
-            // 4. Verify _IETnodes reflects true insertion sequence
-            // 5. Verify section order in Body matches expected
-            // 6. Verify question order within each section
+            // Arrange
+            BaseType.ResetLastTopNode();
+            var form = new FormDesignType(null, "FD.Interleaved");
+            form.AddBody();
+            TreeValidationHelper.ValidateTreeIntegrity(form, "Initial state");
+
+            var addedNodes = new List<IdentifiedExtensionType>();
+
+            // Act: Interleaved pattern - Add S1, add Q1 to S1, add S2, add Q2 to S1, add Q3 to S2, add S3
+            var s1 = form.Body.AddChildSection("S.1", "Section 1");
+            addedNodes.Add(s1);
+
+            var q1 = s1.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.1", "Question 1");
+            addedNodes.Add(q1);
+
+            var s2 = form.Body.AddChildSection("S.2", "Section 2");
+            addedNodes.Add(s2);
+
+            var q2 = s1.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.2", "Question 2");
+            addedNodes.Add(q2);
+
+            var q3 = s2.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.3", "Question 3");
+            addedNodes.Add(q3);
+
+            var s3 = form.Body.AddChildSection("S.3", "Section 3");
+            addedNodes.Add(s3);
+
+            // Assert: Validate tree integrity
+            // Rationale: validates all nodes properly registered despite interleaved addition pattern
+            TreeValidationHelper.ValidateTreeIntegrity(form, "After interleaved additions");
+
+            // Rationale: verify section order in Body matches addition order (S1, S2, S3)
+            var sections = form.Body.GetChildItemsNode().ChildItemsList;
+            Assert.AreEqual(3, sections.Count, "Body should contain 3 sections");
+            Assert.AreSame(s1, sections[0], "First section should be S1");
+            Assert.AreSame(s2, sections[1], "Second section should be S2");
+            Assert.AreSame(s3, sections[2], "Third section should be S3");
+
+            // Rationale: verify question order within S1 matches addition order (Q1, Q2)
+            var s1Questions = s1.GetChildItemsNode().ChildItemsList;
+            Assert.AreEqual(2, s1Questions.Count, "S1 should contain 2 questions");
+            Assert.AreSame(q1, s1Questions[0], "First question in S1 should be Q1");
+            Assert.AreSame(q2, s1Questions[1], "Second question in S1 should be Q2");
+
+            // Rationale: verify question order within S2 (Q3 only)
+            var s2Questions = s2.GetChildItemsNode().ChildItemsList;
+            Assert.AreEqual(1, s2Questions.Count, "S2 should contain 1 question");
+            Assert.AreSame(q3, s2Questions[0], "First question in S2 should be Q3");
+
+            // Rationale: verify IETnodes collection reflects global insertion order
+            var ietNodes = form.IETnodes;
+            Assert.IsTrue(ietNodes.Count >= 6, "IETnodes should contain at least 6 nodes");
+            // Note: IETnodes may contain additional nodes (Body, etc.), so we verify order of our added nodes
+            var ourNodesInOrder = ietNodes.Where(n => addedNodes.Contains(n)).ToList();
+            Assert.AreEqual(6, ourNodesInOrder.Count, "All 6 added nodes should be in IETnodes");
+            for (int i = 0; i < addedNodes.Count; i++)
+            {
+                Assert.AreSame(addedNodes[i], ourNodesInOrder[i], $"IETnodes order mismatch at position {i}");
+            }
         }
 
         [TestMethod()]
-        public void _ComplexAddition_MultipleListFieldsWithSharedItems_DetectsIllegalSharing()
+        public void ComplexAddition_MultipleListFieldsWithSharedItems_DetectsIllegalSharing()
         {
-            // Test: Attempt to add same ListItemType instance to two different questions
-            // Expected: Second assignment should trigger ItemMutator/Move logic
-            // Validates: Node cannot have two parents simultaneously
-            // Validates: First parent's list loses the node when reassigned
-            // Implementation should:
-            // 1. Create form with two questions (Q1, Q2)
-            // 2. Create ListItemType and add to Q1
-            // 3. Attempt to add same instance to Q2
-            // 4. Verify item moves from Q1 to Q2 (or is rejected)
-            // 5. Verify _ParentNodes shows only one parent (Q2)
-            // 6. Verify Q1's list no longer contains the item
+            // Arrange
+            BaseType.ResetLastTopNode();
+            var form = new FormDesignType(null, "FD.SharedItem");
+            form.AddBody();
+            var section = form.Body.AddChildSection("S.Test", "Test Section");
+            var q1 = section.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.1", "Question 1");
+            var q2 = section.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.2", "Question 2");
+
+            TreeValidationHelper.ValidateTreeIntegrity(form, "Initial state");
+
+            // Act: Create ListItemType and add to Q1
+            var sharedItem = q1.AddListItem("LI.Shared", "Shared Item");
+
+            // Rationale: verify item is initially parented to Q1
+            Assert.AreSame(q1, sharedItem.ParentNode, "Item should initially be parented to Q1");
+            TreeValidationHelper.AssertNodeExists(sharedItem, "Item should exist in tree after Q1 addition");
+
+            var q1ItemsBefore = q1.GetChildItemsNode().ChildItemsList;
+            Assert.IsTrue(q1ItemsBefore.Contains(sharedItem), "Q1 should contain the item before reassignment");
+
+            // Attempt to add same instance to Q2 - should trigger Move/ItemMutator logic
+            q2.GetChildItemsNode().ChildItemsList.Add(sharedItem);
+
+            // Assert: Validate item moved from Q1 to Q2
+            // Rationale: verifies node cannot have two parents simultaneously - ItemMutator should move it
+            Assert.AreSame(q2, sharedItem.ParentNode, "Item should be reparented to Q2");
+
+            // Rationale: verifies Q1's list no longer contains the moved item
+            var q1ItemsAfter = q1.GetChildItemsNode().ChildItemsList;
+            Assert.IsFalse(q1ItemsAfter.Contains(sharedItem), "Q1 should no longer contain the item after move to Q2");
+
+            // Rationale: verifies Q2's list contains the item
+            var q2ItemsAfter = q2.GetChildItemsNode().ChildItemsList;
+            Assert.IsTrue(q2ItemsAfter.Contains(sharedItem), "Q2 should contain the item after reassignment");
+
+            // Rationale: validates tree integrity after reassignment (no dictionary corruption)
+            TreeValidationHelper.ValidateTreeIntegrity(form, "After item reassignment");
+            TreeValidationHelper.AssertNodeExists(sharedItem, "Item should still exist in tree after reassignment");
         }
 
         [TestMethod()]
-        public void _ComplexAddition_RapidAddRemoveAddCycles_DetectsGUIDRecycling()
+        public void ComplexAddition_RapidAddRemoveAddCycles_DetectsGUIDRecycling()
         {
-            // Test: Add node, remove, add new node with same ID pattern, repeat 100 times
-            // Validates: GUID uniqueness maintained across add/remove cycles
-            // Validates: No dictionary entry leaks after remove
-            // Validates: _Nodes count returns to baseline after each remove
-            // Implementation should:
-            // 1. Capture initial node count
-            // 2. Loop 100 times:
-            //    - Add new question
-            //    - Verify node count increased by 1
-            //    - Remove question
-            //    - Verify node count returned to baseline
-            // 3. Check for GUID collisions (all GUIDs should be unique)
-            // 4. Verify no memory leaks (_Nodes size stable)
+            // Arrange
+            BaseType.ResetLastTopNode();
+            var form = new FormDesignType(null, "FD.AddRemoveCycle");
+            form.AddBody();
+            var section = form.Body.AddChildSection("S.Test", "Test Section");
+
+            int baselineCount = TreeValidationHelper.CountReachableNodes(form);
+            TreeValidationHelper.ValidateTreeIntegrity(form, "Initial baseline");
+
+            var allGuids = new List<Guid>();
+
+            // Act: Perform 100 add/remove cycles
+            for (int i = 1; i <= 100; i++)
+            {
+                // Add new question
+                var question = section.AddChildQuestion(QuestionEnum.QuestionSingle, $"Q.Cycle{i}", $"Question {i}");
+                allGuids.Add(question.ObjectGUID);
+
+                // Rationale: verify node count increases by exactly 1 after addition
+                int expectedAfterAdd = baselineCount + 1;
+                TreeValidationHelper.AssertNodeCount(form, expectedAfterAdd, $"After adding question {i}");
+                TreeValidationHelper.AssertNodeExists(question, $"Question {i} should exist after addition");
+
+                // Remove question
+                bool removed = question.RemoveRecursive(false);
+                Assert.IsTrue(removed, $"Question {i} removal should succeed");
+
+                // Rationale: verify node count returns to baseline after removal
+                TreeValidationHelper.AssertNodeCount(form, baselineCount, $"After removing question {i}");
+                TreeValidationHelper.AssertNodeNotExists(question, $"Question {i} should not exist after removal");
+            }
+
+            // Assert: Validate GUID uniqueness across all cycles
+            // Rationale: verifies no GUID recycling occurred during 100 add/remove cycles
+            var uniqueGuids = new HashSet<Guid>(allGuids);
+            Assert.AreEqual(100, uniqueGuids.Count, "All 100 GUIDs should be unique (no recycling)");
+
+            // Rationale: validates final tree state is stable and consistent
+            TreeValidationHelper.ValidateTreeIntegrity(form, "After 100 add/remove cycles");
+
+            // Rationale: verifies node count returned to exact baseline (no memory leaks)
+            TreeValidationHelper.AssertNodeCount(form, baselineCount, "Final node count should match baseline");
         }
 
         #endregion
@@ -188,58 +364,148 @@ namespace SDC.Schema.Tests.Functional
         // These tests verify cascading deletion correctly updates all dictionaries
 
         [TestMethod()]
-        public void _BulkDeletion_RemoveSectionWithChildren_CascadesAllDescendants()
+        public void BulkDeletion_RemoveSectionWithChildren_CascadesAllDescendants()
         {
-            // Test: Remove section containing 10 questions with responses and list items
-            // Validates: All descendants removed from _Nodes, _ParentNodes, _ChildNodes, _IETnodes
-            // Expected: ~50+ nodes removed in single RemoveRecursive call
-            // Implementation should:
-            // 1. Create complex form (use CreateComplexFormTree)
-            // 2. Capture initial _Nodes count
-            // 3. Get reference to Section 1 (has 5 questions with list items)
-            // 4. Count descendants of Section 1
-            // 5. Call section.RemoveRecursive(false)
-            // 6. Verify _Nodes count decreased by exact descendant count + 1 (section itself)
-            // 7. Verify section and all descendants no longer in _Nodes
-            // 8. Verify _ParentNodes cleaned up for all removed nodes
-            // 9. Call ValidateTreeIntegrity() on remaining tree
+            // Arrange
+            var form = CreateComplexFormTree("FD.CascadeDelete");
+            int initialCount = TreeValidationHelper.CountReachableNodes(form);
+            TreeValidationHelper.ValidateTreeIntegrity(form, "Initial complex tree");
+
+            // Get reference to Section 1 (Demographics - has 5 questions with list items)
+            var section1 = form.Body.GetChildItemsNode().ChildItemsList[0] as SectionItemType;
+            Assert.IsNotNull(section1, "Section 1 should exist");
+
+            // Count descendants of Section 1
+            int descendantCount = TreeValidationHelper.CountReachableNodes(section1) - 1; // Exclude section itself
+            Assert.IsTrue(descendantCount > 0, "Section 1 should have descendants");
+
+            // Act: Remove section with all descendants
+            bool removed = section1.RemoveRecursive(false);
+            Assert.IsTrue(removed, "Section removal should succeed");
+
+            // Assert: Validate cascading deletion
+            // Rationale: verifies exact number of nodes removed (section + all descendants)
+            int expectedFinalCount = initialCount - descendantCount - 1; // -1 for section itself
+            TreeValidationHelper.AssertNodeCount(form, expectedFinalCount, "After section removal");
+
+            // Rationale: verifies removed section no longer exists in tree
+            TreeValidationHelper.AssertNodeNotExists(section1, "Section should not exist after removal");
+
+            // Rationale: validates remaining tree is consistent and corruption-free
+            TreeValidationHelper.ValidateTreeIntegrity(form, "After cascading section deletion");
+
+            // Rationale: verifies section is no longer in Body's child list
+            var remainingSections = form.Body.GetChildItemsNode().ChildItemsList;
+            Assert.IsFalse(remainingSections.Contains(section1), "Body should not contain removed section");
         }
 
         [TestMethod()]
-        public void _BulkDeletion_RemoveMiddleSiblings_PreservesFirstAndLastSiblingLinks()
+        public void BulkDeletion_RemoveMiddleSiblings_PreservesFirstAndLastSiblingLinks()
         {
-            // Test: Remove items 3-7 from 10-item list
-            // Validates: Sibling navigation skips removed nodes correctly
-            // Validates: Items 1-2 and 8-10 remain with correct sibling links
-            // Implementation should:
-            // 1. Create question with 10 list items
-            // 2. Get references to items 1, 2, 3, 7, 8, 9, 10
-            // 3. Remove items 3-7
-            // 4. Verify item2.GetNodeNextSib() == item8
-            // 5. Verify item8.GetNodePreviousSib() == item2
-            // 6. Verify items 3-7 no longer in _Nodes
-            // 7. Verify parent's _ChildNodes list contains exactly 5 items
-            // 8. Verify list order: [1,2,8,9,10]
+            // Arrange
+            BaseType.ResetLastTopNode();
+            var form = new FormDesignType(null, "FD.RemoveMiddle");
+            form.AddBody();
+            var section = form.Body.AddChildSection("S.Test", "Test Section");
+            var question = section.AddChildQuestion(QuestionEnum.QuestionSingle, "Q.Test", "Test Question");
+
+            // Create 10 list items
+            var items = new List<ListItemType>();
+            for (int i = 1; i <= 10; i++)
+            {
+                var item = question.AddListItem($"LI.Item{i}", $"Item {i}");
+                items.Add(item);
+            }
+
+            TreeValidationHelper.ValidateTreeIntegrity(form, "Initial state with 10 items");
+
+            // Act: Remove items 3-7 (indices 2-6, 5 items total)
+            for (int i = 2; i <= 6; i++)
+            {
+                bool removed = items[i].RemoveRecursive(false);
+                Assert.IsTrue(removed, $"Item {i + 1} removal should succeed");
+            }
+
+            // Assert: Validate sibling links after middle removal
+            // Rationale: verifies sibling navigation skips removed nodes (item2 → item8)
+            var item2 = items[1];
+            var item8 = items[7];
+            Assert.AreSame(item8, item2.GetNodeNextSib(), "Item 2's next sibling should be item 8");
+            Assert.AreSame(item2, item8.GetNodePreviousSib(), "Item 8's previous sibling should be item 2");
+
+            // Rationale: verifies removed items 3-7 no longer exist in tree
+            for (int i = 2; i <= 6; i++)
+            {
+                TreeValidationHelper.AssertNodeNotExists(items[i], $"Item {i + 1} should not exist after removal");
+            }
+
+            // Rationale: verifies parent's child list contains exactly 5 remaining items
+            var remainingItems = question.GetChildItemsNode().ChildItemsList;
+            Assert.AreEqual(5, remainingItems.Count, "Question should have 5 remaining items");
+
+            // Rationale: verifies list order is [item1, item2, item8, item9, item10]
+            Assert.AreSame(items[0], remainingItems[0], "First item should be item 1");
+            Assert.AreSame(items[1], remainingItems[1], "Second item should be item 2");
+            Assert.AreSame(items[7], remainingItems[2], "Third item should be item 8");
+            Assert.AreSame(items[8], remainingItems[3], "Fourth item should be item 9");
+            Assert.AreSame(items[9], remainingItems[4], "Fifth item should be item 10");
+
+            // Rationale: validates tree integrity after bulk middle deletion
+            TreeValidationHelper.ValidateTreeIntegrity(form, "After removing middle siblings");
         }
 
         [TestMethod()]
-        public void _BulkDeletion_RemoveAllChildrenIteratively_LeavesParentNodeClean()
+        public void BulkDeletion_RemoveAllChildrenIteratively_LeavesParentNodeClean()
         {
-            // Test: Remove all children one-by-one from a section
-            // Validates: Parent's _ChildNodes entry is cleaned up
-            // Validates: No orphaned child references remain
-            // Implementation should:
-            // 1. Create section with 5 questions
-            // 2. Capture child GUIDs
-            // 3. Remove each child iteratively (forward iteration)
-            // 4. After each removal:
-            //    - Verify child no longer in _Nodes
-            //    - Verify remaining children count correct
-            // 5. After all removals:
-            //    - Verify parent's _ChildNodes entry is null or empty
-            //    - Verify parent's GetChildItemsNode().ChildItemsList is empty
-            //    - Verify all child GUIDs removed from _ParentNodes
-            // 6. Call ValidateTreeIntegrity()
+            // Arrange
+            BaseType.ResetLastTopNode();
+            var form = new FormDesignType(null, "FD.IterativeRemove");
+            form.AddBody();
+            var section = form.Body.AddChildSection("S.Test", "Test Section");
+
+            // Create 5 questions
+            var questions = new List<QuestionItemType>();
+            for (int i = 1; i <= 5; i++)
+            {
+                var q = section.AddChildQuestion(QuestionEnum.QuestionSingle, $"Q.{i}", $"Question {i}");
+                questions.Add(q);
+            }
+
+            TreeValidationHelper.ValidateTreeIntegrity(form, "Initial state with 5 questions");
+
+            var childGuids = questions.Select(q => q.ObjectGUID).ToList();
+            int expectedRemainingCount = 5;
+
+            // Act: Remove each child iteratively
+            foreach (var question in questions)
+            {
+                bool removed = question.RemoveRecursive(false);
+                Assert.IsTrue(removed, $"Question {question.name} removal should succeed");
+
+                // Rationale: verify child no longer exists in tree after each removal
+                TreeValidationHelper.AssertNodeNotExists(question, $"Question {question.name} should not exist after removal");
+
+                // Rationale: verify remaining children count decreases by 1
+                expectedRemainingCount--;
+                var remainingChildren = section.GetChildItemsNode().ChildItemsList;
+                Assert.AreEqual(expectedRemainingCount, remainingChildren.Count, 
+                    $"Section should have {expectedRemainingCount} remaining children");
+            }
+
+            // Assert: Validate parent is clean after all removals
+            // Rationale: verifies parent's child list is empty after all removals
+            var finalChildren = section.GetChildItemsNode().ChildItemsList;
+            Assert.AreEqual(0, finalChildren.Count, "Section should have no children after all removals");
+
+            // Rationale: validates tree integrity with empty section
+            TreeValidationHelper.ValidateTreeIntegrity(form, "After removing all children");
+
+            // Rationale: verifies all child GUIDs were removed from tree
+            foreach (var guid in childGuids)
+            {
+                var topNode = form as ITopNode;
+                Assert.IsFalse(topNode.Nodes.ContainsKey(guid), $"GUID {guid} should not exist in Nodes dictionary");
+            }
         }
 
         [TestMethod()]
