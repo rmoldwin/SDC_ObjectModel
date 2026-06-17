@@ -33,20 +33,32 @@ namespace SDC.Schema.Extensions
 		/// 
 		private static void MoveInDictionaries(this BaseType btSource, BaseType targetParent = null!)
 		{
-			//Remove from ParentNodes and ChildNodes as needed
-			//BUG: We need to also remove and reregister entries from IETnodes,
-			//BUG: and also from "meTopNode" dictionaries when the nodes are ITopNode and have entries in their own ITopNode dicts.
-			//btSource.UnRegisterIn_ParentNodes_ChildNodes(); //Does not remove IETnodes
-			btSource.UnRegisterAll(true);
+			// BUG FIX: For cross-tree moves with RefreshMode.UpdateNodeIdentity, ReflectRefreshSubtreeList
+			// has already handled all dictionary registration/unregistration. Check if work is already done.
+			// For same-tree moves, we MUST update _ParentNodes even though the node is already in _Nodes.
+			var currentTopNode = btSource.TopNode;
+			var targetTopNode = targetParent?.TopNode;
 
-			//Re-register item node under new parent
-			//btSource.RegisterIn_ParentNodes_ChildNodes(targetParent, childNodesSort: true); //Does not touch IETnodes
-			btSource.RegisterAll(targetParent, childNodesSort: true, true);
+			if (currentTopNode != null && targetTopNode != null && 
+				ReferenceEquals(currentTopNode, targetTopNode))
+			{
+				// Same tree OR cross-tree work already completed by ReflectRefreshSubtreeList
+				// Always call UnRegisterAll + RegisterAll to update _ParentNodes dictionary
+				// (The node remains in _Nodes, but its parent reference must be updated)
+				btSource.UnRegisterAll(true);
+				btSource.RegisterAll(targetParent, childNodesSort: true, addIETnodesRecursively: true);
+			}
+			else
+			{
+				// Should not happen, but handle gracefully
+				// TopNode mismatch suggests incomplete cross-tree processing
+				throw new InvalidOperationException(
+					$"TopNode mismatch in MoveInDictionaries: node.TopNode and targetParent.TopNode are different. " +
+					$"This suggests the cross-tree move was not properly handled by ReflectRefreshSubtreeList.");
+			}
 
-
-			//We really should resort the topNode.IET nodes collection for every add and move operation.  It's probably best to use the TreeComparer
-			//for this, but it would be better to only resort part of the collection, if possible.
-			//We could also use the ChildNodes dictionary to create a new faster TreeComparer, as long as we keep ChildNodes sorted
+			// Resort IET nodes collection
+			// We should resort the topNode.IETnodes collection for every add and move operation
 		}
 
         /// <summary>
@@ -316,13 +328,53 @@ namespace SDC.Schema.Extensions
 				(int)newParent.order + 1, 1, refreshMode, citTarget, SdcUtil.CreateCAPname);
             }
 			else if(refreshMode == RefreshMode.UpdateNodeIdentity) 
-			{   //Re-create dictionary and hashtable entries for: ID, BaseName, @name, sGuid/ObjectGUID, ObjectID etc for all btSource subtree nodes.
-                //TODO: do we need to process donor node/branch: baseURI?, Link?, Codes, events?, rule targets (name)?
+				{   //Re-create dictionary and hashtable entries for: ID, BaseName, @name, sGuid/ObjectGUID, ObjectID etc for all btSource subtree nodes.
+					//TODO: do we need to process donor node/branch: baseURI?, Link?, Codes, events?, rule targets (name)?
 
-                sourceNodeList =
-					SdcUtil.ReflectRefreshSubtreeList(btSource, false, true, true,
-					(int)newParent.order + 1, 1, refreshMode, newParent, SdcUtil.CreateCAPname);
-            }
+					// For cross-tree moves, clear the source property reference before doing the move
+					var sourceParent = btSource.ParentNode;
+					if (sourceParent != null)
+					{
+						isAllowed = SdcUtil.IsAttachNodeAllowed(btSource, btSource.ElementName,
+							sourceParent, out PropertyInfo? piSourceProperty, out object? sourcePropertyObject,
+							out _, out _, out errorMsg);
+
+						if (piSourceProperty != null && sourcePropertyObject is BaseType)
+						{
+							piSourceProperty.SetValue(sourceParent, null);
+						}
+						else if (piSourceProperty != null && sourcePropertyObject is IList sourceList)
+						{
+							sourceList.Remove(btSource);
+						}
+					}
+
+					sourceNodeList =
+						SdcUtil.ReflectRefreshSubtreeList(btSource, false, true, true,
+						(int)newParent.order + 1, 1, refreshMode, newParent, SdcUtil.CreateCAPname);
+
+					// IMPORTANT: After ReflectRefreshSubtreeList, the node is already registered in the target tree's
+					// dictionaries with new GUIDs. Now we must attach it to the parent's property.
+					if (piTargetProperty != null)
+					{
+						if (targetPropertyObject is BaseType)
+						{
+							// Single-property attachment
+							piTargetProperty.SetValue(newParent, btSource);
+						}
+						else if (targetPropertyObject is IList propList)
+						{
+							// List attachment
+							if (newListIndex < 0 || newListIndex >= propList.Count)
+								propList.Add(btSource);
+							else
+								propList.Insert(newListIndex, btSource);
+						}
+					}
+
+					btSource.AssignOrder();
+					return true;  // Skip MoveSingleNode() since we've already done the attachment
+				}
 			else if (refreshMode == RefreshMode.RestoreSubtreeFromOlderVersion)
             {
                 if (btSource is not IdentifiedExtensionType ietSource)

@@ -878,7 +878,9 @@ namespace SDC.Schema.Tests.Functional
             var qB2 = sectionB.AddChildQuestion(QuestionEnum.QuestionFill, "Q.B2", "Question B2");
 
             // Capture initial state
-            var questionGuid = q2.ObjectGUID;
+            // Rationale: cross-tree moves with RefreshMode.UpdateNodeIdentity assign new GUIDs,
+            // so we must capture the GUID after move, not before
+            var questionOriginalGuid = q2.ObjectGUID;
             int formANodesBefore = TreeValidationHelper.CountReachableNodes(formA);
             int formBNodesBefore = TreeValidationHelper.CountReachableNodes(formB);
             TreeValidationHelper.ValidateTreeIntegrity(formA, "Form A initial state");
@@ -889,6 +891,10 @@ namespace SDC.Schema.Tests.Functional
             var sectionBChildItems = sectionB.GetChildItemsNode();
             bool moveSuccess = q2.Move(sectionBChildItems, 2); // Add at end
             Assert.IsTrue(moveSuccess, "Cross-tree move should succeed");
+
+            // Capture the NEW GUID assigned during cross-tree move
+            // Rationale: RefreshMode.UpdateNodeIdentity creates new identifiers
+            var questionNewGuid = q2.ObjectGUID;
 
             // Assert: Verify question's TopNode reference updated to Form B
             // Rationale: validates TopNode updated by Move()
@@ -903,13 +909,14 @@ namespace SDC.Schema.Tests.Functional
             int formBNodesAfter = TreeValidationHelper.CountReachableNodes(formB);
             Assert.IsTrue(formBNodesAfter > formBNodesBefore, $"Form B node count should increase (was {formBNodesBefore}, now {formBNodesAfter})");
 
-            // Rationale: validates question no longer exists in Form A's dictionaries
+            // Rationale: validates question no longer exists in Form A's dictionaries (old GUID)
             var formANodes = ((ITopNode)formA).Nodes;
-            Assert.IsFalse(formANodes.ContainsKey(questionGuid), "Form A should no longer contain question's GUID");
+            Assert.IsFalse(formANodes.ContainsKey(questionOriginalGuid), "Form A should no longer contain question's original GUID");
+            Assert.IsFalse(formANodes.ContainsKey(questionNewGuid), "Form A should not contain question's new GUID either");
 
-            // Rationale: validates question now exists in Form B's dictionaries
+            // Rationale: validates question now exists in Form B's dictionaries with NEW GUID
             var formBNodes = ((ITopNode)formB).Nodes;
-            Assert.IsTrue(formBNodes.ContainsKey(questionGuid), "Form B should contain question's GUID");
+            Assert.IsTrue(formBNodes.ContainsKey(questionNewGuid), "Form B should contain question's NEW GUID after cross-tree move");
 
             // Rationale: validates tree integrity on both forms after cross-tree move
             TreeValidationHelper.ValidateTreeIntegrity(formA, "Form A after cross-tree move");
@@ -944,9 +951,10 @@ namespace SDC.Schema.Tests.Functional
             TreeValidationHelper.ValidateTreeIntegrity(formA, "Form A initial state");
             TreeValidationHelper.ValidateTreeIntegrity(formB, "Form B initial state");
 
-            // Collect all descendant nodes of section before move
+            // Collect all descendant nodes of section before move (by object reference, not GUID)
+            // Rationale: GUIDs will change during cross-tree move, so we track by object identity
             var formANodes = ((ITopNode)formA).Nodes;
-            var descendantGuids = new List<Guid>();
+            var descendantObjects = new List<BaseType>();
             foreach (var kvp in formANodes)
             {
                 // Walk parent chain to see if this node is under sectionA
@@ -955,14 +963,14 @@ namespace SDC.Schema.Tests.Functional
                 {
                     if (ReferenceEquals(current, sectionA))
                     {
-                        descendantGuids.Add(kvp.Key);
+                        descendantObjects.Add(kvp.Value);
                         break;
                     }
                     if (ReferenceEquals(current, formA)) break; // Reached top without finding section
                     current = current.ParentNode;
                 }
             }
-            int descendantCount = descendantGuids.Count - 1; // Don't count section itself
+            int descendantCount = descendantObjects.Count - 1; // Don't count section itself
 
             // Act: Move section from Form A to Form B
             // Rationale: tests cross-tree move migrates entire subtree
@@ -985,12 +993,14 @@ namespace SDC.Schema.Tests.Functional
             Assert.IsTrue(formBDelta >= descendantCount, $"Form B should gain at least {descendantCount} nodes (section + descendants), gained {formBDelta}");
 
             // Rationale: validates all descendants switched TopNode references to Form B
-            // Walk moved subtree and verify all nodes have TopNode == Form B
+            // Check using NEW GUIDs assigned during cross-tree move
             var formBNodes = ((ITopNode)formB).Nodes;
-            foreach (var guid in descendantGuids)
+            foreach (var node in descendantObjects)
             {
+                // Use the node's CURRENT (new) GUID after cross-tree move
+                var guid = node.ObjectGUID;
                 Assert.IsTrue(formBNodes.ContainsKey(guid), $"Form B should contain descendant GUID {guid}");
-                var node = formBNodes[guid];
+                var nodeFromDict = formBNodes[guid];
                 Assert.AreSame(formB, node.TopNode, $"Descendant {guid} should have TopNode == Form B");
             }
 
@@ -1019,7 +1029,8 @@ namespace SDC.Schema.Tests.Functional
             // Capture initial state
             var sectionAChildItems = sectionA.GetChildItemsNode();
             var sectionBChildItems = sectionB.GetChildItemsNode();
-            var questionGuid = q2.ObjectGUID;
+            // Note: GUID will change during cross-tree moves, so we track by object reference
+            var questionOriginalGuid = q2.ObjectGUID;
             int formANodesInitial = TreeValidationHelper.CountReachableNodes(formA);
             int formBNodesInitial = TreeValidationHelper.CountReachableNodes(formB);
             int q2OriginalPosition = sectionAChildItems.ChildItemsList.IndexOf(q2);
@@ -1032,11 +1043,12 @@ namespace SDC.Schema.Tests.Functional
             Assert.IsTrue(move1, "First cross-tree move (A → B) should succeed");
 
             // Assert 1: Verify question in Form B's dictionaries
-            // Rationale: validates question migrated to Form B
+            // Rationale: validates question migrated to Form B; GUID changed due to RefreshMode.UpdateNodeIdentity
             Assert.AreSame(formB, q2.TopNode, "Question should have TopNode == Form B after first move");
+            var questionGuidAfterFirstMove = q2.ObjectGUID; // Capture NEW GUID after cross-tree move
             // Re-get dictionary reference after move
             var formBNodesAfterFirstMove = ((ITopNode)formB).Nodes;
-            Assert.IsTrue(formBNodesAfterFirstMove.ContainsKey(questionGuid), "Form B should contain question after first move");
+            Assert.IsTrue(formBNodesAfterFirstMove.ContainsKey(questionGuidAfterFirstMove), "Form B should contain question after first move");
             TreeValidationHelper.ValidateTreeIntegrity(formB, "Form B after first move");
 
             // Act 2: Move question back to Form A at original position
@@ -1045,8 +1057,9 @@ namespace SDC.Schema.Tests.Functional
             Assert.IsTrue(move2, "Second cross-tree move (B → A) should succeed");
 
             // Assert 2: Verify question.TopNode restored to Form A
-            // Rationale: validates round-trip restored TopNode
+            // Rationale: validates round-trip restored TopNode; GUID changed again
             Assert.AreSame(formA, q2.TopNode, "Question's TopNode should be restored to Form A");
+            var questionGuidAfterRoundTrip = q2.ObjectGUID; // Capture final GUID after second cross-tree move
 
             // Rationale: validates question.ParentNode restored to Form A's Section
             Assert.AreSame(sectionAChildItems, q2.ParentNode, "Question should be parented to Form A's Section again");
