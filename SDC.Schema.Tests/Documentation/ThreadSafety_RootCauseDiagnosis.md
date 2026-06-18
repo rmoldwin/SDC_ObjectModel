@@ -184,7 +184,7 @@ Process-global statics:
 
 **CLASSIFIED (branch `Features/Net11Upgrade_ThreadSafety_OptionCImpl`, §5 discriminator run):**
 - **NODES_PER_THREAD = 10:** both tests **passed** (2/2 passed, 0 skipped, total wall-clock ≈ 6.2 s for the full `dotnet test` run including harness startup; actual parallel work < 3 s per test — well under the 6 s watchdog). `NODES_PER_THREAD` reverted to 250 immediately after.
-- **Verdict: RC-7 perf cliff DOMINATES.** At 10 nodes the O(N²·reflection) sort is negligible → tests complete without hitting the watchdog. At 250 nodes the sort storm under `lock(_SyncRoot)` fills the entire 6 s budget. The genuine RC-2 read/write hang *may also be present*, but it is masked by the perf cliff.
-- **Implication:** fix TS-7 (batch sort) FIRST, then re-run at 250 nodes to see if the underlying RC-2 hang surface surfaces. This matches the plan §6 ordering (TS-7 before TS-2).
+- **Verdict: TS-7 perf cliff DOMINATES.** At 10 nodes the O(N²·reflection) sort is negligible → tests complete without hitting the watchdog. At 250 nodes the sort storm under `lock(_SyncRoot)` fills the entire 6 s budget. The genuine TS-2 read/write hang *may also be present*, but it is masked by the perf cliff.
+- **Implication:** fix TS-7 (batch sort) FIRST, then re-run at 250 nodes to see if the underlying TS-2 hang surface surfaces. This matches the plan §6 ordering (TS-7 before TS-2).
 
 **Files left in a clean, compiling state:** `ThreadSafetyReproTests.cs` builds (0 errors); only pre-existing warnings remain in unrelated test files.

@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema.Extensions;
 using System;
 using System.Collections.Concurrent;
@@ -88,12 +88,12 @@ namespace SDC.Schema.Tests.OMTests
         }
 
         /// <summary>
-        /// RC-3 reproduction: the <c>ObjectID = _MaxObjectID++</c> increment in the BaseType
+        /// TS-3 reproduction: the <c>ObjectID = _MaxObjectID++</c> increment in the BaseType
         /// constructor (PartialClasses.cs InitBaseType) is a read-modify-write on shared TopNode
         /// state with NO Interlocked/lock, so concurrent node creation produces duplicate ObjectIDs.
         ///
         /// All threads attach to the SAME shared TopNode (<c>de</c>) so they contend on the SAME
-        /// <c>_MaxObjectID</c> counter, maximizing the RC-3 race.
+        /// <c>_MaxObjectID</c> counter, maximizing the TS-3 race.
         ///
         /// OPEN ISSUE (see ThreadSafety_SessionHandoff.md): with one shared parent, every insert also
         /// re-sorts that parent's growing _ChildNodes list under lock(_SyncRoot) via reflection, so a
@@ -107,7 +107,7 @@ namespace SDC.Schema.Tests.OMTests
         {
             // Arrange: one shared TopNode (DataElementType). All threads attach DisplayedType children
             // directly to it, so every thread contends on the SAME _MaxObjectID counter — maximizing the
-            // RC-3 race. (DisplayedType attaches legally to a DataElementType TopNode, per existing tests.)
+            // TS-3 race. (DisplayedType attaches legally to a DataElementType TopNode, per existing tests.)
             BaseType.ResetLastTopNode();
             var de = new DataElementType(null);
 
@@ -136,24 +136,24 @@ namespace SDC.Schema.Tests.OMTests
 
             // Watchdog: if this trips, treat as the hang signal rather than blocking the runner.
             if (!finished)
-                Assert.Inconclusive($"WATCHDOG TRIPPED after {WATCHDOG_MS} ms — possible production-side stall (RC-2 hang surface). Investigate before re-running.");
+                Assert.Inconclusive($"WATCHDOG TRIPPED after {WATCHDOG_MS} ms — possible production-side stall (TS-2 hang surface). Investigate before re-running.");
 
             // Assert (thread-safe expectation): every ObjectID must be unique.
             // Rationale: ObjectGUID is always unique (Guid.NewGuid), but ObjectID comes from the unsynchronized
-            // counter; duplicates here are direct proof of RC-3. This assertion is EXPECTED TO FAIL pre-fix.
+            // counter; duplicates here are direct proof of TS-3. This assertion is EXPECTED TO FAIL pre-fix.
             int total = objectIds.Count;
             int distinct = objectIds.Distinct().Count();
             int duplicates = total - distinct;
 
-            Console.WriteLine($"[RC-3] threads={THREADS} created={total} distinctIds={distinct} duplicates={duplicates} exceptions={exceptions.Count} elapsed={elapsed.TotalMilliseconds:F0}ms");
+            Console.WriteLine($"[TS-3] threads={THREADS} created={total} distinctIds={distinct} duplicates={duplicates} exceptions={exceptions.Count} elapsed={elapsed.TotalMilliseconds:F0}ms");
 
             Assert.AreEqual(0, duplicates,
-                $"RC-3 CONFIRMED: {duplicates} duplicate ObjectID(s) across {total} concurrently-created nodes. " +
+                $"TS-3 CONFIRMED: {duplicates} duplicate ObjectID(s) across {total} concurrently-created nodes. " +
                 $"Cause: non-atomic '_MaxObjectID++' in BaseType ctor. Fix: Interlocked.Increment or lock the counter.");
         }
 
         /// <summary>
-        /// RC-2 / RC-4 reproduction: when multiple threads create children under the SAME parent,
+        /// TS-2 / TS-4 reproduction: when multiple threads create children under the SAME parent,
         /// the parent's plain List&lt;&gt; (Items / ChildItemsList) and the shared _ChildNodes list are
         /// mutated without a unifying read/write lock, corrupting parent-child consistency.
         ///
@@ -195,24 +195,24 @@ namespace SDC.Schema.Tests.OMTests
                 }, out var elapsed);
 
             if (!finished)
-                Assert.Inconclusive($"WATCHDOG TRIPPED after {WATCHDOG_MS} ms — possible production-side stall (RC-2 hang surface). Investigate before re-running.");
+                Assert.Inconclusive($"WATCHDOG TRIPPED after {WATCHDOG_MS} ms — possible production-side stall (TS-2 hang surface). Investigate before re-running.");
 
             // Post-join, single-threaded inspection (safe): count nodes actually registered under the TopNode.
             // Nodes is an ITopNode member, so read it from the TopNode (de).
             int registeredChildren = de.Nodes.Values.Count(n => n.ParentNode == sharedParent);
 
-            Console.WriteLine($"[RC-2/4] threads={THREADS} attempted={attempted} registeredChildren={registeredChildren} exceptions={exceptions.Count} elapsed={elapsed.TotalMilliseconds:F0}ms");
+            Console.WriteLine($"[TS-2/4] threads={THREADS} attempted={attempted} registeredChildren={registeredChildren} exceptions={exceptions.Count} elapsed={elapsed.TotalMilliseconds:F0}ms");
 
             // Assert (thread-safe expectation): no exceptions AND every attempted child is correctly parented.
             // Rationale: a thread-safe OM would register exactly 'attempted' children with the correct parent and
-            // throw nothing. Any shortfall or exception is proof of RC-2/RC-4. EXPECTED TO FAIL pre-fix.
+            // throw nothing. Any shortfall or exception is proof of TS-2/TS-4. EXPECTED TO FAIL pre-fix.
             Assert.AreEqual(0, exceptions.Count,
-                $"RC-2/RC-4 CONFIRMED: {exceptions.Count} exception(s) during concurrent same-parent creation " +
+                $"TS-2/TS-4 CONFIRMED: {exceptions.Count} exception(s) during concurrent same-parent creation " +
                 $"(e.g. '{exceptions.FirstOrDefault()?.GetType().Name}: {exceptions.FirstOrDefault()?.Message}'). " +
                 $"Cause: unsynchronized parent List<>/_ChildNodes mutation.");
 
             Assert.AreEqual(attempted, registeredChildren,
-                $"RC-2/RC-4 CONFIRMED: expected {attempted} correctly-parented children but found {registeredChildren}. " +
+                $"TS-2/TS-4 CONFIRMED: expected {attempted} correctly-parented children but found {registeredChildren}. " +
                 $"Lost/misparented nodes indicate concurrent collection corruption.");
         }
     }

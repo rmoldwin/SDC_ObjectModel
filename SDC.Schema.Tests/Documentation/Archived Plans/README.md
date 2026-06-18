@@ -10,7 +10,7 @@ They are retained for historical/provenance reasons only. **Do not use them to d
 |------|------|
 | `ThreadSafety_SessionSummary_AND_Kickstart.md` | Restart entry point + kickstart prompt (START HERE) |
 | `ThreadSafety_RemediationPlan_OptionC.md` | Locked Option C implementation spec (TS-1…TS-7 edit map) |
-| `ThreadSafety_RootCauseDiagnosis.md` | Evidence record (TS/RC-1…7, reader/writer map, repro results) |
+| `ThreadSafety_RootCauseDiagnosis.md` | Evidence record (TS-1…TS-7, reader/writer map, repro results) |
 | `ThreadSafety_SessionHandoff.md` | Supporting resume/handoff reference |
 | `ThreadSafety_StrategyDecision.md` | Origin of the Option C (`ReaderWriterLockSlim`) decision — still cited as accurate |
 | `ThreadSafety_LockingStrategy_Analysis.md` | Locking deep-dive — kept active as a helpful overview for future work |
@@ -27,3 +27,5 @@ They are retained for historical/provenance reasons only. **Do not use them to d
 | `ThreadSafety_Phase1_Task1.1_Summary.md` | Early task summary; superseded by the locked plan. |
 
 > If you need the rationale or wording of any decision, prefer the canonical documents above. These archived files may contain **outdated or corrected** statements.
+
+> **Note on `RC-#` labels:** The archived documents use `RC-1`…`RC-7` (intended as "Root Cause"). In this project **RC means "Release Candidate"**, so that label was incorrect. The canonical IDs are `TS-1`…`TS-7` ("Thread-Safety"). The archived docs have not been edited; treat any `RC-#` found inside them as the equivalent `TS-#`.

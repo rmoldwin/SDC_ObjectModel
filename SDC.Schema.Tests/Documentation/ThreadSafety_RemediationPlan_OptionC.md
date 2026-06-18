@@ -6,7 +6,7 @@
 **This is the single entry point for the implementation session.** Read this top-to-bottom; you should not need frontier-level reasoning to execute it.
 
 > ### ⚠️ Terminology & status banner (read first)
-> - **`TS-#` = "Thread-Safety item #" and is the canonical ID.** It is a 1:1 alias of the legacy **`RC-#` ("Root Cause #")** used in `ThreadSafety_RootCauseDiagnosis.md`: `TS-1 ≡ RC-1` … `TS-7 ≡ RC-7`. **`RC` does NOT mean "Release Candidate" anywhere in these docs.** Both tokens may still appear; treat them as identical.
+> - **`TS-#` = "Thread-Safety item #" and is the canonical ID.** `RC` means "Release Candidate" in this project and must NOT be used for thread-safety defect IDs. All TS-1…TS-7 labels are authoritative; any legacy "RC-#" references in archived documents are historical artefacts only.
 > - **Design is now fully locked.** The async/await + Blazor WASM item is **RESOLVED** (see **§12**): library is 100% synchronous so the no-`await`-in-lock rule is a free compile-time guardrail; CompareTrees needs a **pre-sort-before-read-lock** step (folded into TS-2, piggybacking TS-7); the real WASM test harness is **deferred** in favor of a cheap desktop reentrancy proxy. Only the standard **approval gate (§9)** remains before coding.
 > - **TS-5 was corrected** this session: `TreeLock` is **NOT** dead — `CompareTrees.cs` uses it at 18 sites. The fix is **migrate-then-delete**, never delete-first. See TS-5 and §12.
 > - Restart/onboarding entry point is `ThreadSafety_SessionSummary_AND_Kickstart.md`.
@@ -83,13 +83,13 @@ private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.Supp
 public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
 
 // Kept temporarily so existing lock(_SyncRoot) sites compile during staged migration.
-// DELETE after all write paths move to TreeRwLock (RC-5 cleanup).
+// DELETE after all write paths move to TreeRwLock (TS-5 cleanup).
 private readonly object _syncRoot = new();
 public object _SyncRoot => _syncRoot;
 #endregion
 ```
 
-> Update the interface `ITopNode.cs` (and `_ITopNode` if the lock is exposed there) to surface `ReaderWriterLockSlim TreeRwLock { get; }`. The dead `SemaphoreSlim TreeLock` declaration (interface `ITopNode.cs:~107`) is removed in **RC-5**.
+> Update the interface `ITopNode.cs` (and `_ITopNode` if the lock is exposed there) to surface `ReaderWriterLockSlim TreeRwLock { get; }`. The dead `SemaphoreSlim TreeLock` declaration (interface `ITopNode.cs:~107`) is removed in **TS-5**.
 
 ### 3b. Add allocation-free lock scopes (one new file)
 
@@ -144,7 +144,7 @@ using var _ = new WriteLockScope(_topNode.TreeRwLock);
 > internal static ReaderWriterLockSlim? RwLockOrNull(this BaseType n)
 >     => n.TopNode is _ITopNode itn ? itn.TreeRwLock : null;
 > ```
-> Reader/writer sites then do: `var rw = node.RwLockOrNull(); if (rw is null) { /* unsynchronized local node */ } else { using var _ = new ReadLockScope(rw); ... }`. This replaces the broken `lock(new object())` fallback in `ItemsMutator` (RC-4).
+> Reader/writer sites then do: `var rw = node.RwLockOrNull(); if (rw is null) { /* unsynchronized local node */ } else { using var _ = new ReadLockScope(rw); ... }`. This replaces the broken `lock(new object())` fallback in `ItemsMutator` (TS-4).
 
 ### 3c. Build gate
 
@@ -159,7 +159,7 @@ dotnet build "SDC.Schema\SDC.Schema.csproj" -c Debug --nologo -v quiet
 
 Apply in the **sequence in §6**. Each RC lists the **anchor (verified)**, the **change**, and the **gate**. Line numbers are anchors captured during diagnosis; if they drift, search for the quoted code.
 
-### RC-1 — Process-global `static LastTopNode` (latent corruption on concurrent deserialization / multi-tree build)
+### TS-1 — Process-global `static LastTopNode` (latent corruption on concurrent deserialization / multi-tree build)
 - **Anchors:** `PartialClasses.cs` — field `private static ITopNode? LastTopNode;` (~`:2348` region); read/written in the parameterless ctor **lines 1730–1746**; reset in `ResetLastTopNode()` **lines 2198–2202**.
 - **Problem:** one `static` shared by all threads/trees; concurrent builds overwrite each other → cross-tree contamination.
 - **Change (minimal, lowest-risk):** make the static isolated per execution flow:
@@ -170,18 +170,18 @@ Apply in the **sequence in §6**. Each RC lists the **anchor (verified)**, the *
 - **Do NOT** try to remove `LastTopNode` entirely (threading the TopNode through every ctor) in this pass — that is a larger refactor. Isolation is sufficient and safe.
 - **Gate:** production build green; `BaseTypeThreadSafetyTests` still pass; no new failures in the full test run.
 
-### RC-2 — Unsynchronized dictionary READS during writes (the actual hang surface)
+### TS-2 — Unsynchronized dictionary READS during writes (the actual hang surface)
 - **Anchors:** `ParentNode` getter `PartialClasses.cs:2135–2147` (the `_ParentNodes.TryGetValue` at **:2143**); `FindRootNode` `BaseTypeExtensions.cs:418–429` (loops on `ParentNode`). Full unlocked-reader inventory: `RootCauseDiagnosis.md` §4b (25 sites across 6 files).
 - **Change:** wrap **public read entry points** in `ReadLockScope` per **§4f**. Critically:
   - Lock the **`ParentNode` getter** (it is the most-called reader and the root of `FindRootNode`). Because the lock is recursive, `FindRootNode` calling `ParentNode` in a loop is fine; optionally take **one** read lock in `FindRootNode` around the whole walk to avoid repeated enter/exit.
   - Lock the other public readers in §4f (`Nodes`/`IETnodes` `.Values` enumerations, sibling navigation in `SdcUtil`, `TreeComparer` lookups).
   - **Do NOT** add locks to internal helpers that already run under a writer's lock (e.g., `RegisterIn_*`, `UnRegisterIn_*`).
-- **Gate:** `ThreadSafetyReproTests.Repro_ConcurrentChildrenSameParent_*` no longer trips the watchdog **and** asserts the correct child count (see §5 — confirm this is RC-2 and not only RC-7 first).
+- **Gate:** `ThreadSafetyReproTests.Repro_ConcurrentChildrenSameParent_*` no longer trips the watchdog **and** asserts the correct child count (see §5 — confirm this is TS-2 and not only TS-7 first).
 
-### RC-3 — Non-atomic `_MaxObjectID++`
+### TS-3 — Non-atomic `_MaxObjectID++`
 - **Anchors:** parameterless ctor `PartialClasses.cs:1746` (`ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;`); `RegisterAll` `IMoveRemoveExtensions.cs:818` (`node.ObjectID = ((_ITopNode)node.TopNode)._MaxObjectID++;`). Declaration is an **interface auto-property**: `int _ITopNode._MaxObjectID { get; set; }` at `PartialClasses.cs:168`.
 - **Two valid fixes — pick based on whether the increment happens under the write lock:**
-  - **(Preferred, simplest) Covered-by-lock:** RC-3's `RegisterAll` increment at `:818` runs **inside** the `RegisterAll` write lock once RC-2/§4 is in place, so it is already serialized — **no change needed there**. The **ctor** increment at `:1746` runs during construction *before* the node is shared; with RC-1 isolation it is single-threaded per tree build, so it is also safe. **Verify** with the RC-3 repro; if green, RC-3 needs **no code change** beyond RC-1+RC-2.
+  - **(Preferred, simplest) Covered-by-lock:** TS-3's `RegisterAll` increment at `:818` runs **inside** the `RegisterAll` write lock once TS-2/§4 is in place, so it is already serialized — **no change needed there**. The **ctor** increment at `:1746` runs during construction *before* the node is shared; with TS-1 isolation it is single-threaded per tree build, so it is also safe. **Verify** with the TS-3 repro; if green, TS-3 needs **no code change** beyond TS-1+TS-2.
   - **(Hardened, if the repro still shows duplicates) Interlocked:** convert `_MaxObjectID` to a real backing field and use `Interlocked.Increment`. Because `Interlocked.Increment` returns the **post**-increment value, preserve the current **post-increment** semantics (`++` returns the value *before* adding):
 	```csharp
 	node.ObjectID = ((_ITopNode)node.TopNode).NextObjectID(); // returns value, then increments
@@ -193,7 +193,7 @@ Apply in the **sequence in §6**. Each RC lists the **anchor (verified)**, the *
 	⚠️ **Off-by-one warning:** `x++` yields the old value; `Interlocked.Increment` yields the new. The `- 1` above preserves the original numbering. Keep the seed (`_MaxObjectID = 1` for TopNodes) unchanged.
 - **Gate:** `ThreadSafetyReproTests.Repro_NonAtomicMaxObjectID_*` reports `duplicates == 0`.
 
-### RC-4 — Ineffective `ItemsMutator` lock (`lock(new object())`)
+### TS-4 — Ineffective `ItemsMutator` lock (`lock(new object())`)
 - **Anchor:** `PartialClasses.cs:2265` — `object lockObj = TopNode is _ITopNode itn ? itn._SyncRoot : new object();` then `lock (lockObj) { ... RemoveRecursive / Move ... }`.
 - **Problem:** the `new object()` fallback gives zero mutual exclusion; also this whole block **mutates** (via `RemoveRecursive`/`Move`) so it must hold the **write** lock.
 - **Change:** replace the `lock(lockObj)` with the write-lock scope using the §3b helper (skip when no TopNode):
@@ -205,7 +205,7 @@ Apply in the **sequence in §6**. Each RC lists the **anchor (verified)**, the *
   Keep the existing snapshot-array bug fixes (`itemsListOld.ToArray()`, `valueListNew.ToArray()`) intact.
 - **Gate:** `BaseTypeThreadSafetyTests.ItemMutator_*` pass; production build green.
 
-### TS-5 (≡ RC-5) — `TreeLock` + `_SyncRoot` are LIVE → migrate-then-delete (CORRECTED)
+### TS-5 (≡ TS-5) — `TreeLock` + `_SyncRoot` are LIVE → migrate-then-delete (CORRECTED)
 > ⚠️ **Correction (this session).** The earlier text claimed `TreeLock` was dead with "**zero** `Wait/Release` call sites" and said to **DELETE** it outright. **That is false.** `CompareTrees.cs` uses `TreeLock.Wait()`/`.Release()` at **18 sites (lines 126–303)** to guard a **parallel read** (`AsParallel().ForAll`, ~line 347) over the shared dictionaries. A delete-first edit would **break the CompareTrees build** and remove the only guard CompareTrees has. Writers separately use `_SyncRoot` (Monitor). The two locks are **different objects → they do NOT mutually exclude → real read/write corruption window** (see §12).
 - **Anchors:** `TreeLock` declaration `PartialClasses.cs:157–158`; interface `_ITopNode.TreeLock` + `_ITopNode._SyncRoot` in `ITopNode.cs`; **live readers** `CompareTrees.cs:126–303` (18 `TreeLock.Wait/Release` sites); **live writers** `lock(_SyncRoot)` in `RegisterAll`/`UnRegisterAll`/`BaseName`/`ItemsMutator`.
 - **Decision: MIGRATE, then DELETE (never delete-first).**
@@ -216,7 +216,7 @@ Apply in the **sequence in §6**. Each RC lists the **anchor (verified)**, the *
 - **Sequencing:** this is the **last** code step (plan §6 step 8) — every reader and writer must already be on `TreeRwLock` before deletion.
 - **Gate:** full production build + **full** test run green after removal (no dangling references; CompareTrees still compiles and passes).
 
-### RC-6 — Cross-tree `Move` migration not atomic / not lock-ordered
+### TS-6 — Cross-tree `Move` migration not atomic / not lock-ordered
 - **Anchors:** `MoveInDictionaries` `IMoveRemoveExtensions.cs:34–58` (throws on `TopNode` mismatch; calls `UnRegisterAll` then `RegisterAll`); cross-tree entry is `Move` (caller). Reader `FindRootNode` participates via `ItemsMutator`.
 - **Change:** for a **cross-tree** move, acquire **both** trees' write locks in a **deterministic global order** to prevent AB/BA deadlock, then perform unregister-from-source + register-into-target as one critical section:
   ```csharp
@@ -231,12 +231,12 @@ Apply in the **sequence in §6**. Each RC lists the **anchor (verified)**, the *
   Same-tree moves (the `ReferenceEquals(currentTopNode, targetTopNode)` branch) take just that one tree's write lock.
 - **Gate:** existing Move/cross-tree tests pass; no deadlock under the repro (add a small 2-tree move stress only if time permits — not required for sign-off).
 
-### RC-7 — Serialized reflection sort on every `_ChildNodes` insert (perf cliff)
+### TS-7 — Serialized reflection sort on every `_ChildNodes` insert (perf cliff)
 - **Anchor:** `RegisterIn_ParentNodes_ChildNodes` → local `RegisterParentNode`, `IMoveRemoveExtensions.cs:904–913`: `kids.Add(btSource); if (kids.Count > 1 && childNodesSort) kids.Sort(treeSibComparer);` — `TreeSibComparer` orders by **reflecting** the object tree → O(N²·reflection) when N children share one parent, all under the write lock.
 - **Change (batch the sort):** do **not** sort on every insert. Two acceptable approaches; prefer the first:
   1. **Defer-and-sort-once:** during a bulk add, pass `childNodesSort: false` on each insert (the flag already exists and is plumbed through `RegisterAll`), then sort each affected parent's `kids` list **once** after the bulk operation completes (e.g., at the end of the enclosing build/move, or via the existing `AssignOrder`/`ReflectRefreshTree` path that already re-orders). The `catch (InvalidOperationException)` skip already present at `:908–912` shows the code tolerates deferred ordering.
   2. **Insert-at-position:** compute the reflected index once and `kids.Insert(index, btSource)` instead of `Add`+full `Sort`. Higher risk (must derive the index correctly) — only if approach 1 is infeasible.
-- **Gate (this is also the §5 discriminator):** with the sort batched, `ThreadSafetyReproTests` (250 nodes/thread) should finish **well under** the 6 s watchdog. If it does, RC-7 was the dominant stall.
+- **Gate (this is also the §5 discriminator):** with the sort batched, `ThreadSafetyReproTests` (250 nodes/thread) should finish **well under** the 6 s watchdog. If it does, TS-7 was the dominant stall.
 
 ### §4f — Lock lookup table (authoritative — use verbatim)
 
@@ -256,17 +256,17 @@ Apply in the **sequence in §6**. Each RC lists the **anchor (verified)**, the *
 | `UnRegisterAll` (entry) | `IMoveRemoveExtensions.cs:1045–1075+` | **WRITE** (replace inner `lock(_SyncRoot)` at `:1062`) |
 | `RegisterIn_*` / `UnRegisterIn_*` helpers | `IMoveRemoveExtensions.cs:848–916, 1059+` | **NONE** (run under entry write lock) |
 | `InitAfterTreeAdd` | `PartialClasses.cs:1874` region | **WRITE** (entry; inner `RegisterAll` reuses via recursion) |
-| `ItemsMutator` | `PartialClasses.cs:2265` | **WRITE** (RC-4) |
+| `ItemsMutator` | `PartialClasses.cs:2265` | **WRITE** (TS-4) |
 | `BaseName` setter | `PartialClasses.cs:2300–2324` | **WRITE** (replace inner `lock(_SyncRoot)` at `:2314`) |
-| `_MaxObjectID` increment | `PartialClasses.cs:1746`, `IMoveRemoveExtensions.cs:818` | covered by ctor/RegisterAll scope (see RC-3) |
+| `_MaxObjectID` increment | `PartialClasses.cs:1746`, `IMoveRemoveExtensions.cs:818` | covered by ctor/RegisterAll scope (see TS-3) |
 
 > If you find a shared-dictionary access **not** in this table, classify it with **THE ONE RULE** (§1) and add it. Reads that occur **only** inside an already-held write scope take **NONE**.
 
 ---
 
-## 5. Step-5 classification FIRST (do this before RC-2/RC-7 code edits)
+## 5. Step-5 classification FIRST (do this before TS-2/TS-7 code edits)
 
-The 6 s watchdog trip in `ThreadSafetyReproTests` is confirmed **real** (deterministic dedicated-thread harness, exit code 0, runner never crashed) but **not yet classified** as RC-2 (hard hang) vs RC-7 (perf cliff). Classify before fixing, so you know which fix to validate against.
+The 6 s watchdog trip in `ThreadSafetyReproTests` is confirmed **real** (deterministic dedicated-thread harness, exit code 0, runner never crashed) but **not yet classified** as TS-2 (hard hang) vs TS-7 (perf cliff). Classify before fixing, so you know which fix to validate against.
 
 ### 5a. Discriminator experiment
 1. Open `SDC.Schema.Tests\OMTests\ThreadSafetyReproTests.cs`.
@@ -277,17 +277,17 @@ The 6 s watchdog trip in `ThreadSafetyReproTests` is confirmed **real** (determi
    dotnet test  "SDC.Schema.Tests\SDC.Schema.Tests.csproj" --filter "FullyQualifiedName~ThreadSafetyReproTests" --no-build -v minimal
    ```
 4. **Interpret:**
-   - **Finishes fast** (well under 6 s, may now *fail assertions* instead of going Inconclusive) ⇒ **RC-7 perf cliff** dominates. Record the timing, then **prioritize RC-7**.
-   - **Still trips the watchdog at ~6 s** even with only 10 nodes/thread ⇒ **RC-2 genuine hang/livelock**. Capture a thread dump (§5b) to localize the spin, then **prioritize RC-2**.
+   - **Finishes fast** (well under 6 s, may now *fail assertions* instead of going Inconclusive) ⇒ **TS-7 perf cliff** dominates. Record the timing, then **prioritize TS-7**.
+   - **Still trips the watchdog at ~6 s** even with only 10 nodes/thread ⇒ **TS-2 genuine hang/livelock**. Capture a thread dump (§5b) to localize the spin, then **prioritize TS-2**.
 5. **Revert `NODES_PER_THREAD` back to `250`** when done (canonical state). This revert is mandatory.
 
-> Likely outcome (from diagnosis): RC-7 dominates at 250 nodes on one shared parent. But **measure, don't assume** — the dump procedure exists for the RC-2 case.
+> Likely outcome (from diagnosis): TS-7 dominates at 250 nodes on one shared parent. But **measure, don't assume** — the dump procedure exists for the TS-2 case.
 
 ### 5b. Thread-dump playbook (DIAGNOSTIC ONLY — never ships, never runs per-mutation)
 
-> This is a **test/diagnosis** tool you run **only when a hang is observed**. It is **not** wired into any production mutation path and adds **zero** runtime cost to the product. (Production hang-safety comes from the design: a single recursive writer cannot intra-deadlock, and cross-tree moves lock in a deterministic order — RC-6.)
+> This is a **test/diagnosis** tool you run **only when a hang is observed**. It is **not** wired into any production mutation path and adds **zero** runtime cost to the product. (Production hang-safety comes from the design: a single recursive writer cannot intra-deadlock, and cross-tree moves lock in a deterministic order — TS-6.)
 
-If §5a still trips the watchdog (RC-2 path), capture where threads are stuck:
+If §5a still trips the watchdog (TS-2 path), capture where threads are stuck:
 
 **Option 1 — `dotnet-stack` (preferred, no rebuild):**
 ```powershell
@@ -301,7 +301,7 @@ Start-Process -FilePath "dotnet" -ArgumentList 'test','SDC.Schema.Tests\SDC.Sche
 # Find the testhost PID (child of the runner) and dump its managed stacks during the ~6s stall:
 dotnet-stack report --name testhost
 ```
-Look for multiple `ReproWorker_*` threads parked in `ReaderWriterLockSlim`/`Monitor` (→ true lock contention/deadlock = RC-2) vs. parked in `TreeSibComparer`/reflection/`List.Sort` (→ perf cliff = RC-7).
+Look for multiple `ReproWorker_*` threads parked in `ReaderWriterLockSlim`/`Monitor` (→ true lock contention/deadlock = TS-2) vs. parked in `TreeSibComparer`/reflection/`List.Sort` (→ perf cliff = TS-7).
 
 **Option 2 — `dotnet-dump` (full dump for offline analysis):**
 ```powershell
@@ -321,7 +321,7 @@ dotnet-dump analyze <dumpfile>
 
 ## 6. Recommended execution sequence (one TS item at a time, gate between each)
 
-> Fix **one** TS item, run its gate + a full build, commit, then proceed. Never batch multiple items into one unverified change. (`TS-#` ≡ legacy `RC-#`.)
+> Fix **one** TS item, run its gate + a full build, commit, then proceed. Never batch multiple items into one unverified change.
 
 0. **Infra (§3):** add `ReaderWriterLockSlim` + `TreeLockScope.cs`; build production green. **Commit.**
 0.5. **Async/WASM rules (§12) — RESOLVED:** rules locked; the only code consequence is the CompareTrees **pre-sort-before-read-lock** step, folded into TS-2 (and dependent on TS-7 landing first). No separate step needed.
@@ -399,17 +399,17 @@ dotnet test "SDC.Schema.Tests\SDC.Schema.Tests.csproj" --no-build -v minimal
 | Item | Effort | Risk | Notes |
 |---|---|---|---|
 | §3 Infra (RWLockSlim + scopes) | S | Low | Mechanical; recursive policy is the key setting |
-| RC-1 `[ThreadStatic]` | S | Low | One attribute; `AsyncLocal` only if §5 shows thread-crossing build |
-| RC-2 read locks (§4f) | M | **Med** | Cross-cutting (~25 sites); main risk is mis-bucketing a helper as an entry point — use §4f verbatim |
-| RC-3 Interlocked | S | Low–Med | Likely no-op after RC-1/RC-2; if applied, **off-by-one** is the trap |
-| RC-4 ItemsMutator | S | Low | Replace `new object()` fallback with write scope + null guard |
+| TS-1 `[ThreadStatic]` | S | Low | One attribute; `AsyncLocal` only if §5 shows thread-crossing build |
+| TS-2 read locks (§4f) | M | **Med** | Cross-cutting (~25 sites); main risk is mis-bucketing a helper as an entry point — use §4f verbatim |
+| TS-3 Interlocked | S | Low–Med | Likely no-op after TS-1/TS-2; if applied, **off-by-one** is the trap |
+| TS-4 ItemsMutator | S | Low | Replace `new object()` fallback with write scope + null guard |
 | TS-5 migrate-then-delete TreeLock/_SyncRoot | M | **Med** | NOT a pure deletion — must first migrate CompareTrees' 18 `TreeLock` sites + writers' `_SyncRoot` onto the unified lock, verify, then delete. Delete-first breaks the CompareTrees build (§12). |
-| RC-6 cross-tree Move | M | Med | Deterministic two-lock ordering; add small stress test if time permits |
-| RC-7 batch sort | M | Med | Behavior must stay identical (final order); reuse `childNodesSort=false` + sort-once |
+| TS-6 cross-tree Move | M | Med | Deterministic two-lock ordering; add small stress test if time permits |
+| TS-7 batch sort | M | Med | Behavior must stay identical (final order); reuse `childNodesSort=false` + sort-once |
 
 **Legend:** S ≈ <½ day, M ≈ ½–1 day, for a competent mid-tier model with these anchors.
 
-**Net:** medium overall. The only genuinely cross-cutting step is **RC-2** (read locks at all reader boundaries); everything else is local. RC-2's risk is fully mitigated by the **§4f lookup table** + **THE ONE RULE**.
+**Net:** medium overall. The only genuinely cross-cutting step is **TS-2** (read locks at all reader boundaries); everything else is local. TS-2's risk is fully mitigated by the **§4f lookup table** + **THE ONE RULE**.
 
 ---
 
@@ -435,22 +435,22 @@ dotnet test "SDC.Schema.Tests\SDC.Schema.Tests.csproj" --no-build -v minimal
 
 | Anchor | File:line | Used by |
 |---|---|---|
-| `LastTopNode` field | `PartialClasses.cs` ~`:2348` | RC-1 |
-| parameterless ctor (reads/writes `LastTopNode`, `_MaxObjectID++`) | `PartialClasses.cs:1722–1753` | RC-1, RC-3 |
-| `InitBaseType` (parameterized path; derives TopNode from parent) | `PartialClasses.cs:1795+` | context (why stress tests hit RC-2/3/7, not RC-1) |
-| `ResetLastTopNode` | `PartialClasses.cs:2198–2202` | RC-1 |
-| `ParentNode` getter (`_ParentNodes.TryGetValue`) | `PartialClasses.cs:2143` | RC-2 |
+| `LastTopNode` field | `PartialClasses.cs` ~`:2348` | TS-1 |
+| parameterless ctor (reads/writes `LastTopNode`, `_MaxObjectID++`) | `PartialClasses.cs:1722–1753` | TS-1, TS-3 |
+| `InitBaseType` (parameterized path; derives TopNode from parent) | `PartialClasses.cs:1795+` | context (why stress tests hit TS-2/3/7, not TS-1) |
+| `ResetLastTopNode` | `PartialClasses.cs:2198–2202` | TS-1 |
+| `ParentNode` getter (`_ParentNodes.TryGetValue`) | `PartialClasses.cs:2143` | TS-2 |
 | `_SyncRoot` / `TreeLock` infra block | `PartialClasses.cs:155–163` | §3, TS-5 |
 | `TreeLock.Wait()/.Release()` (18 live sites) | `CompareTrees.cs:126–303` | TS-5 migrate (reader) |
 | `AsParallel().ForAll(...)` parallel read | `CompareTrees.cs:~347` | TS-2 read lock / §12 |
-| `_MaxObjectID` interface auto-property | `PartialClasses.cs:168` | RC-3 |
-| `ItemsMutator` (`lock(new object())` fallback) | `PartialClasses.cs:2265` | RC-4 |
-| `BaseName` setter (`lock(_SyncRoot)`) | `PartialClasses.cs:2314` | RC-2 (writer) |
-| `FindRootNode` | `BaseTypeExtensions.cs:418–429` | RC-2 |
-| `RegisterAll` (`lock(_SyncRoot)` at :827; `_MaxObjectID++` at :818) | `IMoveRemoveExtensions.cs:803–847` | RC-2, RC-3 |
-| `RegisterIn_ParentNodes_ChildNodes` / `RegisterParentNode` (`kids.Sort`) | `IMoveRemoveExtensions.cs:867–916` (sort at :905–913) | RC-7 |
-| `UnRegisterAll` (`lock(_SyncRoot)` at :1062) | `IMoveRemoveExtensions.cs:1045–1075+` | RC-2 (writer) |
-| `MoveInDictionaries` (cross-tree) | `IMoveRemoveExtensions.cs:34–58` | RC-6 |
+| `_MaxObjectID` interface auto-property | `PartialClasses.cs:168` | TS-3 |
+| `ItemsMutator` (`lock(new object())` fallback) | `PartialClasses.cs:2265` | TS-4 |
+| `BaseName` setter (`lock(_SyncRoot)`) | `PartialClasses.cs:2314` | TS-2 (writer) |
+| `FindRootNode` | `BaseTypeExtensions.cs:418–429` | TS-2 |
+| `RegisterAll` (`lock(_SyncRoot)` at :827; `_MaxObjectID++` at :818) | `IMoveRemoveExtensions.cs:803–847` | TS-2, TS-3 |
+| `RegisterIn_ParentNodes_ChildNodes` / `RegisterParentNode` (`kids.Sort`) | `IMoveRemoveExtensions.cs:867–916` (sort at :905–913) | TS-7 |
+| `UnRegisterAll` (`lock(_SyncRoot)` at :1062) | `IMoveRemoveExtensions.cs:1045–1075+` | TS-2 (writer) |
+| `MoveInDictionaries` (cross-tree) | `IMoveRemoveExtensions.cs:34–58` | TS-6 |
 | Repro harness (watchdog, dedicated threads) | `ThreadSafetyReproTests.cs` | §5 |
 
 ---

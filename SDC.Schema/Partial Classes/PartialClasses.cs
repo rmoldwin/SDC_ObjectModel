@@ -2318,7 +2318,7 @@ namespace SDC.Schema
 
 			List<T>? DoMutate()
 				{
-					// Bug fix RC-4: compute the intersection of the old and new lists so that nodes appearing
+					// Bug fix TS-4: compute the intersection of the old and new lists so that nodes appearing
 					// in both are neither removed nor re-moved.  Previously, RemoveRecursive was called on every
 					// node in itemsListOld (including nodes that also appear in valueListNew), which fully
 					// deregistered those nodes and set their ParentNode to null.  The subsequent Move(this) then

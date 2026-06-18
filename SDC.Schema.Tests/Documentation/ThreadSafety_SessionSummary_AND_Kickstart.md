@@ -21,8 +21,8 @@
 
 ## 2. Answers to the three questions asked this session (recorded so they survive a restart)
 
-### 2.1 What does "RC" mean? → **"Root Cause," not "Release Candidate."** Renaming to **TS-#**.
-The seven findings were numbered `RC-1…RC-7` ("Root Cause") in the diagnosis doc — this collides with the universal "Release Candidate" meaning. **Decision: adopt `TS-#` (Thread-Safety) as the canonical IDs**, with `RC-#` kept as a legacy alias during the transition. Mapping is 1:1: `TS-1 ≡ RC-1`, …, `TS-7 ≡ RC-7`.
+### 2.1 What does "TS-#" mean? → **Thread-Safety defect IDs (TS-1…TS-7).** Legacy label corrected.
+The seven findings were originally mis-labelled using the prefix "RC" (intended as "Root Cause") — this collides with the universal "Release Candidate" meaning of RC. **Decision (fully applied): use `TS-#` (Thread-Safety) as the sole canonical IDs.** The RC-# alias is retired. Mapping was 1:1: TS-1 through TS-7.
 
 | ID | Root cause (short) |
 |----|--------------------|
@@ -84,7 +84,7 @@ BASELINE: a98660a "Merge OM Tree Stability Suite + Move/Reparent Bug Fixes"
 READ THESE DOCS FIRST, IN ORDER (all under SDC.Schema.Tests\Documentation\):
 1. ThreadSafety_SessionSummary_AND_Kickstart.md   (START HERE — status, decisions, kickstart)
 2. ThreadSafety_RemediationPlan_OptionC.md          (locked Option C spec + TS-1..TS-7 edit map, §6 sequencing, §6.1 commit model, §12 async/WASM RESOLVED)
-3. ThreadSafety_RootCauseDiagnosis.md               (evidence, TS/RC-1..7, reader/writer map)
+3. ThreadSafety_RootCauseDiagnosis.md               (evidence, TS/TS-1..7, reader/writer map)
    Supporting: ThreadSafety_StrategyDecision.md, ThreadSafety_LockingStrategy_Analysis.md
    (Superseded weaker-model docs live in Archived Plans\ — do NOT use them; see its README.md.)
 
@@ -93,7 +93,7 @@ STATE YOU MUST HONOR:
   ITopNode.cs, PartialClasses.cs, CompareTrees.cs, IMoveRemoveExtensions.cs (SemaphoreSlim TreeLock infra + CompareTrees GUID-ordered locking + a prevXml/newXml deserialization bug fix).
   This is a WIP SAFETY checkpoint, not a finished design implementation.
 - Strategy is LOCKED = Option C: one ReaderWriterLockSlim per TopNode, LockRecursionPolicy.SupportsRecursion, single-writer/multiple-reader. THE ONE RULE: lock once at the public boundary; writers lock at the top; NEVER a read->write upgrade.
-- IDs are TS-1..TS-7 (alias of legacy RC-1..RC-7).
+- IDs are TS-1..TS-7 (alias of legacy TS-1..TS-7).
 
 RESOLVED FACTS — DO NOT RE-INVESTIGATE:
 - The library is 100% SYNCHRONOUS (no async/await/Task in SDC.Schema). "No lock across await" is a free compile-time guardrail; keep the lock-scope types as ref struct.
@@ -134,7 +134,7 @@ BEGIN by confirming the three docs are read, then run the build check, then ask 
 |------|------|
 | `ThreadSafety_SessionSummary_AND_Kickstart.md` | **THIS** — restart entry point + kickstart prompt |
 | `ThreadSafety_RemediationPlan_OptionC.md` | Option C spec (**fully locked**; §12 async/WASM RESOLVED); TS-1…TS-7 mechanical edit map, §4f lock table, gates, sequencing, §6.1 commit/branch model, §12 async/WASM (pre-sort-then-read-lock; WASM harness deferred) |
-| `ThreadSafety_RootCauseDiagnosis.md` | Evidence record (TS/RC-1…7, reader/writer map, repro results) |
+| `ThreadSafety_RootCauseDiagnosis.md` | Evidence record (TS-1…TS-7, reader/writer map, repro results) |
 | `ThreadSafety_SessionHandoff.md` | Prior resume file (now points here) |
 | `ThreadSafety_StrategyDecision.md` | Original `ReaderWriterLockSlim` decision (finalized as Option C) |
 | `ThreadSafety_LockingStrategy_Analysis.md` | Locking deep-dive — kept active as a future-work overview |
