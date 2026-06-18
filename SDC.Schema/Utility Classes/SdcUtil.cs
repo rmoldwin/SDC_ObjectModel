@@ -73,13 +73,22 @@ namespace SDC.Schema
 			_topNode._TreeSort_NodeIds.Add(parentItem.ObjectID);
 		}
 
-        private static void TreeSort_Remove(BaseType parentItem)
-        {
-            var _topNode = Get_ITopNode(parentItem);
-            if (_topNode is null) throw new NullReferenceException($"{nameof(_topNode)} cannot be null");
+		private static void TreeSort_Remove(BaseType parentItem)
+		{
+			var _topNode = Get_ITopNode(parentItem);
+			if (_topNode is null) throw new NullReferenceException($"{nameof(_topNode)} cannot be null");
 			if(_topNode._TreeSort_NodeIds.Contains(parentItem.ObjectID))
 				_topNode._TreeSort_NodeIds.Remove(parentItem.ObjectID);
-        }
+		}
+
+		// TS-7: exposed as internal so IMoveRemoveExtensions.RegisterParentNode can invalidate
+		// the sort-flag after each childNodesSort:false append, allowing SortElementKids to
+		// re-sort exactly once per parent on first demand rather than on every insert.
+		internal static void TreeSort_Invalidate(BaseType parentItem) => TreeSort_Remove(parentItem);
+
+		// TS-7: mark a parent's kids list as sorted in treeSibComparer order after a binary-search
+		// insert, so SortElementKids skips the redundant re-sort when GetPrevSibElement is called.
+		internal static void TreeSort_MarkSorted(BaseType parentItem) => TreeSort_Add(parentItem);
 
         /// <summary>
         /// Dictionary to cache PropertyInfo objects to speed reflection of SDC Element nodes
@@ -3274,20 +3283,23 @@ namespace SDC.Schema
 			return tempName;
 		}
 
-        /// <summary>
-        /// Given a parent SDC node, this method will sort the child nodes (kids)
-        /// This method is used to keep lists of sibling nodes in the same order as the SDC object tree
-        /// </summary>
-        /// <param name="parentItem">The parent SDC node</param>
-        /// <param name="kids">"kids" is a List&lt;BaseType> containing all the child nodes under parentItem.
-        /// This is generally obtained from the parentItem using the _ITopNode._ChildNodes Dictionary object
-        /// If it is not supplied, it will be obtained below from parentItem</param>
-        /// <param name="forceSort">By default, child nodes will not be resorted if they have been previously sorted<br/>
+		/// <summary>
+		/// Given a parent SDC node, this method will sort the child nodes (kids)
+		/// This method is used to keep lists of sibling nodes in the same order as the SDC object tree.<br/>
+		/// Call this ONCE after a bulk-add sequence rather than on every individual insert —
+		/// use <c>childNodesSort=false</c> in <see cref="SDC.Schema.Extensions.IMoveRemoveExtensions.RegisterAll"/>
+		/// during bulk-add to defer sorting to a single post-add call (TS-7: eliminates the O(N²·reflection) cliff).
+		/// </summary>
+		/// <param name="parentItem">The parent SDC node</param>
+		/// <param name="kids">"kids" is a List&lt;BaseType> containing all the child nodes under parentItem.
+		/// This is generally obtained from the parentItem using the _ITopNode._ChildNodes Dictionary object
+		/// If it is not supplied, it will be obtained below from parentItem</param>
+		/// <param name="forceSort">By default, child nodes will not be resorted if they have been previously sorted<br/>
 		/// because they are flagged as already sorted in TreeSort_NodeIds.<br/>
 		/// In some scenarios, we may want to force a resorting of the child nodes, by setting this flag to True."
 		/// </param>
-        /// <returns>List&lt;BaseType>? containing ordered list of child nodes, or null if no child nodes are present</returns>
-        private static List<BaseType>? SortElementKids(BaseType parentItem, List<BaseType>? kids = null, bool forceSort = false)
+		/// <returns>List&lt;BaseType>? containing ordered list of child nodes, or null if no child nodes are present</returns>
+		internal static List<BaseType>? SortElementKids(BaseType parentItem, List<BaseType>? kids = null, bool forceSort = false)
 		{
 			//Sorting uses reflection, and this is an expensive operation, so we only sort once per parent node
 			//TreeSort_NodeIds is a SortedSet that holds the ObjectIDs of parent nodes whose children have already been sorted.

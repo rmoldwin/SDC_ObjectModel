@@ -1910,7 +1910,7 @@ namespace SDC.Schema
         /// //This code is intended to run in the BaseType parameterized constructor.
         /// </summary>
         /// <param name="parentNode"></param>
-        internal void InitAfterTreeAdd(BaseType? parentNode)
+		internal void InitAfterTreeAdd(BaseType? parentNode)
 		{
 		if (this.TopNode is not null)
 		{   //a node with a null TopNode will not be registered in any TopNode dictionaries.
@@ -1918,12 +1918,13 @@ namespace SDC.Schema
 			// RegisterAll acquires _SyncRoot internally; holding it here too is safe because lock() is reentrant.
 			lock (tn._SyncRoot)
 			{
-				// childNodesSort:false avoids calling TreeSibComparer.Sort on a partially-populated sibling list
-				// during concurrent construction — AssignOrder handles final ordering.
-				this.RegisterAll(parentNode);
-				// Set a provisional order based on ObjectID to avoid traversing shared dictionaries concurrently.
-				// Callers that need accurate order values should call AssignOrder() after construction is complete.
+				// TS-7: Assign order BEFORE RegisterAll so that RegisterParentNode.RegisterAll can use
+				// the order value as a cheap O(1) insertion hint (via TreeOrderComparer) when
+				// childNodesSort:false, avoiding the O(N²·reflection) SibComparer sort cliff.
+				// ObjectID is monotonically increasing with construction order; for normal top-down
+				// tree construction, this matches tree document order exactly.
 				this.order = this.ObjectID;
+				this.RegisterAll(parentNode, childNodesSort: false);
 				//SdcUtil.CreateCAPname(this,"",SdcUtil.NameChangeEnum.Normal); //This won't work until the node is fully initialized (including BaseType.ID for IET nodes), after adding it to the SDC tree.
 				//ElementPrefix is assigned later in the top-level constructor. It will be empty here, unless we make it a constant
 				//Thus the simple name below will start with "_" instead of the ElementPrefix.

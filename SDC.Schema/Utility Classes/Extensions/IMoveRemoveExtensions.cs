@@ -901,44 +901,143 @@ namespace SDC.Schema.Extensions
 					//Also need to check rules, Events, Actions, and Admin objects, as well as things in other ITopNode trees
 					//We may need to add a new Interface: IHasListParent for all nodes that are attached to an Items object,
 					//so that these nodes can be easily identified.
-					kids.Add(btSource);					
-					if (kids.Count > 1 && childNodesSort)
-					{
-						try { kids.Sort(treeSibComparer); } //sort by reflecting the object tree
-						catch (InvalidOperationException)
+					kids.Add(btSource);
+						if (kids.Count > 1 && childNodesSort)
 						{
-							// Node may not yet be fully wired into parent properties (e.g., during concurrent construction).
-							// Skip sort here; correct order will be applied by AssignOrder or ReflectRefreshTree.
+							try { kids.Sort(treeSibComparer); } //sort by reflecting the object tree
+							catch (InvalidOperationException)
+							{
+								// Node may not yet be fully wired into parent properties (e.g., during concurrent construction).
+								// Skip sort here; correct order will be applied by AssignOrder or ReflectRefreshTree.
+							}
 						}
-					}
-				}
+						else if (kids.Count > 1) // childNodesSort:false path (construction/bulk-add)
+						{
+							// TS-7: Binary-search insert using treeSibComparer — O(log k · reflection) per insert
+							// vs O(k log k · reflection) for a full re-sort = O(N log² N) total for N inserts.
+							// Uses TreeComparer.SibComparer(inParentNode, ...) directly to avoid the
+							// ParentNode-equality guard in TreeSibComparer.Compare (which would throw if a node's
+							// _ParentNodes entry hasn't been updated yet during re-registration paths).
+							// After insertion, mark the parent sorted so FindPrevIETInDictionaries (and
+							// GetPrevSibElement on Move paths) skip a redundant re-sort.
+							kids.RemoveAt(kids.Count - 1); // remove just-appended node; binary search for correct slot
+							int lo = 0, hi = kids.Count;
+							while (lo < hi)
+							{
+								int mid = (lo + hi) >> 1;
+								try
+								{
+									if (TreeComparer.SibComparer(inParentNode, kids[mid], btSource, out _) <= 0)
+										lo = mid + 1;
+									else
+										hi = mid;
+								}
+								catch
+								{
+									// Comparison failed (node not yet wired into parent property).
+									// Append at end; ReflectRefreshTree will correct order on next full refresh.
+									lo = kids.Count;
+									break;
+								}
+							}
+							kids.Insert(lo, btSource);
+							SdcUtil.TreeSort_MarkSorted(inParentNode);
+						}
+						}
 			}
 		}
 		private static void RegisterSubtreeIn_IETnodes(this IdentifiedExtensionType iet, bool addIETnodesRecursively = false)
 		{
 			_ITopNode? itn = iet.TopNode as _ITopNode;
-			var ietPrev = iet.GetNodePreviousIET(); //find the position to insert our new/moved node	
-			
 			int insertPosition = -1;  //add to the beginning of the list, by default.
 
 			if (itn is not null)
 			{
+				var inb = itn._IETnodes;
+				// TS-7: find the IET insertion position using _ChildNodes (already sorted by
+				// RegisterParentNode.treeOrderComparer or treeSibComparer) rather than calling
+				// GetNodePreviousIET() → GetPrevSibElement() → SortElementKids (reflection sort).
+				//
+				// Walk backwards through the already-sorted siblings of iet (from _ChildNodes) to
+				// find the nearest IET predecessor. If found, look it up in _IETnodes (linear scan).
+				// If not found among siblings, walk up to parent and repeat.
+				// This avoids any reflection sort during construction.
+				var ietPrev = FindPrevIETInDictionaries(iet, itn);
 				if (ietPrev is not null)
-					insertPosition = itn._IETnodes.IndexOf(ietPrev);  //TODO: this collection scan may be inefficient; we may want to switch to KeyedCollection<Tkey, Titem> (C# Nutshell page 353) or ConditionalWeakTable instead (using sGuid or the object ref as Key).
+					insertPosition = inb.IndexOf(ietPrev);
 
 				if (addIETnodesRecursively)
 					foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
-						itn._IETnodes.Insert(++insertPosition, n);
+						inb.Insert(++insertPosition, n);
 				else //we are just adding a node here, not moving
-					itn._IETnodes.Insert(++insertPosition, iet);
+					inb.Insert(++insertPosition, iet);
 			}
-
 			else 
 				throw new InvalidOperationException($"{nameof(iet.TopNode)} was null.");
 
 			if (iet is _ITopNode myTopNode && myTopNode._IETnodes.Count == 0) //we seem to be starting a new SDC tree here
 				myTopNode._IETnodes.Insert(0, iet);
+		}
 
+		/// <summary>
+		/// TS-7 helper: find the nearest IET predecessor of <paramref name="iet"/> using only
+		/// the _ChildNodes and _ParentNodes dictionaries (no reflection sort).
+		/// The sibling lists in _ChildNodes are maintained sorted by <see cref="treeOrderComparer"/>
+		/// or <see cref="treeSibComparer"/> depending on the registration path, so walking backwards
+		/// from <paramref name="iet"/>'s position gives the correct in-tree predecessor.
+		/// </summary>
+		private static IdentifiedExtensionType? FindPrevIETInDictionaries(IdentifiedExtensionType iet, _ITopNode itn)
+		{
+			BaseType? cur = iet;
+			while (cur is not null)
+			{
+				var par = itn._ParentNodes.TryGetValue(cur.ObjectGUID, out var p) ? p : null;
+				if (par is null) return null; // reached the top without finding an IET predecessor
+
+				if (itn._ChildNodes.TryGetValue(par.ObjectGUID, out var sibs) && sibs is not null)
+				{
+					int idx = sibs.IndexOf(cur);
+					// walk backwards through sorted siblings looking for an IET node
+					for (int i = idx - 1; i >= 0; i--)
+					{
+						if (sibs[i] is IdentifiedExtensionType prevIET)
+						{
+							// Return the last descendant IET of prevIET (if any), otherwise prevIET itself
+							// — this mirrors what GetPrevElement → GetLastDescendant does.
+							var lastDesc = GetLastDescendantIET(prevIET, itn);
+							return lastDesc ?? prevIET;
+						}
+					}
+				}
+				// no IET sibling before cur — move up to parent
+				cur = par;
+				if (cur is IdentifiedExtensionType ietParent)
+					return ietParent; // parent itself is the predecessor
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// TS-7 helper: return the last IET descendant of <paramref name="root"/> using
+		/// _ChildNodes only (no reflection), or null if <paramref name="root"/> has no IET descendants.
+		/// </summary>
+		private static IdentifiedExtensionType? GetLastDescendantIET(BaseType root, _ITopNode itn)
+		{
+			// DFS: push kids in reverse order so the stack pops them in document order.
+			// Walk to the deepest last node and return the last IET encountered.
+			IdentifiedExtensionType? lastIET = null;
+			var stack = new Stack<BaseType>();
+			stack.Push(root);
+			while (stack.Count > 0)
+			{
+				var node = stack.Pop();
+				if (node != root && node is IdentifiedExtensionType iet)
+					lastIET = iet;
+				if (itn._ChildNodes.TryGetValue(node.ObjectGUID, out var kids) && kids is not null)
+					for (int i = kids.Count - 1; i >= 0; i--) // push in reverse → pop in forward document order
+						stack.Push(kids[i]);
+			}
+			return lastIET;
 		}
 
 		/// <summary>
