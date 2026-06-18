@@ -182,10 +182,9 @@ Process-global statics:
 
 **Confirmed:** the stall is **not** a test artifact (dedicated-thread harness still trips at exactly 6 s on both tests; exit code 0; watchdog protected the runner — no testhost crash).
 
-**NOT yet classified (paused here):** whether the 6 s stall is a **hard deadlock/livelock (RC‑2)** or the **serialized reflection-sort perf cliff (RC‑7, §5a)**.
-- **Planned discriminator:** drop `NODES_PER_THREAD` from 250 → 10 and re-time.
-  - If tiny workload finishes fast ⇒ **perf cliff (RC‑7)** dominates.
-  - If it still trips ⇒ **genuine deadlock (RC‑2)**.
-- The `NODES_PER_THREAD = 10` edit was applied then **reverted to 250** when we paused, so the file is left in its canonical state. Re-apply the temporary lowering to resume classification.
+**CLASSIFIED (branch `Features/Net11Upgrade_ThreadSafety_OptionCImpl`, §5 discriminator run):**
+- **NODES_PER_THREAD = 10:** both tests **passed** (2/2 passed, 0 skipped, total wall-clock ≈ 6.2 s for the full `dotnet test` run including harness startup; actual parallel work < 3 s per test — well under the 6 s watchdog). `NODES_PER_THREAD` reverted to 250 immediately after.
+- **Verdict: RC-7 perf cliff DOMINATES.** At 10 nodes the O(N²·reflection) sort is negligible → tests complete without hitting the watchdog. At 250 nodes the sort storm under `lock(_SyncRoot)` fills the entire 6 s budget. The genuine RC-2 read/write hang *may also be present*, but it is masked by the perf cliff.
+- **Implication:** fix TS-7 (batch sort) FIRST, then re-run at 250 nodes to see if the underlying RC-2 hang surface surfaces. This matches the plan §6 ordering (TS-7 before TS-2).
 
 **Files left in a clean, compiling state:** `ThreadSafetyReproTests.cs` builds (0 errors); only pre-existing warnings remain in unrelated test files.
