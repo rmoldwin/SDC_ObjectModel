@@ -123,48 +123,29 @@ namespace SDC.Schema
 			// Check if comparing same tree to itself (avoid double-locking)
 			if (ReferenceEquals(_prevVersion, _newVersion))
 			{
-				prevTopNode.TreeLock.Wait();
-				try
-				{
-					_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
-					_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
+				// TS-2: ReadLockScope replaces TreeLock.Wait/Release for read-only tree comparisons.
+				using var _readLock = new ReadLockScope(prevTopNode.TreeRwLock);
+				_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
+				_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
 
-					ComputeAddedRemovedNodes();
-					CompareVersionAttributes();
-				}
-				finally
-				{
-					prevTopNode.TreeLock.Release();
-				}
+				ComputeAddedRemovedNodes();
+				CompareVersionAttributes();
 			}
 			else
 			{
-				// Lock both trees in GUID order to prevent deadlock
+				// Lock both trees in GUID order to prevent deadlock.
+				// TS-2: ReadLockScope wraps each tree; SupportsRecursion allows nesting.
 				var locks = (prevTopNode.ObjectGUID < newTopNode.ObjectGUID) 
 					? (prevTopNode, newTopNode) 
 					: (newTopNode, prevTopNode);
 
-				locks.Item1.TreeLock.Wait();
-				try
-				{
-					locks.Item2.TreeLock.Wait();
-					try
-					{
-						_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
-						_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
+				using var _readLock1 = new ReadLockScope(locks.Item1.TreeRwLock);
+				using var _readLock2 = new ReadLockScope(locks.Item2.TreeRwLock);
+				_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
+				_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
 
-						ComputeAddedRemovedNodes();
-						CompareVersionAttributes();
-					}
-					finally
-					{
-						locks.Item2.TreeLock.Release();
-					}
-				}
-				finally
-				{
-					locks.Item1.TreeLock.Release();
-				}
+				ComputeAddedRemovedNodes();
+				CompareVersionAttributes();
 			}
 		}
 
@@ -205,17 +186,11 @@ namespace SDC.Schema
 			// Check if comparing same tree to itself
 			if (ReferenceEquals(_prevVersion, _newVersion))
 			{
-				prevTopNode.TreeLock.Wait();
-				try
-				{
-					_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
-					ComputeAddedRemovedNodes();
-					CompareVersionAttributes();
-				}
-				finally
-				{
-					prevTopNode.TreeLock.Release();
-				}
+				// TS-2: ReadLockScope replaces TreeLock.Wait/Release
+				using var _readLock = new ReadLockScope(prevTopNode.TreeRwLock);
+				_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
+				ComputeAddedRemovedNodes();
+				CompareVersionAttributes();
 			}
 			else
 			{
@@ -224,25 +199,11 @@ namespace SDC.Schema
 					? (prevTopNode, newTopNode) 
 					: (newTopNode, prevTopNode);
 
-				locks.Item1.TreeLock.Wait();
-				try
-				{
-					locks.Item2.TreeLock.Wait();
-					try
-					{
-						_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
-						ComputeAddedRemovedNodes();
-						CompareVersionAttributes();
-					}
-					finally
-					{
-						locks.Item2.TreeLock.Release();
-					}
-				}
-				finally
-				{
-					locks.Item1.TreeLock.Release();
-				}
+				using var _readLock1 = new ReadLockScope(locks.Item1.TreeRwLock);
+				using var _readLock2 = new ReadLockScope(locks.Item2.TreeRwLock);
+				_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
+				ComputeAddedRemovedNodes();
+				CompareVersionAttributes();
 			}
 			return this;
 		}
@@ -264,17 +225,11 @@ namespace SDC.Schema
 			// Check if comparing same tree to itself
 			if (ReferenceEquals(_prevVersion, _newVersion))
 			{
-				newTopNode.TreeLock.Wait();
-				try
-				{
-					_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
-					ComputeAddedRemovedNodes();
-					CompareVersionAttributes();
-				}
-				finally
-				{
-					newTopNode.TreeLock.Release();
-				}
+				// TS-2: ReadLockScope replaces TreeLock.Wait/Release
+				using var _readLock = new ReadLockScope(newTopNode.TreeRwLock);
+				_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
+				ComputeAddedRemovedNodes();
+				CompareVersionAttributes();
 			}
 			else
 			{
@@ -283,25 +238,11 @@ namespace SDC.Schema
 					? (prevTopNode, newTopNode) 
 					: (newTopNode, prevTopNode);
 
-				locks.Item1.TreeLock.Wait();
-				try
-				{
-					locks.Item2.TreeLock.Wait();
-					try
-					{
-						_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
-						ComputeAddedRemovedNodes();
-						CompareVersionAttributes();
-					}
-					finally
-					{
-						locks.Item2.TreeLock.Release();
-					}
-				}
-				finally
-				{
-					locks.Item1.TreeLock.Release();
-				}
+				using var _readLock1 = new ReadLockScope(locks.Item1.TreeRwLock);
+				using var _readLock2 = new ReadLockScope(locks.Item2.TreeRwLock);
+				_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
+				ComputeAddedRemovedNodes();
+				CompareVersionAttributes();
 			}
 			return this;
 		}

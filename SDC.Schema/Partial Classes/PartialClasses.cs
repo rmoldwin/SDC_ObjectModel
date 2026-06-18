@@ -1915,8 +1915,9 @@ namespace SDC.Schema
 		if (this.TopNode is not null)
 		{   //a node with a null TopNode will not be registered in any TopNode dictionaries.
 			_ITopNode tn = (_ITopNode)this.TopNode;
-			// RegisterAll acquires _SyncRoot internally; holding it here too is safe because lock() is reentrant.
-			lock (tn._SyncRoot)
+			// TS-2: WriteLockScope replaces lock(_SyncRoot) — unified ReaderWriterLockSlim per tree.
+			// RegisterAll acquires the same lock internally; SupportsRecursion allows the nesting.
+			using var _writeLock = new WriteLockScope(tn.TreeRwLock);
 			{
 				// TS-7: Assign order BEFORE RegisterAll so that RegisterParentNode.RegisterAll can use
 				// the order value as a cheap O(1) insertion hint (via TreeOrderComparer) when
@@ -2303,13 +2304,19 @@ namespace SDC.Schema
 			if(itemsListOld == valueListNew)
 				return valueListNew;  //this will prevent running RemoveRecursive when we are reassigning the same object.
 
-			// Thread-safety: acquire the per-tree reentrant lock so that FindRootNode (which reads _ParentNodes
-			// without its own lock) cannot observe a concurrent write from another thread, preventing a false
+			// Thread-safety: TS-2 — acquire the per-tree WriteLockScope so that FindRootNode (which reads
+			// _ParentNodes) cannot observe a concurrent write from another thread, preventing a false
 			// sameRoot=false result that would take the wrong UpdateNodeIdentity path and throw from UnRegisterAll.
-			// Monitor (lock) is reentrant on the same thread, so nested calls to RegisterAll/UnRegisterAll
-			// (which also lock _SyncRoot) are safe.
-			object lockObj = TopNode is _ITopNode itn ? itn._SyncRoot : new object();
-			lock (lockObj)
+			// WriteLockScope uses SupportsRecursion, so nested RegisterAll/UnRegisterAll write scopes are safe.
+			var rw = TopNode is _ITopNode itn ? itn.TreeRwLock : null;
+			if (rw is not null)
+			{
+				using var _writeLock = new WriteLockScope(rw);
+				return DoMutate();
+			}
+			return DoMutate();
+
+			List<T>? DoMutate()
 			{
 				// Bug fix: snapshot old list to avoid collection-modified-during-enumeration when RemoveRecursive
 				// removes each node from its parent collection (which is itemsListOld).
@@ -2356,8 +2363,8 @@ namespace SDC.Schema
                         throw new InvalidOperationException($"The name \"{value}\" is not a legal variable name.");
 
 					_ITopNode tn = (_ITopNode)this.TopNode;
-					// Use reentrant lock so BaseName setter can be called from within other locked tree-mutation paths
-					lock (tn._SyncRoot)
+					// TS-2: WriteLockScope replaces lock(_SyncRoot) for BaseName setter
+					using var _writeLock = new WriteLockScope(tn.TreeRwLock);
 					{
 						if (tn._UniqueBaseNames.Add(value) == false)
 							throw new InvalidOperationException($"The name \"{value}\" already exists within the TopNode's tree.  A unique value is required.");

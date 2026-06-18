@@ -823,8 +823,10 @@ namespace SDC.Schema.Extensions
 				if (_topNode is null)
 					throw new NullReferenceException($"{nameof(node.TopNode)} cannot be null.");
 
-				// Use reentrant lock(_SyncRoot) so RegisterAll can be called from within InitAfterTreeAdd or other locked paths
-				lock (_topNode._SyncRoot)
+				// TS-2: WriteLockScope replaces lock(_SyncRoot). RegisterAll is a top-level write entry point;
+				// internal helpers (RegisterIn_Nodes, RegisterIn_ParentNodes_ChildNodes, RegisterSubtreeIn_IETnodes)
+				// run naked under this scope. SupportsRecursion allows nested RegisterAll calls from InitAfterTreeAdd.
+				using var _writeLock = new WriteLockScope(_topNode.TreeRwLock);
 				{
 					//Add to _Nodes
 					node.RegisterIn_Nodes();
@@ -1157,8 +1159,9 @@ namespace SDC.Schema.Extensions
 
 			void UnRegister(_ITopNode tn, BaseType node)
 			{
-				// Use reentrant lock(_SyncRoot) so UnRegisterAll can be called from within other locked tree-mutation paths
-				lock (tn._SyncRoot)
+				// TS-2: WriteLockScope replaces lock(_SyncRoot). UnRegisterAll is a top-level write entry point;
+				// internal helpers run naked under this scope. SupportsRecursion allows nesting from RemoveRecursive.
+				using var _writeLock = new WriteLockScope(tn.TreeRwLock);
 				{
 
 					//Unregister _Nodes
