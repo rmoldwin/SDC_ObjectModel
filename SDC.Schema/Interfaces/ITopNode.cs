@@ -101,6 +101,31 @@ namespace SDC.Schema
 		int _MaxObjectID { get; set; }
 
 		/// <summary>
+		/// Atomically increments the per-tree ObjectID counter and returns the new (unique) value.
+		/// </summary>
+		/// <remarks>
+		/// <b>Why this exists (TS-3):</b> <see cref="BaseType"/> constructors previously assigned ObjectIDs with
+		/// the non-atomic expression <c>_MaxObjectID++</c> (a read-then-increment-then-write on a plain <c>int</c>
+		/// property). Under concurrent node construction multiple threads could read the same counter value before
+		/// any thread had written it back, producing duplicate ObjectIDs. This method is the TS-3 fix.<br/><br/>
+		///
+		/// <b>Why a default interface method (DIM) cannot be used here:</b>
+		/// <see cref="System.Threading.Interlocked.Increment"/> requires a <c>ref int</c> argument pointing
+		/// directly at a concrete backing field.  An interface has no instance fields, so a DIM can only reach
+		/// the counter through the <see cref="_MaxObjectID"/> property, which involves a separate read and a
+		/// separate write — still non-atomic.  Therefore true atomicity can only be achieved in each implementing
+		/// class, which is why this method is a required contract rather than a default implementation.<br/><br/>
+		///
+		/// <b>Implementation requirement:</b> every implementing class must declare a private <c>int</c> backing
+		/// field (e.g. <c>_maxObjectID_FD</c>) and implement this method as:
+		/// <code>int _ITopNode.AtomicNextObjectID() =&gt; Interlocked.Increment(ref _backingField);</code>
+		/// The five implementations are in <c>PartialClasses.cs</c>, one per TopNode type
+		/// (<see cref="FormDesignType"/>, <see cref="DataElementType"/>, <see cref="RetrieveFormPackageType"/>,
+		/// <see cref="PackageListType"/>, <see cref="MappingType"/>).
+		/// </remarks>
+		int AtomicNextObjectID();
+
+		/// <summary>
 		/// Gets the Option C unified per-tree lock (<see cref="ReaderWriterLockSlim"/> SWMR).
 		/// Readers call <see cref="ReadLockScope"/>; writers call <see cref="WriteLockScope"/>.
 		/// Constructed with <see cref="LockRecursionPolicy.SupportsRecursion"/>; never perform a

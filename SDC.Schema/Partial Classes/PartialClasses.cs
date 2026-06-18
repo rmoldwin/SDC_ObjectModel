@@ -174,17 +174,22 @@ namespace SDC.Schema
 		#region _ITopNode
 
 		/// <inheritdoc/>		
-		int _ITopNode._MaxObjectID { get; set; } = 0;
+		// TS-3 fix: explicit backing field so Interlocked.Increment can atomically assign unique ObjectIDs
+		// under concurrent node construction. The property setter is only called during single-threaded init.
+		int _maxObjectID_FD = 0;
+		int _ITopNode._MaxObjectID { get => _maxObjectID_FD; set => _maxObjectID_FD = value; }
+		int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_FD);
 
 		Dictionary<Guid, BaseType> _ITopNode._Nodes
-        {
-            get
-            {
-                if (p_Nodes is null) p_Nodes = new();
-                return p_Nodes;
-            }
-        }
-        Dictionary<Guid, BaseType>? p_Nodes;
+		{
+			get
+			{
+				// Bug fix: lazy-init guard was accidentally removed during TS-3 refactor.
+				if (p_Nodes is null) p_Nodes = new();
+				return p_Nodes;
+			}
+		}
+		Dictionary<Guid, BaseType>? p_Nodes;
 
         Dictionary<Guid, BaseType> _ITopNode._ParentNodes
         {
@@ -465,7 +470,10 @@ namespace SDC.Schema
         #region _ITopNode
 
         /// <inheritdoc/>		
-        int _ITopNode._MaxObjectID { get; set; } = 0;
+        // TS-3 fix: explicit backing field for atomic ObjectID assignment under concurrent construction.
+        int _maxObjectID_DE = 0;
+        int _ITopNode._MaxObjectID { get => _maxObjectID_DE; set => _maxObjectID_DE = value; }
+        int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_DE);
 
         Dictionary<Guid, BaseType> _ITopNode._Nodes
         {
@@ -692,18 +700,21 @@ namespace SDC.Schema
 			Comment = new();
 
 			Items = new();
-			SubmissionRule = new();
-			ComplianceRule = new();
-			SDCPackage = new();
-		}
+				SubmissionRule = new();
+				ComplianceRule = new();
+				SDCPackage = new();
+			}
 
 
-        #region _ITopNode
+			#region _ITopNode
 
-        /// <inheritdoc/>		
-        int _ITopNode._MaxObjectID { get; set; } = 0;
+			/// <inheritdoc/>		
+			// TS-3 fix: explicit backing field for atomic ObjectID assignment under concurrent construction.
+			int _maxObjectID_RFP = 0;
+			int _ITopNode._MaxObjectID { get => _maxObjectID_RFP; set => _maxObjectID_RFP = value; }
+			int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_RFP);
 
-        Dictionary<Guid, BaseType> _ITopNode._Nodes
+			Dictionary<Guid, BaseType> _ITopNode._Nodes
         {
             get
             {
@@ -990,15 +1001,18 @@ namespace SDC.Schema
 			Extension = null;
 			Comment = null;
 			this.SDCPackageList = null;
-			this.PackageItem = null;
-			this.HTML = null;
-		}
-        #region _ITopNode
+				this.PackageItem = null;
+				this.HTML = null;
+			}
+			#region _ITopNode
 
-        /// <inheritdoc/>		
-        int _ITopNode._MaxObjectID { get; set; } = 0;
+			/// <inheritdoc/>		
+			// TS-3 fix: explicit backing field for atomic ObjectID assignment under concurrent construction.
+			int _maxObjectID_PL = 0;
+			int _ITopNode._MaxObjectID { get => _maxObjectID_PL; set => _maxObjectID_PL = value; }
+			int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_PL);
 
-        Dictionary<Guid, BaseType> _ITopNode._Nodes
+			Dictionary<Guid, BaseType> _ITopNode._Nodes
         {
             get
             {
@@ -1219,14 +1233,17 @@ namespace SDC.Schema
 			Extension = null;
 			Comment = null;
 			this.ItemMap = null;
-			this.DefaultCodeSystem = null;
-		}
-        #region _ITopNode
+				this.DefaultCodeSystem = null;
+			}
+			#region _ITopNode
 
-        /// <inheritdoc/>		
-        int _ITopNode._MaxObjectID { get; set; } = 0;
+			/// <inheritdoc/>		
+			// TS-3 fix: explicit backing field for atomic ObjectID assignment under concurrent construction.
+			int _maxObjectID_MT = 0;
+			int _ITopNode._MaxObjectID { get => _maxObjectID_MT; set => _maxObjectID_MT = value; }
+			int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_MT);
 
-        Dictionary<Guid, BaseType> _ITopNode._Nodes
+			Dictionary<Guid, BaseType> _ITopNode._Nodes
         {
             get
             {
@@ -1786,10 +1803,11 @@ namespace SDC.Schema
                 }
             }//not ITopNode below here
 			else if (LastTopNode is not null)
-			{
-				TopNode = LastTopNode;
-				ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
-			}
+				{
+					TopNode = LastTopNode;
+					// TS-3 fix: use AtomicNextObjectID() to prevent duplicate ObjectIDs under concurrent construction.
+					ObjectID = ((_ITopNode)TopNode).AtomicNextObjectID();
+				}
 			else if (LastTopNode is null) 
 			{//the caller is instantiating a new node that is not descended from an ITopNode node.
 				//ObjectID will need to be incremented if & when the node is grafted onto another node that is ITopNode, or has an ITopNode ancestor
@@ -1868,12 +1886,14 @@ namespace SDC.Schema
 				if (parentNode is ITopNode ptn)
 				{
 					this.TopNode = (_ITopNode)parentNode;
-					this.ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
+					// TS-3 fix: atomic increment — see AtomicNextObjectID().
+					this.ObjectID = ((_ITopNode)TopNode).AtomicNextObjectID();
 				}
 				else if (parentNode.TopNode is not null)
 				{
 					this.TopNode = (_ITopNode)parentNode.TopNode;
-					this.ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
+					// TS-3 fix: atomic increment — see AtomicNextObjectID().
+					this.ObjectID = ((_ITopNode)TopNode).AtomicNextObjectID();
 				}
 				else
 				{ //this node descends form an "illegal" non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode,
