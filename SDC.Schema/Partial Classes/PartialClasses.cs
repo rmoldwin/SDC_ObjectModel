@@ -154,6 +154,15 @@ namespace SDC.Schema
 
 		#region Thread Safety Infrastructure
 
+		// Option C: single-writer / multiple-reader per TopNode tree.
+		// SupportsRecursion is REQUIRED: the OM does read-in-read (FindRootNode -> ParentNode)
+		// and write-in-write (InitAfterTreeAdd -> RegisterAll). NEVER perform a read->write upgrade
+		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
+		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
+		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+
+		// Kept temporarily so existing TreeLock/lock(_SyncRoot) sites compile during staged TS-5 migration.
+		// DELETE both after all CompareTrees and writer paths move to TreeRwLock (TS-5 cleanup).
 		private readonly SemaphoreSlim _treeLock = new(1, 1);
 		public SemaphoreSlim TreeLock => _treeLock;
 		private readonly object _syncRoot = new();
@@ -164,8 +173,8 @@ namespace SDC.Schema
 
 		#region _ITopNode
 
-        /// <inheritdoc/>		
-        int _ITopNode._MaxObjectID { get; set; } = 0;
+		/// <inheritdoc/>		
+		int _ITopNode._MaxObjectID { get; set; } = 0;
 
 		Dictionary<Guid, BaseType> _ITopNode._Nodes
         {
@@ -382,6 +391,15 @@ namespace SDC.Schema
 
 		#region Thread Safety Infrastructure
 
+		// Option C: single-writer / multiple-reader per TopNode tree.
+		// SupportsRecursion is REQUIRED: the OM does read-in-read (FindRootNode -> ParentNode)
+		// and write-in-write (InitAfterTreeAdd -> RegisterAll). NEVER perform a read->write upgrade
+		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
+		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
+		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+
+		// Kept temporarily so existing TreeLock/lock(_SyncRoot) sites compile during staged TS-5 migration.
+		// DELETE both after all CompareTrees and writer paths move to TreeRwLock (TS-5 cleanup).
 		private readonly SemaphoreSlim _treeLock = new(1, 1);
 		public SemaphoreSlim TreeLock => _treeLock;
 		private readonly object _syncRoot = new();
@@ -392,12 +410,12 @@ namespace SDC.Schema
 
 		#region ITopNode 
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public ReadOnlyDictionary<Guid, BaseType> Nodes
-        {
-            get
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyDictionary<Guid, BaseType> Nodes
+		{
+			get
             {
                 if (p_NodesRO is null)
                     p_NodesRO = new(((_ITopNode)this)._Nodes);
@@ -575,7 +593,7 @@ namespace SDC.Schema
 
 	}
 	public partial class RetrieveFormPackageType : _ITopNode, ITopNodeDeserialize<RetrieveFormPackageType>, _IUniqueIDs
-    {
+	{
 		protected RetrieveFormPackageType() : base()
 		{ Init(); }
 		public RetrieveFormPackageType(RetrieveFormPackageType? parentNode, string packageID, int position = -1) : base(parentNode, position, "SDCPackage")
@@ -605,6 +623,15 @@ namespace SDC.Schema
 
 		#region Thread Safety Infrastructure
 
+		// Option C: single-writer / multiple-reader per TopNode tree.
+		// SupportsRecursion is REQUIRED: the OM does read-in-read (FindRootNode -> ParentNode)
+		// and write-in-write (InitAfterTreeAdd -> RegisterAll). NEVER perform a read->write upgrade
+		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
+		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
+		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+
+		// Kept temporarily so existing TreeLock/lock(_SyncRoot) sites compile during staged TS-5 migration.
+		// DELETE both after all CompareTrees and writer paths move to TreeRwLock (TS-5 cleanup).
 		private readonly SemaphoreSlim _treeLock = new(1, 1);
 		public SemaphoreSlim TreeLock => _treeLock;
 		private readonly object _syncRoot = new();
@@ -615,19 +642,19 @@ namespace SDC.Schema
 
 		#region ITopNode 
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public ReadOnlyDictionary<Guid, BaseType> Nodes
-        {
-            get
-            {
-                if (p_NodesRO is null)
-                    p_NodesRO = new(((_ITopNode)this)._Nodes);
-                return p_NodesRO;
-            }
-        }
-        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyDictionary<Guid, BaseType> Nodes
+		{
+			get
+			{
+				if (p_NodesRO is null)
+					p_NodesRO = new(((_ITopNode)this)._Nodes);
+				return p_NodesRO;
+			}
+		}
+		private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
 
         /// <inheritdoc/>
         [XmlIgnore]
@@ -870,7 +897,7 @@ namespace SDC.Schema
 	}
 
 	public partial class PackageListType : _ITopNode, ITopNodeDeserialize<PackageListType>, _IUniqueIDs
-    {
+	{
 		protected PackageListType() : base()
 		{ Init(); }
 		public PackageListType(PackageListType? parentNode, int position = -1) : base(parentNode, position, "SDCPackageList")
@@ -895,6 +922,15 @@ namespace SDC.Schema
 
 		#region Thread Safety Infrastructure
 
+		// Option C: single-writer / multiple-reader per TopNode tree.
+		// SupportsRecursion is REQUIRED: the OM does read-in-read (FindRootNode -> ParentNode)
+		// and write-in-write (InitAfterTreeAdd -> RegisterAll). NEVER perform a read->write upgrade
+		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
+		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
+		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+
+		// Kept temporarily so existing TreeLock/lock(_SyncRoot) sites compile during staged TS-5 migration.
+		// DELETE both after all CompareTrees and writer paths move to TreeRwLock (TS-5 cleanup).
 		private readonly SemaphoreSlim _treeLock = new(1, 1);
 		public SemaphoreSlim TreeLock => _treeLock;
 		private readonly object _syncRoot = new();
@@ -905,19 +941,19 @@ namespace SDC.Schema
 
 		#region ITopNode 
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public ReadOnlyDictionary<Guid, BaseType> Nodes
-        {
-            get
-            {
-                if (p_NodesRO is null)
-                    p_NodesRO = new(((_ITopNode)this)._Nodes);
-                return p_NodesRO;
-            }
-        }
-        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyDictionary<Guid, BaseType> Nodes
+		{
+			get
+			{
+				if (p_NodesRO is null)
+					p_NodesRO = new(((_ITopNode)this)._Nodes);
+				return p_NodesRO;
+			}
+		}
+		private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
 
         /// <inheritdoc/>
         [XmlIgnore]
@@ -1094,6 +1130,15 @@ namespace SDC.Schema
 	{
 		#region Thread Safety Infrastructure
 
+		// Option C: single-writer / multiple-reader per TopNode tree.
+		// SupportsRecursion is REQUIRED: the OM does read-in-read (FindRootNode -> ParentNode)
+		// and write-in-write (InitAfterTreeAdd -> RegisterAll). NEVER perform a read->write upgrade
+		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
+		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
+		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+
+		// Kept temporarily so existing TreeLock/lock(_SyncRoot) sites compile during staged TS-5 migration.
+		// DELETE both after all CompareTrees and writer paths move to TreeRwLock (TS-5 cleanup).
 		private readonly SemaphoreSlim _treeLock = new(1, 1);
 		public SemaphoreSlim TreeLock => _treeLock;
 		private readonly object _syncRoot = new();

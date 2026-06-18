@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.ObjectModel;
+using System.Threading;
 using System.Xml.Serialization;
 
 //using SDC;
@@ -100,17 +101,23 @@ namespace SDC.Schema
 		int _MaxObjectID { get; set; }
 
 		/// <summary>
-		/// Gets the tree lock for coordinating concurrent access to this SDC tree.
-		/// Use <see cref="SemaphoreSlim.Wait()"/> for synchronous operations or <see cref="SemaphoreSlim.WaitAsync()"/> for async operations.
-		/// This lock must be acquired before performing any tree mutations (move, remove, add) or before reading tree structure during concurrent mutations.
+		/// Gets the Option C unified per-tree lock (<see cref="ReaderWriterLockSlim"/> SWMR).
+		/// Readers call <see cref="ReadLockScope"/>; writers call <see cref="WriteLockScope"/>.
+		/// Constructed with <see cref="LockRecursionPolicy.SupportsRecursion"/>; never perform a
+		/// read-to-write upgrade on the same thread (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
+		/// </summary>
+		ReaderWriterLockSlim TreeRwLock { get; }
+
+		/// <summary>
+		/// Gets the legacy <see cref="SemaphoreSlim"/> tree lock used by <c>CompareTrees.cs</c> (18 sites).
+		/// Kept alive during staged TS-5 migration; DELETE after all CompareTrees and writer paths
+		/// move to <see cref="TreeRwLock"/>.
 		/// </summary>
 		SemaphoreSlim TreeLock { get; }
 
 		/// <summary>
-		/// Gets the synchronous tree lock object for use with <c>lock()</c> (Monitor) statements.
-		/// Unlike <see cref="TreeLock"/> (SemaphoreSlim), this lock is reentrant for the same thread,
-		/// preventing deadlocks when synchronized methods call into other synchronized methods on the same thread.
-		/// Use this for all synchronous tree-mutation code paths.
+		/// Gets the legacy Monitor-based write lock object used by <c>lock(_SyncRoot)</c> writer paths.
+		/// Kept alive during staged TS-5 migration; DELETE after all writer paths move to <see cref="TreeRwLock"/>.
 		/// </summary>
 		object _SyncRoot { get; }
 
