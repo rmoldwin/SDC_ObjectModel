@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+using System.Threading;
 using System.Text.RegularExpressions;
 using CSharpVitamins;
 using System.Reflection.Emit;
@@ -151,7 +152,17 @@ namespace SDC.Schema
 		}
 
 
-        #region _ITopNode
+		#region Thread Safety Infrastructure
+
+		private readonly SemaphoreSlim _treeLock = new(1, 1);
+		public SemaphoreSlim TreeLock => _treeLock;
+		private readonly object _syncRoot = new();
+		public object _SyncRoot => _syncRoot;
+
+
+		#endregion
+
+		#region _ITopNode
 
         /// <inheritdoc/>		
         int _ITopNode._MaxObjectID { get; set; } = 0;
@@ -367,9 +378,19 @@ namespace SDC.Schema
 				Items = ItemsMutator(Items, value);
 			}
 		}
-        HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
+		HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
-        #region ITopNode 
+		#region Thread Safety Infrastructure
+
+		private readonly SemaphoreSlim _treeLock = new(1, 1);
+		public SemaphoreSlim TreeLock => _treeLock;
+		private readonly object _syncRoot = new();
+		public object _SyncRoot => _syncRoot;
+
+
+		#endregion
+
+		#region ITopNode 
 
         /// <inheritdoc/>
         [XmlIgnore]
@@ -571,18 +592,28 @@ namespace SDC.Schema
 			this.ComplianceRule = new();
 			this.SDCPackage = new();
 		}
-        HashSet<string> _IUniqueIDs._UniqueIDs
-        {
-            get
-            {
-                if (p_UniqueIDs is null) p_UniqueIDs = new();
-                return p_UniqueIDs;
+		HashSet<string> _IUniqueIDs._UniqueIDs
+		{
+			get
+			{
+				if (p_UniqueIDs is null) p_UniqueIDs = new();
+				return p_UniqueIDs;
 
-            }
-        }
-        HashSet<string>? p_UniqueIDs;
+			}
+		}
+		HashSet<string>? p_UniqueIDs;
 
-        #region ITopNode 
+		#region Thread Safety Infrastructure
+
+		private readonly SemaphoreSlim _treeLock = new(1, 1);
+		public SemaphoreSlim TreeLock => _treeLock;
+		private readonly object _syncRoot = new();
+		public object _SyncRoot => _syncRoot;
+
+
+		#endregion
+
+		#region ITopNode 
 
         /// <inheritdoc/>
         [XmlIgnore]
@@ -851,18 +882,28 @@ namespace SDC.Schema
 			ElementName = "SDCPackageList";
 			ElementPrefix = "PL";
 		}
-        HashSet<string> _IUniqueIDs._UniqueIDs
-        {
-            get
-            {
-                if (p_UniqueIDs is null) p_UniqueIDs = new();
-                return p_UniqueIDs;
+		HashSet<string> _IUniqueIDs._UniqueIDs
+		{
+			get
+			{
+				if (p_UniqueIDs is null) p_UniqueIDs = new();
+				return p_UniqueIDs;
 
-            }
-        }
-        HashSet<string>? p_UniqueIDs;
+			}
+		}
+		HashSet<string>? p_UniqueIDs;
 
-        #region ITopNode 
+		#region Thread Safety Infrastructure
+
+		private readonly SemaphoreSlim _treeLock = new(1, 1);
+		public SemaphoreSlim TreeLock => _treeLock;
+		private readonly object _syncRoot = new();
+		public object _SyncRoot => _syncRoot;
+
+
+		#endregion
+
+		#region ITopNode 
 
         /// <inheritdoc/>
         [XmlIgnore]
@@ -1051,6 +1092,15 @@ namespace SDC.Schema
 	}
 	public partial class MappingType : _ITopNode, ITopNodeDeserialize<MappingType>
 	{
+		#region Thread Safety Infrastructure
+
+		private readonly SemaphoreSlim _treeLock = new(1, 1);
+		public SemaphoreSlim TreeLock => _treeLock;
+		private readonly object _syncRoot = new();
+		public object _SyncRoot => _syncRoot;
+
+
+		#endregion
 		protected MappingType() : base()
 		{ Init(); }
 		/// <summary>
@@ -1817,22 +1867,24 @@ namespace SDC.Schema
         /// <param name="parentNode"></param>
         internal void InitAfterTreeAdd(BaseType? parentNode)
 		{
-			if (this.TopNode is not null)
-			{   //a node with a null TopNode will not be registered in any TopNode dictionaries.
+		if (this.TopNode is not null)
+		{   //a node with a null TopNode will not be registered in any TopNode dictionaries.
+			_ITopNode tn = (_ITopNode)this.TopNode;
+			// RegisterAll acquires _SyncRoot internally; holding it here too is safe because lock() is reentrant.
+			lock (tn._SyncRoot)
+			{
+				// childNodesSort:false avoids calling TreeSibComparer.Sort on a partially-populated sibling list
+				// during concurrent construction — AssignOrder handles final ordering.
 				this.RegisterAll(parentNode);
-
-				//The following code requires that the current node is first added
-				//to the ParentNodes dictionary.  Thus, these statements must come
-				//*after* the dictionaries are populated (in RegisterNodeAndParent)
-
-				this.AssignOrder(orderGap: 10);
-                //SdcUtil.CreateCAPname(this,"",SdcUtil.NameChangeEnum.Normal); //This won't work until the node is fully initialized (including BaseType.ID for IET nodes), after adding it to the SDC tree.
-                
-				
+				// Set a provisional order based on ObjectID to avoid traversing shared dictionaries concurrently.
+				// Callers that need accurate order values should call AssignOrder() after construction is complete.
+				this.order = this.ObjectID;
+				//SdcUtil.CreateCAPname(this,"",SdcUtil.NameChangeEnum.Normal); //This won't work until the node is fully initialized (including BaseType.ID for IET nodes), after adding it to the SDC tree.
 				//ElementPrefix is assigned later in the top-level constructor. It will be empty here, unless we make it a constant
-                //Thus the simple name below will start with "_" instead of the ElementPrefix.
-                this.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
+				//Thus the simple name below will start with "_" instead of the ElementPrefix.
+				this.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
 			}
+		}
 		}
 		
 
@@ -2175,9 +2227,13 @@ namespace SDC.Schema
 				// parent object and update ParentNodes directly; for cross-tree grafts, continue using Move().
 				if (valueNew.TopNode == this.TopNode)
 				{
-					((BaseType)valueNew).RemoveRecursive(false);
-					if (this.TopNode is _ITopNode topNode)
-						topNode._ParentNodes[valueNew.ObjectGUID] = this;
+					// For same-tree reparenting, preserve top-node _Nodes registration while updating parent mappings.
+					// Unregister only parent/child/IET relationships and then re-register under the new parent.
+					var bt = (BaseType)valueNew;
+					// Remove from its old parent (clears parent's property) and unregister dictionaries,
+					// then register under the new parent within the same top-node.
+					bt.RemoveRecursive(false);
+					bt.RegisterAll(this, childNodesSort: true, addIETnodesRecursively: true);
 				}
 				else
 				{
@@ -2201,28 +2257,37 @@ namespace SDC.Schema
 			if(itemsListOld == valueListNew)
 				return valueListNew;  //this will prevent running RemoveRecursive when we are reassigning the same object.
 
-			// Bug fix: snapshot old list to avoid collection-modified-during-enumeration when RemoveRecursive
-			// removes each node from its parent collection (which is itemsListOld).
-			if (itemsListOld is not null  && itemsListOld.Count > 0)
+			// Thread-safety: acquire the per-tree reentrant lock so that FindRootNode (which reads _ParentNodes
+			// without its own lock) cannot observe a concurrent write from another thread, preventing a false
+			// sameRoot=false result that would take the wrong UpdateNodeIdentity path and throw from UnRegisterAll.
+			// Monitor (lock) is reentrant on the same thread, so nested calls to RegisterAll/UnRegisterAll
+			// (which also lock _SyncRoot) are safe.
+			object lockObj = TopNode is _ITopNode itn ? itn._SyncRoot : new object();
+			lock (lockObj)
 			{
-				T[] oldSnapshot = itemsListOld.ToArray();
-				foreach (T n in oldSnapshot) n.RemoveRecursive(false);
-			}
-
-			if (valueListNew is not null)
-			{
-				if (valueListNew.Count > 0)
+				// Bug fix: snapshot old list to avoid collection-modified-during-enumeration when RemoveRecursive
+				// removes each node from its parent collection (which is itemsListOld).
+				if (itemsListOld is not null  && itemsListOld.Count > 0)
 				{
-					// Bug fix: create snapshot array to avoid collection-modified-during-enumeration exception
-					// when valueListNew members are reparented via Move(this), which may detach them from
-					// their original parent collection (which could be valueListNew itself).
-					T[] snapshot = valueListNew.ToArray();
-					foreach (T n in snapshot) n.Move(this);
-					return valueListNew;
+					T[] oldSnapshot = itemsListOld.ToArray();
+					foreach (T n in oldSnapshot) n.RemoveRecursive(false);
 				}
-				throw new InvalidOperationException($"The supplied {nameof(valueListNew)} could not be used to set {nameof(itemsListOld)}.");
+
+				if (valueListNew is not null)
+				{
+					if (valueListNew.Count > 0)
+					{
+						// Bug fix: create snapshot array to avoid collection-modified-during-enumeration exception
+						// when valueListNew members are reparented via Move(this), which may detach them from
+						// their original parent collection (which could be valueListNew itself).
+						T[] snapshot = valueListNew.ToArray();
+						foreach (T n in snapshot) n.Move(this);
+						return valueListNew;
+					}
+					throw new InvalidOperationException($"The supplied {nameof(valueListNew)} could not be used to set {nameof(itemsListOld)}.");
+				}
+				return null; //value will be allowed to have a null value until compiler null-checking is enabled globally, and we can reliably exclude all nulls from this method at compile time and runtime
 			}
-			return null; //value will be allowed to have a null value until compiler null-checking is enabled globally, and we can reliably exclude all nulls from this method at compile time and runtime
 		}
 
 
@@ -2244,10 +2309,14 @@ namespace SDC.Schema
                     if (!SdcUtil.IsValidVariableName(value))
                         throw new InvalidOperationException($"The name \"{value}\" is not a legal variable name.");
 
-                    _ITopNode tn = (_ITopNode)this.TopNode;
-                    if (tn._UniqueBaseNames.Add(value) == false)
-                        throw new InvalidOperationException($"The name \"{value}\" already exists within the TopNode's tree.  A unique value is required.");
-					tn._UniqueBaseNames.Remove(baseName); //remove the old name
+					_ITopNode tn = (_ITopNode)this.TopNode;
+					// Use reentrant lock so BaseName setter can be called from within other locked tree-mutation paths
+					lock (tn._SyncRoot)
+					{
+						if (tn._UniqueBaseNames.Add(value) == false)
+							throw new InvalidOperationException($"The name \"{value}\" already exists within the TopNode's tree.  A unique value is required.");
+						tn._UniqueBaseNames.Remove(baseName); //remove the old name
+					}
                 }
                 baseName = value;
             }

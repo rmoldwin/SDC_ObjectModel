@@ -823,16 +823,20 @@ namespace SDC.Schema.Extensions
 				if (_topNode is null)
 					throw new NullReferenceException($"{nameof(node.TopNode)} cannot be null.");
 
-				//Add to _Nodes
-				node.RegisterIn_Nodes();
-				//Add to _ChildNodes
-				if (parentNode is not null) 
-					node.RegisterIn_ParentNodes_ChildNodes(parentNode, childNodesSort);
-				//Add to _IETnodes
-				if (node is IdentifiedExtensionType iet)
-					iet.RegisterSubtreeIn_IETnodes(addIETnodesRecursively);
+				// Use reentrant lock(_SyncRoot) so RegisterAll can be called from within InitAfterTreeAdd or other locked paths
+				lock (_topNode._SyncRoot)
+				{
+					//Add to _Nodes
+					node.RegisterIn_Nodes();
+					//Add to _ChildNodes
+					if (parentNode is not null)
+						node.RegisterIn_ParentNodes_ChildNodes(parentNode, childNodesSort);
+					//Add to _IETnodes
+					if (node is IdentifiedExtensionType iet)
+						iet.RegisterSubtreeIn_IETnodes(addIETnodesRecursively);
 
-				//AddUniqueIDsToHashTables(node, out string nonUniqueErrors);
+					//AddUniqueIDsToHashTables(node, out string nonUniqueErrors);
+				}
 
 			}
 			else {
@@ -900,7 +904,12 @@ namespace SDC.Schema.Extensions
 					kids.Add(btSource);					
 					if (kids.Count > 1 && childNodesSort)
 					{
-							kids.Sort(treeSibComparer); //sort by reflecting the object tree							
+						try { kids.Sort(treeSibComparer); } //sort by reflecting the object tree
+						catch (InvalidOperationException)
+						{
+							// Node may not yet be fully wired into parent properties (e.g., during concurrent construction).
+							// Skip sort here; correct order will be applied by AssignOrder or ReflectRefreshTree.
+						}
 					}
 				}
 			}
@@ -1049,79 +1058,85 @@ namespace SDC.Schema.Extensions
 
 			void UnRegister(_ITopNode tn, BaseType node)
 			{
-				//Unregister _Nodes
-				bool success = tn._Nodes.Remove(node.ObjectGUID);
-				if (!success)
-					throw new Exception($"Could not remove object from {nameof(tn._Nodes)} dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
-				
-				//Unregister _ChildNodes
-				node.UnRegisterIn_ParentNodes_ChildNodes();
-
-				//Unregister _IETnodes
-				if (node is IdentifiedExtensionType iet)
+				// Use reentrant lock(_SyncRoot) so UnRegisterAll can be called from within other locked tree-mutation paths
+				lock (tn._SyncRoot)
 				{
-					var inb = tn._IETnodes;
-					if(inb is null) 
-						throw new InvalidOperationException($"{nameof(tn._IETnodes)} was null; Node name: {iet.name ?? "(none)"}, Short Guid: {node.sGuid}");
-					if (!removeIETnodesRecursively)
-					{
-						success = inb.Remove(iet);
-						if (!success)
-							throw new Exception($"Could not remove object from {nameof(tn._IETnodes)} collection. Node name: {node.name ?? "(none)"}, Short Guid: {node.sGuid}");
-					}
-					else
-					{
-						foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
-						{
-							success = inb.Remove(n);
 
+					//Unregister _Nodes
+					bool success = tn._Nodes.Remove(node.ObjectGUID);
+					if (!success)
+						throw new Exception($"Could not remove object from {nameof(tn._Nodes)} dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
+
+					//Unregister _ChildNodes
+					node.UnRegisterIn_ParentNodes_ChildNodes();
+
+					//Unregister _IETnodes
+					if (node is IdentifiedExtensionType iet)
+					{
+						var inb = tn._IETnodes;
+						if(inb is null) 
+							throw new InvalidOperationException($"{nameof(tn._IETnodes)} was null; Node name: {iet.name ?? "(none)"}, Short Guid: {node.sGuid}");
+						if (!removeIETnodesRecursively)
+						{
+							success = inb.Remove(iet);
 							if (!success)
 								throw new Exception($"Could not remove object from {nameof(tn._IETnodes)} collection. Node name: {node.name ?? "(none)"}, Short Guid: {node.sGuid}");
 						}
+						else
+						{
+							foreach (IdentifiedExtensionType n in iet.GetSubtreeIETList())
+							{
+								success = inb.Remove(n);
+
+								if (!success)
+									throw new Exception($"Could not remove object from {nameof(tn._IETnodes)} collection. Node name: {node.name ?? "(none)"}, Short Guid: {node.sGuid}");
+							}
+						}
 					}
-                }
 
-                tn._UniqueBaseNames.Remove(node.BaseName);
-                tn._TreeSort_NodeIds.Remove(node.ObjectID);
-                tn._UniqueNames.Remove(node.name);
+					// Remove other TopNode registries
+					tn._UniqueBaseNames.Remove(node.BaseName);
+					tn._TreeSort_NodeIds.Remove(node.ObjectID);
+					tn._UniqueNames.Remove(node.name);
 
-                //Remove the various types of unique identifiers from _UniqueIDs
-                //Only TopNode types that implement _IUniqueID contain the hashtable _UniqueIDs
-                //_IUniqueIDs includes FormDesignType, DataElementType, RetrieveFormPackageType, PackageListType, XMLPackageType
-                if (tn is _IUniqueIDs u)
-				{
-					if (node is IdentifiedExtensionType ietNode) //FormDesign, DemogFormDesign, DataElement, Section, DisplayedItem, Question, ListItem, Button, InjectForm
+					//Remove the various types of unique identifiers from _UniqueIDs
+					//Only TopNode types that implement _IUniqueID contain the hashtable _UniqueIDs
+					//_IUniqueIDs includes FormDesignType, DataElementType, RetrieveFormPackageType, PackageListType, XMLPackageType
+					if (tn is _IUniqueIDs u)
 					{
-						u._UniqueIDs.Remove(ietNode.ID);
-						if (node is FormDesignType fd) //Includes DemogFormDesignType
-                            u._UniqueIDs.Remove(fd.instanceVersionURI);
-                        else if (node is DataElementType de)
-                            u._UniqueIDs.Remove(de.fullURI);
-                        else if (node is RetrieveFormPackageType rf)
-                        {
-                            u._UniqueIDs.Remove(rf.packageID);
-                            u._UniqueIDs.Remove(rf.instanceVersionURI);
-                            u._UniqueIDs.Remove(rf.fullURI);
-                        }
-                    }
-                    else if (node is PackageItemType pi)
-                    {
-                        u._UniqueIDs.Remove(pi.fullURI);
-                        u._UniqueIDs.Remove(pi.packageID);
-                        u._UniqueIDs.Remove(pi.formInstanceVersionURI);
-                    }
-                    else if (par is XMLPackageType)
-                    {
-                        if (node is MappingType m) //exists only under XMLPackageType parent
-                            u._UniqueIDs.Remove(m.templateID);
-                        else if (node is XMLPackageTypeHelperFile h) // exists only under XMLPackageType parent
-                            u._UniqueIDs.Remove(h.templateID);
-                        else if (node is LinkType lt)  // (named FormURL) uniqueness only important when under XMLPackageType parent, 
-                            u._UniqueIDs.Remove(lt.LinkURI.val);
-                    }
-                }
-            }
-        } //!not tested
+						if (node is IdentifiedExtensionType ietNode) //FormDesign, DemogFormDesign, DataElement, Section, DisplayedItem, Question, ListItem, Button, InjectForm
+						{
+							u._UniqueIDs.Remove(ietNode.ID);
+							if (node is FormDesignType fd) //Includes DemogFormDesignType
+								u._UniqueIDs.Remove(fd.instanceVersionURI);
+							else if (node is DataElementType de)
+								u._UniqueIDs.Remove(de.fullURI);
+							else if (node is RetrieveFormPackageType rf)
+							{
+								u._UniqueIDs.Remove(rf.packageID);
+								u._UniqueIDs.Remove(rf.instanceVersionURI);
+								u._UniqueIDs.Remove(rf.fullURI);
+							}
+						}
+						else if (node is PackageItemType pi)
+						{
+							u._UniqueIDs.Remove(pi.fullURI);
+							u._UniqueIDs.Remove(pi.packageID);
+							u._UniqueIDs.Remove(pi.formInstanceVersionURI);
+						}
+						else if (par is XMLPackageType)
+						{
+							if (node is MappingType m) //exists only under XMLPackageType parent
+								u._UniqueIDs.Remove(m.templateID);
+							else if (node is XMLPackageTypeHelperFile h) // exists only under XMLPackageType parent
+								u._UniqueIDs.Remove(h.templateID);
+							else if (node is LinkType lt)  // (named FormURL) uniqueness only important when under XMLPackageType parent, 
+								u._UniqueIDs.Remove(lt.LinkURI.val);
+						}
+					}
+				}
+			}
+		} //!not tested
         #endregion
 		private static void X_AddUniqueIDsToHashTables(BaseType node, out string errors)
 		{

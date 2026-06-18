@@ -92,12 +92,27 @@ namespace SDC.Schema
     /// even though the top-level interface is more restrictive.<br/><br/>
     /// Note that all internal <see cref="ITopNode"/> interface member names are prefixed with "_" and start with a capital letter. 
     /// </summary>
-    internal interface _ITopNode : ITopNode
+	internal interface _ITopNode : ITopNode
 	{
-        /// <summary>
-        /// Gets or sets the maximum object identifier.
-        /// </summary>
-        int _MaxObjectID { get; set; }
+		/// <summary>
+		/// Gets or sets the maximum object identifier.
+		/// </summary>
+		int _MaxObjectID { get; set; }
+
+		/// <summary>
+		/// Gets the tree lock for coordinating concurrent access to this SDC tree.
+		/// Use <see cref="SemaphoreSlim.Wait()"/> for synchronous operations or <see cref="SemaphoreSlim.WaitAsync()"/> for async operations.
+		/// This lock must be acquired before performing any tree mutations (move, remove, add) or before reading tree structure during concurrent mutations.
+		/// </summary>
+		SemaphoreSlim TreeLock { get; }
+
+		/// <summary>
+		/// Gets the synchronous tree lock object for use with <c>lock()</c> (Monitor) statements.
+		/// Unlike <see cref="TreeLock"/> (SemaphoreSlim), this lock is reentrant for the same thread,
+		/// preventing deadlocks when synchronized methods call into other synchronized methods on the same thread.
+		/// Use this for all synchronous tree-mutation code paths.
+		/// </summary>
+		object _SyncRoot { get; }
 
 		///<summary>
 		/// Internal base object for initializing IETnodes.<br/>
