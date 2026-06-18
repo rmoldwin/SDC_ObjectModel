@@ -2317,30 +2317,54 @@ namespace SDC.Schema
 			return DoMutate();
 
 			List<T>? DoMutate()
-			{
-				// Bug fix: snapshot old list to avoid collection-modified-during-enumeration when RemoveRecursive
-				// removes each node from its parent collection (which is itemsListOld).
-				if (itemsListOld is not null  && itemsListOld.Count > 0)
 				{
-					T[] oldSnapshot = itemsListOld.ToArray();
-					foreach (T n in oldSnapshot) n.RemoveRecursive(false);
-				}
+					// Bug fix RC-4: compute the intersection of the old and new lists so that nodes appearing
+					// in both are neither removed nor re-moved.  Previously, RemoveRecursive was called on every
+					// node in itemsListOld (including nodes that also appear in valueListNew), which fully
+					// deregistered those nodes and set their ParentNode to null.  The subsequent Move(this) then
+					// found sameRoot=false (because ParentNode was null) → UpdateNodeIdentity →
+					// ReflectRefreshSubtreeList → UnRegisterAll → exception (node already deregistered).
+					var newSet = (valueListNew is not null && valueListNew.Count > 0)
+						? new HashSet<T>(valueListNew, ReferenceEqualityComparer.Instance)
+						: null;
 
-				if (valueListNew is not null)
-				{
-					if (valueListNew.Count > 0)
+					// Remove only old nodes that are NOT being retained in the new list.
+					if (itemsListOld is not null && itemsListOld.Count > 0)
 					{
-						// Bug fix: create snapshot array to avoid collection-modified-during-enumeration exception
-						// when valueListNew members are reparented via Move(this), which may detach them from
-						// their original parent collection (which could be valueListNew itself).
-						T[] snapshot = valueListNew.ToArray();
-						foreach (T n in snapshot) n.Move(this);
-						return valueListNew;
+						T[] oldSnapshot = itemsListOld.ToArray();
+						foreach (T n in oldSnapshot)
+						{
+							if (newSet is null || !newSet.Contains(n))
+								n.RemoveRecursive(false);
+						}
 					}
-					throw new InvalidOperationException($"The supplied {nameof(valueListNew)} could not be used to set {nameof(itemsListOld)}.");
+
+					if (valueListNew is not null)
+					{
+						if (valueListNew.Count > 0)
+						{
+							// Build the set of already-retained nodes so we can skip Move for them.
+							// These nodes are still registered in the tree and correctly parented.
+							var oldSet = (itemsListOld is not null && itemsListOld.Count > 0)
+								? new HashSet<T>(itemsListOld, ReferenceEqualityComparer.Instance)
+								: null;
+
+							// Bug fix: snapshot to avoid collection-modified-during-enumeration when Move
+							// detaches a node from its original parent collection (which could be valueListNew).
+							T[] snapshot = valueListNew.ToArray();
+							foreach (T n in snapshot)
+							{
+								// Skip Move for nodes that were already in the old list; they remain correctly
+								// parented to this node and their dictionary entries are intact.
+								if (oldSet is not null && oldSet.Contains(n)) continue;
+								n.Move(this);
+							}
+							return valueListNew;
+						}
+						throw new InvalidOperationException($"The supplied {nameof(valueListNew)} could not be used to set {nameof(itemsListOld)}.");
+					}
+					return null; //value will be allowed to have a null value until compiler null-checking is enabled globally, and we can reliably exclude all nulls from this method at compile time and runtime
 				}
-				return null; //value will be allowed to have a null value until compiler null-checking is enabled globally, and we can reliably exclude all nulls from this method at compile time and runtime
-			}
 		}
 
 
