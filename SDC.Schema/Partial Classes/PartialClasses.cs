@@ -2390,6 +2390,12 @@ namespace SDC.Schema
 		private string _elementName = "";
 		private string _elementPrefix = "";
 		private RetrieveFormPackageType? _PackageNode;
+		// TS-1 fix: [ThreadStatic] isolates LastTopNode per thread, preventing cross-tree contamination
+		// during concurrent construction/deserialization on separate threads. Each thread sees its own
+		// LastTopNode; the static field is still shared across trees built serially on the same thread,
+		// which is the correct original behavior. Use AsyncLocal<T> instead only if a build path is
+		// ever made async and crosses thread boundaries mid-build (none currently exist).
+		[ThreadStatic]
 		private static ITopNode? LastTopNode;
 		//private static BaseType? LastAddedNode;
 		//private static int lastObjectID = 0;
