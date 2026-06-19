@@ -95,27 +95,26 @@ SDC.Schema.Tests/
 
 ## Phases / Checklist
 
-- [ ] **Step 1** — Create branch `Refactor/TestFolderOrganization` *(done)*
-- [ ] **Step 2** — Create this plan document *(in progress)*
-- [ ] **Step 3** — Phase 1: top-level folder renames via `git mv`
-- [ ] **Step 4** — Phase 2: create new subfolders and move files via `git mv`
-- [ ] **Step 5** — Phase 3: file fixups (DefaultValueAttributeOverride, XML typo, HexConversions namespace)
-- [ ] **Step 6** — Phase 4: update all namespace declarations in moved files
-- [ ] **Step 7** — Phase 5: clean up csproj `<Compile Remove>` entries
-- [ ] **Step 8** — Build; verify zero errors
-- [ ] **Step 9** — Run all tests; verify no regressions; implement remaining stub tests; commit
+- [x] **Step 1** — Create branch `Refactor/TestFolderOrganization` *(done — ce36f6e / d685066)*
+- [x] **Step 2** — Create this plan document *(done — d685066)*
+- [x] **Step 3** — Phase 1: top-level folder renames via `git mv` *(done — cb93e47)*
+- [x] **Step 4** — Phase 2: create new subfolders and move files via `git mv` *(done — b40fd43)*
+- [x] **Step 5** — Phase 3: file fixups (DefaultValueAttributeOverride, XML typo, HexConversions deleted) *(done — c3568e9)*
+- [x] **Step 6** — Phase 4: update all namespace declarations in moved files *(done — 4e24d69)*
+- [x] **Step 7** — Phase 5: clean up csproj `<Compile Remove>` entries *(done — 449d4e1)*
+- [x] **Step 8** — Build errors resolved: AttributeInfo→AttrMetadata rename, stale usings fixed *(done — b1d6c9e)*
+- [x] **Step 9** — All 411 tests pass; stubs implemented; naming rules enforced *(done — b7837a6)*
 
 ---
 
 ## Stub Tests Remaining
 
-After the folder reorganization is complete, all `_`-prefixed test methods must receive real implementations.  
-Files confirmed to contain stubs (from prior audit):
+| File | Stub methods | Status |
+|---|---|---|
+| `Functional\TreeOperations\_MoveTests.cs` | `_CloneSdcSubtreeBsonTest` | Intentional stub — Bson subtree clone not yet implemented |
+| `Functional\TreeOperations\_MoveTests.cs` | `_CloneSdcSubtreeMpackTest` | Intentional stub — MsgPack subtree clone not yet implemented |
 
-| File | Stub methods |
-|---|---|
-| `Functional\MoveTests.cs` | `_MoveListDIinList`, `_MoveListDItoOtherList`, `_MoveListDIQuestionChild`, `_MoveQuestionInChildItems`, `_MoveQuestionToNewChildItems`, `_MoveSectionToNewChildItems`, `_RefreshSdcSubtreeOMTest` |
-| *(others to be confirmed during execution)* | |
+All other stubs from the previous audit have been implemented and their `_` prefixes removed.
 
 ---
 
