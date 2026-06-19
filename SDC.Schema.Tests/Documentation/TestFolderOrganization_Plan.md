@@ -109,12 +109,15 @@ SDC.Schema.Tests/
 
 ## Stub Tests Remaining
 
-| File | Stub methods | Status |
-|---|---|---|
-| `Functional\TreeOperations\_MoveTests.cs` | `_CloneSdcSubtreeBsonTest` | Intentional stub — Bson subtree clone not yet implemented |
-| `Functional\TreeOperations\_MoveTests.cs` | `_CloneSdcSubtreeMpackTest` | Intentional stub — MsgPack subtree clone not yet implemented |
+**None.** All stubs have been implemented and all `_` prefixes removed from both methods and filenames.
 
-All other stubs from the previous audit have been implemented and their `_` prefixes removed.
+| Previously stubbed | Final status |
+|---|---|
+| `_MoveListDIinList` through `_MoveSectionToNewChildItems` (6 methods) | Implemented — `_` prefix removed |
+| `_RefreshSdcSubtreeOMTest` | Implemented via `Move()` + `UpdateNodeIdentity` pattern |
+| `_CloneSdcSubtreeBsonTest` | Implemented — documents known broken BSON round-trip; asserts expected exception type |
+| `_CloneSdcSubtreeMpackTest` | Implemented — full MsgPack round-trip with node count + identity assertions |
+| `MoveTests.cs` file prefix | Removed — file renamed from `_MoveTests.cs` to `MoveTests.cs` |
 
 ---
 
