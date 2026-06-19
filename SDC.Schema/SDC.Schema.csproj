@@ -47,7 +47,6 @@
     <Compile Remove="SDC.Schema\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\dayTimeDuration_Stype.cs" />
     <Compile Remove="Utility Classes\Attribute and PI Structs and Methods\CompareTreesTests.cs" />
     <Compile Remove="Utility Classes\Extensions\Unimplemented Extensions.cs" />
-    <Compile Remove="Utility Classes\Extensions\_MappingTypeExtensions.cs" />
     <Compile Remove="Utility Classes\Hex Conversions - Copy %282%29.cs" />
     <Compile Remove="Utility Classes\Hex Conversions - Copy %283%29.cs" />
     <Compile Remove="Utility Classes\Hex Conversions - Copy %284%29.cs" />
@@ -58,7 +57,6 @@
 
   <ItemGroup>
     <None Include="Utility Classes\Extensions\Unimplemented Extensions.cs" />
-    <None Include="Utility Classes\Extensions\_MappingTypeExtensions.cs" />
     <None Include="Utility Classes\Junk\SDC_CodeGeneratorTest.csproj_old" />
   </ItemGroup>
 
