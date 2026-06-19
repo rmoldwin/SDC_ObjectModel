@@ -1,6 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema.Extensions;
-using SDC.Schema.Tests.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;

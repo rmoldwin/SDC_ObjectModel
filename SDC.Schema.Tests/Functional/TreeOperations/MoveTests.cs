@@ -1,7 +1,7 @@
 using FastSerialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema.Extensions;
-using SDC.Schema.Tests.OMTests;
+using SDC.Schema.Tests.OM;
 using System;
 using System.Collections;
 using System.Collections.Generic;
