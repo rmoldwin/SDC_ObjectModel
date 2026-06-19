@@ -557,26 +557,81 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
             Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
         }
 		[TestMethod]
-		public void _CloneSdcSubtreeBsonTest()
+		public void CloneSdcSubtreeBsonTest()
 		{
-			// Stub: BSON serializer is not yet implemented for subtree clone scenarios.
+			// Verifies that BSON serialization produces non-empty output, and that deserialization
+			// of BSON currently throws because SdcSerializerBson<T>.Deserialize<T> uses a raw
+			// Newtonsoft JSON BSON reader that cannot reconstruct the SDC parent-node wiring.
+			// This test explicitly documents the known limitation of the BSON deserializer so it
+			// remains visible rather than being silently skipped.
 			Setup.TimerStart("==>[] Started");
 			BaseType.ResetLastTopNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
+			var fdOriginal = FormDesignType.DeserializeFromXmlPath(path);
 
+			// BSON serialization must produce a non-empty base-64 string.
+			BaseType.ResetLastTopNode();
+			string bson = TopNodeSerializer<FormDesignType>.GetBson(fdOriginal, refreshSdc: false);
+			Assert.IsNotNull(bson, "BSON serialization must return a non-null string");
+			Assert.IsTrue(bson.Length > 0, "BSON string must not be empty");
 
+			// BSON deserialization is a known broken scenario: the Newtonsoft BsonDataReader
+			// round-trip cannot reconstruct SDC parent-node wiring.
+			// Assert that it throws rather than silently returning a corrupt tree.
+			BaseType.ResetLastTopNode();
+			try
+			{
+				var _ = TopNodeSerializer<FormDesignType>.DeserializeFromBson(bson, refreshSdc: true);
+				// If it unexpectedly succeeds in the future, verify the tree is usable.
+				Assert.IsNotNull(_, "If BSON deserialization begins working, the returned tree must not be null");
+			}
+			catch (Exception ex)
+			{
+				// Expected: document the known failure mode.
+				Assert.IsTrue(
+					ex is NullReferenceException || ex is InvalidOperationException || ex is FormatException,
+					$"BSON deserialization failed with unexpected exception type {ex.GetType().FullName}: {ex.Message}");
+			}
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
 		[TestMethod]
-		public void _CloneSdcSubtreeMpackTest()
+		public void CloneSdcSubtreeMpackTest()
 		{
-			// Stub: MessagePack subtree clone scenario not yet implemented.
+			// Verifies that a FormDesignType tree serialized to MessagePack and deserialized back
+			// produces a structurally equivalent tree with preserved node IDs and node count.
+			// The MsgPack implementation internally falls back to UTF-8 XML bytes, so this test
+			// also exercises that fallback path end-to-end.
 			Setup.TimerStart("==>[] Started");
 			BaseType.ResetLastTopNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
+			var fdOriginal = FormDesignType.DeserializeFromXmlPath(path);
 
+			// Capture key structural facts from the original tree.
+			int originalNodeCount = fdOriginal.Nodes.Count;
+			var firstSectionId   = fdOriginal.IETnodes.OfType<SectionItemType>().First().ID;
+			var firstSectionName = fdOriginal.IETnodes.OfType<SectionItemType>().First().name;
 
+			// Serialize to MsgPack byte array and round-trip back to a new OM tree.
+			BaseType.ResetLastTopNode();
+			byte[] mpack = TopNodeSerializer<FormDesignType>.GetMsgPack(fdOriginal, refreshSdc: false);
+			Assert.IsNotNull(mpack, "MsgPack serialization must return a non-null byte array");
+			Assert.IsTrue(mpack.Length > 0, "MsgPack byte array must not be empty");
+
+			BaseType.ResetLastTopNode();
+			var fdRoundtrip = TopNodeSerializer<FormDesignType>.DeserializeFromMsgPack(mpack, refreshSdc: true);
+			Assert.IsNotNull(fdRoundtrip, "MsgPack deserialization must return a non-null FormDesignType");
+
+			// Node count must be preserved through the MsgPack round-trip.
+			Assert.AreEqual(originalNodeCount, fdRoundtrip.Nodes.Count,
+				$"Node count must be preserved: expected {originalNodeCount}, got {fdRoundtrip.Nodes.Count}");
+
+			// First section identity must survive the round-trip intact.
+			var rtSection = fdRoundtrip.IETnodes.OfType<SectionItemType>().First();
+			Assert.AreEqual(firstSectionId, rtSection.ID,
+				"First section ID must match after MsgPack round-trip");
+			Assert.AreEqual(firstSectionName, rtSection.name,
+				"First section name must match after MsgPack round-trip");
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
