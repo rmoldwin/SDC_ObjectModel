@@ -8,12 +8,6 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="TopNode\_MappingTypeExtensionTests.cs" />
-    <Compile Remove="TopNode\_PackageListTypeExtensionTests.cs" />
-    <Compile Remove="TopNode\_XMLPackagetTypeExtensionTests.cs" />
-    <Compile Remove="Utility Classes\HexConversionsTests.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Include="Core Tests.csproj" />
