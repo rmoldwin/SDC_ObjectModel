@@ -171,9 +171,13 @@ namespace SDC.Schema.Tests.OM
 			// q2 is constructed but not used as a parent — only li.AddChildQuestionResponse is tested.
 			var q2 = new QuestionItemType(de) { ID = "QuestionResponseId", title = "This is a test question" };
 			var qr = li.AddChildQuestionResponse("myID", out _, "", 1, ItemChoiceType.@string, "", "", dtQuantEnum.EQ, "");
-			// Rationale: the returned node must be non-null; parent must be the LI, not q2.
+			// Rationale: the returned node is non-null and attached under li's ChildItemsType container.
+			// SDC never attaches directly to li; it always goes through the intermediate ChildItemsType node.
 			Assert.IsNotNull(qr);
-			Assert.AreSame(li, qr.ParentNode);
+			Assert.IsInstanceOfType<ChildItemsType>(qr.ParentNode,
+				"SDC attaches child questions through a ChildItemsType container, not directly to the list item");
+			Assert.AreSame(li, qr.ParentNode?.ParentNode,
+				"The ChildItemsType container must be owned by li");
 		}
 	}
 }

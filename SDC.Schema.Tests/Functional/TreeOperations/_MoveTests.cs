@@ -280,7 +280,7 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
 		[TestMethod]
-		public void _MoveListDIinList()
+		public void MoveListDIinList()
 		{
 			BaseType.ResetLastTopNode();
 			var fd = new FormDesignType(null, "FD.Move.List.Internal");
@@ -300,7 +300,7 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 			Assert.AreEqual("DI.1", ((IdentifiedExtensionType)listItems[2]).ID);
 		}
 		[TestMethod]
-		public void _MoveListDItoOtherList()
+		public void MoveListDItoOtherList()
 		{
 			BaseType.ResetLastTopNode();
 			var fd = new FormDesignType(null, "FD.Move.List.Cross");
@@ -320,7 +320,7 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 			Assert.AreEqual("LI.Move", ((IdentifiedExtensionType)q2.GetListItems()![0]).ID);
 		}
 		[TestMethod]
-		public void _MoveListDIQuestionChild()
+		public void MoveListDIQuestionChild()
 		{
 			BaseType.ResetLastTopNode();
 			var fd = new FormDesignType(null, "FD.Move.List.OverQuestion");
@@ -336,7 +336,7 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 			Assert.AreEqual("DI.Move", ((IdentifiedExtensionType)q2.GetListItems()![0]).ID);
 		}
 		[TestMethod]
-		public void _MoveQuestionInChildItems()
+		public void MoveQuestionInChildItems()
 		{
 			BaseType.ResetLastTopNode();
 			var fd = new FormDesignType(null, "FD.Move.Question.Internal");
@@ -354,7 +354,7 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 			Assert.AreEqual("Q.First", kids[1].ID);
 		}
 		[TestMethod]
-		public void _MoveQuestionToNewChildItems()
+		public void MoveQuestionToNewChildItems()
 		{
 			BaseType.ResetLastTopNode();
 			var fd = new FormDesignType(null, "FD.Move.Question.Cross");
@@ -370,7 +370,7 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 			Assert.AreEqual("Q.Move", targetSection.GetChildItemsList()![0].ID);
 		}
 		[TestMethod]
-		public void _MoveSectionToNewChildItems()
+		public void MoveSectionToNewChildItems()
 		{
 			BaseType.ResetLastTopNode();
 			var fd = new FormDesignType(null, "FD.Move.Section.Cross");
@@ -556,9 +556,10 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 
             Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
         }
-        [TestMethod]
-		public void CloneSdcSubtreeBsonTest()
+		[TestMethod]
+		public void _CloneSdcSubtreeBsonTest()
 		{
+			// Stub: BSON serializer is not yet implemented for subtree clone scenarios.
 			Setup.TimerStart("==>[] Started");
 			BaseType.ResetLastTopNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
@@ -568,8 +569,9 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
 		[TestMethod]
-		public void CloneSdcSubtreeMpackTest()
+		public void _CloneSdcSubtreeMpackTest()
 		{
+			// Stub: MessagePack subtree clone scenario not yet implemented.
 			Setup.TimerStart("==>[] Started");
 			BaseType.ResetLastTopNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
@@ -579,13 +581,55 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
 		[TestMethod]
-		public void _RefreshSdcSubtreeOMTest()
+		public void RefreshSdcSubtreeOMTest()
 		{
+			// Verify that ReflectRefreshSubtreeList with UpdateNodeIdentity assigns new identity to every
+			// node when triggered the supported way — via BaseType.Move() — which handles registration.
+			// Pattern mirrors CloneSdcSubtreeXmlTest: serialize a section, deserialize as a detached clone,
+			// then Move it into the target tree using UpdateNodeIdentity so its IDs are replaced.
 			Setup.TimerStart("==>[] Started");
 			BaseType.ResetLastTopNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
+			var fd = FormDesignType.DeserializeFromXmlPath(path);
 
+			// Pick two sections: S1 as the attachment target, S2 as the source for the clone.
+			var S1 = fd.IETnodes.OfType<SectionItemType>().Take(3).ToList()[1];
+			var S2 = fd.IETnodes.OfType<SectionItemType>().Take(3).ToList()[2];
 
+			// Capture S2 identity before the clone move.
+			var s2OldSGuid = S2.sGuid;
+			var s2OldName  = S2.name;
+			var s2OldId    = S2.ID;
+
+			// Serialize S2, deserialize as independent clone, then Move it into S1 with UpdateNodeIdentity.
+			// UpdateNodeIdentity assigns brand-new sGuid / ObjectGuid / name / ObjectID to every node.
+			var xml2 = SdcSerializer<SectionItemType>.Serialize(S2);
+			var cloneS2 = SdcSerializer<SectionItemType>.Deserialize(xml2);
+			cloneS2.Move(S1.ChildItemsNode, -1, false, SdcUtil.RefreshMode.UpdateNodeIdentity);
+
+			// The moved clone must now be registered in the tree.
+			var cloneInTree = S1.GetChildItemsList()!.Last() as SectionItemType;
+			Assert.IsNotNull(cloneInTree, "Clone must appear at the end of S1's ChildItems after Move");
+
+			// UpdateNodeIdentity must have replaced every identity property on the root clone node.
+			Assert.AreNotEqual(s2OldSGuid, cloneInTree.sGuid,
+				"sGuid must be different from the original S2 after UpdateNodeIdentity");
+			Assert.AreNotEqual(s2OldName, cloneInTree.name,
+				"name must be different from the original S2 after UpdateNodeIdentity");
+			Assert.AreNotEqual(s2OldId, cloneInTree.ID,
+				"ID must be different from the original S2 after UpdateNodeIdentity");
+
+			// S2 itself must be untouched — it is still in the tree with its original identity.
+			Assert.AreEqual(s2OldSGuid, S2.sGuid, "S2.sGuid must not change");
+			Assert.AreEqual(s2OldName,  S2.name,  "S2.name must not change");
+
+			// Child nodes inside the clone must also have been re-identified.
+			var origChild = S2.GetChildItemsList()![0];
+			var cloneChild = cloneInTree.GetChildItemsList()![0];
+			Assert.AreNotEqual(origChild.sGuid, cloneChild.sGuid,
+				"Child sGuid must differ between original and UpdateNodeIdentity clone");
+			Assert.AreNotEqual(origChild.name, cloneChild.name,
+				"Child name must differ between original and UpdateNodeIdentity clone");
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
