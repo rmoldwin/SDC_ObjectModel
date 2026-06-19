@@ -133,19 +133,6 @@ namespace SDC.Schema
 		/// </summary>
 		ReaderWriterLockSlim TreeRwLock { get; }
 
-		/// <summary>
-		/// Gets the legacy <see cref="SemaphoreSlim"/> tree lock used by <c>CompareTrees.cs</c> (18 sites).
-		/// Kept alive during staged TS-5 migration; DELETE after all CompareTrees and writer paths
-		/// move to <see cref="TreeRwLock"/>.
-		/// </summary>
-		SemaphoreSlim TreeLock { get; }
-
-		/// <summary>
-		/// Gets the legacy Monitor-based write lock object used by <c>lock(_SyncRoot)</c> writer paths.
-		/// Kept alive during staged TS-5 migration; DELETE after all writer paths move to <see cref="TreeRwLock"/>.
-		/// </summary>
-		object _SyncRoot { get; }
-
 		///<summary>
 		/// Internal base object for initializing IETnodes.<br/>
 		/// The contents of this list are copied (as a read-only collection) to the public IETnodes when the IETnodes property is accessed.

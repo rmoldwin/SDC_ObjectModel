@@ -161,14 +161,6 @@ namespace SDC.Schema
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
 
-		// Kept temporarily so existing TreeLock/lock(_SyncRoot) sites compile during staged TS-5 migration.
-		// DELETE both after all CompareTrees and writer paths move to TreeRwLock (TS-5 cleanup).
-		private readonly SemaphoreSlim _treeLock = new(1, 1);
-		public SemaphoreSlim TreeLock => _treeLock;
-		private readonly object _syncRoot = new();
-		public object _SyncRoot => _syncRoot;
-
-
 		#endregion
 
 		#region _ITopNode
@@ -403,14 +395,6 @@ namespace SDC.Schema
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
 
-		// Kept temporarily so existing TreeLock/lock(_SyncRoot) sites compile during staged TS-5 migration.
-		// DELETE both after all CompareTrees and writer paths move to TreeRwLock (TS-5 cleanup).
-		private readonly SemaphoreSlim _treeLock = new(1, 1);
-		public SemaphoreSlim TreeLock => _treeLock;
-		private readonly object _syncRoot = new();
-		public object _SyncRoot => _syncRoot;
-
-
 		#endregion
 
 		#region ITopNode 
@@ -421,57 +405,57 @@ namespace SDC.Schema
 		public ReadOnlyDictionary<Guid, BaseType> Nodes
 		{
 			get
-            {
-                if (p_NodesRO is null)
-                    p_NodesRO = new(((_ITopNode)this)._Nodes);
-                return p_NodesRO;
-            }
-        }
-        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
+			{
+				if (p_NodesRO is null)
+					p_NodesRO = new(((_ITopNode)this)._Nodes);
+				return p_NodesRO;
+			}
+		}
+		private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
-        {
-            get
-            {
-                if (p_IETnodesRO is null)
-                {
-                    if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
-                    p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
-                }
-                return p_IETnodesRO;
-            }
-        }
-        private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		{
+			get
+			{
+				if (p_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
+				}
+				return p_IETnodesRO;
+			}
+		}
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
 
-        /// <summary>
-        /// Allows re-importing an SDC XML file into an existing top node object.
-        /// Clears all dictionaries, sets topNodeTemp (which is a static property) to null, sets top level objects to null. <br/>
-        /// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
-        /// </summary>
-        public void ResetRootNode()
-        {
-            BaseType.ResetLastTopNode();
-            ((_ITopNode)this)._ClearDictionaries();
-            ((_ITopNode)this)._MaxObjectID = 0;
-            Property = null;
-            Extension = null;
-            Comment = null;
-        }
+		/// <summary>
+		/// Allows re-importing an SDC XML file into an existing top node object.
+		/// Clears all dictionaries, sets topNodeTemp (which is a static property) to null, sets top level objects to null. <br/>
+		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
+		/// </summary>
+		public void ResetRootNode()
+		{
+			BaseType.ResetLastTopNode();
+			((_ITopNode)this)._ClearDictionaries();
+			((_ITopNode)this)._MaxObjectID = 0;
+			Property = null;
+			Extension = null;
+			Comment = null;
+		}
 
 
-        #region _ITopNode
+		#region _ITopNode
 
-        /// <inheritdoc/>		
-        // TS-3 fix: explicit backing field for atomic ObjectID assignment under concurrent construction.
-        int _maxObjectID_DE = 0;
+		/// <inheritdoc/>		
+		// TS-3 fix: explicit backing field for atomic ObjectID assignment under concurrent construction.
+		int _maxObjectID_DE = 0;
         int _ITopNode._MaxObjectID { get => _maxObjectID_DE; set => _maxObjectID_DE = value; }
         int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_DE);
 
@@ -638,14 +622,6 @@ namespace SDC.Schema
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
 
-		// Kept temporarily so existing TreeLock/lock(_SyncRoot) sites compile during staged TS-5 migration.
-		// DELETE both after all CompareTrees and writer paths move to TreeRwLock (TS-5 cleanup).
-		private readonly SemaphoreSlim _treeLock = new(1, 1);
-		public SemaphoreSlim TreeLock => _treeLock;
-		private readonly object _syncRoot = new();
-		public object _SyncRoot => _syncRoot;
-
-
 		#endregion
 
 		#region ITopNode 
@@ -664,33 +640,33 @@ namespace SDC.Schema
 		}
 		private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
-        {
-            get
-            {
-                if (p_IETnodesRO is null)
-                {
-                    if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
-                    p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
-                }
-                return p_IETnodesRO;
-            }
-        }
-        private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		{
+			get
+			{
+				if (p_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
+				}
+				return p_IETnodesRO;
+			}
+		}
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
 
-        /// <summary>
-        /// Clears all dictionaries, sets top level objects to new(). <br/>
-        /// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
-        /// </summary>
-        public void ResetRootNode()
+		/// <summary>
+		/// Clears all dictionaries, sets top level objects to new(). <br/>
+		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
+		/// </summary>
+		public void ResetRootNode()
 		{
 			BaseType.ResetLastTopNode();
 			((_ITopNode)this)._ClearDictionaries();
@@ -940,14 +916,6 @@ namespace SDC.Schema
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
 
-		// Kept temporarily so existing TreeLock/lock(_SyncRoot) sites compile during staged TS-5 migration.
-		// DELETE both after all CompareTrees and writer paths move to TreeRwLock (TS-5 cleanup).
-		private readonly SemaphoreSlim _treeLock = new(1, 1);
-		public SemaphoreSlim TreeLock => _treeLock;
-		private readonly object _syncRoot = new();
-		public object _SyncRoot => _syncRoot;
-
-
 		#endregion
 
 		#region ITopNode 
@@ -966,33 +934,33 @@ namespace SDC.Schema
 		}
 		private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
-        {
-            get
-            {
-                if (p_IETnodesRO is null)
-                {
-                    if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
-                    p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
-                }
-                return p_IETnodesRO;
-            }
-        }
-        private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		{
+			get
+			{
+				if (p_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
+				}
+				return p_IETnodesRO;
+			}
+		}
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
 
-        /// <summary>
-        /// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
-        /// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
-        /// </summary>
-        public void ResetRootNode()
+		/// <summary>
+		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
+		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
+		/// </summary>
+		public void ResetRootNode()
 		{
 			BaseType.ResetLastTopNode();
 			((_ITopNode)this)._ClearDictionaries();
@@ -1150,14 +1118,6 @@ namespace SDC.Schema
 		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
-
-		// Kept temporarily so existing TreeLock/lock(_SyncRoot) sites compile during staged TS-5 migration.
-		// DELETE both after all CompareTrees and writer paths move to TreeRwLock (TS-5 cleanup).
-		private readonly SemaphoreSlim _treeLock = new(1, 1);
-		public SemaphoreSlim TreeLock => _treeLock;
-		private readonly object _syncRoot = new();
-		public object _SyncRoot => _syncRoot;
-
 
 		#endregion
 		protected MappingType() : base()
