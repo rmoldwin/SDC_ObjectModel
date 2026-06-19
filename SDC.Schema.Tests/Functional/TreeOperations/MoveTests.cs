@@ -559,15 +559,35 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 		[TestMethod]
 		public void CloneSdcSubtreeBsonTest()
 		{
-			// Verifies that BSON serialization produces non-empty output, and that deserialization
-			// of BSON currently throws because SdcSerializerBson<T>.Deserialize<T> uses a raw
-			// Newtonsoft JSON BSON reader that cannot reconstruct the SDC parent-node wiring.
-			// This test explicitly documents the known limitation of the BSON deserializer so it
-			// remains visible rather than being silently skipped.
+			// Bug report: BSON round-trip fails to restore the SDC object model with fidelity.
+			// Root cause 1 (serialization): SdcSerializerBson<T> uses a plain new JsonSerializer()
+			//   without TypeNameHandling.All, so polymorphic SDC child-collection element types are
+			//   not written as "$type" discriminators into the BSON stream.  On deserialization,
+			//   Newtonsoft cannot reconstruct the correct concrete types (e.g. SectionItemType,
+			//   QuestionItemType), producing null or base-typed nodes.
+			// Root cause 2 (deserialization): SdcSerializerBson<T> also omits
+			//   ConstructorHandling.AllowNonPublicDefaultConstructor.  Every SDC node's public
+			//   constructor requires a non-null parent argument; without this setting Newtonsoft
+			//   picks that constructor, passes null for the parent, and triggers NullReferenceException
+			//   inside the constructor body before any properties can be set.
+			// Root cause 3 (BSON?JSON bridge): Converting BSON to JSON via JToken.ReadFrom(
+			//   BsonDataReader) produces plain JSON with no "$type" fields, so a subsequent
+			//   JsonConvert.DeserializeObject<T> step suffers the same type-erasure failure.
+			// Expected fix: add TypeNameHandling.All and ConstructorHandling.AllowNonPublicDefaultConstructor
+			//   to both the Bson serializer and deserializer settings in SdcSerializerBson<T>.
+			//   See BsonJsonSerializationBugReport.md for the full upstream report.
+			//
+			// This test asserts structural fidelity (node count + first-section identity), mirroring
+			// CloneSdcSubtreeMpackTest.  It will FAIL until the serializer is fixed.
 			Setup.TimerStart("==>[] Started");
 			BaseType.ResetLastTopNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
 			var fdOriginal = FormDesignType.DeserializeFromXmlPath(path);
+
+			// Capture key structural facts from the original tree.
+			int originalNodeCount = fdOriginal.Nodes.Count;
+			var firstSectionId   = fdOriginal.IETnodes.OfType<SectionItemType>().First().ID;
+			var firstSectionName = fdOriginal.IETnodes.OfType<SectionItemType>().First().name;
 
 			// BSON serialization must produce a non-empty base-64 string.
 			BaseType.ResetLastTopNode();
@@ -575,23 +595,83 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 			Assert.IsNotNull(bson, "BSON serialization must return a non-null string");
 			Assert.IsTrue(bson.Length > 0, "BSON string must not be empty");
 
-			// BSON deserialization is a known broken scenario: the Newtonsoft BsonDataReader
-			// round-trip cannot reconstruct SDC parent-node wiring.
-			// Assert that it throws rather than silently returning a corrupt tree.
+			// Deserialize — this SHOULD produce a structurally equivalent tree but currently
+			// fails due to the root causes described above.  Exceptions are not caught so
+			// the failure remains visible (project rule: never mask failing code paths).
 			BaseType.ResetLastTopNode();
-			try
-			{
-				var _ = TopNodeSerializer<FormDesignType>.DeserializeFromBson(bson, refreshSdc: true);
-				// If it unexpectedly succeeds in the future, verify the tree is usable.
-				Assert.IsNotNull(_, "If BSON deserialization begins working, the returned tree must not be null");
-			}
-			catch (Exception ex)
-			{
-				// Expected: document the known failure mode.
-				Assert.IsTrue(
-					ex is NullReferenceException || ex is InvalidOperationException || ex is FormatException,
-					$"BSON deserialization failed with unexpected exception type {ex.GetType().FullName}: {ex.Message}");
-			}
+			var fdRoundtrip = TopNodeSerializer<FormDesignType>.DeserializeFromBson(bson, refreshSdc: true);
+			Assert.IsNotNull(fdRoundtrip, "BSON deserialization must return a non-null FormDesignType");
+
+			// Node count must be preserved through the BSON round-trip.
+			Assert.AreEqual(originalNodeCount, fdRoundtrip.Nodes.Count,
+				$"Node count must be preserved: expected {originalNodeCount}, got {fdRoundtrip.Nodes.Count}");
+
+			// First section identity must survive the round-trip intact.
+			var rtSection = fdRoundtrip.IETnodes.OfType<SectionItemType>().First();
+			Assert.AreEqual(firstSectionId, rtSection.ID,
+				"First section ID must match after BSON round-trip");
+			Assert.AreEqual(firstSectionName, rtSection.name,
+				"First section name must match after BSON round-trip");
+
+			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
+		}
+		[TestMethod]
+		public void CloneSdcSubtreeJsonTest()
+		{
+			// Bug report: JSON round-trip fails to restore the SDC object model with fidelity.
+			// Root cause 1 (type erasure): SdcSerializerJson<T>.SerializeJson uses
+			//   JsonConvert.SerializeObject without TypeNameHandling.All.  Polymorphic SDC child
+			//   collections (ChildItemsList contains SectionItemType, QuestionItemType, etc.) are
+			//   written as plain JSON objects with no "$type" discriminator.  On deserialization,
+			//   Newtonsoft cannot select the correct concrete type and falls back to the base type
+			//   or throws JsonSerializationException.
+			// Root cause 2 (constructor): Although SdcSerializerJson<T>.DeserializeJson already
+			//   uses ConstructorHandling.AllowNonPublicDefaultConstructor, without the matching
+			//   TypeNameHandling the correct parameterless constructors for the correct concrete
+			//   types are never reached.
+			// Root cause 3 (SDC parent-node wiring): Even if type resolution were correct, a bare
+			//   JsonConvert round-trip does not re-invoke the SDC OM constructors that register
+			//   parent?child links in the ITopNode dictionaries.  The subsequent ReflectRefreshTree
+			//   call repairs this but relies on polymorphic types having been correctly restored first.
+			// Expected fix: add TypeNameHandling.All (with a custom type binder if needed for security)
+			//   to both SerializeJson and DeserializeJson in SdcSerializerJson<T>.
+			//   See BsonJsonSerializationBugReport.md for the full upstream report.
+			//
+			// This test asserts structural fidelity (node count + first-section identity), mirroring
+			// CloneSdcSubtreeMpackTest.  It will FAIL until the serializer is fixed.
+			Setup.TimerStart("==>[] Started");
+			BaseType.ResetLastTopNode();
+			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
+			var fdOriginal = FormDesignType.DeserializeFromXmlPath(path);
+
+			// Capture key structural facts from the original tree.
+			int originalNodeCount = fdOriginal.Nodes.Count;
+			var firstSectionId   = fdOriginal.IETnodes.OfType<SectionItemType>().First().ID;
+			var firstSectionName = fdOriginal.IETnodes.OfType<SectionItemType>().First().name;
+
+			// JSON serialization must produce a non-empty string.
+			BaseType.ResetLastTopNode();
+			string json = TopNodeSerializer<FormDesignType>.GetJson(fdOriginal, refreshSdc: false);
+			Assert.IsNotNull(json, "JSON serialization must return a non-null string");
+			Assert.IsTrue(json.Length > 0, "JSON string must not be empty");
+
+			// Deserialize — this SHOULD produce a structurally equivalent tree but currently
+			// fails due to the root causes described above.  Exceptions are not caught so
+			// the failure remains visible (project rule: never mask failing code paths).
+			BaseType.ResetLastTopNode();
+			var fdRoundtrip = TopNodeSerializer<FormDesignType>.DeserializeFromJson(json, refreshSdc: true);
+			Assert.IsNotNull(fdRoundtrip, "JSON deserialization must return a non-null FormDesignType");
+
+			// Node count must be preserved through the JSON round-trip.
+			Assert.AreEqual(originalNodeCount, fdRoundtrip.Nodes.Count,
+				$"Node count must be preserved: expected {originalNodeCount}, got {fdRoundtrip.Nodes.Count}");
+
+			// First section identity must survive the round-trip intact.
+			var rtSection = fdRoundtrip.IETnodes.OfType<SectionItemType>().First();
+			Assert.AreEqual(firstSectionId, rtSection.ID,
+				"First section ID must match after JSON round-trip");
+			Assert.AreEqual(firstSectionName, rtSection.name,
+				"First section name must match after JSON round-trip");
 
 			Setup.TimerPrintSeconds("  seconds: ", "\r\n<==[] Complete");
 		}
