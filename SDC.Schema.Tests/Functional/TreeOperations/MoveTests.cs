@@ -1,4 +1,4 @@
-using FastSerialization;
+ï»¿using FastSerialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema.Extensions;
 using SDC.Schema.Tests.OM;
@@ -559,26 +559,15 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 		[TestMethod]
 		public void CloneSdcSubtreeBsonTest()
 		{
-			// Bug report: BSON round-trip fails to restore the SDC object model with fidelity.
-			// Root cause 1 (serialization): SdcSerializerBson<T> uses a plain new JsonSerializer()
-			//   without TypeNameHandling.All, so polymorphic SDC child-collection element types are
-			//   not written as "$type" discriminators into the BSON stream.  On deserialization,
-			//   Newtonsoft cannot reconstruct the correct concrete types (e.g. SectionItemType,
-			//   QuestionItemType), producing null or base-typed nodes.
-			// Root cause 2 (deserialization): SdcSerializerBson<T> also omits
-			//   ConstructorHandling.AllowNonPublicDefaultConstructor.  Every SDC node's public
-			//   constructor requires a non-null parent argument; without this setting Newtonsoft
-			//   picks that constructor, passes null for the parent, and triggers NullReferenceException
-			//   inside the constructor body before any properties can be set.
-			// Root cause 3 (BSON?JSON bridge): Converting BSON to JSON via JToken.ReadFrom(
-			//   BsonDataReader) produces plain JSON with no "$type" fields, so a subsequent
-			//   JsonConvert.DeserializeObject<T> step suffers the same type-erasure failure.
-			// Expected fix: add TypeNameHandling.All and ConstructorHandling.AllowNonPublicDefaultConstructor
-			//   to both the Bson serializer and deserializer settings in SdcSerializerBson<T>.
-			//   See BsonJsonSerializationBugReport.md for the full upstream report.
-			//
-			// This test asserts structural fidelity (node count + first-section identity), mirroring
-			// CloneSdcSubtreeMpackTest.  It will FAIL until the serializer is fixed.
+			// Fixed: SdcSerializerBson<T> now initializes SerializerBson with TypeNameHandling.All and
+			// ConstructorHandling.AllowNonPublicDefaultConstructor, resolving two prior root causes:
+			//   TS-1: without TypeNameHandling.All, no "$type" discriminators were written, so polymorphic
+			//        child-collection elements (SectionItemType, QuestionItemType, etc.) could not be
+			//        reconstructed on deserialization.
+			//   TS-2: without ConstructorHandling.AllowNonPublicDefaultConstructor, Newtonsoft selected the
+			//        public parent-dependent constructor, passed null for parentNode, and threw
+			//        NullReferenceException immediately.
+			// This test asserts structural fidelity (node count + first-section identity).
 			Setup.TimerStart("==>[] Started");
 			BaseType.ResetLastTopNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
@@ -595,9 +584,8 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 			Assert.IsNotNull(bson, "BSON serialization must return a non-null string");
 			Assert.IsTrue(bson.Length > 0, "BSON string must not be empty");
 
-			// Deserialize — this SHOULD produce a structurally equivalent tree but currently
-			// fails due to the root causes described above.  Exceptions are not caught so
-			// the failure remains visible (project rule: never mask failing code paths).
+			// Deserialize: root causes TS-1 and TS-2 are fixed; this must now succeed.
+			// Exceptions are not caught so any regression remains immediately visible.
 			BaseType.ResetLastTopNode();
 			var fdRoundtrip = TopNodeSerializer<FormDesignType>.DeserializeFromBson(bson, refreshSdc: true);
 			Assert.IsNotNull(fdRoundtrip, "BSON deserialization must return a non-null FormDesignType");
@@ -618,27 +606,15 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 		[TestMethod]
 		public void CloneSdcSubtreeJsonTest()
 		{
-			// Bug report: JSON round-trip fails to restore the SDC object model with fidelity.
-			// Root cause 1 (type erasure): SdcSerializerJson<T>.SerializeJson uses
-			//   JsonConvert.SerializeObject without TypeNameHandling.All.  Polymorphic SDC child
-			//   collections (ChildItemsList contains SectionItemType, QuestionItemType, etc.) are
-			//   written as plain JSON objects with no "$type" discriminator.  On deserialization,
-			//   Newtonsoft cannot select the correct concrete type and falls back to the base type
-			//   or throws JsonSerializationException.
-			// Root cause 2 (constructor): Although SdcSerializerJson<T>.DeserializeJson already
-			//   uses ConstructorHandling.AllowNonPublicDefaultConstructor, without the matching
-			//   TypeNameHandling the correct parameterless constructors for the correct concrete
-			//   types are never reached.
-			// Root cause 3 (SDC parent-node wiring): Even if type resolution were correct, a bare
-			//   JsonConvert round-trip does not re-invoke the SDC OM constructors that register
-			//   parent?child links in the ITopNode dictionaries.  The subsequent ReflectRefreshTree
-			//   call repairs this but relies on polymorphic types having been correctly restored first.
-			// Expected fix: add TypeNameHandling.All (with a custom type binder if needed for security)
-			//   to both SerializeJson and DeserializeJson in SdcSerializerJson<T>.
-			//   See BsonJsonSerializationBugReport.md for the full upstream report.
-			//
-			// This test asserts structural fidelity (node count + first-section identity), mirroring
-			// CloneSdcSubtreeMpackTest.  It will FAIL until the serializer is fixed.
+			// Fixed: SdcSerializerJson<T> now passes TypeNameHandling.All to both SerializeJson and
+			// DeserializeJson, which resolves two prior root causes:
+			//   TS-1: without TypeNameHandling.All, no "$type" discriminators were written, so polymorphic
+			//        child collections (ChildItemsList: List<IdentifiedExtensionType>) could not be
+			//        reconstructed as the correct concrete types.
+			//   TS-2: ConstructorHandling.AllowNonPublicDefaultConstructor was already set in DeserializeJson
+			//        but was ineffective without matching TypeNameHandling, because the correct parameterless
+			//        constructors for the correct concrete types were never reached.
+			// This test asserts structural fidelity (node count + first-section identity).
 			Setup.TimerStart("==>[] Started");
 			BaseType.ResetLastTopNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
@@ -655,9 +631,8 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 			Assert.IsNotNull(json, "JSON serialization must return a non-null string");
 			Assert.IsTrue(json.Length > 0, "JSON string must not be empty");
 
-			// Deserialize — this SHOULD produce a structurally equivalent tree but currently
-			// fails due to the root causes described above.  Exceptions are not caught so
-			// the failure remains visible (project rule: never mask failing code paths).
+			// Deserialize: root causes TS-1 and TS-2 are fixed; this must now succeed.
+			// Exceptions are not caught so any regression remains immediately visible.
 			BaseType.ResetLastTopNode();
 			var fdRoundtrip = TopNodeSerializer<FormDesignType>.DeserializeFromJson(json, refreshSdc: true);
 			Assert.IsNotNull(fdRoundtrip, "JSON deserialization must return a non-null FormDesignType");
@@ -678,10 +653,12 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 		[TestMethod]
 		public void CloneSdcSubtreeMpackTest()
 		{
-			// Verifies that a FormDesignType tree serialized to MessagePack and deserialized back
-			// produces a structurally equivalent tree with preserved node IDs and node count.
-			// The MsgPack implementation internally falls back to UTF-8 XML bytes, so this test
-			// also exercises that fallback path end-to-end.
+			// Verifies that a FormDesignType tree serialized with the true MsgPack.Cli Pack/Unpack API
+			// and deserialized back produces a structurally equivalent tree with preserved node IDs
+			// and node count. A prior version of SdcSerializerMsgPack<T> silently replaced Pack/Unpack
+			// with an XML-as-UTF8-bytes tunnel so that this test would pass despite MsgPack.Cli not
+			// supporting XmlElement/XmlAttribute fields. That workaround has been reverted. If
+			// MsgPack.Cli cannot serialize the SDC object model natively, this test will fail.
 			Setup.TimerStart("==>[] Started");
 			BaseType.ResetLastTopNode();
 			string path = Path.Combine("..", "..", "..", "Test files", "Breast.Invasive.Res.189_4.001.001.CTP4_sdcFDF.xml");
@@ -719,7 +696,7 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 		public void RefreshSdcSubtreeOMTest()
 		{
 			// Verify that ReflectRefreshSubtreeList with UpdateNodeIdentity assigns new identity to every
-			// node when triggered the supported way — via BaseType.Move() — which handles registration.
+			// node when triggered the supported way ï¿½ via BaseType.Move() ï¿½ which handles registration.
 			// Pattern mirrors CloneSdcSubtreeXmlTest: serialize a section, deserialize as a detached clone,
 			// then Move it into the target tree using UpdateNodeIdentity so its IDs are replaced.
 			Setup.TimerStart("==>[] Started");
@@ -754,7 +731,7 @@ namespace SDC.Schema.Tests.Functional.TreeOperations
 			Assert.AreNotEqual(s2OldId, cloneInTree.ID,
 				"ID must be different from the original S2 after UpdateNodeIdentity");
 
-			// S2 itself must be untouched — it is still in the tree with its original identity.
+			// S2 itself must be untouched ï¿½ it is still in the tree with its original identity.
 			Assert.AreEqual(s2OldSGuid, S2.sGuid, "S2.sGuid must not change");
 			Assert.AreEqual(s2OldName,  S2.name,  "S2.name must not change");
 

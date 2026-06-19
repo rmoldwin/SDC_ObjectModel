@@ -328,6 +328,18 @@ namespace SDC.Schema.Tests.UtilityClasses.AttrMetadata
 
 				}
 			}
+
+			// Rationale: V1→V5 must produce at least one difference record (changed, moved, or new IET node),
+			// proving the comparer ran and both versions were loaded from distinct XML documents.
+			var allDifs = _comparer.GetIETattDiffs;
+			Assert.IsNotNull(allDifs, "GetIETattDiffs must not be null after comparing V1 and V5.");
+			Assert.IsTrue(allDifs.Count > 0,
+				"V1→V5 must produce at least one IET difference record.");
+			// Rationale: at least one node must show a meaningful change flag (not all nodes are identical between V1 and V5).
+			bool hasAnyChange = allDifs.Values.Any(d =>
+				d.isAttListChanged || d.isMoved || d.isNew || d.isParChanged || d.hasAddedSubNodes || d.hasRemovedSubNodes);
+			Assert.IsTrue(hasAnyChange,
+				"At least one IET node must carry a meaningful change flag between V1 and V5.");
 		}
 
 		[TestMethod()]
@@ -372,6 +384,12 @@ namespace SDC.Schema.Tests.UtilityClasses.AttrMetadata
 			InitV1V2();
 			var C = _comparer!.GetIETnodesRemovedInNew;
 
+			// Rationale: V1→V2 removes exactly 0 IET-level nodes. The one node removed between V1 and V2
+			// is a sub-IET node (parent sGuid "p-WbJKmuE0mhBc-_Y_JDNw"), verified by GetNodesRemovedInNewTest.
+			// No top-level IET node should be absent in V2 that was present in V1.
+			Assert.IsNotNull(C, "GetIETnodesRemovedInNew must return a non-null collection.");
+			Assert.AreEqual(0, C.Count,
+				$"V1→V2 must have 0 removed IET nodes; got {C.Count}.");
 		}
 		[TestMethod()]
 		public void GetIETnodesAddedInNewTest()
@@ -442,11 +460,11 @@ namespace SDC.Schema.Tests.UtilityClasses.AttrMetadata
 			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[0].aiNew?.ValueString == "Nunc non nisi a arcu tempus dapibus*****"); //Section title
 			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[1].displayName == "ReportText*****");  //Property with ReportText
 			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[2].displayName == "altText*****");  //Property with altText
-			Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[2].elementName == "Property");
+								Assert.IsTrue(nodeDifs.dlaiDif.Values.First()[2].elementName == "Property");
 
 
-        }
-	}
+				}
+			}
 }
 
 

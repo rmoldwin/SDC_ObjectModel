@@ -8,6 +8,15 @@
 - Include tests for legal and illegal ad-hoc attribute content, with proper escaping and graceful handling of illegal content.
 - Unit tests running > 1 second and functional/integration tests running > 10 seconds are considered failed and must be aborted; root cause must be identified and a fix plan presented; tests must never be allowed to enter an infinite loop.
 
+## SDC OM Serializer Architecture
+- The SDC OM serializer architecture is contained within the namespace SDC.Schema and includes the following components:
+  - `SdcSerializer<T>` uses `XmlSerializer` (System.Xml.Serialization) and handles polymorphism via approximately 150 `[XmlInclude]` attributes on `BaseType`.
+  - `SdcSerializerJson<T>` utilizes `Newtonsoft.Json`'s `JsonConvert` with `TypeNameHandling.All` and `ConstructorHandling.AllowNonPublicDefaultConstructor` for polymorphic round-trips, diverging from stock generated JSON serializers which use empty `new JsonSerializerSettings()`.
+  - `SdcSerializerBson<T>` employs `Newtonsoft.Json.JsonSerializer` with `BsonDataWriter/BsonDataReader`, which are subclasses of `JsonWriter/JsonReader`, using the same two settings as the JSON serializer but with `DefaultSerialiser = BSonSerializer` for BSON.
+  - `SdcSerializerMsgPack<T>` leverages `MsgPack.Cli`'s `MessagePackSerializer<T>.Pack/Unpack` and uses `DefaultSerialiser = MessagePackSerializer` in xsd2code++ options. The generated code follows the same template as JSON/BSON: `SaveToFile`, `LoadFromFile`, `Serialize (returns byte[])`, `Deserialize(byte[])` methods — all encapsulated in the generated class. No special settings are documented for MsgPack.
+- All SDC node classes must have a public parameterized constructor (which requires a non-null `parentNode`) and a protected/internal parameterless constructor for deserialization use only.
+- BSON bytes are stored as Base64 strings, as confirmed by official documentation. Advanced JSON settings available include DateFormatHandling, DateFormatString, DateParseHandling, DateTimeZoneHandling, DefaultValueHandling, FloatFormatHandling, FloatParseHandling, MissingMemberHandling, NullValueHandling, and StringEscapeHandling.
+
 ## Test File/Method Organization Rules
 - Stub method = [TestMethod] with no body or only a trivial lone Assert.IsNotNull(sut) with no other behavioral logic — must have _ prefix on method name.
 - Stub file = any .cs test file containing at least one stub method — must have _ prefix on filename.
@@ -23,7 +32,6 @@
 
 ## Session Continuity
 - After completing each meaningful chunk of work, proactively produce and keep up-to-date: (a) an updated conversation/work summary, (b) updated on-disk context/handoff documents, and (c) a kickstart prompt suitable for resuming in a freshly restarted session. Generate and maintain an organized plan document at the start of multi-step work, update it as each sub-activity completes, and use it as the kickstart prompt base.
-
 
 ## Git Workflow
 - When doing a git amend, always check the commit message and adjust it as needed before amending the commit.

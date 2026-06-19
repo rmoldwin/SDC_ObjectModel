@@ -32,7 +32,20 @@ namespace SDC.Schema
             {
                 if ((_serializerBson == null))
                 {
-                    _serializerBson = new JsonSerializer();
+                    // TypeNameHandling.All writes "$type" discriminators so that polymorphic SDC child-collection
+                    // elements (e.g. ChildItemsList: List<IdentifiedExtensionType>) survive the BSON round-trip
+                    // as the correct concrete types (SectionItemType, QuestionItemType, etc.).
+                    // ConstructorHandling: use protected/internal parameterless constructors so that
+                    // Newtonsoft does not invoke the public parent-dependent constructors with a null
+                    // parentNode argument, which would throw NullReferenceException immediately.
+                    // Security note: TypeNameHandling.All is safe for internal/trusted round-trips. When
+                    // accepting BSON from untrusted sources, supply a custom SerializationBinder that
+                    // whitelists only types in the SDC.Schema assembly.
+                    _serializerBson = new JsonSerializer
+                    {
+                        TypeNameHandling    = TypeNameHandling.All,
+                        ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
+                    };
                 }
                 return _serializerBson;
             }

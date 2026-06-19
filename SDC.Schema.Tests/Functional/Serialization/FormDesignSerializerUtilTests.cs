@@ -29,15 +29,22 @@ namespace SDC.Schema.Tests.Functional.Serialization
             FD = FormDesignType.DeserializeFromXml(contents);
             string myXML = FD.GetXml();
             //string myXML =  SdcSerializer<FormDesignType>.Serialize(FD); //Serialize
-            
+
             Console.WriteLine(FD.Nodes.Count());
 
             foreach(BaseType n in FD.Nodes.Values)
             { Console.WriteLine(n.GetType().ToString()); } //Only IET nodes are included in Nodes.Values.  This is a serious problem with deep ramifications.
-           
+
             foreach (BaseType n in FD.Nodes.Values) System.Diagnostics.Debug.WriteLine(n.GetType().Name +", name:"+ n.name + " , Order: " + n.order 
                 + " , ObjectID: " + n.ObjectID);
 
+            // Rationale: deserialization must produce a non-null, non-empty form with at least one registered node,
+            // and the re-serialized XML must be a non-empty, well-formed string.
+            Assert.IsNotNull(FD, "DeserializeFromXml must return a non-null FormDesignType.");
+            Assert.IsTrue(FD.Nodes.Count > 0,
+                $"Deserialized FormDesign must register at least one node; got {FD.Nodes.Count}.");
+            Assert.IsFalse(string.IsNullOrWhiteSpace(myXML),
+                "GetXml() must return non-empty XML for the deserialized form.");
         }
         //[TestMethod]
         //public void ReflectNextElementToNodes()
