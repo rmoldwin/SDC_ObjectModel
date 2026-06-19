@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SDC.Schema.Tests.OMTests
+namespace SDC.Schema.Tests.OM.ThreadSafety
 {
     [TestClass()]
     public class BaseTypeThreadSafetyTests

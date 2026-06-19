@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 
-namespace SDC.Schema.Tests.Utils
+namespace SDC.Schema.Tests.Helpers
 {
 	/// <summary>
 	/// Disable a DefaultValueAttribute, in order to force serialization of a property's data

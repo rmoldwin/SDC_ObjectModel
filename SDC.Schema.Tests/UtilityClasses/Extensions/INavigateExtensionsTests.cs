@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema.Extensions;
 
-namespace SDC.Schema.Tests.Utils.Extensions
+namespace SDC.Schema.Tests.UtilityClasses.Extensions
 {
 	[TestClass()]
 	public class INavigateExtensionsTests

@@ -5,7 +5,7 @@ using SDC.Schema.UtilityClasses.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SDC.Schema.Tests.OMTests
+namespace SDC.Schema.Tests.OM
 {
 	[TestClass()]
 	public class QuestionItemTypeTests

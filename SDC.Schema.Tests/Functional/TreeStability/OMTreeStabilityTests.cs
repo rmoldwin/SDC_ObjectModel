@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SDC.Schema.Tests.Functional
+namespace SDC.Schema.Tests.Functional.TreeStability
 {
     /// <summary>
     /// Functional tests for SDC object model tree stability under complex mutation scenarios.

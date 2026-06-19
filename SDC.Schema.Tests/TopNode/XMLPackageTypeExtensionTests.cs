@@ -3,7 +3,7 @@
 namespace SDC.Schema.Tests.TopNode
 {
 	[TestClass]
-	public class XMLPackagetTypeExtensionTests
+	public class XMLPackageTypeExtensionTests
 	{
 		[TestMethod]
 		public void XMLPackageType_DefaultCollections_AreNull()

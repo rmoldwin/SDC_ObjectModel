@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema.Extensions;
 
-namespace SDC.Schema.Tests.OMTests
+namespace SDC.Schema.Tests.OM
 {
 	[TestClass()]
 	public class DisplayedTypeTests

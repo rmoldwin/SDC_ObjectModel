@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace SDC.Schema.Tests.Utils.Extensions
+namespace SDC.Schema.Tests.UtilityClasses.Extensions
 {
     /// <summary>
     /// Output-heavy diagnostic tests designed for manual review of printed results.

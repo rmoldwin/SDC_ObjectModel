@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SDC.Schema.Tests.Functional
+namespace SDC.Schema.Tests.Functional.TreeOperations
 {
 	[TestClass]
 	public class ChangeTypeTests

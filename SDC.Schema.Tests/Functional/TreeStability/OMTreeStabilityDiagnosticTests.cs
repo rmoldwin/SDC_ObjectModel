@@ -2,7 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SDC.Schema.Extensions;
 using SDC.Schema.Tests.Helpers;
 
-namespace SDC.Schema.Tests.Functional
+namespace SDC.Schema.Tests.Functional.TreeStability
 {
     /// <summary>
     /// Diagnostic tests to isolate the cause of test execution crashes.

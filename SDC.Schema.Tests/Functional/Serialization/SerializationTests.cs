@@ -6,7 +6,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace SDC.Schema.Tests.Functional
+namespace SDC.Schema.Tests.Functional.Serialization
 {
 	[TestClass]
 	public class _SerializationTests

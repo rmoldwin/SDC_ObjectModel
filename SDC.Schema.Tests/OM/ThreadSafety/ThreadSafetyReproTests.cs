@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SDC.Schema.Tests.OMTests
+namespace SDC.Schema.Tests.OM.ThreadSafety
 {
     /// <summary>
     /// SAFE, BOUNDED reproduction harness for the SDC object-model concurrency root causes

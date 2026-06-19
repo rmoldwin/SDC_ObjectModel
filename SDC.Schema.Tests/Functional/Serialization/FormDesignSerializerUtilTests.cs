@@ -13,7 +13,7 @@ using System.Diagnostics;
 //using N = SDC.Type.NewUtils;
 //using U = SDC.Type.NewUtils.SdcUtil;
 
-namespace SDC.Schema.Tests.Functional
+namespace SDC.Schema.Tests.Functional.Serialization
 {
     [TestClass]
     public class FormDesignSerializerUtilTests

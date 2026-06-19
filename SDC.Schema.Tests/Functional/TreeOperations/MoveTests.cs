@@ -13,7 +13,7 @@ using System.Xml.Serialization;
 
 //using SDC.Schema;
 
-namespace SDC.Schema.Tests.Functional
+namespace SDC.Schema.Tests.Functional.TreeOperations
 {
 	[TestClass]
 	public class MoveTests

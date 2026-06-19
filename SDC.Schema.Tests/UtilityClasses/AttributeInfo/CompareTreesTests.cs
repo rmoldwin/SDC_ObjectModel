@@ -16,7 +16,7 @@ using System.Threading.Channels;
 using static System.Collections.Specialized.BitVector32;
 using System.Xml.Linq;
 
-namespace SDC.Schema.Tests.Utils
+namespace SDC.Schema.Tests.UtilityClasses.AttributeInfo
 {
 	[TestClass()]
 	public class CompareTreesTests

@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SDC.Schema.Tests.Utils
+namespace SDC.Schema.Tests.UtilityClasses
 {
 	[TestClass()]
 	public class PropertyInfoOrderedComparerTests

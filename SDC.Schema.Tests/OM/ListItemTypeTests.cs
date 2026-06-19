@@ -2,7 +2,7 @@
 using SDC.Schema;
 using SDC.Schema.Extensions;
 
-namespace SDC.Schema.Tests.OMTests
+namespace SDC.Schema.Tests.OM
 {
 	[TestClass()]
 	public class ListItemTypeTests

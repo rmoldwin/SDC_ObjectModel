@@ -11,7 +11,7 @@ using System.Xml;
 
 //using SDC.Schema;
 
-namespace SDC.Schema.Tests.Functional
+namespace SDC.Schema.Tests.Functional.Serialization
 {
 	[TestClass]
 	public class SdcSerializationTests

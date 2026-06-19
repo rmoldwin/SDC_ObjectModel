@@ -3,7 +3,7 @@ using SDC.Schema;
 using SDC.Schema.Extensions;
 using System.Linq;
 
-namespace SDC.Schema.Tests.Utils.Extensions
+namespace SDC.Schema.Tests.UtilityClasses.Extensions
 {
 
 	[TestClass()]
