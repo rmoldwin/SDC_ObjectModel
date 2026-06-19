@@ -217,15 +217,128 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
         }
 
         /// <summary>
-        /// TS-6 reproduction: cross-tree Move() has no ordered dual-write-lock, creating an AB/BA deadlock
-        /// risk when two threads simultaneously move nodes between the same pair of trees in opposite directions.
+        /// TS-6 reproduction: <see cref="Move"/> performs source-list removal
+        /// (<c>objList.Remove</c>) and target-list insertion (<c>propList.Add</c>) with NO outer
+        /// lock, so concurrent calls from different threads race on the same <see cref="List{T}"/>
+        /// backing arrays.
         ///
-        /// Thread A: moves a node from tree1 into tree2 (acquires tree1-write, then tree2-write).
-        /// Thread B: moves a node from tree2 into tree1 (acquires tree2-write, then tree1-write).
-        /// Without a deterministic lock-ordering rule this is a classic AB/BA deadlock.
-        /// A <see cref="Barrier"/> aligns the two threads so they attempt the moves simultaneously.
+        /// Setup: one <see cref="DataElementType"/> tree; <c>THREADS × NodesPerThread</c>
+        /// <see cref="DisplayedType"/> nodes are pre-created single-threaded under a single source
+        /// <see cref="ChildItemsType"/>. Each of the <c>THREADS</c> dedicated threads then moves
+        /// its assigned slice of nodes to a shared target <see cref="ChildItemsType"/>.
+        /// All threads start simultaneously via a <see cref="Barrier"/>.
         ///
-        /// GATE: if the fix is correct, both moves complete within WATCHDOG_MS and no exceptions are thrown.
+        /// The concurrent <c>List&lt;T&gt;.Remove</c> on the source list and concurrent
+        /// <c>List&lt;T&gt;.Add</c> on the target list race on the non-thread-safe backing array,
+        /// causing items to be lost, overwritten, or miscounted.
+        ///
+        /// NOTE: <see cref="MoveInDictionaries"/> (step 4 of Move) DOES acquire a
+        /// <see cref="WriteLockScope"/> — but that lock protects only the per-tree dictionaries,
+        /// NOT the IList operations in steps 2–3. The lock in step 4 therefore provides zero
+        /// protection for the races in steps 2–3.
+        ///
+        /// EXPECTED TO FAIL on unfixed code (TS-6). Do not weaken or suppress the assertions;
+        /// they become the regression gate once Move() wraps its IList mutations in a write lock.
+        /// </summary>
+        [TestMethod()]
+        [TestCategory("ThreadSafetyRepro")]
+        [Timeout(12000)]
+        public void Repro_ConcurrentMoves_UnprotectedListMutations_CorruptListIntegrity()
+        {
+            const int NodesPerThread = 10;
+            int totalNodes = THREADS * NodesPerThread;
+
+            // Arrange: one tree; all source nodes pre-created single-threaded under one ChildItemsType.
+            // Single-threaded construction avoids contaminating this probe with TS-2/TS-3 races.
+            BaseType.ResetLastTopNode();
+            var de = new DataElementType(null);
+            var sourceSection = new SectionItemType(de, "S.Source");
+            var sourceChildren = sourceSection.GetChildItemsNode();
+            var targetSection = new SectionItemType(de, "S.Target");
+            var targetChildren = targetSection.GetChildItemsNode();
+
+            var nodes = Enumerable.Range(0, totalNodes)
+                .Select(i => (IdentifiedExtensionType)new DisplayedType(sourceChildren, $"DI.Src_{i}"))
+                .ToList();
+
+            int nodesBeforeMove = de.Nodes.Count;
+
+            var exceptions = new ConcurrentBag<Exception>();
+            using var startBarrier = new Barrier(THREADS);
+
+            // Act: each thread moves its NodesPerThread assigned nodes simultaneously.
+            // Step 2 (objList.Remove) and step 3 (propList.Add) inside MoveSingleNode() are
+            // the unprotected TS-6 race surface — no lock guards them.
+            bool finished = RunBoundedThreads(THREADS, t =>
+            {
+                startBarrier.SignalAndWait();
+                for (int k = 0; k < NodesPerThread; k++)
+                {
+                    try { nodes[t * NodesPerThread + k].Move(targetChildren, -1, false); }
+                    catch (Exception ex) { exceptions.Add(ex); }
+                }
+            }, out var elapsed);
+
+            if (!finished)
+                Assert.Inconclusive(
+                    $"WATCHDOG TRIPPED after {WATCHDOG_MS} ms — possible stall on TS-6 race surface.");
+
+            // Post-join single-threaded inspection (safe): check both object-tree (IList) and
+            // dictionary perspectives.
+            int sourceListCount  = sourceChildren.ChildItemsList?.Count ?? 0;
+            int targetListCount  = targetChildren.ChildItemsList?.Count ?? 0;
+            int sourceRemaining  = de.Nodes.Values.Count(n => n.ParentNode == (BaseType)sourceChildren);
+            int targetLanded     = de.Nodes.Values.Count(n => n.ParentNode == (BaseType)targetChildren);
+            int nodesAfterMove   = de.Nodes.Count;
+            bool targetHasNulls  = targetChildren.ChildItemsList?.Any(n => n is null) ?? false;
+
+            Console.WriteLine(
+                $"[TS-6] threads={THREADS} nodesPerThread={NodesPerThread} totalNodes={totalNodes} " +
+                $"nodesBeforeMove={nodesBeforeMove} nodesAfterMove={nodesAfterMove} " +
+                $"sourceListCount={sourceListCount} targetListCount={targetListCount} " +
+                $"sourceRemaining(dict)={sourceRemaining} targetLanded(dict)={targetLanded} " +
+                $"targetHasNulls={targetHasNulls} exceptions={exceptions.Count} " +
+                $"elapsed={elapsed.TotalMilliseconds:F0}ms");
+
+            // Assert (thread-safe expectation): all nodes move cleanly — none lost, none duplicated,
+            // no null holes in the target list, no exceptions.
+            // Bug fix comment: these assertions DEFINE the correct post-fix contract AND EXPOSE
+            // TS-6 corruption on unfixed code via concurrent unserialized List<T> mutations.
+            Assert.AreEqual(0, exceptions.Count,
+                $"TS-6 CONFIRMED: {exceptions.Count} exception(s) thrown during concurrent Move() calls. " +
+                $"Cause: objList.Remove / propList.Add in MoveSingleNode() hold no lock. " +
+                $"Fix: wrap both IList mutations in a WriteLockScope over the full source+target operation.");
+
+            Assert.AreEqual(0, sourceListCount,
+                $"TS-6 CONFIRMED: source ChildItemsList.Count={sourceListCount} (expected 0). " +
+                $"Concurrent List.Remove() left {sourceListCount} item(s) in the source list.");
+
+            Assert.AreEqual(totalNodes, targetListCount,
+                $"TS-6 CONFIRMED: target ChildItemsList.Count={targetListCount} (expected {totalNodes}). " +
+                $"Concurrent List.Add() lost or duplicated {totalNodes - targetListCount} item(s) on the target list.");
+
+            Assert.IsFalse(targetHasNulls,
+                "TS-6 CONFIRMED: target ChildItemsList contains null entries — " +
+                "concurrent List<T> backing-array corruption left null holes in the target list.");
+
+            Assert.AreEqual(nodesBeforeMove, nodesAfterMove,
+                $"TS-6 CONFIRMED: total node count changed from {nodesBeforeMove} to {nodesAfterMove}. " +
+                $"Concurrent Move() mutations left the tree dictionaries inconsistent.");
+        }
+
+        /// <summary>
+        /// TS-6 deadlock probe (distinct from the list-integrity probe above): two threads move
+        /// nodes between the same tree-pair in OPPOSITE directions simultaneously.
+        ///
+        /// Thread A: moves node from fd1 → fd2; Thread B: moves node from fd2 → fd1.
+        ///
+        /// NOTE: with the CURRENT (unfixed) implementation, <see cref="Move"/> acquires each tree's
+        /// write lock separately (UnRegisterAll on the source, then RegisterAll on the target) and
+        /// RELEASES each lock before acquiring the next. Because no thread holds two locks
+        /// simultaneously, the classic AB/BA deadlock does NOT occur here — this test PASSES on
+        /// unfixed code. Its role is to act as a NON-REGRESSION gate: after the TS-6 fix introduces
+        /// a true dual-lock (both trees locked simultaneously in GUID order), this test ensures that
+        /// the fix itself does not introduce a new deadlock.
         /// </summary>
         [TestMethod()]
         [TestCategory("ThreadSafetyRepro")]
@@ -269,15 +382,16 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
                 }
             }, out var elapsed);
 
-            // Watchdog: a trip here is the AB/BA deadlock signal.
-            Console.WriteLine($"[TS-6] finished={finished} exceptions={exceptions.Count} elapsed={elapsed.TotalMilliseconds:F0}ms");
+            // Watchdog: a trip after TS-6 fix is introduced means the fix itself created a deadlock.
+            Console.WriteLine($"[TS-6 deadlock probe] finished={finished} exceptions={exceptions.Count} elapsed={elapsed.TotalMilliseconds:F0}ms");
 
             Assert.IsTrue(finished,
-                $"TS-6 CONFIRMED DEADLOCK: concurrent cross-tree Move() did not complete within {WATCHDOG_MS} ms. " +
-                $"Cause: no ordered dual-write-lock in Move(). Fix: acquire both trees' write locks in GUID order.");
+                $"TS-6 FIX INTRODUCED DEADLOCK: concurrent opposite-direction cross-tree Move() did not complete within " +
+                $"{WATCHDOG_MS} ms. Check that dual-lock acquisition uses a consistent GUID-order and never holds " +
+                $"both locks across an await or a re-entrant call path.");
 
             Assert.AreEqual(0, exceptions.Count,
-                $"TS-6: unexpected exception(s) during concurrent cross-tree Move(): " +
+                $"TS-6 deadlock probe: unexpected exception(s) during concurrent cross-tree Move(): " +
                 $"'{exceptions.FirstOrDefault()?.GetType().Name}: {exceptions.FirstOrDefault()?.Message}'");
         }
     }
