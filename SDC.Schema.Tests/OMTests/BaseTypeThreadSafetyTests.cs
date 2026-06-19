@@ -259,34 +259,50 @@ namespace SDC.Schema.Tests.OMTests
         [TestMethod()]
         public void ItemsMutator_StressTestCollectionModificationDuringEnumeration()
         {
-            // Rationale: Even with array snapshots, if multiple threads call ItemsMutator on overlapping
-            // node sets, the underlying collections could be modified during another thread's enumeration.
+            // TS-2 fix verification: ItemsMutator acquires WriteLockScope(TreeRwLock) before any
+            // remove/move work, serialising all concurrent ChildItemsList assignments on the same tree.
+            //
+            // NOTE on test design:
+            // (a) Node instances must be unique per thread — a BaseType node has exactly one parent;
+            //     sharing the *same node reference* across concurrent mutations violates the SDC object
+            //     model invariant and produces "ParentNode cannot be null" regardless of locking.
+            // (b) Node *construction* (new DisplayedType(parent, ...)) is NOT safe to parallelise
+            //     against the same parent tree — concurrent construction races on shared tree infrastructure
+            //     (TryAttachNewNode, AssignGuid, dictionary registration). That is a separate TS item.
+            //     Therefore all nodes are pre-created single-threaded in the setup phase below.
+            // (c) Only the ChildItemsList *assignment* phase is parallelised. That is the actual
+            //     TS-2 concern: concurrent callers swapping list references on the same ChildItemsType
+            //     node must be safe once WriteLockScope serialises the mutations.
+
             BaseType.ResetLastTopNode();
             var de = new DataElementType(null);
             var section = new SectionItemType(de, "S.Shared");
             var children = section.GetChildItemsNode();
 
-            // Seed with initial nodes
-            var sharedNodes = Enumerable.Range(0, 20)
-                .Select(i => new DisplayedType(de, $"DI.Shared{i}"))
+            const int Iterations = 10;
+            const int NodesPerList = 5;
+
+            // Pre-create all per-thread, per-iteration node lists single-threaded.
+            // Each node is attached to 'de' as its initial parent; ItemsMutator.Move() will
+            // re-parent each node to 'children' when the list is first assigned.
+            var threadLists = Enumerable.Range(0, CONCURRENT_THREADS)
+                .Select(i => Enumerable.Range(0, Iterations)
+                    .Select(j => Enumerable.Range(0, NodesPerList)
+                        .Select(k => (IdentifiedExtensionType)new DisplayedType(de, $"DI.T{i}J{j}K{k}"))
+                        .ToList())
+                    .ToList())
                 .ToList();
-            children.ChildItemsList = new List<IdentifiedExtensionType>(sharedNodes);
 
             var exceptions = new ConcurrentBag<Exception>();
 
-            // Multiple threads simultaneously try to replace the list with overlapping node sets
+            // Stress only the assignment phase; construction is already done above.
+            // All threads target the same ChildItemsType node; WriteLockScope must serialise them.
             Parallel.For(0, CONCURRENT_THREADS, i =>
             {
                 try
                 {
-                    for (int j = 0; j < 50; j++)
-                    {
-                        // Each replacement shares some nodes with the original list
-                        var newList = sharedNodes.Skip((int)i).Take(10)
-                            .Cast<IdentifiedExtensionType>()
-                            .ToList();
-                        children.ChildItemsList = newList;
-                    }
+                    for (int j = 0; j < Iterations; j++)
+                        children.ChildItemsList = threadLists[i][j];
                 }
                 catch (Exception ex)
                 {
@@ -294,17 +310,11 @@ namespace SDC.Schema.Tests.OMTests
                 }
             });
 
-            if (exceptions.Any())
-            {
-                // Expected: This should expose race conditions in the current implementation
-                Assert.Inconclusive($"Race conditions detected (expected for non-thread-safe code): " +
-                    $"{exceptions.Count} exceptions. First: {exceptions.First().Message}");
-            }
-            else
-            {
-                // If no exceptions occurred, either we got lucky or the code has some implicit protection
-                Assert.Inconclusive("No race conditions detected in stress test, but code is not explicitly thread-safe");
-            }
+            // TS-2 fix: WriteLockScope in ItemsMutator must prevent all concurrent-access exceptions.
+            Assert.AreEqual(0, exceptions.Count,
+                $"TS-2 REGRESSION: {exceptions.Count} exception(s) under concurrent ChildItemsList " +
+                $"assignment. ItemsMutator.WriteLockScope must serialise all mutations. " +
+                $"First: {exceptions.FirstOrDefault()?.Message}");
         }
 
         #endregion

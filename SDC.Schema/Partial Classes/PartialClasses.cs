@@ -389,7 +389,7 @@ namespace SDC.Schema
 			{ return Items; }
 			set
 			{
-				Items = ItemsMutator(Items, value);
+				Items = ItemsMutator(() => Items, value);
 			}
 		}
 		HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
@@ -1566,7 +1566,7 @@ namespace SDC.Schema
 			{return this.Items; }
 			set
 			{
-				Items = ItemsMutator(Items, value);
+				Items = ItemsMutator(() => Items, value);
 			}
 		}
 	}
@@ -2313,31 +2313,38 @@ namespace SDC.Schema
 		/// A method to update ITopNode dictionaries, if needed, when setting values in SDC property lists.
 		/// 
 		/// </summary>
-		/// <typeparam name="L">A generic List type for <b><paramref name="itemsListOld"/></b> and <b><paramref name="valueListNew"/></b></typeparam>
-		/// <typeparam name="T">The type held by <paramref name="itemsListOld"/> and <paramref name="valueListNew"/></typeparam>
-		/// <param name="itemsListOld">The current source List to be repaced by <paramref name="valueListNew"/>.  This List is often named "Items"</param>
-		/// <param name="valueListNew">The incoming List to replace <paramref name="itemsListOld"/></param>
-		protected List<T>? ItemsMutator<T> (List<T>? itemsListOld, List<T>? valueListNew)
-			//where L : List<T>?  //the List is often null
+		/// <typeparam name="T">The type held by the old and new lists.</typeparam>
+		/// <param name="itemsListOldGetter">
+		/// A getter delegate that returns the current (old) list value.
+		/// It is evaluated <em>inside</em> the <see cref="WriteLockScope"/> so that the snapshot of the
+		/// old list is always consistent with the tree state at mutation time, eliminating the TOCTOU race
+		/// that occurs when the caller evaluates <c>Items</c> before the lock is held and a concurrent
+		/// thread has already deregistered those nodes in the meantime (TS-2 fix).
+		/// </param>
+		/// <param name="valueListNew">The incoming List to replace the old list.</param>
+		protected List<T>? ItemsMutator<T> (Func<List<T>?> itemsListOldGetter, List<T>? valueListNew)
 			where T : BaseType  //we do not allow nulls in the list
 		{
-			if(itemsListOld == valueListNew)
-				return valueListNew;  //this will prevent running RemoveRecursive when we are reassigning the same object.
-
 			// Thread-safety: TS-2 — acquire the per-tree WriteLockScope so that FindRootNode (which reads
 			// _ParentNodes) cannot observe a concurrent write from another thread, preventing a false
 			// sameRoot=false result that would take the wrong UpdateNodeIdentity path and throw from UnRegisterAll.
 			// WriteLockScope uses SupportsRecursion, so nested RegisterAll/UnRegisterAll write scopes are safe.
+			// The old-list getter is evaluated inside the lock (not before) to close the TOCTOU gap: without
+			// this, Thread B could capture Items *before* Thread A's mutation finishes, then attempt to remove
+			// nodes that Thread A already deregistered (ParentNode → null → "ParentNode cannot be null").
 			var rw = TopNode is _ITopNode itn ? itn.TreeRwLock : null;
 			if (rw is not null)
 			{
 				using var _writeLock = new WriteLockScope(rw);
-				return DoMutate();
+				return DoMutate(itemsListOldGetter());
 			}
-			return DoMutate();
+			return DoMutate(itemsListOldGetter());
 
-			List<T>? DoMutate()
+			List<T>? DoMutate(List<T>? itemsListOld)
 				{
+					if (itemsListOld == valueListNew)
+						return valueListNew;  //this will prevent running RemoveRecursive when we are reassigning the same object.
+
 					// Bug fix TS-4: compute the intersection of the old and new lists so that nodes appearing
 					// in both are neither removed nor re-moved.  Previously, RemoveRecursive was called on every
 					// node in itemsListOld (including nodes that also appear in valueListNew), which fully
@@ -2381,7 +2388,7 @@ namespace SDC.Schema
 							}
 							return valueListNew;
 						}
-						throw new InvalidOperationException($"The supplied {nameof(valueListNew)} could not be used to set {nameof(itemsListOld)}.");
+						throw new InvalidOperationException($"The supplied {nameof(valueListNew)} could not be used to set the old list.");
 					}
 					return null; //value will be allowed to have a null value until compiler null-checking is enabled globally, and we can reliably exclude all nulls from this method at compile time and runtime
 				}
@@ -2647,7 +2654,7 @@ namespace SDC.Schema
 			get { return this.Items; } 
 			set
 			{
-				Items = ItemsMutator(Items, value);
+				Items = ItemsMutator(() => Items, value);
 			}
 		}
 	}
@@ -4898,7 +4905,7 @@ namespace SDC.Schema
 			{ return Items; } 
 			set
 			{
-				Items = ItemsMutator(Items, value);
+				Items = ItemsMutator(() => Items, value);
 			}
 		}
 	}
@@ -4969,13 +4976,13 @@ namespace SDC.Schema
 		}
 
 		internal List<ExtensionBaseType> Email_Phone_WebSvc_List
-	{
-		get { return this.Items; }
-		set
 		{
-			Items = ItemsMutator(Items, value);
+			get { return this.Items; }
+			set
+			{
+				Items = ItemsMutator(() => Items, value);
+			}
 		}
-	}
 	}
 	public partial class ActSendMessageType
 	{
@@ -5005,7 +5012,7 @@ namespace SDC.Schema
 
 			set
 			{
-				Items = ItemsMutator(Items, value);
+				Items = ItemsMutator(() => Items, value);
 			}
 		}
 	}
