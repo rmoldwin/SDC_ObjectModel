@@ -213,7 +213,72 @@ namespace SDC.Schema.Tests.OMTests
 
             Assert.AreEqual(attempted, registeredChildren,
                 $"TS-2/TS-4 CONFIRMED: expected {attempted} correctly-parented children but found {registeredChildren}. " +
-                $"Lost/misparented nodes indicate concurrent collection corruption.");
+                "Lost/misparented nodes indicate concurrent collection corruption.");
+        }
+
+        /// <summary>
+        /// TS-6 reproduction: cross-tree Move() has no ordered dual-write-lock, creating an AB/BA deadlock
+        /// risk when two threads simultaneously move nodes between the same pair of trees in opposite directions.
+        ///
+        /// Thread A: moves a node from tree1 into tree2 (acquires tree1-write, then tree2-write).
+        /// Thread B: moves a node from tree2 into tree1 (acquires tree2-write, then tree1-write).
+        /// Without a deterministic lock-ordering rule this is a classic AB/BA deadlock.
+        /// A <see cref="Barrier"/> aligns the two threads so they attempt the moves simultaneously.
+        ///
+        /// GATE: if the fix is correct, both moves complete within WATCHDOG_MS and no exceptions are thrown.
+        /// </summary>
+        [TestMethod()]
+        [TestCategory("ThreadSafetyRepro")]
+        [Timeout(12000)]
+        public void Repro_ConcurrentCrossTreeMoves_DoNotDeadlock()
+        {
+            // Arrange: two separate FormDesign trees, each with a movable node.
+            BaseType.ResetLastTopNode();
+            var fd1 = FormDesignType.DeserializeFromXml(Setup.GetXml());
+
+            BaseType.ResetLastTopNode();
+            var fd2 = FormDesignType.DeserializeFromXml(Setup.GetXml());
+
+            // Pick one leaf IET node from each tree to move cross-tree.
+            var nodeFromFd1 = fd1.IETnodes.LastOrDefault(n => n is DisplayedType);
+            var nodeFromFd2 = fd2.IETnodes.LastOrDefault(n => n is DisplayedType);
+
+            if (nodeFromFd1 is null || nodeFromFd2 is null)
+                Assert.Inconclusive("Could not find a suitable DisplayedType node in one or both trees.");
+
+            var targetInFd2 = fd2.IETnodes.FirstOrDefault(n => n is SectionItemType) as BaseType ?? (BaseType)fd2;
+            var targetInFd1 = fd1.IETnodes.FirstOrDefault(n => n is SectionItemType) as BaseType ?? (BaseType)fd1;
+
+            var exceptions = new ConcurrentBag<Exception>();
+            using var startBarrier = new Barrier(2);
+
+            // Act: two threads cross-move simultaneously (AB/BA lock pattern if unordered).
+            bool finished = RunBoundedThreads(2, t =>
+            {
+                startBarrier.SignalAndWait(); // align for maximum contention
+                try
+                {
+                    if (t == 0)
+                        nodeFromFd1.Move(targetInFd2, -1, false, SdcUtil.RefreshMode.UpdateNodeIdentity);
+                    else
+                        nodeFromFd2.Move(targetInFd1, -1, false, SdcUtil.RefreshMode.UpdateNodeIdentity);
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(ex);
+                }
+            }, out var elapsed);
+
+            // Watchdog: a trip here is the AB/BA deadlock signal.
+            Console.WriteLine($"[TS-6] finished={finished} exceptions={exceptions.Count} elapsed={elapsed.TotalMilliseconds:F0}ms");
+
+            Assert.IsTrue(finished,
+                $"TS-6 CONFIRMED DEADLOCK: concurrent cross-tree Move() did not complete within {WATCHDOG_MS} ms. " +
+                $"Cause: no ordered dual-write-lock in Move(). Fix: acquire both trees' write locks in GUID order.");
+
+            Assert.AreEqual(0, exceptions.Count,
+                $"TS-6: unexpected exception(s) during concurrent cross-tree Move(): " +
+                $"'{exceptions.FirstOrDefault()?.GetType().Name}: {exceptions.FirstOrDefault()?.Message}'");
         }
     }
 }

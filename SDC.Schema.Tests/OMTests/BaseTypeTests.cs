@@ -44,75 +44,9 @@ namespace SDC.Schema.Tests.OMTests
 			Assert.IsFalse(moved);
 		}
 
-		[TestMethod()]
-		public void GetNodeFirstSibTest()
-		{
-			var (_, first, middle, _) = CreateSiblingFixture();
-			Assert.AreSame(first, middle.GetNodeFirstSib());
-		}
-
-		[TestMethod()]
-		public void GetNodeLastSibTest()
-		{
-			var (_, _, middle, last) = CreateSiblingFixture();
-			Assert.AreSame(last, middle.GetNodeLastSib());
-		}
-
-		[TestMethod()]
-		public void GetNodePreviousSibTest()
-		{
-			var (_, first, middle, _) = CreateSiblingFixture();
-			Assert.AreSame(first, middle.GetNodePreviousSib());
-		}
-
-		[TestMethod()]
-		public void GetNodeNextSibTest()
-		{
-			var (_, _, middle, last) = CreateSiblingFixture();
-			Assert.AreSame(last, middle.GetNodeNextSib());
-		}
-
-		[TestMethod()]
-		public void GetNodePreviousTest()
-		{
-			var (_, _, middle, _) = CreateSiblingFixture();
-			Assert.IsNotNull(middle.GetNodePrevious());
-		}
-
-		[TestMethod()]
-		public void GetNodeNextTest()
-		{
-			var (_, _, middle, _) = CreateSiblingFixture();
-			Assert.IsNotNull(middle.GetNodeNext());
-		}
-
-		[TestMethod()]
-		public void GetNodeFirstChildTest()
-		{
-			var (fd, _, _, _) = CreateSiblingFixture();
-			Assert.IsNotNull(fd.GetNodeFirstChild());
-		}
-
-		[TestMethod()]
-		public void GetNodeLastChildTest()
-		{
-			var (fd, _, _, _) = CreateSiblingFixture();
-			Assert.IsNotNull(fd.GetNodeLastChild());
-		}
-
-		[TestMethod()]
-		public void GetNodeLastDescendantTest()
-		{
-			var (fd, _, _, _) = CreateSiblingFixture();
-			Assert.IsNotNull(fd.GetNodeLastDescendant());
-		}
-
-		[TestMethod()]
-		public void GetPropertyInfoTest()
-		{
-			var (_, _, middle, _) = CreateSiblingFixture();
-			Assert.IsNotNull(middle.GetPropertyInfoMetaData(middle.ParentNode));
-		}
+		// Navigation tests (GetNodeFirstSib, GetNodeLastSib, GetNodePreviousSib, GetNodeNextSib,
+		// GetNodePrevious, GetNodeNext, GetNodeFirstChild, GetNodeLastChild, GetNodeLastDescendant,
+		// GetPropertyInfo) are covered in INavigateExtensionsTests.cs to avoid duplication.
 
 		[TestMethod()]
 		public void SetNamesTest()

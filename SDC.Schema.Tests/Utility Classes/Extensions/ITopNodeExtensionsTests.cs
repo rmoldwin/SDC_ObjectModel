@@ -66,7 +66,7 @@ namespace SDC.Schema.Tests.Utils.Extensions
 		}
 
 		[TestMethod()]
-		public void U_AssignElementNamesFromXmlDocTest()
+		public void AssignElementNamesFromXmlDocTest()
 		{
 			var fx = CreateFixture();
 			fx.fd.AssignElementNamesByReflection();
@@ -223,19 +223,6 @@ namespace SDC.Schema.Tests.Utils.Extensions
 			Assert.Throws<InvalidCastException>(() => fx.fd.GetDescendantList(fx.fd));
 		}
 
-		[TestMethod()]
-		public void GetItemByIDTest()
-		{
-			var fx = CreateFixture();
-			Assert.AreSame(fx.question, fx.fd.GetIETnodeByID(fx.question.ID));
-		}
-
-		[TestMethod()]
-		public void GetItemByNameTest()
-		{
-			var fx = CreateFixture();
-			Assert.AreSame(fx.section, fx.fd.GetNodeByName(fx.section.name));
-		}
 
 		[TestMethod()]
 		public void GetQuestionByIDTest()

@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SDC.Schema;
 using SDC.Schema.Extensions;
 
 namespace SDC.Schema.Tests.OMTests
@@ -121,6 +122,58 @@ namespace SDC.Schema.Tests.OMTests
 			Assert.IsNull(li.GetChildItemsList());
 			li.AddChildSection("S1", "Section", 0);
 			Assert.IsTrue((li.GetChildItemsList()?.Count ?? 0) > 0);
+		}
+
+		/// <summary>
+		/// Verifies the full ListItemResponse add-and-manipulate path, including setting a typed value
+		/// on the data node and using <c>GetListItemByName</c> to look up the LIR node from the parent.
+		/// Rationale: exercises the coded-rule lookup scenario where the response value determines selection state.
+		/// </summary>
+		[TestMethod()]
+		public void AddListItemResponseField_WithResponseManipulation()
+		{
+			var de = new DataElementType(null);
+			var q = new QuestionItemType(de, "q");
+			de.Items.Add(q);
+			var li = q.AddListItem("li");
+			li.name = "li_Name";
+			var rf = li.AddListItemResponseField();
+			Assert.IsNotNull(rf);
+
+			var lir = q.AddListItemResponse("lir", out var dt,
+				"lir_Title", -1, ItemChoiceType.@string);
+			lir.name = "lir_Name";
+			var myStr = (string_DEtype)dt.Item;
+			myStr.val = "test";
+			myStr.maxLength = 4000;
+
+			// Simulate a coded rule: if the string value is non-empty, mark as selected.
+			var findLI = de.GetListItemByName("lir_Name");
+			var dtLIR = findLI?.GetResponseDataTypeNode() as string_DEtype;
+			if (dtLIR?.val is not null && !dtLIR.val.IsNullOrWhitespace())
+				lir.selected = true;
+
+			// Rationale: the LIR node must be findable by name and the selection flag must be set.
+			Assert.IsNotNull(findLI, "GetListItemByName must return the LIR node by its assigned name.");
+			Assert.IsTrue(lir.selected, "LIR must be marked selected when coded-rule condition is met.");
+		}
+
+		/// <summary>
+		/// Verifies AddChildQuestionResponse on a ListItemType using an explicit second QuestionItemType
+		/// to confirm the response inherits the correct parent (the LI, not the auxiliary question).
+		/// </summary>
+		[TestMethod()]
+		public void AddChildQuestionResponseTest_ViaExplicitParentQuestion()
+		{
+			var de = new DataElementType(null);
+			var q = new QuestionItemType(de, "q");
+			var li = q.AddListItem("li");
+			// q2 is constructed but not used as a parent — only li.AddChildQuestionResponse is tested.
+			var q2 = new QuestionItemType(de) { ID = "QuestionResponseId", title = "This is a test question" };
+			var qr = li.AddChildQuestionResponse("myID", out _, "", 1, ItemChoiceType.@string, "", "", dtQuantEnum.EQ, "");
+			// Rationale: the returned node must be non-null; parent must be the LI, not q2.
+			Assert.IsNotNull(qr);
+			Assert.AreSame(li, qr.ParentNode);
 		}
 	}
 }
