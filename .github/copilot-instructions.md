@@ -35,4 +35,6 @@
 
 ## Git Workflow
 - When doing a git amend, always check the commit message and adjust it as needed before amending the commit.
+- `GIT_TERMINAL_PROMPT=0` is set in the PowerShell profile and must remain set; this suppresses Git's interactive locked-folder deletion prompts that would otherwise silently block agent terminal commands. `core.fscache=true` and `checkout.workers=1` are also set in this repo's local config for the same reason. See `SDC.Schema.Tests/Documentation/GitWorkflow_LockedFolderPrevention.md` for full details and the post-merge cleanup script.
+- Always close the VS solution (File → Close Solution) before performing branch checkouts or merges to prevent Windows file-handle locks on project files.
 - Ensure all .md documents are included in git, including those archived under an "Archived Plans" subfolder.
