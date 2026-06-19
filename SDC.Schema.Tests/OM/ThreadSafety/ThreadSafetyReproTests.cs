@@ -394,5 +394,95 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
                 $"TS-6 deadlock probe: unexpected exception(s) during concurrent cross-tree Move(): " +
                 $"'{exceptions.FirstOrDefault()?.GetType().Name}: {exceptions.FirstOrDefault()?.Message}'");
         }
+
+        /// <summary>
+        /// TS-6 cross-tree regression gate: multiple threads simultaneously move nodes from two
+        /// separate trees into each other, exercising the <c>UpdateNodeIdentity</c> path in
+        /// <see cref="Move"/>. This path calls <c>sourceList.Remove</c>,
+        /// <c>ReflectRefreshSubtreeList</c>, and <c>propList.Add</c> — all of which are now
+        /// wrapped in <see cref="DualWriteLock"/> by the TS-6 fix.
+        ///
+        /// EXPECTED TO PASS after the TS-6 fix. Any failure here indicates either (a) the lock was
+        /// not acquired on the correct code path or (b) the lock ordering was wrong and a deadlock
+        /// occurred (watchdog trip).
+        /// </summary>
+        [TestMethod()]
+        [TestCategory("ThreadSafetyRepro")]
+        [Timeout(30000)]
+        public void Repro_ConcurrentCrossTreeMoves_UpdateNodeIdentityPath_NoCorruption()
+        {
+            const int MovesPerTree = 4; // keep small — UpdateNodeIdentity does heavy reflection per move
+
+            // Arrange: two separate FormDesign trees with a pool of movable DisplayedType leaf nodes.
+            BaseType.ResetLastTopNode();
+            var fd1 = FormDesignType.DeserializeFromXml(Setup.GetXml());
+            BaseType.ResetLastTopNode();
+            var fd2 = FormDesignType.DeserializeFromXml(Setup.GetXml());
+
+            // Pick leaf DisplayedType nodes from each tree to move cross-tree.
+            var fd1Leaves = fd1.IETnodes.Where(n => n is DisplayedType).Take(MovesPerTree).ToList();
+            var fd2Leaves = fd2.IETnodes.Where(n => n is DisplayedType).Take(MovesPerTree).ToList();
+
+            if (fd1Leaves.Count < MovesPerTree || fd2Leaves.Count < MovesPerTree)
+                Assert.Inconclusive(
+                    $"Not enough DisplayedType leaf nodes available (need {MovesPerTree} from each tree). " +
+                    $"fd1 has {fd1Leaves.Count}, fd2 has {fd2Leaves.Count}.");
+
+            // Targets: a section in each tree to receive the cross-tree nodes.
+            var targetInFd2 = (BaseType)(fd2.IETnodes.FirstOrDefault(n => n is SectionItemType) ?? (object)fd2);
+            var targetInFd1 = (BaseType)(fd1.IETnodes.FirstOrDefault(n => n is SectionItemType) ?? (object)fd1);
+
+            int fd1NodesBefore = fd1.Nodes.Count;
+            int fd2NodesBefore = fd2.Nodes.Count;
+
+            var exceptions = new ConcurrentBag<Exception>();
+            using var startBarrier = new Barrier(2);
+
+            // Act: two threads simultaneously move nodes cross-tree in opposite directions,
+            // exercising the UpdateNodeIdentity branch and its DualWriteLock.
+            bool finished = RunBoundedThreads(2, t =>
+            {
+                startBarrier.SignalAndWait();
+                try
+                {
+                    if (t == 0)
+                        foreach (var n in fd1Leaves)
+                            n.Move(targetInFd2, -1, false, SdcUtil.RefreshMode.UpdateNodeIdentity);
+                    else
+                        foreach (var n in fd2Leaves)
+                            n.Move(targetInFd1, -1, false, SdcUtil.RefreshMode.UpdateNodeIdentity);
+                }
+                catch (Exception ex) { exceptions.Add(ex); }
+            }, out var elapsed);
+
+            // Post-join single-threaded inspection (safe).
+            int fd1NodesAfter = fd1.Nodes.Count;
+            int fd2NodesAfter = fd2.Nodes.Count;
+            int expectedFd1 = fd1NodesBefore - MovesPerTree + MovesPerTree; // loses fd1Leaves, gains fd2Leaves
+            int expectedFd2 = fd2NodesBefore - MovesPerTree + MovesPerTree;
+
+            Console.WriteLine(
+                $"[TS-6 cross-tree] finished={finished} exceptions={exceptions.Count} " +
+                $"fd1: {fd1NodesBefore}->{fd1NodesAfter} fd2: {fd2NodesBefore}->{fd2NodesAfter} " +
+                $"elapsed={elapsed.TotalMilliseconds:F0}ms");
+
+            Assert.IsTrue(finished,
+                $"TS-6 CROSS-TREE WATCHDOG: concurrent UpdateNodeIdentity Move() did not complete " +
+                $"within {WATCHDOG_MS} ms. Possible deadlock in DualWriteLock acquisition.");
+
+            Assert.AreEqual(0, exceptions.Count,
+                $"TS-6 CROSS-TREE: {exceptions.Count} exception(s) during concurrent cross-tree Move() " +
+                $"via UpdateNodeIdentity path. First: " +
+                $"'{exceptions.FirstOrDefault()?.GetType().Name}: {exceptions.FirstOrDefault()?.Message}'");
+
+            // Node counts: each tree loses MovesPerTree and gains MovesPerTree → net zero change.
+            Assert.AreEqual(expectedFd1, fd1NodesAfter,
+                $"TS-6 CROSS-TREE: fd1 node count changed from {fd1NodesBefore} to {fd1NodesAfter} " +
+                $"(expected {expectedFd1}). Cross-tree dictionary update is inconsistent.");
+
+            Assert.AreEqual(expectedFd2, fd2NodesAfter,
+                $"TS-6 CROSS-TREE: fd2 node count changed from {fd2NodesBefore} to {fd2NodesAfter} " +
+                $"(expected {expectedFd2}). Cross-tree dictionary update is inconsistent.");
+        }
     }
 }

@@ -23,6 +23,80 @@ namespace SDC.Schema.Extensions
 	public static class IMoveRemoveExtensions
 	{
 		private static TreeSibComparer treeSibComparer = new();
+
+		/// <summary>
+		/// Holds write locks on one or two <see cref="ReaderWriterLockSlim"/> tree locks acquired
+		/// in a deterministic order (smaller <see cref="ITopNode"/> <see cref="BaseType.ObjectGUID"/>
+		/// acquired first) to prevent AB/BA deadlock during cross-tree <see cref="Move"/> calls.
+		/// </summary>
+		/// <remarks>
+		/// TS-6 fix: <see cref="Move"/> previously performed <c>IList.Remove</c> and <c>IList.Add</c>
+		/// with no outer lock and read non-thread-safe <c>Dictionary&lt;&gt;</c> collections
+		/// (<c>_ParentNodes</c>, <c>_ChildNodes</c>) without holding any lock. This class serialises
+		/// the entire <see cref="Move"/> body — including all dictionary reads, IList mutations, and
+		/// nested <c>RegisterAll</c>/<c>UnRegisterAll</c> dictionary updates — atomically under one
+		/// or two write locks, preventing concurrent corruption when multiple threads call
+		/// <see cref="Move"/> simultaneously. The lock is acquired at the very top of
+		/// <see cref="Move"/> (after null guards) so every code path is protected.
+		/// </remarks>
+		private sealed class DualWriteLock : IDisposable
+		{
+			private readonly ReaderWriterLockSlim? _lock1;
+			private readonly ReaderWriterLockSlim? _lock2;
+			private bool _disposed;
+
+			/// <param name="lock1">First lock acquired (may be null if source has no TopNode yet).</param>
+			/// <param name="lock2">Second lock acquired, or null for same-tree moves.</param>
+			internal DualWriteLock(ReaderWriterLockSlim? lock1, ReaderWriterLockSlim? lock2)
+			{
+				_lock1 = lock1;
+				_lock2 = lock2;
+				_lock1?.EnterWriteLock();
+				_lock2?.EnterWriteLock();
+			}
+
+			public void Dispose()
+			{
+				if (_disposed) return;
+				_disposed = true;
+				// Release in reverse acquisition order.
+				_lock2?.ExitWriteLock();
+				_lock1?.ExitWriteLock();
+			}
+		}
+
+		/// <summary>
+		/// Acquires write locks on the trees that own <paramref name="source"/> and
+		/// <paramref name="target"/> in a deterministic GUID order to prevent AB/BA deadlock.
+		/// For same-tree moves only one lock is acquired.
+		/// </summary>
+		/// <remarks>
+		/// TS-6 fix: called at the entry point of every <see cref="Move"/> code path that mutates
+		/// an <c>IList</c> (both the same-tree <c>MoveSingleNode</c> IList branch and the
+		/// <c>UpdateNodeIdentity</c> cross-tree branch). The returned <see cref="DualWriteLock"/>
+		/// must be disposed in a <c>using</c> statement so that the locks are released even when
+		/// an exception is thrown.
+		/// </remarks>
+		private static DualWriteLock AcquireMoveLocks(BaseType source, BaseType target)
+		{
+			var sourceLock = source.TopNode is _ITopNode stn ? stn.TreeRwLock : null;
+			var targetLock = target.TopNode is _ITopNode ttn ? ttn.TreeRwLock : null;
+
+			if (sourceLock is null || ReferenceEquals(sourceLock, targetLock))
+				return new DualWriteLock(targetLock, null);  // same-tree or source has no TopNode
+
+			// Cross-tree: acquire in TopNode ObjectGUID order to prevent AB/BA deadlock.
+			// We intentionally use TopNode.ObjectGUID (a plain field) rather than FindRootNode()
+			// (which reads _ParentNodes) so that this method is safe to call before holding any lock.
+			// SupportsRecursion means re-entrant write-in-write from RegisterAll/UnRegisterAll is safe.
+			Guid sourceId = (source.TopNode is BaseType sb) ? sb.ObjectGUID : Guid.Empty;
+			Guid targetId = (target.TopNode is BaseType tb) ? tb.ObjectGUID : Guid.Empty;
+			bool sourceFirst = sourceId.CompareTo(targetId) <= 0;
+			return sourceFirst
+				? new DualWriteLock(sourceLock, targetLock)
+				: new DualWriteLock(targetLock, sourceLock);
+		}
+
 		/// <summary>
 		/// Set to true to keep the ChildNodes List&lt;BaseType> sorted in the same order as the the SDC object tree
 		/// </summary>
@@ -229,19 +303,28 @@ namespace SDC.Schema.Extensions
         /// <returns>True if the move was successful; false if the move was not allowed.</returns>
         /// <exception cref="NullReferenceException"/>
         ///<exception cref="InvalidOperationException"/>
-        public static bool Move(this BaseType btSource, BaseType newParent, int newListIndex = -1
+		public static bool Move(this BaseType btSource, BaseType newParent, int newListIndex = -1
 			, bool deleteEmptyParentNode = false
 			, RefreshMode refreshMode = RefreshMode.NoChange
 			)
-        {		
-            if (btSource is null)
+		{		
+			if (btSource is null)
 				throw new NullReferenceException($"{nameof(btSource)} must not be null.");
 			if (newParent is null)
 				throw new NullReferenceException($"{nameof(newParent)} must not be null.");
 			//if (btSource.ParentNode is null) throw new NullReferenceException("btSource.ParentNode must not be null.  A top-level (root) node cannot be moved");
 			if (newParent.TopNode is null) throw new NullReferenceException($"{nameof(newParent.TopNode)} must not be null.");
-			
-			//!------------------------------------------------------------
+
+			// TS-6 fix: acquire write locks on both the source and target trees (in TopNode ObjectGUID order)
+			// BEFORE any dictionary read or IList mutation. FindRootNode(), IsAttachNodeAllowed(), and all
+			// IList Remove/Insert operations all read or write _ParentNodes/_ChildNodes, which are plain
+			// non-thread-safe Dictionary<> instances. Without this outer lock, concurrent Move() calls race
+			// on those collections and throw ArgumentException/InvalidOperationException (corrupted dictionary
+			// enumeration). DualWriteLock uses SupportsRecursion so the nested WriteLockScopes inside
+			// RegisterAll/UnRegisterAll are safe.
+			using var _moveLock = AcquireMoveLocks(btSource, newParent);
+
+			//!
 
 			//Do btSource and newParent share the same root node? (Are they from the same SDC tree?)
 			var sourceRoot = btSource.FindRootNode();
@@ -328,53 +411,57 @@ namespace SDC.Schema.Extensions
 				(int)newParent.order + 1, 1, refreshMode, citTarget, SdcUtil.CreateCAPname);
             }
 			else if(refreshMode == RefreshMode.UpdateNodeIdentity) 
-				{   //Re-create dictionary and hashtable entries for: ID, BaseName, @name, sGuid/ObjectGUID, ObjectID etc for all btSource subtree nodes.
-					//TODO: do we need to process donor node/branch: baseURI?, Link?, Codes, events?, rule targets (name)?
+						{   //Re-create dictionary and hashtable entries for: ID, BaseName, @name, sGuid/ObjectGUID, ObjectID etc for all btSource subtree nodes.
+							//TODO: do we need to process donor node/branch: baseURI?, Link?, Codes, events?, rule targets (name)?
 
-					// For cross-tree moves, clear the source property reference before doing the move
-					var sourceParent = btSource.ParentNode;
-					if (sourceParent != null)
-					{
-						isAllowed = SdcUtil.IsAttachNodeAllowed(btSource, btSource.ElementName,
-							sourceParent, out PropertyInfo? piSourceProperty, out object? sourcePropertyObject,
-							out _, out _, out errorMsg);
+							// Lock already held: Move() acquired DualWriteLock at method entry (TS-6 fix).
+							// ReflectRefreshSubtreeList and its nested RegisterAll/UnRegisterAll calls run safely
+							// inside the lock because TreeRwLock uses SupportsRecursion.
 
-						if (piSourceProperty != null && sourcePropertyObject is BaseType)
+							// For cross-tree moves, clear the source property reference before doing the move
+							var sourceParent = btSource.ParentNode;
+						if (sourceParent != null)
 						{
-							piSourceProperty.SetValue(sourceParent, null);
+							isAllowed = SdcUtil.IsAttachNodeAllowed(btSource, btSource.ElementName,
+								sourceParent, out PropertyInfo? piSourceProperty, out object? sourcePropertyObject,
+								out _, out _, out errorMsg);
+
+							if (piSourceProperty != null && sourcePropertyObject is BaseType)
+							{
+								piSourceProperty.SetValue(sourceParent, null);
+							}
+							else if (piSourceProperty != null && sourcePropertyObject is IList sourceList)
+							{
+								sourceList.Remove(btSource);
+							}
 						}
-						else if (piSourceProperty != null && sourcePropertyObject is IList sourceList)
+
+						sourceNodeList =
+							SdcUtil.ReflectRefreshSubtreeList(btSource, false, true, true,
+							(int)newParent.order + 1, 1, refreshMode, newParent, SdcUtil.CreateCAPname);
+
+						// IMPORTANT: After ReflectRefreshSubtreeList, the node is already registered in the target tree's
+						// dictionaries with new GUIDs. Now we must attach it to the parent's property.
+						if (piTargetProperty != null)
 						{
-							sourceList.Remove(btSource);
+							if (targetPropertyObject is BaseType)
+							{
+								// Single-property attachment
+								piTargetProperty.SetValue(newParent, btSource);
+							}
+							else if (targetPropertyObject is IList propList)
+							{
+								// List attachment
+								if (newListIndex < 0 || newListIndex >= propList.Count)
+									propList.Add(btSource);
+								else
+									propList.Insert(newListIndex, btSource);
+							}
 						}
+
+						btSource.AssignOrder();
+						return true;  // Skip MoveSingleNode() since we've already done the attachment
 					}
-
-					sourceNodeList =
-						SdcUtil.ReflectRefreshSubtreeList(btSource, false, true, true,
-						(int)newParent.order + 1, 1, refreshMode, newParent, SdcUtil.CreateCAPname);
-
-					// IMPORTANT: After ReflectRefreshSubtreeList, the node is already registered in the target tree's
-					// dictionaries with new GUIDs. Now we must attach it to the parent's property.
-					if (piTargetProperty != null)
-					{
-						if (targetPropertyObject is BaseType)
-						{
-							// Single-property attachment
-							piTargetProperty.SetValue(newParent, btSource);
-						}
-						else if (targetPropertyObject is IList propList)
-						{
-							// List attachment
-							if (newListIndex < 0 || newListIndex >= propList.Count)
-								propList.Add(btSource);
-							else
-								propList.Insert(newListIndex, btSource);
-						}
-					}
-
-					btSource.AssignOrder();
-					return true;  // Skip MoveSingleNode() since we've already done the attachment
-				}
 			else if (refreshMode == RefreshMode.RestoreSubtreeFromOlderVersion)
             {
                 if (btSource is not IdentifiedExtensionType ietSource)
@@ -419,63 +506,65 @@ namespace SDC.Schema.Extensions
 					return true;
 				}
 				//else if: btSource can be attached to a member of a List
-				else if (targetPropertyObject is IList propList)
-				//TODO: refactor block: bool AttachSourceNodetoList()
-				{   //if ParentNode is null, and is not ITopNode, this may cause an exception or other errors below 
-					var sourceParent = btSource.ParentNode;
+					else if (targetPropertyObject is IList propList)
+					//TODO: refactor block: bool AttachSourceNodetoList()
+					{   //if ParentNode is null, and is not ITopNode, this may cause an exception or other errors below
 
-					//par can be null if we are grafting from the btSource tree to another SDC object tree, and btSource is the root node of its tree
-					if (sourceParent is not null) //Remove the reference from par to btSource
-					{
-						//Remove btSource from current parent object
-						//This call is done only to obtain the sourceAttachmentObject, which hold the reference to btSource
+						// Lock already held: Move() acquired DualWriteLock at method entry (TS-6 fix).
+						var sourceParent = btSource.ParentNode;
 
-						isAllowed = SdcUtil.IsAttachNodeAllowed(btSource, btSource.ElementName
-						, sourceParent, out _, out object? sourceAttachmentObject
-						, out _, out _, out errorMsg);
-
-						//!Remove entries from the enum ItemChoiceType# (ItemElementName) object or ItemChoiceType#[] (ItemsElementName)
-						if (piChoiceEnum is not null && choiceEnum is not null)
-							SdcUtil.TryRemoveItemChoiceEnumValue(btSource, targetPropertyObject, piChoiceEnum, choiceEnum, out errorMsg);
-
-						if (sourceAttachmentObject is BaseType par)
-							par.RemoveNodeObject();
-						else if (sourceAttachmentObject is IList objList)
+						//par can be null if we are grafting from the btSource tree to another SDC object tree, and btSource is the root node of its tree
+						if (sourceParent is not null) //Remove the reference from par to btSource
 						{
-							//remove the btSource reference from this parent IList
-							if (objList?.IndexOf(btSource) > -1) //this extra test may not be necessary
+							//Remove btSource from current parent object
+							//This call is done only to obtain the sourceAttachmentObject, which hold the reference to btSource
+
+							isAllowed = SdcUtil.IsAttachNodeAllowed(btSource, btSource.ElementName
+							, sourceParent, out _, out object? sourceAttachmentObject
+							, out _, out _, out errorMsg);
+
+							//!Remove entries from the enum ItemChoiceType# (ItemElementName) object or ItemChoiceType#[] (ItemsElementName)
+							if (piChoiceEnum is not null && choiceEnum is not null)
+								SdcUtil.TryRemoveItemChoiceEnumValue(btSource, targetPropertyObject, piChoiceEnum, choiceEnum, out errorMsg);
+
+							if (sourceAttachmentObject is BaseType par)
+								par.RemoveNodeObject();
+							else if (sourceAttachmentObject is IList objList)
 							{
-								objList.Remove(btSource);
-
-								if (deleteEmptyParentNode && objList.Count == 0)
+								//remove the btSource reference from this parent IList
+								if (objList?.IndexOf(btSource) > -1) //this extra test may not be necessary
 								{
-									sourceParent.RemoveNodeObject(); //requires sourceParent.ParentNodes entry to work; will throw if null
+									objList.Remove(btSource);
 
-									//sourceParent was not previously removed in dictionaries, we only removed its last child node
-									//Since it's now "childless," we can remove this orphan node from both the dictionaries and the SDC OM
-									//isSourceParentChildless = true;
+									if (deleteEmptyParentNode && objList.Count == 0)
+									{
+										sourceParent.RemoveNodeObject(); //requires sourceParent.ParentNodes entry to work; will throw if null
 
-									UnRegisterAll(sourceParent, false); //this calls UnRegisterParent also
+										//sourceParent was not previously removed in dictionaries, we only removed its last child node
+										//Since it's now "childless," we can remove this orphan node from both the dictionaries and the SDC OM
+										//isSourceParentChildless = true;
+
+										UnRegisterAll(sourceParent, false); //this calls UnRegisterParent also
+									}
 								}
 							}
+							else
+								throw new InvalidOperationException($"Could not reflect parent SDC property object ({nameof(targetPropertyObject)}) to remove node");
 						}
+						else { }//sourceParent is null
+								//btSource.RegisterNodeAndParent();
+
+						if (newListIndex < 0 || newListIndex >= propList.Count)
+							propList.Add(btSource);
 						else
-							throw new InvalidOperationException($"Could not reflect parent SDC property object ({nameof(targetPropertyObject)}) to remove node");
-					}
-					else { }//sourceParent is null
-							//btSource.RegisterNodeAndParent();
+							propList.Insert(newListIndex, btSource);
 
-					if (newListIndex < 0 || newListIndex >= propList.Count)
-						propList.Add(btSource);
-					else
-						propList.Insert(newListIndex, btSource);
+						//!Remove deleted nodes from _ITopNode dictionaries
+						btSource.MoveInDictionaries(targetParent: newParent);
+						btSource.AssignOrder(); //Requires that dictionaries are first populated for the entire btSource subtree
 
-					//!Remove deleted nodes from _ITopNode dictionaries
-					btSource.MoveInDictionaries(targetParent: newParent);
-					btSource.AssignOrder(); //Requires that dictionaries are first populated for the entire btSource subtree
-
-					return true;
-				}//end of (targetPropertyObject is IList propList)
+						return true;
+					}//end of (targetPropertyObject is IList propList)
 				else //not IList<BaseType> or BaseType
 					throw new InvalidOperationException("Invalid targetObj: targetObj must be BaseType or IList");
 			}
