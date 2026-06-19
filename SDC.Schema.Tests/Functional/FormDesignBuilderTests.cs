@@ -5,7 +5,7 @@ using System.Linq;
 namespace SDC.Schema.Tests.Functional
 {
 	[TestClass]
-	public class _FormDesignBuilderTests
+	public class FormDesignBuilderTests
 	{
 		private static FormDesignType CreateFormDesign()
 		{

@@ -112,11 +112,41 @@ namespace SDC.Schema
 			_prevVersion = prevVersion;
 			_newVersion = newVersion;
 
-			_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
-			_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
+			// Acquire read locks on both trees for comparison
+			// Lock in GUID order to prevent deadlock
+			var prevTopNode = (object)_prevVersion as _ITopNode;
+			var newTopNode = (object)_newVersion as _ITopNode;
 
-			ComputeAddedRemovedNodes();
-			CompareVersionAttributes();
+			if (prevTopNode == null || newTopNode == null)
+				throw new InvalidOperationException("Tree nodes must implement _ITopNode interface");
+
+			// Check if comparing same tree to itself (avoid double-locking)
+			if (ReferenceEquals(_prevVersion, _newVersion))
+			{
+				// TS-2: ReadLockScope replaces TreeLock.Wait/Release for read-only tree comparisons.
+				using var _readLock = new ReadLockScope(prevTopNode.TreeRwLock);
+				_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
+				_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
+
+				ComputeAddedRemovedNodes();
+				CompareVersionAttributes();
+			}
+			else
+			{
+				// Lock both trees in GUID order to prevent deadlock.
+				// TS-2: ReadLockScope wraps each tree; SupportsRecursion allows nesting.
+				var locks = (prevTopNode.ObjectGUID < newTopNode.ObjectGUID) 
+					? (prevTopNode, newTopNode) 
+					: (newTopNode, prevTopNode);
+
+				using var _readLock1 = new ReadLockScope(locks.Item1.TreeRwLock);
+				using var _readLock2 = new ReadLockScope(locks.Item2.TreeRwLock);
+				_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
+				_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
+
+				ComputeAddedRemovedNodes();
+				CompareVersionAttributes();
+			}
 		}
 
 		#endregion
@@ -146,9 +176,35 @@ namespace SDC.Schema
 		private CompareTrees<T> ChangePrevVersion(T prevVersion)
 		{
 			_prevVersion = prevVersion;
-			_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
-			ComputeAddedRemovedNodes();
-			CompareVersionAttributes();
+
+			var prevTopNode = (object)_prevVersion as _ITopNode;
+			var newTopNode = (object)_newVersion as _ITopNode;
+
+			if (prevTopNode == null || newTopNode == null)
+				throw new InvalidOperationException("Tree nodes must implement _ITopNode interface");
+
+			// Check if comparing same tree to itself
+			if (ReferenceEquals(_prevVersion, _newVersion))
+			{
+				// TS-2: ReadLockScope replaces TreeLock.Wait/Release
+				using var _readLock = new ReadLockScope(prevTopNode.TreeRwLock);
+				_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
+				ComputeAddedRemovedNodes();
+				CompareVersionAttributes();
+			}
+			else
+			{
+				// Lock both trees in GUID order
+				var locks = (prevTopNode.ObjectGUID < newTopNode.ObjectGUID) 
+					? (prevTopNode, newTopNode) 
+					: (newTopNode, prevTopNode);
+
+				using var _readLock1 = new ReadLockScope(locks.Item1.TreeRwLock);
+				using var _readLock2 = new ReadLockScope(locks.Item2.TreeRwLock);
+				_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
+				ComputeAddedRemovedNodes();
+				CompareVersionAttributes();
+			}
 			return this;
 		}
 		/// <summary>
@@ -159,9 +215,35 @@ namespace SDC.Schema
 		private CompareTrees<T> ChangeNewVersion(T newVersion)
 		{
 			_newVersion = newVersion;
-			_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
-            ComputeAddedRemovedNodes();
-			CompareVersionAttributes();
+
+			var prevTopNode = (object)_prevVersion as _ITopNode;
+			var newTopNode = (object)_newVersion as _ITopNode;
+
+			if (prevTopNode == null || newTopNode == null)
+				throw new InvalidOperationException("Tree nodes must implement _ITopNode interface");
+
+			// Check if comparing same tree to itself
+			if (ReferenceEquals(_prevVersion, _newVersion))
+			{
+				// TS-2: ReadLockScope replaces TreeLock.Wait/Release
+				using var _readLock = new ReadLockScope(newTopNode.TreeRwLock);
+				_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
+				ComputeAddedRemovedNodes();
+				CompareVersionAttributes();
+			}
+			else
+			{
+				// Lock both trees in GUID order
+				var locks = (prevTopNode.ObjectGUID < newTopNode.ObjectGUID) 
+					? (prevTopNode, newTopNode) 
+					: (newTopNode, prevTopNode);
+
+				using var _readLock1 = new ReadLockScope(locks.Item1.TreeRwLock);
+				using var _readLock2 = new ReadLockScope(locks.Item2.TreeRwLock);
+				_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
+				ComputeAddedRemovedNodes();
+				CompareVersionAttributes();
+			}
 			return this;
 		}
 

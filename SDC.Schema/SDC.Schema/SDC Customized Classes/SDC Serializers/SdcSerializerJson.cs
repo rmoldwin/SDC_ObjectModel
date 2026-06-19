@@ -31,8 +31,15 @@ namespace SDC.Schema
 		/// </summary>
 		public static string SerializeJson<T>(T obj)
 		{
-			//return J.JsonSerializer.Serialize<T>(obj);
-			return JsonConvert.SerializeObject(obj);
+			// TypeNameHandling.All writes "$type" discriminators for every polymorphic collection element
+			// (e.g. ChildItemsList: List<IdentifiedExtensionType> containing SectionItemType, QuestionItemType, etc.).
+			// Without this, deserialization cannot reconstruct the correct concrete types.
+			// Security note: TypeNameHandling.All is safe for internal/trusted round-trips. When accepting
+			// JSON from untrusted sources, supply a custom SerializationBinder that whitelists only SDC.Schema types.
+			return JsonConvert.SerializeObject(obj, new JsonSerializerSettings
+			{
+				TypeNameHandling = TypeNameHandling.All
+			});
 		}
 
 		/// <summary>
@@ -67,13 +74,16 @@ namespace SDC.Schema
 
 		public static T DeserializeJson<T>(string input)
 		{
-			// Bug fix: allow Json.NET to use protected/internal parameterless constructors generated across the schema model,
-			// so deserialization does not incorrectly bind to parent-dependent parameterized constructors.
+			// ConstructorHandling: use protected/internal parameterless constructors so Json.NET does not
+			// invoke the public parent-dependent constructors with a null parentNode argument.
+			// TypeNameHandling.All: read the "$type" discriminators written by SerializeJson so that
+			// polymorphic collection elements (e.g. ChildItemsList) are deserialized as the correct
+			// concrete types (SectionItemType, QuestionItemType, etc.) rather than as the abstract base type.
 			var settings = new JsonSerializerSettings
 			{
+				TypeNameHandling    = TypeNameHandling.All,
 				ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
 			};
-			//return J.JsonSerializer.Deserialize<T>(input); //System.Text.Json
 			return JsonConvert.DeserializeObject<T>(input, settings);
 		}
 		#endregion

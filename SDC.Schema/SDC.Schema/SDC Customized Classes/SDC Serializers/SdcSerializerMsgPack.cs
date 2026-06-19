@@ -25,9 +25,9 @@ namespace SDC.Schema
 
     {
 
-        private static MessagePackSerializer serializerMsgPack;
+        private static MessagePackSerializer<T> serializerMsgPack;
 
-        private static MessagePackSerializer SerializerMsgPack
+        private static MessagePackSerializer<T> SerializerMsgPack
         {
             get
             {
@@ -46,10 +46,20 @@ namespace SDC.Schema
         /// <returns>string binary value</returns>
         public static byte[] SerializeMsgPack(T obj)
         {
-            // Bug fix: MsgPack serializer fails on XmlElement/XmlAttribute members used by SDC Any/AnyAttr fields.
-            // Use the XML serializer as a stable binary payload source for the MsgPack API surface.
-            string xml = SdcSerializer<T>.Serialize(obj);
-            return Encoding.UTF8.GetBytes(xml);
+            MemoryStream memoryStream = null;
+            try
+            {
+                memoryStream = new MemoryStream();
+                SerializerMsgPack.Pack(memoryStream, obj);
+                return memoryStream.ToArray();
+            }
+            finally
+            {
+                if ((memoryStream != null))
+                {
+                    memoryStream.Dispose();
+                }
+            }
         }
 
         /// <summary>
@@ -91,12 +101,19 @@ namespace SDC.Schema
         /// </summary>
 		public static T DeserializeMsgPack(byte[] input)
 		{
-			// Bug fix: mirror SerializeMsgPack fallback by decoding UTF8 XML and deserializing through XML serializer.
-			string xml = Encoding.UTF8.GetString(input);
-			BaseType.ResetLastTopNode();
-			T obj = SdcSerializer<T>.Deserialize(xml);
-			BaseType.ResetLastTopNode();
-			return obj;
+			MemoryStream memoryStream = null;
+			try
+			{
+				memoryStream = new MemoryStream(input);
+				return SerializerMsgPack.Unpack(memoryStream);
+			}
+			finally
+			{
+				if ((memoryStream != null))
+				{
+					memoryStream.Dispose();
+				}
+			}
 		}
         #endregion
 
