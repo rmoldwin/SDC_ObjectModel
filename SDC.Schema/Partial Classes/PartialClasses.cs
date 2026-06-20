@@ -2778,6 +2778,7 @@ namespace SDC.Schema
 		/// any *_DEType data type
 		/// </summary>
 		[XmlIgnore]
+		[JsonIgnore]
 		public BaseType DataTypeDE_Item
 		{
 			get { return this.Item; }
@@ -4859,6 +4860,7 @@ namespace SDC.Schema
 			Items = new();
 		}
 		[XmlIgnore]
+		[JsonIgnore]
 		public List<ExtensionBaseType> ActAction_Items
 		{
 			get
