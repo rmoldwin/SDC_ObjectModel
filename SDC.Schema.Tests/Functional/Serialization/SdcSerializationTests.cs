@@ -452,7 +452,7 @@ namespace SDC.Schema.Tests.Functional.Serialization
 					{
 						format = format,
 						changedCount = changedNodes.Count,
-						first = changedNodes.FirstOrDefault()?.sGuidIET,
+						first = changedNodes.FirstOrDefault() is null ? null : changedNodes.FirstOrDefault().sGuidIET,
 						diffs = changedNodes.Select(d => new { d.sGuidIET, d.isAttListChanged, d.isMoved, d.isNew, d.isParChanged, d.hasAddedSubNodes, d.hasRemovedSubNodes }).ToList()
 					};
 					System.IO.File.WriteAllText(outPath, Newtonsoft.Json.JsonConvert.SerializeObject(dump, Newtonsoft.Json.Formatting.Indented));
