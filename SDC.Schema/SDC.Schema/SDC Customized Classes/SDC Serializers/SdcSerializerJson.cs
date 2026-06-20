@@ -93,7 +93,10 @@ namespace SDC.Schema
 			settings.ContractResolver = new SdcNoSetterContractResolver();
 			try
 			{
-				return JsonConvert.DeserializeObject<T>(input, settings);
+				System.Console.WriteLine("SdcSerializerJson: starting DeserializeObject");
+				var result = JsonConvert.DeserializeObject<T>(input, settings);
+				System.Console.WriteLine("SdcSerializerJson: DeserializeObject completed successfully");
+				return result;
 			}
 			catch (System.Exception ex)
 			{
@@ -108,6 +111,8 @@ namespace SDC.Schema
 					string errPath = System.IO.Path.Combine(dumpDir, "SdcSerializerJson_DeserializeError.txt");
 					System.IO.File.WriteAllText(dumpPath, input, System.Text.Encoding.UTF8);
 					System.IO.File.WriteAllText(errPath, ex.ToString(), System.Text.Encoding.UTF8);
+					System.Console.WriteLine($"SdcSerializerJson: dumped failing JSON to: {dumpPath}");
+					System.Console.WriteLine($"SdcSerializerJson: dumped exception to: {errPath}");
 					throw new JsonSerializationException($"Deserialization failed. Input dumped to: {dumpPath}; exception written to: {errPath}", ex);
 				}
 				catch
