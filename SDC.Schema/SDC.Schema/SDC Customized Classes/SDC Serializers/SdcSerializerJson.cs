@@ -93,7 +93,9 @@ namespace SDC.Schema
 				// Dump input to temp file to aid debugging of deserialization failures in tests
 				try
 				{
-					string dumpDir = System.IO.Path.Combine(System.Environment.CurrentDirectory ?? ".", "TestArtifacts");
+					// Use a repository-local path so test runners can find the dump reliably
+					string repoRoot = "C:\\Users\\RMold\\OneDrive\\One Drive Documents\\SDC\\SDC Git Repo\\SDC.Schema";
+					string dumpDir = System.IO.Path.Combine(repoRoot, "TestArtifacts");
 					if (!System.IO.Directory.Exists(dumpDir)) System.IO.Directory.CreateDirectory(dumpDir);
 					string dumpPath = System.IO.Path.Combine(dumpDir, "SdcSerializerJson_DeserializeError.json");
 					string errPath = System.IO.Path.Combine(dumpDir, "SdcSerializerJson_DeserializeError.txt");
