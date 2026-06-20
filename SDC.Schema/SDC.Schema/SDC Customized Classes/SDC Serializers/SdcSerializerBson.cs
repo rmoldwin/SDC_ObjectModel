@@ -113,7 +113,22 @@ namespace SDC.Schema
                 data = Convert.FromBase64String(input);
                 memoryStream = new MemoryStream(data);
                 BsonDataReader bsonDataReader = new BsonDataReader(memoryStream);
-                return SerializerBson.Deserialize<T>(bsonDataReader);
+                try
+                {
+                    // Indicate deserialization mode to suppress setter side-effects, then post-refresh
+                    SdcUtil.IsDeserializing.Value = true;
+                    var result = SerializerBson.Deserialize<T>(bsonDataReader);
+                    if (result is BaseType bt)
+                    {
+                        try { SdcUtil.ReflectRefreshTree(bt.TopNode ?? (ITopNode)bt, out _, print: false, refreshTree: true); } catch { }
+                    }
+                    SdcUtil.IsDeserializing.Value = false;
+                    return result;
+                }
+                finally
+                {
+                    SdcUtil.IsDeserializing.Value = false;
+                }
             }
             finally
             {
