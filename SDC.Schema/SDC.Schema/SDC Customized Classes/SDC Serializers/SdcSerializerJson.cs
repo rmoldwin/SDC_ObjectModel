@@ -93,9 +93,13 @@ namespace SDC.Schema
 				// Dump input to temp file to aid debugging of deserialization failures in tests
 				try
 				{
-					string dumpPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "SdcSerializerJson_DeserializeError.json");
+					string dumpDir = System.IO.Path.Combine(System.Environment.CurrentDirectory ?? ".", "TestArtifacts");
+					if (!System.IO.Directory.Exists(dumpDir)) System.IO.Directory.CreateDirectory(dumpDir);
+					string dumpPath = System.IO.Path.Combine(dumpDir, "SdcSerializerJson_DeserializeError.json");
+					string errPath = System.IO.Path.Combine(dumpDir, "SdcSerializerJson_DeserializeError.txt");
 					System.IO.File.WriteAllText(dumpPath, input, System.Text.Encoding.UTF8);
-					throw new JsonSerializationException($"Deserialization failed. Input dumped to: {dumpPath}", ex);
+					System.IO.File.WriteAllText(errPath, ex.ToString(), System.Text.Encoding.UTF8);
+					throw new JsonSerializationException($"Deserialization failed. Input dumped to: {dumpPath}; exception written to: {errPath}", ex);
 				}
 				catch
 				{
