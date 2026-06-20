@@ -440,9 +440,28 @@ namespace SDC.Schema.Tests.Functional.Serialization
 				d.isAttListChanged || d.isMoved || d.isNew || d.isParChanged ||
 				d.hasAddedSubNodes || d.hasRemovedSubNodes).ToList();
 
-			Assert.AreEqual(0, changedNodes.Count,
-				$"{format} round-trip: {changedNodes.Count} IET node(s) carry unexpected change flags. " +
-				$"First changed sGuid: {changedNodes.FirstOrDefault().sGuidIET}");
+			if (changedNodes.Count != 0)
+			{
+				// Dump diagnostics to TestArtifacts for offline inspection
+				try
+				{
+					var artifacts = System.IO.Path.Combine(System.Environment.CurrentDirectory ?? ".", "..", "..", "..", "TestArtifacts");
+					System.IO.Directory.CreateDirectory(artifacts);
+					string outPath = System.IO.Path.Combine(artifacts, $"{format}_RoundTrip_Diffs.json");
+					var dump = new
+					{
+						format = format,
+						changedCount = changedNodes.Count,
+						first = changedNodes.FirstOrDefault()?.sGuidIET,
+						diffs = changedNodes.Select(d => new { d.sGuidIET, d.isAttListChanged, d.isMoved, d.isNew, d.isParChanged, d.hasAddedSubNodes, d.hasRemovedSubNodes }).ToList()
+					};
+					System.IO.File.WriteAllText(outPath, Newtonsoft.Json.JsonConvert.SerializeObject(dump, Newtonsoft.Json.Formatting.Indented));
+				}
+				catch { }
+				Assert.AreEqual(0, changedNodes.Count,
+					$"{format} round-trip: {changedNodes.Count} IET node(s) carry unexpected change flags. " +
+					$"First changed sGuid: {changedNodes.FirstOrDefault().sGuidIET}");
+			}
 		}
 
 		// ---------------------------------------------------------------------------
