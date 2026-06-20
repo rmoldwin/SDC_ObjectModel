@@ -88,14 +88,14 @@ namespace SDC.Schema
 			{
 				return JsonConvert.DeserializeObject<T>(input, settings);
 			}
-			catch (JsonSerializationException)
+			catch (System.Exception ex)
 			{
 				// Dump input to temp file to aid debugging of deserialization failures in tests
 				try
 				{
 					string dumpPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "SdcSerializerJson_DeserializeError.json");
 					System.IO.File.WriteAllText(dumpPath, input, System.Text.Encoding.UTF8);
-					throw new JsonSerializationException($"Deserialization failed. Input dumped to: {dumpPath}");
+					throw new JsonSerializationException($"Deserialization failed. Input dumped to: {dumpPath}", ex);
 				}
 				catch
 				{
