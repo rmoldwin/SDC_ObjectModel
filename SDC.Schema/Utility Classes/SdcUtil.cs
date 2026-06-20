@@ -41,6 +41,13 @@ namespace SDC.Schema
 	public static class SdcUtil
 	{
 		#region Local
+		// AsyncLocal flag used to indicate a serializer is actively deserializing an object graph.
+		// When true, property setters and mutators should avoid performing runtime side-effects
+		// such as Move(), RegisterAll(), or DataAnnotations validation that assume a fully
+		// initialized parent/top-node context. The deserializers set this flag during object
+		// graph reconstruction and clear it afterward. ReflectRefreshTree will rebuild
+		// runtime dictionaries and parent mappings after deserialization completes.
+		public static System.Threading.AsyncLocal<bool> IsDeserializing { get; } = new System.Threading.AsyncLocal<bool>();
 		internal static Dictionary<Guid, BaseType> Get_Nodes(BaseType n)
 		{ return Get_ITopNode(n)._Nodes; }
 		internal static Dictionary<Guid, List<BaseType>> Get_ChildNodes(BaseType n)
