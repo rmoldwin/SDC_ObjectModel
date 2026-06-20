@@ -94,8 +94,18 @@ namespace SDC.Schema
 			try
 			{
 				System.Console.WriteLine("SdcSerializerJson: starting DeserializeObject");
+				// Indicate to the model that a low-level deserialization is in progress so that
+				// setters and mutators can suppress side-effects (validation, Move/Register, etc.).
+				SdcUtil.IsDeserializing.Value = true;
 				var result = JsonConvert.DeserializeObject<T>(input, settings);
 				System.Console.WriteLine("SdcSerializerJson: DeserializeObject completed successfully");
+				// Perform a post-deserialize refresh to rebuild TopNode/ParentNode registries
+				// and run any deferred validation or registration now that the graph is intact.
+				if (result is BaseType bt)
+				{
+					try { SdcUtil.ReflectRefreshTree(bt.TopNode ?? (ITopNode)bt, out _ , print: false, refreshTree: true); } catch { }
+				}
+				SdcUtil.IsDeserializing.Value = false;
 				return result;
 			}
 			catch (System.Exception ex)
