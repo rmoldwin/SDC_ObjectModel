@@ -84,6 +84,13 @@ namespace SDC.Schema
 				TypeNameHandling    = TypeNameHandling.All,
 				ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
 			};
+
+			// Use a contract resolver that writes directly to generated backing fields
+			// to avoid invoking property setters (which perform runtime validation)
+			// during deserialization. This preserves the original behavior where
+			// validation runs only during normal runtime assignments, not during
+			// low-level model reconstruction.
+			settings.ContractResolver = new SdcNoSetterContractResolver();
 			try
 			{
 				return JsonConvert.DeserializeObject<T>(input, settings);
@@ -110,6 +117,40 @@ namespace SDC.Schema
 			}
 		}
 		#endregion
+
+		// Contract resolver that deserializes by setting backing fields directly
+		// This avoids invoking property setters (which perform validation and
+		// tree-mutation logic) during deserialization. For generated xsd2code++ classes
+		// the private backing fields use the convention: _{propertyName}
+		class SdcNoSetterContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
+		{
+			protected override Newtonsoft.Json.Serialization.JsonProperty CreateProperty(System.Reflection.MemberInfo member, Newtonsoft.Json.MemberSerialization memberSerialization)
+			{
+				var prop = base.CreateProperty(member, memberSerialization);
+				// Only try to replace the value provider for properties that are writable
+				if (prop.Writable)
+				{
+					var declaring = member.DeclaringType;
+					if (declaring != null)
+					{
+						string name = member.Name; // property name as declared
+						// candidates for backing field names
+						string[] candidates = new[] { "_" + name, "_" + (char.ToLowerInvariant(name[0]) + name.Substring(1)) };
+						System.Reflection.FieldInfo? field = null;
+						foreach (var c in candidates)
+						{
+							field = declaring.GetField(c, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+							if (field != null) break;
+						}
+						if (field != null)
+						{
+							prop.ValueProvider = new Newtonsoft.Json.Serialization.ReflectionValueProvider(field);
+						}
+					}
+				}
+				return prop;
+			}
+		}
 
 		public static void SaveToFileJson<T>(string fileName, T obj)
 		{
