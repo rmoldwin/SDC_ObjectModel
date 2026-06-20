@@ -2240,6 +2240,13 @@ namespace SDC.Schema
 		/// <param name="elementName"></param>
 		protected internal T? ItemMutator<T>(T? item, T? valueNew, string elementName = "") where T : BaseType?
 		{
+			// If we are in deserialization mode, avoid performing tree mutations (Move/Register/RemoveRecursive)
+			// because the deserializer reconstructs the object graph and ReflectRefreshTree will
+			// rebuild parent/child registrations after deserialization completes.
+			if (SdcUtil.IsDeserializing.Value)
+			{
+				return valueNew;
+			}
 			if (item == valueNew) 
 				return valueNew;  //this will prevent running item.RemoveRecursive when we are reassigning the same object.
 

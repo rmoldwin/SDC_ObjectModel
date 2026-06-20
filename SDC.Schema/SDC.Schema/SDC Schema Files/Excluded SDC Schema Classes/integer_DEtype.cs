@@ -86,7 +86,10 @@ public partial class integer_DEtype : integer_Stype
             {
                 ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 validatorPropContext.MemberName = "minInclusive";
-                Validator.ValidateProperty(value, validatorPropContext);
+                // Skip validation during low-level deserialization to avoid failures when
+                // property setters run before the object graph is fully reconstructed.
+                if (!SdcUtil.IsDeserializing.Value)
+                    Validator.ValidateProperty(value, validatorPropContext);
                 _minInclusive = value;
                 OnPropertyChanged("minInclusive", value);
             }
@@ -111,7 +114,8 @@ public partial class integer_DEtype : integer_Stype
             {
                 ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 validatorPropContext.MemberName = "maxInclusive";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                    Validator.ValidateProperty(value, validatorPropContext);
                 _maxInclusive = value;
                 OnPropertyChanged("maxInclusive", value);
             }
@@ -136,7 +140,8 @@ public partial class integer_DEtype : integer_Stype
             {
                 ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 validatorPropContext.MemberName = "minExclusive";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                    Validator.ValidateProperty(value, validatorPropContext);
                 _minExclusive = value;
                 OnPropertyChanged("minExclusive", value);
             }
@@ -161,7 +166,8 @@ public partial class integer_DEtype : integer_Stype
             {
                 ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 validatorPropContext.MemberName = "maxExclusive";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                    Validator.ValidateProperty(value, validatorPropContext);
                 _maxExclusive = value;
                 OnPropertyChanged("maxExclusive", value);
             }
