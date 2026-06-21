@@ -38,8 +38,8 @@ namespace SDC.Schema
             string g29 = value.ToString("G29", CultureInfo.InvariantCulture);
             decimal normalised = decimal.Parse(g29, CultureInfo.InvariantCulture);
 
-            if (writer is Newtonsoft.Json.Bson.BsonDataWriter)
-                // BSON writers do not support WriteRawValue; write as native decimal.
+            if (writer is Newtonsoft.Json.Bson.BsonDataWriter || writer is Newtonsoft.Msgpack.MessagePackWriter)
+                // Binary writers (BSON, MsgPack) do not support WriteRawValue; write as native decimal.
                 writer.WriteValue(normalised);
             else
                 // JSON text writers: write without quotes and without trailing .0

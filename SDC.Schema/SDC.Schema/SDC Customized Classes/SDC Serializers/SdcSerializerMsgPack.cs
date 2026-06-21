@@ -4,145 +4,167 @@
 //    Extensively modified rlm 2020_05_05
 //  </auto-generated>
 // ------------------------------------------------------------------------------
+// MsgPack serialization uses Newtonsoft.Msgpack (MessagePackWriter/MessagePackReader),
+// which are JsonWriter/JsonReader subclasses. This means all Json.NET attributes such as
+// [JsonIgnore] on ParentNode/TopNode are honoured, eliminating the circular-reference
+// stack overflow that occurred with MessagePack-CSharp's TypelessContractlessStandardResolver.
+// The pattern and settings are identical to SdcSerializerBson.
 #pragma warning disable
 namespace SDC.Schema
 {
-    using System;
-    using System.Diagnostics;
-    using System.Xml.Serialization;
-    using System.Collections;
-    using System.Xml.Schema;
-    using System.ComponentModel;
-    using MessagePack;
-    using MessagePack.Formatters;
-    using MessagePack.Resolvers;
-    using System.IO;
-    using System.Text;
-    using System.Xml;
-    using System.Collections.Generic;
-    using System.Data.SqlTypes;
+	using System;
+	using System.Diagnostics;
+	using System.Xml.Serialization;
+	using System.Collections;
+	using System.Xml.Schema;
+	using System.ComponentModel;
+	using Newtonsoft.Json;
+	using Newtonsoft.Msgpack;
+	using System.IO;
+	using System.Text;
+	using System.Xml;
+	using System.Collections.Generic;
 
-    #region Base entity class
-    public static partial class SdcSerializerMsgPack<T> where T: ITopNode
+	#region Base entity class
+	public static partial class SdcSerializerMsgPack<T> where T : ITopNode
+	{
+		// Two separate JsonSerializer instances mirror the BSON serializer pattern:
+		//
+		// _serializerMsgPackWrite — used for SERIALIZATION (reading object properties to produce MsgPack bytes).
+		//   No ContractResolver: xsd2code++ properties are lazy-initialized; calling getters normally
+		//   populates their values. Bypassing them via backing-field reflection produces data loss.
+		//
+		// _serializerMsgPackRead  — used for DESERIALIZATION (writing values back into objects).
+		//   No ContractResolver: property setters update ShouldSerialize flags and other dependent
+		//   state that is needed for correct attribute lists. Setter side-effects are suppressed by
+		//   IsDeserializing.Value=true and restored by ReflectRefreshTree.
 
-    {
+		private static JsonSerializer _serializerMsgPackWrite;
+		private static JsonSerializer SerializerMsgPackWrite
+		{
+			get
+			{
+				if (_serializerMsgPackWrite == null)
+				{
+					// TypeNameHandling.All: emit "$type" discriminators for all polymorphic collection
+					// elements (e.g. ChildItemsList entries). Without this, deserialization cannot
+					// reconstruct the correct concrete types.
+					// ConstructorHandling: use protected/internal parameterless constructors so that
+					// Json.NET does not try to invoke public parent-dependent constructors with null.
+					_serializerMsgPackWrite = new JsonSerializer
+					{
+						TypeNameHandling    = TypeNameHandling.All,
+						ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
+					};
+					// Normalise decimal scale: write whole-number decimals (e.g. 2M) without a
+					// trailing fractional zero so round-trips match XML attribute representation.
+					_serializerMsgPackWrite.Converters.Add(SdcJsonDecimalConverter.Instance);
+				}
+				return _serializerMsgPackWrite;
+			}
+		}
 
-        // Implement MessagePack-CSharp based serializer with custom XmlElement formatter
-        // and typeless resolver to preserve polymorphic type information and support
-        // non-public constructors.
+		private static JsonSerializer _serializerMsgPackRead;
+		private static JsonSerializer SerializerMsgPackRead
+		{
+			get
+			{
+				if (_serializerMsgPackRead == null)
+				{
+					_serializerMsgPackRead = new JsonSerializer
+					{
+						TypeNameHandling    = TypeNameHandling.All,
+						ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
+					};
+					// Normalise decimal scale on read-back so "2.0" is stored as 2M (scale 0),
+					// matching the value originally loaded from XML.
+					_serializerMsgPackRead.Converters.Add(SdcJsonDecimalConverter.Instance);
+				}
+				return _serializerMsgPackRead;
+			}
+		}
 
-        // Shared MessagePack options used for serialization and deserialization
-        private static readonly MessagePackSerializerOptions _msgPackOptions;
+		#region Serialize/Deserialize
+		/// <summary>
+		/// Serializes the SDC object tree to a MsgPack byte array using Newtonsoft.Msgpack.
+		/// </summary>
+		/// <returns>MsgPack-encoded byte array</returns>
+		public static byte[] SerializeMsgPack(T obj)
+		{
+			using var memoryStream = new MemoryStream();
+			using var writer = new MessagePackWriter(memoryStream);
+			SerializerMsgPackWrite.Serialize(writer, obj);
+			return memoryStream.ToArray();
+		}
 
-        static SdcSerializerMsgPack()
-        {
-            // Create resolver chain: register XmlElement formatter, then use TypelessContractlessStandardResolver
-            var resolver = CompositeResolver.Create(
-                new IMessagePackFormatter[] { new XmlElementFormatter() },
-                new IFormatterResolver[] { TypelessContractlessStandardResolver.Instance }
-            );
-
-            _msgPackOptions = MessagePackSerializerOptions.Standard.WithResolver(resolver).WithSecurity(MessagePackSecurity.UntrustedData);
-        }
-
-
-        #region Serialize/Deserialize
-        /// <summary>
-        /// Serializes current EntityBase object to msgpack format
-        /// </summary>
-        /// <returns>string binary value</returns>
-        public static byte[] SerializeMsgPack(T obj)
-        {
-            return MessagePackSerializer.Serialize<T>(obj, _msgPackOptions);
-        }
-
-        /// <summary>
-        /// Deserializes workflow markup into an EntityBase object
-        /// </summary>
-        /// <param name="input">string workflow markup to deserialize</param>
-        /// <param name="obj">Output EntityBase object</param>
-        /// <param name="exception">output Exception value if deserialize failed</param>
-        /// <returns>true if this Serializer can deserialize the object; otherwise, false</returns>
-        public static bool DeserializeMsgPack(byte[] input, out T obj, out System.Exception exception)
-        {
-            exception = null;
-            obj = default(T);
-            try
-            {
-				BaseType.ResetLastTopNode();
+		/// <summary>
+		/// Deserializes a MsgPack byte array into an SDC object tree.
+		/// </summary>
+		/// <param name="input">MsgPack byte array</param>
+		/// <param name="obj">Output SDC object tree</param>
+		/// <param name="exception">Exception if deserialization failed</param>
+		/// <returns>true if deserialization succeeded; otherwise, false</returns>
+		public static bool DeserializeMsgPack(byte[] input, out T obj, out System.Exception exception)
+		{
+			exception = null;
+			obj = default(T);
+			try
+			{
 				obj = DeserializeMsgPack(input);
-				BaseType.ResetLastTopNode();
 				return true;
-            }
-            catch (System.Exception ex)
-            {
-                exception = ex;
-                return false;
-            }
-        }
+			}
+			catch (System.Exception ex)
+			{
+				exception = ex;
+				return false;
+			}
+		}
 
-        public static bool DeserializeMsgPack(byte[] input, out T obj)
-        {
-            System.Exception exception = null;
-			BaseType.ResetLastTopNode();
-			bool result = DeserializeMsgPack(input, out obj, out exception);
-			BaseType.ResetLastTopNode();
-            return result;
-        }
+		public static bool DeserializeMsgPack(byte[] input, out T obj)
+		{
+			System.Exception exception = null;
+			return DeserializeMsgPack(input, out obj, out exception);
+		}
 
-        /// <summary>
-        /// Deserializes msgpack to current EntityBase object
-        /// </summary>
-        public static T DeserializeMsgPack(byte[] input)
-        {
-            return MessagePackSerializer.Deserialize<T>(input, _msgPackOptions);
-        }
-        #endregion
+		/// <summary>
+		/// Deserializes a MsgPack byte array into an SDC object tree.
+		/// </summary>
+		public static T DeserializeMsgPack(byte[] input)
+		{
+			using var memoryStream = new MemoryStream(input);
+			using var reader = new MessagePackReader(memoryStream);
+			try
+			{
+				SdcUtil.IsDeserializing.Value = true;
+				var result = SerializerMsgPackRead.Deserialize<T>(reader);
+				// Rebuild TopNode/ParentNode registries after deserialization.
+				if (result is BaseType bt)
+				{
+					try { SdcUtil.ReflectRefreshTree(bt.TopNode ?? (ITopNode)bt, out _, print: false, refreshTree: true); } catch { }
+				}
+				SdcUtil.IsDeserializing.Value = false;
+				return result;
+			}
+			catch
+			{
+				SdcUtil.IsDeserializing.Value = false;
+				throw;
+			}
+		}
+		#endregion
 
-        public static void SaveToFileMsgPack(string fileName, T obj)
-        {
-            System.IO.FileStream fileStream = null;
-            try
-            {
-                byte[] msgPackBytes = SerializeMsgPack(obj);
-                fileStream = new System.IO.FileStream(fileName, System.IO.FileMode.Create, System.IO.FileAccess.Write);
-                fileStream.Write(msgPackBytes, 0, msgPackBytes.Length);
-                fileStream.Close();
-            }
-            finally
-            {
-                if ((fileStream != null))
-                {
-                    fileStream.Dispose();
-                }
-            }
-        }
+		public static void SaveToFileMsgPack(string fileName, T obj)
+		{
+			byte[] msgPackBytes = SerializeMsgPack(obj);
+			System.IO.File.WriteAllBytes(fileName, msgPackBytes);
+		}
 
-        public static T LoadFromFileMsgPack(string fileName)
-        {
-            System.IO.FileStream file = null;
-            byte[] buffer = null;
-            try
-            {
-                file = new System.IO.FileStream(fileName, FileMode.Open, FileAccess.Read);
-                buffer = new byte[file.Length];
-                file.Read(buffer, 0, ((int)(file.Length)));
-
-                BaseType.ResetLastTopNode();
-				T obj = DeserializeMsgPack(buffer);
-				BaseType.ResetLastTopNode();
-
-				return obj;
-            }
-            finally
-            {
-                if ((file != null))
-                {
-                    file.Dispose();
-                }
-            }
-        }
-                }
-                #endregion
-            }
-            #pragma warning restore
+		public static T LoadFromFileMsgPack(string fileName)
+		{
+			byte[] buffer = System.IO.File.ReadAllBytes(fileName);
+			return DeserializeMsgPack(buffer);
+		}
+	}
+	#endregion
+}
+#pragma warning restore
