@@ -441,26 +441,50 @@ namespace SDC.Schema.Tests.Functional.Serialization
 				d.hasAddedSubNodes || d.hasRemovedSubNodes).ToList();
 
 			if (changedNodes.Count != 0)
-			{
-				// Dump diagnostics to TestArtifacts for offline inspection
-				try
 				{
-					var artifacts = System.IO.Path.Combine(System.Environment.CurrentDirectory ?? ".", "..", "..", "..", "TestArtifacts");
-					System.IO.Directory.CreateDirectory(artifacts);
-					string outPath = System.IO.Path.Combine(artifacts, $"{format}_RoundTrip_Diffs.json");
-					var dump = new
+					// Dump diagnostics to TestArtifacts for offline inspection
+					try
 					{
-						format = format,
-						changedCount = changedNodes.Count,
-						first = changedNodes.Count > 0 ? changedNodes.First().sGuidIET : null,
-						diffs = changedNodes.Select(d => new { d.sGuidIET, d.isAttListChanged, d.isMoved, d.isNew, d.isParChanged, d.hasAddedSubNodes, d.hasRemovedSubNodes }).ToList()
-					};
-					System.IO.File.WriteAllText(outPath, Newtonsoft.Json.JsonConvert.SerializeObject(dump, Newtonsoft.Json.Formatting.Indented));
-				}
-				catch { }
-				Assert.AreEqual(0, changedNodes.Count,
-					$"{format} round-trip: {changedNodes.Count} IET node(s) carry unexpected change flags. " +
-					$"First changed sGuid: {changedNodes.FirstOrDefault().sGuidIET}");
+						// Use a repo-anchored absolute path so the dump is always findable
+						// regardless of the working directory the test runner uses.
+						string repoRoot = @"C:\Users\RMold\OneDrive\One Drive Documents\SDC\SDC Git Repo\SDC.Schema";
+						string artifacts = System.IO.Path.Combine(repoRoot, "TestArtifacts");
+						System.IO.Directory.CreateDirectory(artifacts);
+						string outPath = System.IO.Path.Combine(artifacts, $"{format}_RoundTrip_Diffs.json");
+						var dump = new
+							{
+								format = format,
+								changedCount = changedNodes.Count,
+								first = changedNodes.Count > 0 ? changedNodes.First().sGuidIET : null,
+								diffs = changedNodes.Select(d => new
+								{
+									d.sGuidIET,
+									d.isAttListChanged,
+									d.isMoved,
+									d.isNew,
+									d.isParChanged,
+									d.hasAddedSubNodes,
+									d.hasRemovedSubNodes,
+									// Dump the per-subnode attribute diffs so we can see which attribute names changed
+									attDifs = d.dlaiDif?.Values.SelectMany(lad => lad).Select(ad => new
+									{
+										subnode    = ad.sGuidSubnode,
+										elem       = ad.elementName,
+										prop       = ad.propertyName,
+										prevName   = ad.aiPrev?.Name,
+										prevValue  = ad.aiPrev?.Value?.ToString(),
+										newName    = ad.aiNew?.Name,
+										newValue   = ad.aiNew?.Value?.ToString()
+									}).ToList()
+								}).ToList()
+							};
+						System.IO.File.WriteAllText(outPath, Newtonsoft.Json.JsonConvert.SerializeObject(dump, Newtonsoft.Json.Formatting.Indented));
+						System.Console.WriteLine($"RoundTrip diff written to: {outPath}");
+					}
+					catch (Exception ex) { System.Console.WriteLine($"Diff dump failed: {ex.Message}"); }
+					Assert.AreEqual(0, changedNodes.Count,
+						$"{format} round-trip: {changedNodes.Count} IET node(s) carry unexpected change flags. " +
+						$"First changed sGuid: {changedNodes.FirstOrDefault().sGuidIET}");
 			}
 		}
 

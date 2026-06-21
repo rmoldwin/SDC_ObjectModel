@@ -105,4 +105,4 @@
    at Newtonsoft.Json.JsonSerializer.Deserialize(JsonReader reader, Type objectType)
    at Newtonsoft.Json.JsonConvert.DeserializeObject(String value, Type type, JsonSerializerSettings settings)
    at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value, JsonSerializerSettings settings)
-   at SDC.Schema.SdcSerializerJson`1.DeserializeJson[T](String input) in C:\Users\RMold\OneDrive\One Drive Documents\SDC\SDC Git Repo\SDC.Schema\SDC.Schema\SDC.Schema\SDC Customized Classes\SDC Serializers\SdcSerializerJson.cs:line 89
+   at SDC.Schema.SdcSerializerJson`1.DeserializeJson[T](String input) in C:\Users\RMold\OneDrive\One Drive Documents\SDC\SDC Git Repo\SDC.Schema\SDC.Schema\SDC.Schema\SDC Customized Classes\SDC Serializers\SdcSerializerJson.cs:line 102

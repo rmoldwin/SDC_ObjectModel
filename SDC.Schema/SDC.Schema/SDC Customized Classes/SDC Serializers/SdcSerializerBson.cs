@@ -25,29 +25,67 @@ namespace SDC.Schema
     public static partial class SdcSerializerBson<T> where T : ITopNode
 
     {
-        private static JsonSerializer _serializerBson;
-        private static JsonSerializer SerializerBson
+        // Two separate JsonSerializer instances are required:
+        //
+        // _serializerBsonWrite  — used for SERIALIZATION (reading object properties to produce BSON).
+        //   Must NOT use SdcNoSetterContractResolver because that resolver reads backing fields
+        //   directly. In xsd2code++ generated classes backing fields are null until the property
+        //   getter is called (lazy init), so reading them directly produces null values in the
+        //   output, silently dropping data.
+        //
+        // _serializerBsonRead   — used for DESERIALIZATION (writing values back into objects).
+        //   Uses SdcNoSetterContractResolver so that field values are set without invoking
+        //   property setters, which avoids triggering validation and tree-mutation side-effects
+        //   during reconstruction from serialized bytes.
+
+        private static JsonSerializer _serializerBsonWrite;
+        private static JsonSerializer SerializerBsonWrite
         {
             get
             {
-                if ((_serializerBson == null))
+                if (_serializerBsonWrite == null)
                 {
-                    // TypeNameHandling.All writes "$type" discriminators so that polymorphic SDC child-collection
-                    // elements (e.g. ChildItemsList: List<IdentifiedExtensionType>) survive the BSON round-trip
-                    // as the correct concrete types (SectionItemType, QuestionItemType, etc.).
-                    // ConstructorHandling: use protected/internal parameterless constructors so that
-                    // Newtonsoft does not invoke the public parent-dependent constructors with a null
-                    // parentNode argument, which would throw NullReferenceException immediately.
-                    // Security note: TypeNameHandling.All is safe for internal/trusted round-trips. When
-                    // accepting BSON from untrusted sources, supply a custom SerializationBinder that
-                    // whitelists only types in the SDC.Schema assembly.
-                    _serializerBson = new JsonSerializer
+                    // TypeNameHandling.All: emit "$type" discriminators for all polymorphic collection elements.
+                    // Security note: safe for internal/trusted round-trips; use a SerializationBinder for untrusted input.
+                    _serializerBsonWrite = new JsonSerializer
+                    {
+                        TypeNameHandling    = TypeNameHandling.All,
+                        ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
+                        // No ContractResolver: let Json.NET call property getters normally so that
+                        // lazy-initialized xsd2code++ properties return their real values.
+                    };
+                    // Normalise decimal scale so that whole-number decimals (e.g. 2M) are written
+                    // without a trailing fractional zero, matching the XML attribute representation.
+                    _serializerBsonWrite.Converters.Add(SdcJsonDecimalConverter.Instance);
+                }
+                return _serializerBsonWrite;
+            }
+        }
+
+        private static JsonSerializer _serializerBsonRead;
+        private static JsonSerializer SerializerBsonRead
+        {
+            get
+            {
+                if (_serializerBsonRead == null)
+                {
+                    // TypeNameHandling.All: read "$type" discriminators written during serialization.
+                    // ConstructorHandling: use protected/internal parameterless constructors so Newtonsoft
+                    // does not invoke the public parent-dependent constructors with a null parentNode.
+                    // Do NOT set a ContractResolver: writing to backing fields directly bypasses property
+                    // setters that update related attribute state (e.g. ShouldSerialize flags). Those
+                    // setter side-effects are needed for correct attribute lists; they are suppressed by
+                    // IsDeserializing=true and restored by ReflectRefreshTree.
+                    _serializerBsonRead = new JsonSerializer
                     {
                         TypeNameHandling    = TypeNameHandling.All,
                         ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
                     };
+                    // Normalise decimal scale on read-back so "2.0" is stored as 2M (scale 0),
+                    // matching the value originally loaded from XML.
+                    _serializerBsonRead.Converters.Add(SdcJsonDecimalConverter.Instance);
                 }
-                return _serializerBson;
+                return _serializerBsonRead;
             }
         }
         #region Serialize/Deserialize
@@ -62,7 +100,8 @@ namespace SDC.Schema
             {
                 memoryStream = new MemoryStream();
                 BsonDataWriter bsonDataWriter = new BsonDataWriter(memoryStream);
-                SerializerBson.Serialize(bsonDataWriter, obj);
+                // Use write serializer (no contract resolver) so lazy-init getters are called normally.
+                SerializerBsonWrite.Serialize(bsonDataWriter, obj);
                 return Convert.ToBase64String(memoryStream.ToArray());
             }
             finally
@@ -115,9 +154,11 @@ namespace SDC.Schema
                 BsonDataReader bsonDataReader = new BsonDataReader(memoryStream);
                 try
                 {
-                    // Indicate deserialization mode to suppress setter side-effects, then post-refresh
+                    // Indicate deserialization mode to suppress setter side-effects, then post-refresh.
+                    // Use read serializer (with SdcNoSetterContractResolver) so backing fields are written
+                    // directly without invoking property setters during reconstruction.
                     SdcUtil.IsDeserializing.Value = true;
-                    var result = SerializerBson.Deserialize<T>(bsonDataReader);
+                    var result = SerializerBsonRead.Deserialize<T>(bsonDataReader);
                     if (result is BaseType bt)
                     {
                         try { SdcUtil.ReflectRefreshTree(bt.TopNode ?? (ITopNode)bt, out _, print: false, refreshTree: true); } catch { }

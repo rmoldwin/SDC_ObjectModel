@@ -32,14 +32,23 @@ namespace SDC.Schema
 		public static string SerializeJson<T>(T obj)
 		{
 			// TypeNameHandling.All writes "$type" discriminators for every polymorphic collection element
-			// (e.g. ChildItemsList: List<IdentifiedExtensionType> containing SectionItemType, QuestionItemType, etc.).
-			// Without this, deserialization cannot reconstruct the correct concrete types.
-			// Security note: TypeNameHandling.All is safe for internal/trusted round-trips. When accepting
-			// JSON from untrusted sources, supply a custom SerializationBinder that whitelists only SDC.Schema types.
-			return JsonConvert.SerializeObject(obj, new JsonSerializerSettings
-			{
-				TypeNameHandling = TypeNameHandling.All
-			});
+				// (e.g. ChildItemsList: List<IdentifiedExtensionType> containing SectionItemType, QuestionItemType, etc.).
+				// Without this, deserialization cannot reconstruct the correct concrete types.
+				// Security note: TypeNameHandling.All is safe for internal/trusted round-trips. When accepting
+				// JSON from untrusted sources, supply a custom SerializationBinder that whitelists only SDC.Schema types.
+				// Do NOT set a ContractResolver here: xsd2code++ properties are lazy-initialized (backing field is null
+				// until the getter is called). SdcNoSetterContractResolver reads backing fields directly, which returns
+				// null for uninitialized lazy properties and produces data loss in the serialized output.
+				var settings = new JsonSerializerSettings
+				{
+					TypeNameHandling = TypeNameHandling.All,
+					// Normalise decimal scale so that whole-number decimals (e.g. 2M) are written as
+					// the integer JSON token "2" rather than "2.0". This preserves round-trip fidelity
+					// with values originally loaded from XML integer/decimal attributes.
+					Converters = { SdcJsonDecimalConverter.Instance }
+				};
+
+				return JsonConvert.SerializeObject(obj, settings);
 		}
 
 		/// <summary>
@@ -79,18 +88,18 @@ namespace SDC.Schema
 			// TypeNameHandling.All: read the "$type" discriminators written by SerializeJson so that
 			// polymorphic collection elements (e.g. ChildItemsList) are deserialized as the correct
 			// concrete types (SectionItemType, QuestionItemType, etc.) rather than as the abstract base type.
+			// Do NOT set a ContractResolver: writing to backing fields directly bypasses property setters
+			// that update related state/attribute fields (e.g. ShouldSerialize flags, computed attributes).
+			// Those setter side-effects are needed for correct attribute lists; they are suppressed by
+			// IsDeserializing.Value=true and restored by the ReflectRefreshTree call below.
 			var settings = new JsonSerializerSettings
 			{
 				TypeNameHandling    = TypeNameHandling.All,
-				ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
+				ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+				// Normalise decimal scale on read-back so "2.0" is stored as 2M (scale 0),
+				// matching the value originally loaded from XML.
+				Converters = { SdcJsonDecimalConverter.Instance }
 			};
-
-			// Use a contract resolver that writes directly to generated backing fields
-			// to avoid invoking property setters (which perform runtime validation)
-			// during deserialization. This preserves the original behavior where
-			// validation runs only during normal runtime assignments, not during
-			// low-level model reconstruction.
-			settings.ContractResolver = new SdcNoSetterContractResolver();
 			try
 			{
 				System.Console.WriteLine("SdcSerializerJson: starting DeserializeObject");

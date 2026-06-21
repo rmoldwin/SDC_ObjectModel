@@ -1,0 +1,97 @@
+{
+  "format": "BSON",
+  "changedCount": 10,
+  "first": "Jg7e7kIE70GxUGEoPYsz9w",
+  "diffs": [
+    {
+      "sGuidIET": "Jg7e7kIE70GxUGEoPYsz9w",
+      "isAttListChanged": true,
+      "isMoved": false,
+      "isNew": false,
+      "isParChanged": false,
+      "hasAddedSubNodes": false,
+      "hasRemovedSubNodes": false
+    },
+    {
+      "sGuidIET": "UgasVQoEVEuibTwDhR5OBQ",
+      "isAttListChanged": true,
+      "isMoved": false,
+      "isNew": false,
+      "isParChanged": false,
+      "hasAddedSubNodes": false,
+      "hasRemovedSubNodes": false
+    },
+    {
+      "sGuidIET": "CbEasAOnOUC5qKISU8BOtg",
+      "isAttListChanged": true,
+      "isMoved": false,
+      "isNew": false,
+      "isParChanged": false,
+      "hasAddedSubNodes": false,
+      "hasRemovedSubNodes": false
+    },
+    {
+      "sGuidIET": "QJSiEK0CUUS7PR67NHE57Q",
+      "isAttListChanged": true,
+      "isMoved": false,
+      "isNew": false,
+      "isParChanged": false,
+      "hasAddedSubNodes": false,
+      "hasRemovedSubNodes": false
+    },
+    {
+      "sGuidIET": "MLiaEBWlPk-apoMHPkLSFQ",
+      "isAttListChanged": true,
+      "isMoved": false,
+      "isNew": false,
+      "isParChanged": false,
+      "hasAddedSubNodes": false,
+      "hasRemovedSubNodes": false
+    },
+    {
+      "sGuidIET": "VNjvXNj7fkGfthxQx0KLig",
+      "isAttListChanged": true,
+      "isMoved": false,
+      "isNew": false,
+      "isParChanged": false,
+      "hasAddedSubNodes": false,
+      "hasRemovedSubNodes": false
+    },
+    {
+      "sGuidIET": "R07UkIW41UiW3SAn5lIKEg",
+      "isAttListChanged": true,
+      "isMoved": false,
+      "isNew": false,
+      "isParChanged": false,
+      "hasAddedSubNodes": false,
+      "hasRemovedSubNodes": false
+    },
+    {
+      "sGuidIET": "Vt-LMmJAYk-1WAS0Cxjppg",
+      "isAttListChanged": true,
+      "isMoved": false,
+      "isNew": false,
+      "isParChanged": false,
+      "hasAddedSubNodes": false,
+      "hasRemovedSubNodes": false
+    },
+    {
+      "sGuidIET": "Vi8tNztzWEuU_-zim-lcAw",
+      "isAttListChanged": true,
+      "isMoved": false,
+      "isNew": false,
+      "isParChanged": false,
+      "hasAddedSubNodes": false,
+      "hasRemovedSubNodes": false
+    },
+    {
+      "sGuidIET": "0sEPfiDPZUuknQRlGyOIIQ",
+      "isAttListChanged": true,
+      "isMoved": false,
+      "isNew": false,
+      "isParChanged": false,
+      "hasAddedSubNodes": false,
+      "hasRemovedSubNodes": false
+    }
+  ]
+}

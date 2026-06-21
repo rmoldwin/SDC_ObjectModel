@@ -13,7 +13,9 @@ namespace SDC.Schema
     using System.Collections;
     using System.Xml.Schema;
     using System.ComponentModel;
-    using MsgPack.Serialization;
+    using MessagePack;
+    using MessagePack.Formatters;
+    using MessagePack.Resolvers;
     using System.IO;
     using System.Text;
     using System.Xml;
@@ -25,19 +27,24 @@ namespace SDC.Schema
 
     {
 
-        private static MessagePackSerializer<T> serializerMsgPack;
+        // Implement MessagePack-CSharp based serializer with custom XmlElement formatter
+        // and typeless resolver to preserve polymorphic type information and support
+        // non-public constructors.
 
-        private static MessagePackSerializer<T> SerializerMsgPack
+        // Shared MessagePack options used for serialization and deserialization
+        private static readonly MessagePackSerializerOptions _msgPackOptions;
+
+        static SdcSerializerMsgPack()
         {
-            get
-            {
-                if ((serializerMsgPack == null))
-                {
-                    serializerMsgPack = MsgPack.Serialization.MessagePackSerializer.Get<T>();
-                }
-                return serializerMsgPack;
-            }
+            // Create resolver chain: register XmlElement formatter, then use TypelessContractlessStandardResolver
+            var resolver = CompositeResolver.Create(
+                new IMessagePackFormatter[] { new XmlElementFormatter() },
+                new IFormatterResolver[] { TypelessContractlessStandardResolver.Instance }
+            );
+
+            _msgPackOptions = MessagePackSerializerOptions.Standard.WithResolver(resolver).WithSecurity(MessagePackSecurity.UntrustedData);
         }
+
 
         #region Serialize/Deserialize
         /// <summary>
@@ -46,20 +53,7 @@ namespace SDC.Schema
         /// <returns>string binary value</returns>
         public static byte[] SerializeMsgPack(T obj)
         {
-            MemoryStream memoryStream = null;
-            try
-            {
-                memoryStream = new MemoryStream();
-                SerializerMsgPack.Pack(memoryStream, obj);
-                return memoryStream.ToArray();
-            }
-            finally
-            {
-                if ((memoryStream != null))
-                {
-                    memoryStream.Dispose();
-                }
-            }
+            return MessagePackSerializer.Serialize<T>(obj, _msgPackOptions);
         }
 
         /// <summary>
@@ -99,22 +93,10 @@ namespace SDC.Schema
         /// <summary>
         /// Deserializes msgpack to current EntityBase object
         /// </summary>
-		public static T DeserializeMsgPack(byte[] input)
-		{
-			MemoryStream memoryStream = null;
-			try
-			{
-				memoryStream = new MemoryStream(input);
-				return SerializerMsgPack.Unpack(memoryStream);
-			}
-			finally
-			{
-				if ((memoryStream != null))
-				{
-					memoryStream.Dispose();
-				}
-			}
-		}
+        public static T DeserializeMsgPack(byte[] input)
+        {
+            return MessagePackSerializer.Deserialize<T>(input, _msgPackOptions);
+        }
         #endregion
 
         public static void SaveToFileMsgPack(string fileName, T obj)

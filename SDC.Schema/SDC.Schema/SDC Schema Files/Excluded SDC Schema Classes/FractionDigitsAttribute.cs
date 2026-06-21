@@ -42,8 +42,13 @@ public class FractionDigitsAttribute : ValidationAttribute
             if (value == null)
                 return true;
 
-            if (value is decimal)
-                return HasPrecision(value, _decimalPrecision);
+            // For decimal, use numeric round-trip comparison instead of string representation.
+            // Json.NET preserves the scale of a decimal value, so 0M serialized as JSON "0.0" and then
+            // deserialized back arrives as 0.0M. The string "0.0" has 1 fractional digit, which would
+            // incorrectly fail a FractionDigits(0) check even though the numeric value is valid.
+            // Math.Round uses arithmetic precision rather than string length.
+            if (value is decimal d)
+                return Math.Round(d, (int)_decimalPrecision) == d;
 
             if (value is float)
                 return HasPrecision(value, _decimalPrecision);
