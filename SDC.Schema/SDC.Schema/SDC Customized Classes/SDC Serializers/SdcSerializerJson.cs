@@ -42,6 +42,13 @@ namespace SDC.Schema
 				var settings = new JsonSerializerSettings
 				{
 					TypeNameHandling = TypeNameHandling.All,
+					// FloatFormatHandling.String: write NaN/Infinity as the JSON strings "NaN"/"Infinity"/"-Infinity"
+					// rather than crashing with JsonWriterException on invalid JSON tokens.
+					FloatFormatHandling = FloatFormatHandling.String,
+					// DateTimeZoneHandling.Utc: normalise DateTime.Kind to UTC on both serialization and
+					// deserialization so that round-tripped date/dateTime values compare equal regardless
+					// of the host machine's local timezone.
+					DateTimeZoneHandling = DateTimeZoneHandling.Utc,
 					// Normalise decimal scale so that whole-number decimals (e.g. 2M) are written as
 					// the integer JSON token "2" rather than "2.0". This preserves round-trip fidelity
 					// with values originally loaded from XML integer/decimal attributes.
@@ -96,6 +103,10 @@ namespace SDC.Schema
 			{
 				TypeNameHandling    = TypeNameHandling.All,
 				ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+				// FloatFormatHandling.String: read back NaN/Infinity that were written as JSON strings.
+				FloatFormatHandling    = FloatFormatHandling.String,
+				// DateTimeZoneHandling.Utc: normalise DateTime.Kind to UTC so round-tripped values compare equal.
+				DateTimeZoneHandling   = DateTimeZoneHandling.Utc,
 				// Normalise decimal scale on read-back so "2.0" is stored as 2M (scale 0),
 				// matching the value originally loaded from XML.
 				Converters = { SdcJsonDecimalConverter.Instance }

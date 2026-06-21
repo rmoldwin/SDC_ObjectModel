@@ -21,7 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using MsgPack.Serialization;
 using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
@@ -535,128 +534,6 @@ public partial class SdcEntityBase : INotifyPropertyChanged
     //        }
     //    }
     //}
-    //
-    //#region Serialize/Deserialize
-    ///// <summary>
-    ///// Serialize current SdcEntityBase object to msgpack
-    ///// </summary>
-    ///// <returns>string binary value</returns>
-    //public virtual byte[] SerializeMsgPack()
-    //{
-    //    MemoryStream byteStream = null;
-    //    try
-    //    {
-    //        byteStream = new MemoryStream();
-    //        SerializerMsPack.Pack(byteStream, this);
-    //        return byteStream.ToArray();
-    //    }
-    //    finally
-    //    {
-    //        if ((byteStream != null))
-    //        {
-    //            byteStream.Dispose();
-    //        }
-    //    }
-    //}
-    //
-    ///// <summary>
-    ///// Deserializes SdcEntityBase object
-    ///// </summary>
-    ///// <param name="input">string to deserialize</param>
-    ///// <param name="obj">Output SdcEntityBase object</param>
-    ///// <param name="exception">output Exception value if deserialize failed</param>
-    ///// <returns>true if this Serializer can deserialize the object; otherwise, false</returns>
-    //public static bool DeserializeMsgPack(byte[] input, out T obj, out Exception exception)
-    //{
-    //    exception = null;
-    //    obj = default(T);
-    //    try
-    //    {
-    //        obj = DeserializeMsgPack(input);
-    //        return true;
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        exception = ex;
-    //        return false;
-    //    }
-    //}
-    //
-    //public static bool DeserializeMsgPack(byte[] input, out T obj)
-    //{
-    //    Exception exception = null;
-    //    return DeserializeMsgPack(input, out obj, out exception);
-    //}
-    //
-    ///// <summary>
-    ///// Deserializes msgpack to current T object
-    ///// </summary>
-    //public static T DeserializeMsgPack(byte[] input)
-    //{
-    //    MemoryStream byteStream = null;
-    //    try
-    //    {
-    //        byteStream = new MemoryStream(input);
-    //        return ((T)(SerializerMsPack.Unpack(byteStream)));
-    //    }
-    //    finally
-    //    {
-    //        if ((byteStream != null))
-    //        {
-    //            byteStream.Dispose();
-    //        }
-    //    }
-    //}
-    //#endregion
-    //
-    //public virtual void SaveToFileMsgPack(string fileName)
-    //{
-    //    FileStream fileStream = null;
-    //    try
-    //    {
-    //        byte[] msgPackBytes = SerializeMsgPack();
-    //        fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
-    //        fileStream.Write(msgPackBytes, 0, msgPackBytes.Length);
-    //        fileStream.Close();
-    //    }
-    //    finally
-    //    {
-    //        if ((fileStream != null))
-    //        {
-    //            fileStream.Dispose();
-    //        }
-    //    }
-    //}
-    //
-    //public static T LoadFromFileMsgPack(string fileName)
-    //{
-    //    FileStream file = null;
-    //    byte[] buffer = null;
-    //    try
-    //    {
-    //        file = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-    //        buffer = new byte[file.Length];
-    //        file.Read(buffer, 0, ((int)(file.Length)));
-    //        return DeserializeMsgPack(buffer);
-    //    }
-    //    finally
-    //    {
-    //        if ((file != null))
-    //        {
-    //            file.Dispose();
-    //        }
-    //    }
-    //}
-    //
-    //#region Clone method
-    ///// <summary>
-    ///// Create a clone of this T object
-    ///// </summary>
-    //public virtual T Clone()
-    //{
-    //    return ((T)(MemberwiseClone()));
-    //}
-    //#endregion
 }
 #endregion
 }

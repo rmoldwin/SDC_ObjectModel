@@ -50,7 +50,11 @@ namespace SDC.Schema
                     _serializerBsonWrite = new JsonSerializer
                     {
                         TypeNameHandling    = TypeNameHandling.All,
-                        ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
+                        ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+                        // FloatFormatHandling.String: write NaN/Infinity as strings rather than crashing.
+                        FloatFormatHandling  = FloatFormatHandling.String,
+                        // DateTimeZoneHandling.Utc: normalise DateTime.Kind to UTC for round-trip fidelity.
+                        DateTimeZoneHandling = DateTimeZoneHandling.Utc
                         // No ContractResolver: let Json.NET call property getters normally so that
                         // lazy-initialized xsd2code++ properties return their real values.
                     };
@@ -79,7 +83,11 @@ namespace SDC.Schema
                     _serializerBsonRead = new JsonSerializer
                     {
                         TypeNameHandling    = TypeNameHandling.All,
-                        ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
+                        ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+                        // FloatFormatHandling.String: read back NaN/Infinity written as strings.
+                        FloatFormatHandling  = FloatFormatHandling.String,
+                        // DateTimeZoneHandling.Utc: normalise DateTime.Kind to UTC for round-trip fidelity.
+                        DateTimeZoneHandling = DateTimeZoneHandling.Utc
                     };
                     // Normalise decimal scale on read-back so "2.0" is stored as 2M (scale 0),
                     // matching the value originally loaded from XML.

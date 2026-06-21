@@ -54,7 +54,11 @@ namespace SDC.Schema
 					_serializerMsgPackWrite = new JsonSerializer
 					{
 						TypeNameHandling    = TypeNameHandling.All,
-						ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
+						ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+						// FloatFormatHandling.String: write NaN/Infinity as strings rather than crashing.
+						FloatFormatHandling  = FloatFormatHandling.String,
+						// DateTimeZoneHandling.Utc: normalise DateTime.Kind to UTC for round-trip fidelity.
+						DateTimeZoneHandling = DateTimeZoneHandling.Utc
 					};
 					// Normalise decimal scale: write whole-number decimals (e.g. 2M) without a
 					// trailing fractional zero so round-trips match XML attribute representation.
@@ -74,7 +78,11 @@ namespace SDC.Schema
 					_serializerMsgPackRead = new JsonSerializer
 					{
 						TypeNameHandling    = TypeNameHandling.All,
-						ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
+						ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+						// FloatFormatHandling.String: read back NaN/Infinity written as strings.
+						FloatFormatHandling  = FloatFormatHandling.String,
+						// DateTimeZoneHandling.Utc: normalise DateTime.Kind to UTC for round-trip fidelity.
+						DateTimeZoneHandling = DateTimeZoneHandling.Utc
 					};
 					// Normalise decimal scale on read-back so "2.0" is stored as 2M (scale 0),
 					// matching the value originally loaded from XML.
