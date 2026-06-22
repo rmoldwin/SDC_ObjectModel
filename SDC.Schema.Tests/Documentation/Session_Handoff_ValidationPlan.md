@@ -1,9 +1,181 @@
 # Session Handoff — Data Integrity & Centralized Validation Plan
 
 **Branch (Phase 1):** `Features/NET10/Net10Main` (commit `6cecee6`)  
-**Branch (Phase 2+):** `Features/NET10/TypeValidations` (commit `b30fac0`)  
+**Branch (Phase 2+):** `Features/NET10/TypeValidations` (commit `64d41a6`)  
 **Date:** 2026-06  
-**Status of prior work:** All 418 tests passing; JSON/BSON/MsgPack serializer repair complete (Phase 1 complete, Phase 2 complete).
+**Status:** Phases 1–4 complete. 460/460 tests passing.
+
+---
+
+## Progress to Date (completed)
+
+| Item | Status | Commit |
+|---|---|---|
+| Test-host stabilization (x64 forced via `vstest.runsettings`) | ✅ Done | — |
+| JSON/BSON round-trip fidelity (decimal converter, `DateTimeZoneHandling.Utc`, `FloatFormatHandling.String`) | ✅ Done | — |
+| MsgPack rewrite: MsgPack-CSharp → `Newtonsoft.Msgpack` | ✅ Done | — |
+| Bulk removal of `using MsgPack.Serialization;` (506 files) | ✅ Done | — |
+| Full test suite 418/418 passing | ✅ Done | — |
+| `global.json` pinning SDK to 10.0.300 | ✅ Done | — |
+| **Phase 1** — Fix B-1/B-6 in `IDataHelpers.AddDataTypesDE` | ✅ Done | `6cecee6` |
+| **Phase 2** — `SdcValidationEvents` hub + `SdcValidationEventArgs` + `SdcValidationSeverity` | ✅ Done | `b30fac0` |
+| **Phase 3** — `SdcUtil.ValidateAndRaise` + bulk setter rewrite (34 files, 60 setters); `IsDeserializing` guard | ✅ Done | `6514799` |
+| **Gap-1** — XML deserializer was missing `IsDeserializing=true` guard | ✅ Done | `8e601af` |
+| **Gap-2** — JSON deserializer exception path didn't clear `IsDeserializing` flag | ✅ Done | `8e601af` |
+| **Gap-3** — 15 comprehensive `SdcValidationEventsTests.cs` tests | ✅ Done | `8e601af` |
+| Dead code removal — `SdcNoSetterContractResolver` (both copies) | ✅ Done | `1d7b968` |
+| **Phase 4A** — `SdcValidationReport` + `SdcNodeValidationIssue` types | ✅ Done | `64d41a6` |
+| **Phase 4A** — `SdcUtil.SuppressValidation` (AsyncLocal) + `ValidationCollector` (AsyncLocal) | ✅ Done | `64d41a6` |
+| **Phase 4B** — Bulk setter guard update: `!IsDeserializing` → `!SuppressValidation` (33 files) | ✅ Done | `64d41a6` |
+| **Phase 4B** — All 4 serializers set `SuppressValidation=true` alongside `IsDeserializing=true` | ✅ Done | `64d41a6` |
+| **Phase 4C** — `DeserializeXmlValidating` / `DeserializeJsonValidating` / `DeserializeBsonValidating` / `DeserializeMsgPackValidating` overloads (each returns `(T, SdcValidationReport)`) | ✅ Done | `64d41a6` |
+| **Phase 4D** — `ValidateTree(this ITopNode, bool recurseSubTrees)` + `ValidateNode(this BaseType)` sweep API | ✅ Done | `64d41a6` |
+| **Phase 4E** — `FractionDigitsAttribute.FormatErrorMessage` override + integer-type short-circuit bug fix; `MaxDigitsAttribute.FormatErrorMessage` override | ✅ Done | `64d41a6` |
+| **Phase 4F** — 20 comprehensive `SdcValidationPhase4Tests.cs` tests | ✅ Done | `64d41a6` |
+
+**Open Q answers recorded:**
+- Q1: Non-throwing assign-and-raise semantics (always assign; surface via event).
+- Q2: xsd2code++ regen deferred; Phase 3 setter wiring proceeded against current generated code.
+- Q3: `AddDataTypesDE` errors → `SdcValidationEvents` hub; `errors` out-param kept as secondary.
+
+---
+
+## Architecture: SuppressValidation vs IsDeserializing (Phase 4 key design)
+
+Two independent `AsyncLocal<bool>` flags in `SdcUtil`:
+
+| Flag | Purpose | Set by |
+|---|---|---|
+| `IsDeserializing` | Suppresses tree-mutation side-effects in `OnPropertyChanged` (Move/Register calls) | All 4 serializer `Deserialize` methods |
+| `SuppressValidation` | Suppresses `ValidateAndRaise` calls in property setters | Normal `Deserialize` (set true); `*Validating` overloads (set false to enable) |
+
+**Normal deserialization:** both `true` → fast, no events, no tree mutations.  
+**Validating deserialization (`*Validating` overloads):** `IsDeserializing=true`, `SuppressValidation=false` → setter events fire, issues collected into `SdcValidationReport`.  
+**Programmatic mutation:** both `false` (defaults) → events fire on invalid values.
+
+### ValidationCollector
+
+`SdcUtil.ValidationCollector` (AsyncLocal<SdcValidationReport?>) — when non-null, `ValidateAndRaise` appends `SdcNodeValidationIssue` entries to it **in addition to** firing the event hub. Set by `*Validating` overloads and `ValidateTree`. Always cleared in `finally` blocks.
+
+---
+
+## Known Issues / GitHub Issues Needed
+
+| # | Issue | Location | Severity |
+|---|---|---|---|
+| I-1 | `[RegularExpression]` on `DateTime` properties in `dateTimeStamp_DEtype`/`Stype` produces false-positive errors in `ValidateTree` — `TryValidateObject` calls `value.ToString()` with locale formatting instead of ISO 8601. Fix requires a custom `DateTimeStampTimezoneAttribute`. | `dateTimeStamp_DEtype.cs`, `dateTimeStamp_Stype.cs` | Medium |
+| I-2 | `anyURI` regex in `IDataHelpers.AddDataTypesDE` uses XSD `#x1-#xD7FF` syntax (invalid C# regex). Will throw `ArgumentException` at runtime if that branch is exercised. | `IDataHelpers.cs` | High |
+| I-3 | HTML, XML, `anyType` content in `AddDataTypesDE` has no secondary validator. A well-formed check would require an HTML parser or XML parser call. | `IDataHelpers.cs` | Low — defer to future |
+| I-4 | `yearMonthDuration`/`dayTimeDuration` `[RegularExpression]` patterns lack human-readable `FormatErrorMessage` overrides. | `dayTimeDuration_Stype.cs`, `yearMonthDuration_Stype.cs` | Low |
+| I-5 | `DateTimeZoneHandling.Utc` in JSON/BSON/MsgPack serializers silently shifts `date` and `time` values when host is not in UTC. | Serializer settings | Medium — defer until regen |
+
+---
+
+## Audit Results — What Exists Now
+
+### Existing Validation Infrastructure
+
+| Component | Location | Description |
+|---|---|---|
+| `SdcUtil.ValidateAndRaise(value, ctx)` | `SdcUtil.cs` | Non-throwing validation helper; gates on `SuppressValidation`; populates `ValidationCollector`; fires event hub |
+| `SdcUtil.SuppressValidation` | `SdcUtil.cs` | `AsyncLocal<bool>` — suppresses setter validation; decoupled from `IsDeserializing` |
+| `SdcUtil.ValidationCollector` | `SdcUtil.cs` | `AsyncLocal<SdcValidationReport?>` — collects issues during sweep or validating deserialization |
+| `SdcValidationEvents.ValidationOccurred` | `SdcValidationEvents.cs` | Static event hub; `Raise(SdcValidationEventArgs)` internal |
+| `SdcValidationReport` / `SdcNodeValidationIssue` | `Utility Classes/SdcValidationReport.cs` | Report aggregate + per-issue record with NodeID, PropertyName, Message, Severity |
+| `SdcValidate.ValidateTree(ITopNode, bool)` | `SdcValidate.cs` (partial) | Post-hydration sweep via `TryValidateObject` on all `Nodes.Values` |
+| `SdcValidate.ValidateNode(BaseType)` | `SdcValidate.cs` (partial) | Single-node validation |
+| `*Validating` deserializer overloads | All 4 serializer files | Returns `(T result, SdcValidationReport)` with `SuppressValidation=false` during load |
+| `[RangeAttribute]`, `[FractionDigitsAttribute]`, `[MaxDigitsAttribute]`, `[RegularExpressionAttribute]` | Generated type files | Decorates properties with validation constraints |
+| `FractionDigitsAttribute` | `SDC Unmodified Classes/FractionDigitsAttribute.cs` | Fixed: integer types (byte/int/etc.) now correctly return `true`; added `DecimalPrecision` property and `FormatErrorMessage` override |
+| `MaxDigitsAttribute` | `SDC Customized Classes/MaxDigitsAttribute.cs` | Added `Max`, `Min` properties and `FormatErrorMessage` override |
+| `SdcUtil.IsDeserializing` (`AsyncLocal<bool>`) | `SdcUtil.cs` | Suppresses `OnPropertyChanged` tree-mutation side effects during deserialization |
+| `SdcValidate.ValidateSdcObjectTree / ValidateSdcXml` | `SdcValidate.cs` (original partial) | XSD-schema post-hoc XML validator; returns `List<ValidationEventArgs>` |
+
+### Date/Time Type Mapping — Current State
+
+| SDC XML type | C# property type | `XmlAttribute(DataType=...)` | Concern |
+|---|---|---|---|
+| `date` | `System.DateTime` | `"date"` | XmlSerializer strips time/tz; correct for XML round-trip. JSON/BSON/MsgPack may corrupt if `DateTimeZoneHandling.Utc` is applied. |
+| `time` | `System.DateTime` | `"time"` | XmlSerializer strips date; correct for XML. Same JSON concern. |
+| `dateTime` | `System.DateTime` | `"dateTime"` | OK for most uses; no TZ preservation in C# `DateTime`. |
+| `dateTimeStamp` | `System.DateTime` | `"dateTime"` | Must be UTC. `DateTimeZoneHandling.Utc` is correct here. |
+| `gDay/gMonth/gMonthDay/gYear/gYearMonth` | `string` | (via val) | Stored as string; round-trip safe. |
+| `duration`/`dayTimeDuration`/`yearMonthDuration` | `string` | (via val) | Stored as string; round-trip safe. |
+
+---
+
+## Implementation Plan
+
+### Phase 1 — Fix `IDataHelpers.AddDataTypesDE` bugs (B-1 through B-6) ✅ DONE
+
+### Phase 2 — `SdcValidationEvent` infrastructure ✅ DONE
+
+### Phase 3 — Centralize setter validation wiring ✅ DONE
+
+### Phase 4 — Validation infrastructure expansion ✅ DONE
+
+**Delivered:**
+- `SdcValidationReport` / `SdcNodeValidationIssue` types
+- `SuppressValidation` + `ValidationCollector` in `SdcUtil`
+- `ValidateAndRaise` rewritten to gate on `SuppressValidation`, populate collector, fire event
+- Bulk setter guard update: `!IsDeserializing` → `!SuppressValidation` (33 files)
+- `*Validating` deserializer overloads for all 4 serializers
+- `ValidateTree` + `ValidateNode` sweep API in `SdcValidate`
+- `FractionDigitsAttribute` + `MaxDigitsAttribute` `FormatErrorMessage` overrides
+- Bug fix: `FractionDigitsAttribute.IsValid` now returns `true` for integer types (byte, int, etc.)
+- 20 comprehensive Phase 4 tests in `SdcValidationPhase4Tests.cs`
+
+### Phase 5 — Date/time serializer settings audit
+
+**Goal:** Prevent `DateTimeZoneHandling.Utc` from silently corrupting `date` and `time` values in JSON/BSON/MsgPack.
+
+**Options (to be evaluated):**
+- A) Add per-type `JsonConverter` subclasses for `date_Stype`, `time_Stype` that write/read using `XmlConvert.ToString(dt, XmlDateTimeSerializationMode.Unspecified)`.
+- B) Remove `DateTimeZoneHandling.Utc` from all serializer settings globally and document as a known limitation.
+- C) Wait for xsd2code++ regeneration to produce `DateOnly`/`TimeOnly` types (C# 10+).
+
+**Recommendation:** Option C. Defer until regeneration.
+
+### Phase 6 — xsd2code++ Regen Strategy
+
+**Goal:** When the new xsd2code++ version generates fresh code, custom code must be preserved and new features adopted safely.
+
+**Strategy:**
+1. Tag all custom/hand-written files with a `// SDC-CUSTOM: do not overwrite` header comment.
+2. Define "custom zones" as:
+   - All files in `SDC Customized Classes/` folder
+   - All files in `Utility Classes/`, `Extensions/`, `Interfaces/`
+   - `PartialClasses.cs` custom `partial class` additions
+3. After regen:
+   - Run a diff tool comparing new generated output to current `SDC Unmodified Classes/`
+   - Apply diff to custom classes manually where relevant
+   - Run the full test suite (460+ tests) to verify no regressions
+4. Update xsd2code++ template to emit `!SuppressValidation.Value` guard and `SdcUtil.ValidateAndRaise(...)` pattern by default.
+
+---
+
+## Open Questions
+
+1. **`DateTimeStampTimezoneAttribute`:** Should a custom validation attribute replace `[RegularExpression]` on `DateTime` properties in `dateTimeStamp_DEtype` to avoid false positives in `ValidateTree`? (See issue I-1.) — **Not yet resolved.**
+
+2. **Secondary validators for HTML/XML content:** Should `ValidateNode`/`ValidateTree` call an HTML/XML parser to validate `anyType` / `HTML` / `XML` field content? — **Deferred; file GitHub Issue (I-3).**
+
+3. **anyURI regex fix:** The XSD-syntax regex in `AddDataTypesDE` must be replaced with a valid C# regex or a `Uri.IsWellFormedUriString` check. — **Not yet fixed; file GitHub Issue (I-2).**
+
+---
+
+## Next Immediate Steps (priority order)
+
+1. File GitHub Issues for I-1 through I-5 above.
+2. Phase 5 — date/time serializer audit (or defer pending regen decision).
+3. Phase 6 — prepare for xsd2code++ regen when available.
+4. Investigate `ValidateTree` false positives on `dateTimeStamp_DEtype` nodes (I-1); consider `DateTimeStampTimezoneAttribute`.
+5. Fix `anyURI` regex in `AddDataTypesDE` (I-2).
+
+---
+
+*Updated after Phase 4 completion (commit `64d41a6`). Prior plan preserved above for reference. See also: `Session_Handoff_TestAudit_SerializerFixes_RepoHygiene.md`*
+
 
 ---
 
