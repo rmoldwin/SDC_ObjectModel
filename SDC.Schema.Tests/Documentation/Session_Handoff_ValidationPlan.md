@@ -20,6 +20,7 @@
 | `global.json` pinning SDK to 10.0.300 | ✅ Done |
 | **Phase 1** — Fix B-1/B-6 in `IDataHelpers.AddDataTypesDE` (B-1 uncomment Item assigns, B-2 float_DEtype, B-3 dt.val=s, B-4 anyType, B-5 errors param) | ✅ Done (`6cecee6`) |
 | **Phase 2** — `SdcValidationEvents` hub: `SdcValidationEventArgs`, `SdcValidationSeverity`, `SdcValidationEvents` static class; `StoreError` fires hub | ✅ Done (`b30fac0`) |
+| **Phase 3** — `SdcUtil.ValidateAndRaise` helper + bulk setter rewrite (34 files, 60 setters); non-throwing assign-and-raise semantics; `IsDeserializing` guard on all | ✅ Done (`6514799`) |
 
 **Open Q answers recorded:**
 - Q1: Reject (keep old value) + fire `SdcValidationEvents`.
