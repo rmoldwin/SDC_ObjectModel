@@ -33,7 +33,13 @@
 ## Session Continuity
 - After completing each meaningful chunk of work, proactively produce and keep up-to-date: (a) an updated conversation/work summary, (b) updated on-disk context/handoff documents, and (c) a kickstart prompt suitable for resuming in a freshly restarted session. Generate and maintain an organized plan document at the start of multi-step work, update it as each sub-activity completes, and use it as the kickstart prompt base.
 
-## Git Workflow
+## Auto-Generated File Policy (xsd2code++)
+- Files under `SDC.Schema/SDC.Schema/SDC Constructor Removed/`, `SDC.Schema/SDC.Schema/SDC Unmodified Classes/`, and `SDC.Schema/SDC.Schema/SDC Schema Files/` are xsd2code++-generated and require special processing during regeneration. **Do NOT edit these files without explicit user permission.**
+- During any planning phase where a proposed change would touch these folders, **stop and explicitly notify the user** before proceeding. List the exact files and describe why the change is needed. Wait for approval.
+- Prefer alternatives that keep generated files untouched: (a) companion partial-class files in `SDC Customized Classes/`, (b) the `SuppressTreeMutations` pattern so `IsDeserializing` guards in generated setters are preserved as-is, (c) derived attributes or extension methods in `SDC Customized Classes/`.
+- Files in `SDC Customized Classes/`, `Utility Classes/`, `Extensions/`, and `Interfaces/` are the correct places for customizations and may be edited freely.
+
+
 - When doing a git amend, always check the commit message and adjust it as needed before amending the commit.
 - `GIT_TERMINAL_PROMPT=0` is set in the PowerShell profile and must remain set; this suppresses Git's interactive locked-folder deletion prompts that would otherwise silently block agent terminal commands. `core.fscache=true` and `checkout.workers=1` are also set in this repo's local config for the same reason. See `SDC.Schema.Tests/Documentation/GitWorkflow_LockedFolderPrevention.md` for full details and the post-merge cleanup script.
 - Always close the VS solution (File → Close Solution) before performing branch checkouts or merges to prevent Windows file-handle locks on project files.
