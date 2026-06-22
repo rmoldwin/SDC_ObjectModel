@@ -792,6 +792,13 @@ namespace SDC.Schema
                 exData.Data.Add("QuestionID: ", rfParent?.ParentIETnode?.ID.ToString() ?? "null");
                 exData.Data.Add("Error: ", errorMsg);
                 exList.Add(exData);
+
+                // Fire the central validation event so subscribers (UI, logger, SdcValidate) are notified.
+                if (!SdcUtil.IsDeserializing.Value)
+                    SdcValidationEvents.Raise(
+                        message:      errorMsg,
+                        nodeID:       rfParent?.ParentIETnode?.ID.ToString(),
+                        propertyName: nameof(DataTypes_DEType.Item));
             }
 
         }
