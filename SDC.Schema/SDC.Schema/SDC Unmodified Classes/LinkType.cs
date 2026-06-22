@@ -89,9 +89,12 @@ public partial class LinkType : ExtensionBaseType
             if (((_linkURI == null) 
                         || (_linkURI.Equals(value) != true)))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "LinkURI";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "LinkURI";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _linkURI = value;
                 OnPropertyChanged("LinkURI", value);
             }

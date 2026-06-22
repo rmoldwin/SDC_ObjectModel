@@ -61,9 +61,12 @@ public partial class DestinationType : ExtensionBaseType
             if (((_endpoint == null) 
                         || (_endpoint.Equals(value) != true)))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "Endpoint";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "Endpoint";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _endpoint = value;
                 OnPropertyChanged("Endpoint", value);
             }
@@ -88,9 +91,12 @@ public partial class DestinationType : ExtensionBaseType
             if (((_endpointDescription == null) 
                         || (_endpointDescription.Equals(value) != true)))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "EndpointDescription";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "EndpointDescription";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _endpointDescription = value;
                 OnPropertyChanged("EndpointDescription", value);
             }

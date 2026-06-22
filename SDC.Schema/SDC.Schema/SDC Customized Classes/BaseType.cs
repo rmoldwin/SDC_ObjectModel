@@ -421,9 +421,12 @@ namespace SDC.Schema
                 //End of Addition---------------------------------------------------------------                    
 
 
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "sGuid";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "sGuid";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
 
                 _sGuid = value;
                 OnPropertyChanged("sGuid", value);

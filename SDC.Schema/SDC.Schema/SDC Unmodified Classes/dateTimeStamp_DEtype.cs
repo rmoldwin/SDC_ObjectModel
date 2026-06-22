@@ -58,9 +58,12 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
         {
             if ((_maxExclusive.Equals(value) != true))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "maxExclusive";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "maxExclusive";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _maxExclusive = value;
                 OnPropertyChanged("maxExclusive", value);
             }
@@ -81,9 +84,12 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
         {
             if ((_minExclusive.Equals(value) != true))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "minExclusive";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "minExclusive";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _minExclusive = value;
                 OnPropertyChanged("minExclusive", value);
             }
@@ -104,9 +110,12 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
         {
             if ((_maxInclusive.Equals(value) != true))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "maxInclusive";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "maxInclusive";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _maxInclusive = value;
                 OnPropertyChanged("maxInclusive", value);
             }
@@ -127,9 +136,12 @@ public partial class dateTimeStamp_DEtype : dateTimeStamp_Stype
         {
             if ((_minInclusive.Equals(value) != true))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "minInclusive";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "minInclusive";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _minInclusive = value;
                 OnPropertyChanged("minInclusive", value);
             }

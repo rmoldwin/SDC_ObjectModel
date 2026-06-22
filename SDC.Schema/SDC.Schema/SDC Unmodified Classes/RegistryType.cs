@@ -83,9 +83,12 @@ public partial class RegistryType : ExtensionBaseType
             if (((_currentRegistry == null) 
                         || (_currentRegistry.Equals(value) != true)))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "CurrentRegistry";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "CurrentRegistry";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _currentRegistry = value;
                 OnPropertyChanged("CurrentRegistry", value);
             }

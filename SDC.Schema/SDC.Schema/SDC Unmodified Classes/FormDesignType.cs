@@ -595,9 +595,12 @@ public partial class FormDesignType : IdentifiedExtensionType
         {
             if ((_instanceVersion.Equals(value) != true))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "instanceVersion";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "instanceVersion";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _instanceVersion = value;
                 OnPropertyChanged("instanceVersion", value);
             }
@@ -675,9 +678,12 @@ public partial class FormDesignType : IdentifiedExtensionType
         {
             if ((_instanceVersionPrev.Equals(value) != true))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "instanceVersionPrev";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "instanceVersionPrev";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _instanceVersionPrev = value;
                 OnPropertyChanged("instanceVersionPrev", value);
             }

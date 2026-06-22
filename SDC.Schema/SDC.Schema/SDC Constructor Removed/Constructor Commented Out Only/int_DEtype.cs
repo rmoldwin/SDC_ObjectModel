@@ -138,9 +138,12 @@ namespace SDC.Schema
 			{
 				if ((_maxExclusive.Equals(value) != true))
 				{
-					ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-					validatorPropContext.MemberName = "maxExclusive";
-					Validator.ValidateProperty(value, validatorPropContext);
+					if (!SdcUtil.IsDeserializing.Value)
+					{
+						ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+						validatorPropContext.MemberName = "maxExclusive";
+						SdcUtil.ValidateAndRaise(value, validatorPropContext);
+					}
 					_maxExclusive = value;
 					OnPropertyChanged("maxExclusive", value);
 				}

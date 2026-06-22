@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Data.SqlTypes;
 using System.Diagnostics;
@@ -47,6 +48,37 @@ namespace SDC.Schema
 		// graph reconstruction and clear it afterward. ReflectRefreshTree will rebuild
 		// runtime dictionaries and parent mappings after deserialization completes.
 		public static System.Threading.AsyncLocal<bool> IsDeserializing { get; } = new System.Threading.AsyncLocal<bool>();
+
+		/// <summary>
+		/// Non-throwing property validator: runs DataAnnotations validation on <paramref name="value"/>
+		/// and, if validation fails, fires <see cref="SdcValidationEvents.ValidationOccurred"/> with
+		/// full context (NodeID, PropertyName, AttemptedValue, all <see cref="ValidationResult"/>s).<br/>
+		/// The value is NOT rejected — callers are responsible for assigning <c>_field = value</c>
+		/// unconditionally after this call (assign-and-raise semantics).<br/>
+		/// Must NOT be called during deserialization; guard with
+		/// <c>if (!SdcUtil.IsDeserializing.Value)</c> at the call site.
+		/// </summary>
+		/// <param name="value">The incoming property value to validate.</param>
+		/// <param name="ctx">
+		/// A <see cref="ValidationContext"/> whose <see cref="ValidationContext.MemberName"/>
+		/// must be set to the property name before calling.
+		/// </param>
+		public static void ValidateAndRaise(object? value, ValidationContext ctx)
+		{
+			var results = new List<ValidationResult>();
+			if (!Validator.TryValidateProperty(value, ctx, results))
+			{
+				SdcValidationEvents.Raise(new SdcValidationEventArgs
+				{
+					NodeID         = (ctx.ObjectInstance as BaseType)?.sGuid,
+					PropertyName   = ctx.MemberName,
+					AttemptedValue = value,
+					Message        = string.Join("; ", results.Select(r => r.ErrorMessage ?? "(validation error)")),
+					Severity       = SdcValidationSeverity.Error,
+					Results        = results.AsReadOnly()
+				});
+			}
+		}
 		internal static Dictionary<Guid, BaseType> Get_Nodes(BaseType n)
 		{ return Get_ITopNode(n)._Nodes; }
 		internal static Dictionary<Guid, List<BaseType>> Get_ChildNodes(BaseType n)

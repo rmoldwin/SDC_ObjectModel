@@ -120,9 +120,12 @@ public partial class long_DEtype : long_Stype
         {
             if ((_minExclusive.Equals(value) != true))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "minExclusive";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "minExclusive";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _minExclusive = value;
                 OnPropertyChanged("minExclusive", value);
             }
@@ -143,9 +146,12 @@ public partial class long_DEtype : long_Stype
         {
             if ((_maxExclusive.Equals(value) != true))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "maxExclusive";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "maxExclusive";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _maxExclusive = value;
                 OnPropertyChanged("maxExclusive", value);
             }

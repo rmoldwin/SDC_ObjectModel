@@ -67,9 +67,12 @@ public partial class CodeSystemType : ExtensionBaseType
             if (((_codeSystemName == null) 
                         || (_codeSystemName.Equals(value) != true)))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "CodeSystemName";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "CodeSystemName";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _codeSystemName = value;
                 OnPropertyChanged("CodeSystemName", value);
             }

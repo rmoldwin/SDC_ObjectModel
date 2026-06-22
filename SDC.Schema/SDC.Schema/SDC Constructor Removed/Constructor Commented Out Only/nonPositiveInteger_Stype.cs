@@ -64,9 +64,12 @@ public partial class nonPositiveInteger_Stype : BaseType
         {
             if ((_val.Equals(value) != true))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "val";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "val";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _val = value;
                 OnPropertyChanged("val", value);
             }

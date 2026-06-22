@@ -111,9 +111,12 @@ public partial class FileType : ExtensionBaseType
             if (((_fileURI == null) 
                         || (_fileURI.Equals(value) != true)))
             {
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "FileURI";
-                Validator.ValidateProperty(value, validatorPropContext);
+                if (!SdcUtil.IsDeserializing.Value)
+                {
+                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                	validatorPropContext.MemberName = "FileURI";
+                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                }
                 _fileURI = value;
                 OnPropertyChanged("FileURI", value);
             }
