@@ -122,26 +122,38 @@ namespace SDC.Schema
 			{
 				stringReader = new System.IO.StringReader(input);
 				BaseType.ResetLastTopNode();
-				T obj = ((T)(Serializer.Deserialize(XmlReader.Create(stringReader))));
-				BaseType.ResetLastTopNode();
-				return obj;
-			}
-			finally
-			{
-				if ((stringReader != null))
+					SdcUtil.IsDeserializing.Value = true;
+					T obj = ((T)(Serializer.Deserialize(XmlReader.Create(stringReader))));
+					SdcUtil.IsDeserializing.Value = false;
+					BaseType.ResetLastTopNode();
+					return obj;
+				}
+				finally
 				{
-					stringReader.Dispose();
+					SdcUtil.IsDeserializing.Value = false;
+					if ((stringReader != null))
+					{
+						stringReader.Dispose();
+					}
 				}
 			}
-		}
 
-		public static T Deserialize(System.IO.Stream s)
-		{
-			BaseType.ResetLastTopNode();
-			var obj = ((T)(Serializer.Deserialize(s)));
-			BaseType.ResetLastTopNode();
-			return obj;
-		}
+			public static T Deserialize(System.IO.Stream s)
+			{
+				try
+				{
+					BaseType.ResetLastTopNode();
+					SdcUtil.IsDeserializing.Value = true;
+					var obj = ((T)(Serializer.Deserialize(s)));
+					SdcUtil.IsDeserializing.Value = false;
+					BaseType.ResetLastTopNode();
+					return obj;
+				}
+				finally
+				{
+					SdcUtil.IsDeserializing.Value = false;
+				}
+			}
 		#endregion
 
 		///// <summary>

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("SDC.Schema.Tests")]
+
 namespace SDC.Schema
 {
 	/// <summary>
