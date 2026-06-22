@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.MemoryMappedFiles;
@@ -29,7 +29,8 @@ namespace SDC.Schema
           ResponseFieldType rfParent,
           ItemChoiceType dataTypeEnum = ItemChoiceType.@string,
           dtQuantEnum quantifierEnum = dtQuantEnum.EQ,
-          object? value = null)
+          object? value = null,
+          IList<Exception>? errors = null)
         {
             //Exception ex;
             List<Exception> exList = new();
@@ -48,7 +49,7 @@ namespace SDC.Schema
                         }
                         dt.AnyAttr = new List<XmlAttribute>();
                         
-                        //rfParent.Response.DataTypeDE_Item = dt;                       
+                        rfParent.Response.DataTypeDE_Item = dt;                       
                     }
                     break;
                 case ItemChoiceType.XML: //TODO: Need to be able to add custom attributes to first wrapper element - see anyType; in fact, do we even need XML as a separate type?
@@ -57,7 +58,7 @@ namespace SDC.Schema
                         var dt = new XML_DEtype(rfParent.Response);
                         dt.Any = new List<XmlElement>();
                         //check is value is valid XML and assign value to dt
-                        //rfParent.Response.DataTypeDE_Item = dt;                        
+                        rfParent.Response.DataTypeDE_Item = dt;                        
                     }
                     break;
                 case ItemChoiceType.anyType:
@@ -66,7 +67,7 @@ namespace SDC.Schema
                         dt.Any = new List<XmlElement>();
                         dt.AnyAttr = new List<XmlAttribute>();
                         //check is value is valid XML and assign value to dt
-                        //rfParent.Response.DataTypeDE_Item = dt;                        
+                        rfParent.Response.DataTypeDE_Item = dt;                        
                     }
                     break;
                 case ItemChoiceType.anyURI:
@@ -81,7 +82,7 @@ namespace SDC.Schema
                         }
                         var dt = new anyURI_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.base64Binary:
@@ -101,7 +102,7 @@ namespace SDC.Schema
                         }
                         var dt = new base64Binary_DEtype(rfParent.Response);
                         if (tmp != null) dt.val = (byte[])tmp;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.boolean:
@@ -119,7 +120,7 @@ namespace SDC.Schema
                         }
                         var dt = new boolean_DEtype(rfParent.Response);
                         if (tmp != null && tmp != false) dt.val = (bool)tmp;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@byte: //XML signed "byte" is "sbyte" in .NET
@@ -138,7 +139,7 @@ namespace SDC.Schema
                         var dt = new byte_DEtype(rfParent.Response);
                         if (tmp != null && tmp != 0) dt.val = (sbyte)tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.date:
@@ -165,7 +166,7 @@ namespace SDC.Schema
                         if (tmp != null && tmp != default(DateTime)) dt.val = ((DateTime)tmp).Date;
 
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                    break;
                 case ItemChoiceType.@dateTime:
@@ -190,7 +191,7 @@ namespace SDC.Schema
                         var dt = new dateTime_DEtype(rfParent.Response);
                         if (tmp != null && tmp != default(DateTime)) dt.val = (DateTime)tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@dateTimeStamp:  //Must be UTC.  All values will be converted to UTC.  If no timezone is supplied, local time will be converted to UTC.
@@ -214,7 +215,7 @@ namespace SDC.Schema
                         }
                         var dt = new dateTimeStamp_DEtype(rfParent.Response);
                         if (tmp != null && tmp != default(DateTime)) dt.val = (DateTime)tmp;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.dayTimeDuration:
@@ -235,7 +236,7 @@ namespace SDC.Schema
                         var dt = new dayTimeDuration_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@decimal:
@@ -254,7 +255,7 @@ namespace SDC.Schema
                         var dt = new decimal_DEtype(rfParent.Response);
                         if (tmp != null && tmp != 0) dt.val = (decimal)tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@double:
@@ -273,7 +274,7 @@ namespace SDC.Schema
                         var dt = new double_DEtype(rfParent.Response);
                         if (tmp != null && tmp != 0) dt.val = (double)tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.duration:
@@ -294,7 +295,7 @@ namespace SDC.Schema
                         var dt = new duration_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@float:
@@ -310,10 +311,10 @@ namespace SDC.Schema
                             else if (value.TryAs(out float v, out _)) tmp = v;
                             else StoreError("Supplied value parameter could not be parsed as float");
                         }
-                        var dt = new double_DEtype(rfParent.Response);
+                        var dt = new float_DEtype(rfParent.Response);
                         if (tmp != null && tmp != 0) dt.val = (float)tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.gDay: //# of day of month, +/- timezone
@@ -333,7 +334,7 @@ namespace SDC.Schema
                         var dt = new gDay_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.gMonth: //# of month, +/- timezone
@@ -353,7 +354,7 @@ namespace SDC.Schema
                         var dt = new gMonth_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.gMonthDay: //# of day - # of month, +/- timezone
@@ -373,7 +374,7 @@ namespace SDC.Schema
                         var dt = new gMonthDay_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.gYear: //# of year +/- timezone
@@ -392,7 +393,7 @@ namespace SDC.Schema
                         var dt = new gYear_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.gYearMonth:
@@ -411,7 +412,7 @@ namespace SDC.Schema
                         var dt = new gYearMonth_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.hexBinary:
@@ -430,7 +431,7 @@ namespace SDC.Schema
                         }
                         var dt = new hexBinary_DEtype(rfParent.Response);
                         if (tmp != null) dt.val = tmp;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@int:
@@ -449,7 +450,7 @@ namespace SDC.Schema
                         var dt = new int_DEtype(rfParent.Response);
                         if (tmp != null && tmp != 0) dt.val = (int)tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.integer: //XML integer is based on decimal datatype.  Decimal values after the "." will be truncated
@@ -472,7 +473,7 @@ namespace SDC.Schema
                             if (tmp2 != 0) dt.val = tmp2;
                         }
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@long:
@@ -491,7 +492,7 @@ namespace SDC.Schema
                         var dt = new long_DEtype(rfParent.Response);
                         if (tmp != null && tmp != 0) dt.val = (long)tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.negativeInteger:
@@ -516,7 +517,7 @@ namespace SDC.Schema
                             else StoreError("Supplied value parameter could not be parsed as negativeInteger");
                         }
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
 
                     }
                     break;
@@ -543,7 +544,7 @@ namespace SDC.Schema
                             else StoreError("Supplied value parameter could not be parsed as nonnegativeInteger");
                         }
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.nonPositiveInteger:
@@ -568,7 +569,7 @@ namespace SDC.Schema
                             else StoreError("Supplied value parameter could not be parsed as nonPositiveInteger");
                         }
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.positiveInteger:
@@ -593,7 +594,7 @@ namespace SDC.Schema
                             else StoreError("Supplied value parameter could not be parsed as PositiveInteger");
                         }
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@short:
@@ -612,7 +613,7 @@ namespace SDC.Schema
                         var dt = new short_DEtype(rfParent.Response);
                         if (tmp != null && tmp != 0) dt.val = (short)tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@string:
@@ -630,11 +631,11 @@ namespace SDC.Schema
                                 .Replace("<", "&lt;")
                                 .Replace("&", "&amp;");
 
-							dt.val = (string)value;
+							dt.val = s;
                             }
                             else StoreError("Supplied value parameter was not a string datatype");
 
-                        ////rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.time:
@@ -678,7 +679,7 @@ namespace SDC.Schema
                             }
                         }
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.unsignedByte:
@@ -697,7 +698,7 @@ namespace SDC.Schema
                         var dt = new unsignedByte_DEtype(rfParent.Response);
                         if (tmp != null && tmp != 0) dt.val = (byte)tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.unsignedInt:
@@ -716,7 +717,7 @@ namespace SDC.Schema
                         var dt = new unsignedInt_DEtype(rfParent.Response);
                         if (tmp != null && tmp != 0) dt.val = (uint)tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.unsignedLong:
@@ -735,7 +736,7 @@ namespace SDC.Schema
                         var dt = new unsignedLong_DEtype(rfParent.Response);
                         if (tmp != null && tmp != 0) dt.val = (ulong)tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.unsignedShort:
@@ -754,7 +755,7 @@ namespace SDC.Schema
                         var dt = new unsignedShort_DEtype(rfParent.Response);
                         if (tmp != null && tmp != 0) dt.val = (ushort)tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.yearMonthDuration:
@@ -775,12 +776,14 @@ namespace SDC.Schema
                         var dt = new yearMonthDuration_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
                         dt.quantEnum = quantifierEnum;
-                        //rfParent.Response.DataTypeDE_Item = dt;
+                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
             }
 
             rfParent.Response.ItemElementName = (ItemChoiceType2)dataTypeEnum;
+            if (errors != null)
+                foreach (var ex in exList) errors.Add(ex);
             return rfParent.Response;
 
             void StoreError(string errorMsg)
@@ -854,7 +857,7 @@ namespace SDC.Schema
             var dt = new HTML_DEtype(rfParent.Response);
             dt.Any = valEl ?? new List<XmlElement>();
             dt.AnyAttr = valAtt ?? new List<XmlAttribute>();
-            //rfParent.Response.DataTypeDE_Item = dt;
+            rfParent.Response.DataTypeDE_Item = dt;
 
             rfParent.Response.ItemElementName = ItemChoiceType2.HTML;
             return rfParent.Response;
@@ -865,7 +868,7 @@ namespace SDC.Schema
 
             var dt = new XML_DEtype(rfParent.Response);
             dt.Any = valEl ?? new List<XmlElement>();
-            //rfParent.Response.DataTypeDE_Item = dt;
+            rfParent.Response.DataTypeDE_Item = dt;
 
             rfParent.Response.ItemElementName = ItemChoiceType2.XML;
             return rfParent.Response;
@@ -879,9 +882,9 @@ namespace SDC.Schema
             dt.schema = schema ?? null;
             dt.Any = valEl ?? new List<XmlElement>();
             dt.AnyAttr = valAtt ?? new List<XmlAttribute>();
-            //rfParent.Response.DataTypeDE_Item = dt;
+            rfParent.Response.DataTypeDE_Item = dt;
 
-            rfParent.Response.ItemElementName = ItemChoiceType2.HTML;
+            rfParent.Response.ItemElementName = ItemChoiceType2.anyType;
             return rfParent.Response;
         }
         static DataTypes_DEType AddBase64_DE(ResponseFieldType rfParent, byte[] value = null!, string mediaType = null!)
@@ -891,7 +894,7 @@ namespace SDC.Schema
             var dt = new base64Binary_DEtype(rfParent.Response);
             dt.val = value;
             dt.mediaType = mediaType;
-            //rfParent.Response.DataTypeDE_Item = dt;
+            rfParent.Response.DataTypeDE_Item = dt;
 
             rfParent.Response.ItemElementName = ItemChoiceType2.base64Binary;
             return rfParent.Response;
