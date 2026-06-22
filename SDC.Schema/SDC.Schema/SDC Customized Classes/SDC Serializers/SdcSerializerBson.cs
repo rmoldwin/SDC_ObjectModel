@@ -161,17 +161,20 @@ namespace SDC.Schema
                     // Set IsDeserializing to suppress setter side-effects (validation, tree-mutation)
                     // during reconstruction; ReflectRefreshTree rebuilds the node registries after.
                     SdcUtil.IsDeserializing.Value = true;
+                    SdcUtil.SuppressValidation.Value = true;
                     var result = SerializerBsonRead.Deserialize<T>(bsonDataReader);
                     if (result is BaseType bt)
                     {
                         try { SdcUtil.ReflectRefreshTree(bt.TopNode ?? (ITopNode)bt, out _, print: false, refreshTree: true); } catch { }
                     }
                     SdcUtil.IsDeserializing.Value = false;
+                    SdcUtil.SuppressValidation.Value = false;
                     return result;
                 }
                 finally
                 {
                     SdcUtil.IsDeserializing.Value = false;
+                    SdcUtil.SuppressValidation.Value = false;
                 }
             }
             finally
@@ -183,6 +186,51 @@ namespace SDC.Schema
             }
         }
         #endregion
+
+        /// <summary>
+        /// Deserializes BSON and validates all node properties as values are assigned to setters.
+        /// Unlike <see cref="DeserializeBson(string)"/>, this overload sets
+        /// <see cref="SdcUtil.SuppressValidation"/> to <see langword="false"/> so that every
+        /// property setter runs DataAnnotations validation during deserialization.
+        /// </summary>
+        /// <returns>
+        /// A tuple of the deserialized object and an <see cref="SdcValidationReport"/> containing
+        /// any validation issues found.
+        /// </returns>
+        public static (T result, SdcValidationReport report) DeserializeBsonValidating(string input)
+        {
+            var report = new SdcValidationReport();
+            MemoryStream memoryStream = null;
+            try
+            {
+                byte[] data = Convert.FromBase64String(input);
+                memoryStream = new MemoryStream(data);
+                BsonDataReader bsonDataReader = new BsonDataReader(memoryStream);
+                SdcUtil.IsDeserializing.Value     = true;
+                SdcUtil.SuppressValidation.Value  = false;  // enable setter validation during load
+                SdcUtil.ValidationCollector.Value = report;
+                T result;
+                try
+                {
+                    result = SerializerBsonRead.Deserialize<T>(bsonDataReader);
+                }
+                finally
+                {
+                    SdcUtil.IsDeserializing.Value     = false;
+                    SdcUtil.SuppressValidation.Value  = false;
+                    SdcUtil.ValidationCollector.Value = null;
+                }
+                if (result is BaseType bt)
+                {
+                    try { SdcUtil.ReflectRefreshTree(bt.TopNode ?? (ITopNode)bt, out _, print: false, refreshTree: true); } catch { }
+                }
+                return (result, report);
+            }
+            finally
+            {
+                memoryStream?.Dispose();
+            }
+        }
 
         public static void SaveToFileBson<T>(string fileName, T obj)
         {

@@ -117,17 +117,19 @@ namespace SDC.Schema
 				// Indicate to the model that a low-level deserialization is in progress so that
 				// setters and mutators can suppress side-effects (validation, Move/Register, etc.).
 				SdcUtil.IsDeserializing.Value = true;
-					T result;
-					try
-					{
-						result = JsonConvert.DeserializeObject<T>(input, settings);
-					}
-					finally
-					{
-						// Always clear the flag — even if DeserializeObject throws — so the async
-						// context does not permanently suppress validation after a failed round-trip.
-						SdcUtil.IsDeserializing.Value = false;
-					}
+					SdcUtil.SuppressValidation.Value = true;
+						T result;
+						try
+						{
+							result = JsonConvert.DeserializeObject<T>(input, settings);
+						}
+						finally
+						{
+							// Always clear both flags — even if DeserializeObject throws — so the async
+							// context does not permanently suppress validation after a failed round-trip.
+							SdcUtil.IsDeserializing.Value = false;
+							SdcUtil.SuppressValidation.Value = false;
+						}
 					System.Console.WriteLine("SdcSerializerJson: DeserializeObject completed successfully");
 					// Perform a post-deserialize refresh to rebuild TopNode/ParentNode registries
 					// and run any deferred validation or registration now that the graph is intact.
@@ -161,6 +163,52 @@ namespace SDC.Schema
 			}
 		}
 		#endregion
+
+		/// <summary>
+		/// Deserializes JSON and validates all node properties as values are assigned to setters.
+		/// Unlike the standard <see cref="DeserializeJson{T}(string)"/>, this overload sets
+		/// <see cref="SdcUtil.SuppressValidation"/> to <see langword="false"/> so that every
+		/// property setter runs its DataAnnotations validation during deserialization.<br/>
+		/// <br/>
+		/// Use this when loading data from untrusted sources and you need a validation report
+		/// without performing a separate post-hydration sweep.
+		/// </summary>
+		/// <returns>
+		/// A tuple of the deserialized object and an <see cref="SdcValidationReport"/> containing
+		/// any validation issues found. The object is always returned even if the report has errors
+		/// (assign-and-raise semantics).
+		/// </returns>
+		public static (T result, SdcValidationReport report) DeserializeJsonValidating<T>(string input)
+		{
+			var report = new SdcValidationReport();
+			var settings = new JsonSerializerSettings
+			{
+				TypeNameHandling     = TypeNameHandling.All,
+				ConstructorHandling  = ConstructorHandling.AllowNonPublicDefaultConstructor,
+				FloatFormatHandling  = FloatFormatHandling.String,
+				DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+				Converters           = { SdcJsonDecimalConverter.Instance }
+			};
+			SdcUtil.IsDeserializing.Value    = true;
+			SdcUtil.SuppressValidation.Value = false;   // enable setter validation during load
+			SdcUtil.ValidationCollector.Value = report;
+			T result;
+			try
+			{
+				result = JsonConvert.DeserializeObject<T>(input, settings);
+			}
+			finally
+			{
+				SdcUtil.IsDeserializing.Value     = false;
+				SdcUtil.SuppressValidation.Value  = false;
+				SdcUtil.ValidationCollector.Value = null;
+			}
+			if (result is BaseType bt)
+			{
+				try { SdcUtil.ReflectRefreshTree(bt.TopNode ?? (ITopNode)bt, out _, print: false, refreshTree: true); } catch { }
+			}
+			return (result, report);
+		}
 
 
 

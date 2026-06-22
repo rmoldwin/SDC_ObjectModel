@@ -111,7 +111,7 @@ public partial class FileType : ExtensionBaseType
             if (((_fileURI == null) 
                         || (_fileURI.Equals(value) != true)))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "FileURI";

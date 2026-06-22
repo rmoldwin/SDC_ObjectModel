@@ -120,7 +120,7 @@ public partial class long_DEtype : long_Stype
         {
             if ((_minExclusive.Equals(value) != true))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "minExclusive";
@@ -146,7 +146,7 @@ public partial class long_DEtype : long_Stype
         {
             if ((_maxExclusive.Equals(value) != true))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "maxExclusive";

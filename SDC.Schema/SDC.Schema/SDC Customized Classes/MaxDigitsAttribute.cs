@@ -38,7 +38,19 @@ using System.Collections.Generic;
             _min = min;
         }
 
-        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+            /// <summary>Maximum allowed total digit count.</summary>
+            public int Max => _max;
+            /// <summary>Minimum required total digit count (0 means no minimum).</summary>
+            public int Min => _min;
+
+            public override string FormatErrorMessage(string name)
+            {
+                return _min == 0
+                    ? $"The field '{name}' must have at most {_max} significant digit(s) in total."
+                    : $"The field '{name}' must have between {_min} and {_max} significant digit(s) in total.";
+            }
+
+            protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
             if (!IsValid(value))
             {

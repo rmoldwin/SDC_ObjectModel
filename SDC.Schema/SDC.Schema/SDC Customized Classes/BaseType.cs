@@ -421,7 +421,7 @@ namespace SDC.Schema
                 //End of Addition---------------------------------------------------------------                    
 
 
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "sGuid";

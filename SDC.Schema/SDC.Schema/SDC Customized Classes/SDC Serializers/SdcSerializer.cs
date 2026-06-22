@@ -123,14 +123,17 @@ namespace SDC.Schema
 				stringReader = new System.IO.StringReader(input);
 				BaseType.ResetLastTopNode();
 					SdcUtil.IsDeserializing.Value = true;
-					T obj = ((T)(Serializer.Deserialize(XmlReader.Create(stringReader))));
-					SdcUtil.IsDeserializing.Value = false;
-					BaseType.ResetLastTopNode();
-					return obj;
-				}
-				finally
-				{
-					SdcUtil.IsDeserializing.Value = false;
+						SdcUtil.SuppressValidation.Value = true;
+						T obj = ((T)(Serializer.Deserialize(XmlReader.Create(stringReader))));
+						SdcUtil.IsDeserializing.Value = false;
+						SdcUtil.SuppressValidation.Value = false;
+						BaseType.ResetLastTopNode();
+						return obj;
+					}
+					finally
+					{
+						SdcUtil.IsDeserializing.Value = false;
+						SdcUtil.SuppressValidation.Value = false;
 					if ((stringReader != null))
 					{
 						stringReader.Dispose();
@@ -144,20 +147,65 @@ namespace SDC.Schema
 				{
 					BaseType.ResetLastTopNode();
 					SdcUtil.IsDeserializing.Value = true;
-					var obj = ((T)(Serializer.Deserialize(s)));
-					SdcUtil.IsDeserializing.Value = false;
-					BaseType.ResetLastTopNode();
-					return obj;
-				}
-				finally
-				{
-					SdcUtil.IsDeserializing.Value = false;
+						SdcUtil.SuppressValidation.Value = true;
+						var obj = ((T)(Serializer.Deserialize(s)));
+						SdcUtil.IsDeserializing.Value = false;
+						SdcUtil.SuppressValidation.Value = false;
+						BaseType.ResetLastTopNode();
+						return obj;
+					}
+					finally
+					{
+						SdcUtil.IsDeserializing.Value = false;
+						SdcUtil.SuppressValidation.Value = false;
 				}
 			}
 		#endregion
 
-		///// <summary>
-		///// Serializes current T object into file
+		/// <summary>
+		/// Deserializes XML and validates all node properties as values are assigned to setters.
+		/// Unlike the standard <see cref="Deserialize(string)"/>, this overload sets
+		/// <see cref="SdcUtil.SuppressValidation"/> to <see langword="false"/> so that every
+		/// property setter runs its DataAnnotations validation during deserialization.<br/>
+		/// <br/>
+		/// Use this when loading XML from untrusted sources and you need a validation report
+		/// without performing a separate post-hydration sweep.
+		/// </summary>
+		/// <returns>
+		/// A tuple of the deserialized object and an <see cref="SdcValidationReport"/> containing
+		/// any validation issues found.
+		/// </returns>
+		public static (T result, SdcValidationReport report) DeserializeXmlValidating(string input)
+		{
+			var report = new SdcValidationReport();
+			System.IO.StringReader stringReader = null;
+			SdcUtil.IsDeserializing.Value     = true;
+			SdcUtil.SuppressValidation.Value  = false;  // enable setter validation during load
+			SdcUtil.ValidationCollector.Value = report;
+			T result;
+			try
+			{
+				stringReader = new System.IO.StringReader(input);
+				BaseType.ResetLastTopNode();
+				result = ((T)(Serializer.Deserialize(XmlReader.Create(stringReader))));
+				BaseType.ResetLastTopNode();
+			}
+			finally
+			{
+				SdcUtil.IsDeserializing.Value     = false;
+				SdcUtil.SuppressValidation.Value  = false;
+				SdcUtil.ValidationCollector.Value = null;
+				stringReader?.Dispose();
+			}
+			// Populate the Nodes dictionary so callers can iterate the hydrated tree
+			if (result is BaseType bt)
+			{
+				try { SdcUtil.ReflectRefreshTree(bt.TopNode ?? (ITopNode)bt, out _, print: false, refreshTree: true); } catch { }
+			}
+			return (result, report);
+		}
+
+		
 		///// </summary>
 		///// <param name="fileName">full path of outupt xml file</param>
 		///// <param name="exception">output Exception value if failed</param>

@@ -199,27 +199,52 @@ namespace SDC.Schema.Tests.Functional
 			Assert.AreEqual(5m, intDt.minInclusive, "The valid value must be stored correctly.");
 		}
 
-		// ─── IsDeserializing guard tests ───────────────────────────────────────────
+		// ─── SuppressValidation / IsDeserializing guard tests ─────────────────────
 
 		[TestMethod]
-		public void IntegerDEtype_SetFractional_WhenIsDeserializingTrue_NoEventFires()
+		public void IntegerDEtype_SetFractional_WhenSuppressValidationTrue_NoEventFires()
 		{
-			// Rationale: during deserialization IsDeserializing.Value is true; the Phase 3
-			// setter guard must suppress ValidateAndRaise so round-trips never spam subscribers.
+			// Rationale: as of Phase 4B, setter guards use SuppressValidation (not IsDeserializing);
+			// when SuppressValidation=true, no validation event must fire even for invalid values.
 			var intDt = CreateIntegerNode();
 
-			SdcUtil.IsDeserializing.Value = true;
+			SdcUtil.SuppressValidation.Value = true;
 			try
 			{
 				intDt.minInclusive = 1.5m; // would normally fire an event
 			}
 			finally
 			{
-				SdcUtil.IsDeserializing.Value = false; // reset before any assertion
+				SdcUtil.SuppressValidation.Value = false; // reset before any assertion
 			}
 
 			Assert.AreEqual(0, _captured.Count,
-				"No validation event must fire while SdcUtil.IsDeserializing is true.");
+				"No validation event must fire while SdcUtil.SuppressValidation is true.");
+		}
+
+		[TestMethod]
+		public void IntegerDEtype_SetFractional_WhenOnlyIsDeserializingTrue_EventStillFires()
+		{
+			// Rationale: IsDeserializing is decoupled from SuppressValidation in Phase 4B.
+			// Setting only IsDeserializing=true (without SuppressValidation=true) must NOT
+			// suppress validation events — this enables the *Validating deserializer overloads
+			// to validate during hydration.
+			var intDt = CreateIntegerNode();
+
+			SdcUtil.IsDeserializing.Value    = true;
+			SdcUtil.SuppressValidation.Value = false; // explicitly confirm the decoupling
+			try
+			{
+				intDt.minInclusive = 1.5m; // invalid fractional value
+			}
+			finally
+			{
+				SdcUtil.IsDeserializing.Value    = false;
+				SdcUtil.SuppressValidation.Value = false;
+			}
+
+			Assert.IsTrue(_captured.Count > 0,
+				"With IsDeserializing=true but SuppressValidation=false, validation events must still fire.");
 		}
 
 		[TestMethod]

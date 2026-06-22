@@ -595,7 +595,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         {
             if ((_instanceVersion.Equals(value) != true))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "instanceVersion";
@@ -678,7 +678,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         {
             if ((_instanceVersionPrev.Equals(value) != true))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "instanceVersionPrev";

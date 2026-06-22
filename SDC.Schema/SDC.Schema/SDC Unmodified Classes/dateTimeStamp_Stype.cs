@@ -52,7 +52,7 @@ public partial class dateTimeStamp_Stype : BaseType
         {
             if ((_val.Equals(value) != true))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "val";

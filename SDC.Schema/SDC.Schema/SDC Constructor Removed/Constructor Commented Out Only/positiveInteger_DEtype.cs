@@ -83,7 +83,7 @@ namespace SDC.Schema
 			{
 				if ((_minInclusive.Equals(value) != true))
 				{
-					if (!SdcUtil.IsDeserializing.Value)
+					if (!SdcUtil.SuppressValidation.Value)
 					{
 						ValidationContext validatorPropContext = new ValidationContext(this, null, null);
 						validatorPropContext.MemberName = "minInclusive";
@@ -111,7 +111,7 @@ namespace SDC.Schema
 			{
 				if ((_maxInclusive.Equals(value) != true))
 				{
-					if (!SdcUtil.IsDeserializing.Value)
+					if (!SdcUtil.SuppressValidation.Value)
 					{
 						ValidationContext validatorPropContext = new ValidationContext(this, null, null);
 						validatorPropContext.MemberName = "maxInclusive";
@@ -139,7 +139,7 @@ namespace SDC.Schema
 			{
 				if ((_minExclusive.Equals(value) != true))
 				{
-					if (!SdcUtil.IsDeserializing.Value)
+					if (!SdcUtil.SuppressValidation.Value)
 					{
 						ValidationContext validatorPropContext = new ValidationContext(this, null, null);
 						validatorPropContext.MemberName = "minExclusive";
@@ -167,7 +167,7 @@ namespace SDC.Schema
 			{
 				if ((_maxExclusive.Equals(value) != true))
 				{
-					if (!SdcUtil.IsDeserializing.Value)
+					if (!SdcUtil.SuppressValidation.Value)
 					{
 						ValidationContext validatorPropContext = new ValidationContext(this, null, null);
 						validatorPropContext.MemberName = "maxExclusive";

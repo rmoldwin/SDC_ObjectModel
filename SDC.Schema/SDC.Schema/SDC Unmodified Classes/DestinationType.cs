@@ -61,7 +61,7 @@ public partial class DestinationType : ExtensionBaseType
             if (((_endpoint == null) 
                         || (_endpoint.Equals(value) != true)))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "Endpoint";
@@ -91,7 +91,7 @@ public partial class DestinationType : ExtensionBaseType
             if (((_endpointDescription == null) 
                         || (_endpointDescription.Equals(value) != true)))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "EndpointDescription";

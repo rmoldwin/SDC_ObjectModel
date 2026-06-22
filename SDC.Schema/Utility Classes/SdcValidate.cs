@@ -9,7 +9,7 @@ using System.Xml.Schema;
 //using SDC;
 namespace SDC.Schema
 {
-	public static class SdcValidate
+	public static partial class SdcValidate
 	{
 
 		/// <summary>
@@ -174,5 +174,127 @@ namespace SDC.Schema
 			return wrappedDoc?.OuterXml ?? string.Empty;
 		}
 
+	}
+}
+
+// ─── SDC imperative object-model validation sweep ─────────────────────────────
+
+namespace SDC.Schema
+{
+	using System.ComponentModel.DataAnnotations;
+
+	public static partial class SdcValidate
+	{
+		/// <summary>
+		/// Validates all SDC nodes in <paramref name="topNode"/>'s tree using DataAnnotations
+		/// attributes (FractionDigits, MaxDigits, Range, RegularExpression, StringLength, etc.)
+		/// declared on each node's most-derived type.<br/>
+		/// <br/>
+		/// No XML Schema (XSD) validation is performed; for XSD validation use
+		/// <see cref="ValidateSdcObjectTree"/>.<br/>
+		/// <br/>
+		/// When <paramref name="recurseSubTrees"/> is <see langword="true"/>, any node that is
+		/// itself an <see cref="ITopNode"/> is also walked recursively.
+		/// </summary>
+		/// <param name="topNode">The SDC top node whose tree will be validated.</param>
+		/// <param name="recurseSubTrees">
+		/// When <see langword="true"/>, sub-TopNode trees (e.g. injected forms) are also validated.
+		/// </param>
+		/// <returns>
+		/// An <see cref="SdcValidationReport"/> that is <see cref="SdcValidationReport.IsValid"/>
+		/// when no Error-severity issues were found.
+		/// </returns>
+		public static SdcValidationReport ValidateTree(this ITopNode topNode, bool recurseSubTrees = false)
+		{
+			var report = new SdcValidationReport();
+			SdcUtil.ValidationCollector.Value = report;
+			try
+			{
+				var visited = new System.Collections.Generic.HashSet<object>(ReferenceEqualityComparer.Instance);
+				ValidateTreeInto(topNode, report, recurseSubTrees, visited);
+			}
+			finally
+			{
+				SdcUtil.ValidationCollector.Value = null;
+			}
+			return report;
+		}
+
+		private static void ValidateTreeInto(
+			ITopNode topNode,
+			SdcValidationReport report,
+			bool recurseSubTrees,
+			System.Collections.Generic.HashSet<object> visited)
+		{
+			if (!visited.Add(topNode)) return; // guard against cyclic sub-TopNode references
+
+			foreach (var node in topNode.Nodes.Values)
+			{
+				if (node is BaseType bt)
+					ValidateNodeInto(bt, report);
+
+				// Recurse into sub-TopNodes if requested (e.g. InjectedForm references)
+				if (recurseSubTrees && node is ITopNode subTopNode && !ReferenceEquals(subTopNode, topNode))
+					ValidateTreeInto(subTopNode, report, recurseSubTrees: true, visited);
+			}
+		}
+
+		/// <summary>
+		/// Validates a single SDC node using DataAnnotations attributes on its most-derived type.
+		/// All properties with validation attributes are checked simultaneously via
+		/// <see cref="Validator.TryValidateObject"/>.<br/>
+		/// <br/>
+		/// Validation events are <em>not</em> fired for issues found here; results are returned
+		/// only in the report. Subscribe to <see cref="SdcValidationEvents.ValidationOccurred"/>
+		/// to receive live events during programmatic setter mutations.
+		/// </summary>
+		/// <param name="node">The SDC node to validate.</param>
+		/// <returns>
+		/// An <see cref="SdcValidationReport"/> for this single node.
+		/// </returns>
+		public static SdcValidationReport ValidateNode(this BaseType node)
+		{
+			var report = new SdcValidationReport();
+			ValidateNodeInto(node, report);
+			return report;
+		}
+
+		private static void ValidateNodeInto(BaseType node, SdcValidationReport report)
+		{
+			var results = new System.Collections.Generic.List<ValidationResult>();
+			var ctx = new ValidationContext(node, null, null);
+			try
+			{
+				// validateAllProperties: true — check every property with any ValidationAttribute,
+				// not just those decorated with [Required].
+				Validator.TryValidateObject(node, ctx, results, validateAllProperties: true);
+			}
+			catch (Exception ex)
+			{
+				// Some ValidationAttribute implementations may throw on unexpected value types.
+				// Capture as an informational issue rather than crashing the sweep.
+				report.Add(new SdcNodeValidationIssue
+				{
+					NodeID         = node.sGuid,
+					NodeType       = node.GetType().Name,
+					Message        = $"Unexpected exception during validation: {ex.Message}",
+					Severity       = SdcValidationSeverity.Warning
+				});
+				return;
+			}
+
+			foreach (var r in results)
+			{
+				report.Add(new SdcNodeValidationIssue
+				{
+					NodeID         = node.sGuid,
+					NodeType       = node.GetType().Name,
+					PropertyName   = r.MemberNames.FirstOrDefault(),
+					Message        = r.ErrorMessage ?? "(validation error — no message provided)",
+					Severity       = SdcValidationSeverity.Error,
+					Results        = new[] { r }
+				});
+			}
+		}
 	}
 }

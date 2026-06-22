@@ -81,7 +81,7 @@ public partial class dayTimeDuration_DEtype : dayTimeDuration_Stype
             if (((_maxExclusive == null) 
                         || (_maxExclusive.Equals(value) != true)))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "maxExclusive";
@@ -111,7 +111,7 @@ public partial class dayTimeDuration_DEtype : dayTimeDuration_Stype
             if (((_minExclusive == null) 
                         || (_minExclusive.Equals(value) != true)))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "minExclusive";
@@ -141,7 +141,7 @@ public partial class dayTimeDuration_DEtype : dayTimeDuration_Stype
             if (((_maxInclusive == null) 
                         || (_maxInclusive.Equals(value) != true)))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "maxInclusive";
@@ -171,7 +171,7 @@ public partial class dayTimeDuration_DEtype : dayTimeDuration_Stype
             if (((_minInclusive == null) 
                         || (_minInclusive.Equals(value) != true)))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "minInclusive";

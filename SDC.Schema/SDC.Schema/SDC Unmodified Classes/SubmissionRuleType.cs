@@ -61,7 +61,7 @@ public partial class SubmissionRuleType : ExtensionBaseType
             if (((_destination == null) 
                         || (_destination.Equals(value) != true)))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "Destination";

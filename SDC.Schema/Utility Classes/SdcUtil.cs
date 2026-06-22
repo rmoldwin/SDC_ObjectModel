@@ -50,30 +50,73 @@ namespace SDC.Schema
 		public static System.Threading.AsyncLocal<bool> IsDeserializing { get; } = new System.Threading.AsyncLocal<bool>();
 
 		/// <summary>
+		/// When <see langword="true"/>, <see cref="ValidateAndRaise"/> is a no-op: no
+		/// <see cref="SdcValidationEvents.ValidationOccurred"/> event is fired and nothing is
+		/// added to <see cref="ValidationCollector"/>.<br/>
+		/// Serializers set this to <see langword="true"/> during normal (non-validating)
+		/// deserialization, alongside <see cref="IsDeserializing"/>. Set to
+		/// <see langword="false"/> (the default) for programmatic mutation and for
+		/// <em>validating</em> deserialization (see <c>Deserialize*Validating</c> overloads).
+		/// </summary>
+		public static System.Threading.AsyncLocal<bool> SuppressValidation { get; } = new System.Threading.AsyncLocal<bool>();
+
+		/// <summary>
+		/// When non-<see langword="null"/>, <see cref="ValidateAndRaise"/> appends every
+		/// <see cref="SdcNodeValidationIssue"/> to this report in addition to firing
+		/// <see cref="SdcValidationEvents.ValidationOccurred"/>.<br/>
+		/// Used by validating deserialization overloads and explicit
+		/// <see cref="SdcValidate.ValidateTree"/> / <see cref="SdcValidate.ValidateNode"/> sweeps
+		/// to collect a structured <see cref="SdcValidationReport"/> without requiring a separate pass.
+		/// </summary>
+		public static System.Threading.AsyncLocal<SdcValidationReport?> ValidationCollector { get; } = new System.Threading.AsyncLocal<SdcValidationReport?>();
+
+		/// <summary>
 		/// Non-throwing property validator: runs DataAnnotations validation on <paramref name="value"/>
-		/// and, if validation fails, fires <see cref="SdcValidationEvents.ValidationOccurred"/> with
-		/// full context (NodeID, PropertyName, AttemptedValue, all <see cref="ValidationResult"/>s).<br/>
-		/// The value is NOT rejected — callers are responsible for assigning <c>_field = value</c>
-		/// unconditionally after this call (assign-and-raise semantics).<br/>
-		/// Must NOT be called during deserialization; guard with
-		/// <c>if (!SdcUtil.IsDeserializing.Value)</c> at the call site.
+		/// and, if validation fails:<br/>
+		/// • appends an <see cref="SdcNodeValidationIssue"/> to <see cref="ValidationCollector"/>
+		///   (if one is active), and<br/>
+		/// • fires <see cref="SdcValidationEvents.ValidationOccurred"/> with full context.<br/>
+		/// This method is a no-op when <see cref="SuppressValidation"/> is <see langword="true"/>.<br/>
+		/// The value is never rejected — callers assign <c>_field = value</c> unconditionally
+		/// after this call (assign-and-raise semantics, Q1 decision).
 		/// </summary>
 		/// <param name="value">The incoming property value to validate.</param>
 		/// <param name="ctx">
-		/// A <see cref="ValidationContext"/> whose <see cref="ValidationContext.MemberName"/>
-		/// must be set to the property name before calling.
+		/// A <see cref="ValidationContext"/> with <see cref="ValidationContext.MemberName"/>
+		/// set to the property name.
 		/// </param>
 		public static void ValidateAndRaise(object? value, ValidationContext ctx)
 		{
+			if (SuppressValidation.Value) return;
+
 			var results = new List<ValidationResult>();
 			if (!Validator.TryValidateProperty(value, ctx, results))
 			{
-				SdcValidationEvents.Raise(new SdcValidationEventArgs
+				string nodeID   = (ctx.ObjectInstance as BaseType)?.sGuid ?? "(unknown)";
+				string nodeType = ctx.ObjectInstance?.GetType().Name ?? "(unknown)";
+				string message  = string.Join("; ", results.Select(r => r.ErrorMessage ?? "(validation error)"));
+
+				var issue = new SdcNodeValidationIssue
 				{
-					NodeID         = (ctx.ObjectInstance as BaseType)?.sGuid,
+					NodeID         = nodeID,
+					NodeType       = nodeType,
 					PropertyName   = ctx.MemberName,
 					AttemptedValue = value,
-					Message        = string.Join("; ", results.Select(r => r.ErrorMessage ?? "(validation error)")),
+					Message        = message,
+					Severity       = SdcValidationSeverity.Error,
+					Results        = results.AsReadOnly()
+				};
+
+				// Collect into report if a collector is active (validating-deserialization or sweep)
+				ValidationCollector.Value?.Add(issue);
+
+				// Fire the event hub so subscribers (UI, loggers, test fixtures) are notified
+				SdcValidationEvents.Raise(new SdcValidationEventArgs
+				{
+					NodeID         = nodeID,
+					PropertyName   = ctx.MemberName,
+					AttemptedValue = value,
+					Message        = message,
 					Severity       = SdcValidationSeverity.Error,
 					Results        = results.AsReadOnly()
 				});

@@ -36,9 +36,24 @@ public class FractionDigitsAttribute : ValidationAttribute
             _decimalPrecision = decimalPrecision;
         }
 
+        /// <summary>The maximum number of fractional digits this attribute enforces.</summary>
+        public uint DecimalPrecision => _decimalPrecision;
+
+        public override string FormatErrorMessage(string name)
+        {
+            return _decimalPrecision == 0
+                ? $"The field '{name}' must be a whole number with no fractional digits (e.g. 42, not 42.5)."
+                : $"The field '{name}' must have at most {_decimalPrecision} fractional digit(s) after the decimal point (e.g. at most {_decimalPrecision} digits after '.')." ;
+        }
+
         public override bool IsValid(object value)
         {
             if (value == null)
+                return true;
+
+            // Integer types always have zero fractional digits; they trivially satisfy any FractionDigits constraint.
+            if (value is byte || value is sbyte || value is short || value is ushort ||
+                value is int  || value is uint  || value is long  || value is ulong)
                 return true;
 
             // For decimal, use numeric round-trip comparison instead of string representation.

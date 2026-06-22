@@ -61,7 +61,7 @@ public partial class ComplianceRuleType : ExtensionBaseType
             if (((_description == null) 
                         || (_description.Equals(value) != true)))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "Description";

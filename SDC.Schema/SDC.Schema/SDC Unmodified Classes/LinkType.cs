@@ -89,7 +89,7 @@ public partial class LinkType : ExtensionBaseType
             if (((_linkURI == null) 
                         || (_linkURI.Equals(value) != true)))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "LinkURI";

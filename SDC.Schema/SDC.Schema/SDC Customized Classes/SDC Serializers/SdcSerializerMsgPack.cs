@@ -144,6 +144,7 @@ namespace SDC.Schema
 			try
 			{
 				SdcUtil.IsDeserializing.Value = true;
+				SdcUtil.SuppressValidation.Value = true;
 				var result = SerializerMsgPackRead.Deserialize<T>(reader);
 				// Rebuild TopNode/ParentNode registries after deserialization.
 				if (result is BaseType bt)
@@ -151,17 +152,55 @@ namespace SDC.Schema
 					try { SdcUtil.ReflectRefreshTree(bt.TopNode ?? (ITopNode)bt, out _, print: false, refreshTree: true); } catch { }
 				}
 				SdcUtil.IsDeserializing.Value = false;
+				SdcUtil.SuppressValidation.Value = false;
 				return result;
 			}
 			catch
 			{
 				SdcUtil.IsDeserializing.Value = false;
+				SdcUtil.SuppressValidation.Value = false;
 				throw;
 			}
 		}
 		#endregion
 
-		public static void SaveToFileMsgPack(string fileName, T obj)
+			/// <summary>
+			/// Deserializes MsgPack bytes and validates all node properties as values are assigned.
+			/// Unlike <see cref="DeserializeMsgPack(byte[])"/>, this overload sets
+			/// <see cref="SdcUtil.SuppressValidation"/> to <see langword="false"/> so that every
+			/// property setter runs DataAnnotations validation during deserialization.
+			/// </summary>
+			/// <returns>
+			/// A tuple of the deserialized object and an <see cref="SdcValidationReport"/> containing
+			/// any validation issues found.
+			/// </returns>
+			public static (T result, SdcValidationReport report) DeserializeMsgPackValidating(byte[] input)
+			{
+				var report = new SdcValidationReport();
+				using var memoryStream = new MemoryStream(input);
+				using var reader = new MessagePackReader(memoryStream);
+				SdcUtil.IsDeserializing.Value     = true;
+				SdcUtil.SuppressValidation.Value  = false;  // enable setter validation during load
+				SdcUtil.ValidationCollector.Value = report;
+				T result;
+				try
+				{
+					result = SerializerMsgPackRead.Deserialize<T>(reader);
+				}
+				finally
+				{
+					SdcUtil.IsDeserializing.Value     = false;
+					SdcUtil.SuppressValidation.Value  = false;
+					SdcUtil.ValidationCollector.Value = null;
+				}
+				if (result is BaseType bt)
+				{
+					try { SdcUtil.ReflectRefreshTree(bt.TopNode ?? (ITopNode)bt, out _, print: false, refreshTree: true); } catch { }
+				}
+				return (result, report);
+			}
+
+			public static void SaveToFileMsgPack(string fileName, T obj)
 		{
 			byte[] msgPackBytes = SerializeMsgPack(obj);
 			System.IO.File.WriteAllBytes(fileName, msgPackBytes);

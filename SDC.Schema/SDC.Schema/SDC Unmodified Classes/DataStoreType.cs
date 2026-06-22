@@ -112,7 +112,7 @@ public partial class DataStoreType : ExtensionBaseType
             if (((_databaseSoftware == null) 
                         || (_databaseSoftware.Equals(value) != true)))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "DatabaseSoftware";

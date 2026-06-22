@@ -83,7 +83,7 @@ public partial class RegistryType : ExtensionBaseType
             if (((_currentRegistry == null) 
                         || (_currentRegistry.Equals(value) != true)))
             {
-                if (!SdcUtil.IsDeserializing.Value)
+                if (!SdcUtil.SuppressValidation.Value)
                 {
                 	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
                 	validatorPropContext.MemberName = "CurrentRegistry";
