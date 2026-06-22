@@ -28,15 +28,13 @@ namespace SDC.Schema
         // Two separate JsonSerializer instances are required:
         //
         // _serializerBsonWrite  — used for SERIALIZATION (reading object properties to produce BSON).
-        //   Must NOT use SdcNoSetterContractResolver because that resolver reads backing fields
-        //   directly. In xsd2code++ generated classes backing fields are null until the property
-        //   getter is called (lazy init), so reading them directly produces null values in the
-        //   output, silently dropping data.
+        //   No ContractResolver: xsd2code++ backing fields are null until the property getter is
+        //   called (lazy init), so property getters must be used to read the real values.
         //
         // _serializerBsonRead   — used for DESERIALIZATION (writing values back into objects).
-        //   Uses SdcNoSetterContractResolver so that field values are set without invoking
-        //   property setters, which avoids triggering validation and tree-mutation side-effects
-        //   during reconstruction from serialized bytes.
+        //   No ContractResolver: property setters are called normally; validation and tree-mutation
+        //   side-effects are suppressed by SdcUtil.IsDeserializing.Value = true for the duration
+        //   of the call, then ReflectRefreshTree rebuilds the node registries afterward.
 
         private static JsonSerializer _serializerBsonWrite;
         private static JsonSerializer SerializerBsonWrite
@@ -76,10 +74,8 @@ namespace SDC.Schema
                     // TypeNameHandling.All: read "$type" discriminators written during serialization.
                     // ConstructorHandling: use protected/internal parameterless constructors so Newtonsoft
                     // does not invoke the public parent-dependent constructors with a null parentNode.
-                    // Do NOT set a ContractResolver: writing to backing fields directly bypasses property
-                    // setters that update related attribute state (e.g. ShouldSerialize flags). Those
-                    // setter side-effects are needed for correct attribute lists; they are suppressed by
-                    // IsDeserializing=true and restored by ReflectRefreshTree.
+                    // No ContractResolver: property setters are called normally; their validation and
+                    // tree-mutation side-effects are suppressed by IsDeserializing.Value = true.
                     _serializerBsonRead = new JsonSerializer
                     {
                         TypeNameHandling    = TypeNameHandling.All,
@@ -162,9 +158,8 @@ namespace SDC.Schema
                 BsonDataReader bsonDataReader = new BsonDataReader(memoryStream);
                 try
                 {
-                    // Indicate deserialization mode to suppress setter side-effects, then post-refresh.
-                    // Use read serializer (with SdcNoSetterContractResolver) so backing fields are written
-                    // directly without invoking property setters during reconstruction.
+                    // Set IsDeserializing to suppress setter side-effects (validation, tree-mutation)
+                    // during reconstruction; ReflectRefreshTree rebuilds the node registries after.
                     SdcUtil.IsDeserializing.Value = true;
                     var result = SerializerBsonRead.Deserialize<T>(bsonDataReader);
                     if (result is BaseType bt)
