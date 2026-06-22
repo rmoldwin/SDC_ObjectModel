@@ -22,6 +22,7 @@
     <Compile Remove="SDC MsgPack Generator\**" />
     <Compile Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
     <Compile Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
+    <Compile Remove="SDC.Schema\SDC Schema Files\Xsd2CodeV7Classes\**" />
     <Compile Remove="SDC.Type\**" />
     <Compile Remove="Utility Classes\Junk\**" />
     <EmbeddedResource Remove="Modified SDC Classes\ConstuctorCommentedOut\**" />
@@ -30,6 +31,7 @@
     <EmbeddedResource Remove="SDC MsgPack Generator\**" />
     <EmbeddedResource Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
     <EmbeddedResource Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
+    <EmbeddedResource Remove="SDC.Schema\SDC Schema Files\Xsd2CodeV7Classes\**" />
     <EmbeddedResource Remove="SDC.Type\**" />
     <EmbeddedResource Remove="Utility Classes\Junk\**" />
     <None Remove="Modified SDC Classes\ConstuctorCommentedOut\**" />
@@ -38,6 +40,7 @@
     <None Remove="SDC MsgPack Generator\**" />
     <None Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
     <None Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
+    <None Remove="SDC.Schema\SDC Schema Files\Xsd2CodeV7Classes\**" />
     <None Remove="SDC.Type\**" />
     <None Remove="Utility Classes\Junk\**" />
   </ItemGroup>
