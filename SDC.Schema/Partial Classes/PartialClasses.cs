@@ -5882,5 +5882,26 @@ namespace SDC.Schema
 
 	#endregion
 
+	#region FractionDigitsAttribute extensions
+
+	/// <summary>
+	/// Custom extensions for <see cref="FractionDigitsAttribute"/> that live outside the generated file.
+	/// </summary>
+	public partial class FractionDigitsAttribute
+	{
+		/// <summary>The maximum number of fractional digits this attribute enforces.</summary>
+		public uint DecimalPrecision => _decimalPrecision;
+
+		/// <inheritdoc/>
+		public override string FormatErrorMessage(string name)
+		{
+			return _decimalPrecision == 0
+				? $"The field '{name}' must be a whole number with no fractional digits (e.g. 42, not 42.5)."
+				: $"The field '{name}' must have at most {_decimalPrecision} fractional digit(s) after the decimal point (e.g. at most {_decimalPrecision} digits after '.')." ;
+		}
+	}
+
+	#endregion
+
 }
 

@@ -41,6 +41,8 @@ namespace SDC.Schema
 	public static class SdcUtil
 	{
 		#region Local
+
+		#region Serialization
 		// AsyncLocal flag used to indicate a serializer is actively deserializing an object graph.
 		// When true, property setters and mutators should avoid performing runtime side-effects
 		// such as Move(), RegisterAll(), or DataAnnotations validation that assume a fully
@@ -48,7 +50,9 @@ namespace SDC.Schema
 		// graph reconstruction and clear it afterward. ReflectRefreshTree will rebuild
 		// runtime dictionaries and parent mappings after deserialization completes.
 		public static System.Threading.AsyncLocal<bool> IsDeserializing { get; } = new System.Threading.AsyncLocal<bool>();
+		#endregion
 
+		#region Validation
 		/// <summary>
 		/// When <see langword="true"/>, <see cref="ValidateAndRaise"/> is a no-op: no
 		/// <see cref="SdcValidationEvents.ValidationOccurred"/> event is fired and nothing is
@@ -122,6 +126,29 @@ namespace SDC.Schema
 				});
 			}
 		}
+
+		/// <summary>
+		/// Check if the supplied string can be used as a legal variable name in C#.<br/>
+		/// Does not check for reserved words or other variables in use.
+		/// </summary>
+		/// <param name="newString">The string to check.</param>
+		/// <returns></returns>
+		internal static bool IsValidVariableName(this string newString)
+		{
+			if (string.IsNullOrEmpty(newString))
+				return false;
+
+			if (!char.IsLetter(newString[0]) && newString[0] != '_')
+				return false;
+
+			for (int i = 1; i < newString.Length; i++)
+				if (!char.IsLetterOrDigit(newString[i]) && newString[i] != '_')
+					return false;
+
+			return true;
+		}
+		#endregion
+
 		internal static Dictionary<Guid, BaseType> Get_Nodes(BaseType n)
 		{ return Get_ITopNode(n)._Nodes; }
 		internal static Dictionary<Guid, List<BaseType>> Get_ChildNodes(BaseType n)
@@ -3458,26 +3485,6 @@ namespace SDC.Schema
 			if (n is _ITopNode itn) return itn;
 			return n.TopNode as _ITopNode;
 		}
-        /// <summary>
-		/// Check if the supplied string can be used as a legal variable name in C#.<br/>
-		/// Does not check for reserved words or other variables in use.
-		/// </summary>
-		/// <param name="newString">The string to check.</param>
-		/// <returns></returns>
-		internal static bool IsValidVariableName(this string newString)
-        {
-            if (string.IsNullOrEmpty(newString))
-                return false;
-
-            if (!char.IsLetter(newString[0]) && newString[0] != '_')
-                return false;
-
-            for (int i = 1; i < newString.Length; i++)
-                if (!char.IsLetterOrDigit(newString[i]) && newString[i] != '_')
-                    return false;
-
-            return true;
-        }
 
         #endregion
         #region Retired

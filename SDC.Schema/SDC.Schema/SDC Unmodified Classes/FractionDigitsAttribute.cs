@@ -27,23 +27,13 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
 #region FractionDigitsAttribute
-public class FractionDigitsAttribute : ValidationAttribute
+public partial class FractionDigitsAttribute : ValidationAttribute
 {
         private readonly uint _decimalPrecision;
      
         public FractionDigitsAttribute(uint decimalPrecision)
         {
             _decimalPrecision = decimalPrecision;
-        }
-
-        /// <summary>The maximum number of fractional digits this attribute enforces.</summary>
-        public uint DecimalPrecision => _decimalPrecision;
-
-        public override string FormatErrorMessage(string name)
-        {
-            return _decimalPrecision == 0
-                ? $"The field '{name}' must be a whole number with no fractional digits (e.g. 42, not 42.5)."
-                : $"The field '{name}' must have at most {_decimalPrecision} fractional digit(s) after the decimal point (e.g. at most {_decimalPrecision} digits after '.')." ;
         }
 
         public override bool IsValid(object value)
