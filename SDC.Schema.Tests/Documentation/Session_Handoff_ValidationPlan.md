@@ -1,8 +1,9 @@
 # Session Handoff — Data Integrity & Centralized Validation Plan
 
-**Branch:** `Features/NET10/FixBSON_JSON_MsgPack_RoundTrips`  
-**Date:** 2025-07  
-**Status of prior work:** All 418 tests passing; JSON/BSON/MsgPack serializer repair complete and committed (`c7e64c7`).
+**Branch (Phase 1):** `Features/NET10/Net10Main` (commit `6cecee6`)  
+**Branch (Phase 2+):** `Features/NET10/TypeValidations` (commit `b30fac0`)  
+**Date:** 2026-06  
+**Status of prior work:** All 418 tests passing; JSON/BSON/MsgPack serializer repair complete (Phase 1 complete, Phase 2 complete).
 
 ---
 
@@ -17,6 +18,13 @@
 | `SdcEntityBase.cs` — dead MsgPack comment block removed | ✅ Done |
 | Full test suite 418/418 passing | ✅ Done |
 | `global.json` pinning SDK to 10.0.300 | ✅ Done |
+| **Phase 1** — Fix B-1/B-6 in `IDataHelpers.AddDataTypesDE` (B-1 uncomment Item assigns, B-2 float_DEtype, B-3 dt.val=s, B-4 anyType, B-5 errors param) | ✅ Done (`6cecee6`) |
+| **Phase 2** — `SdcValidationEvents` hub: `SdcValidationEventArgs`, `SdcValidationSeverity`, `SdcValidationEvents` static class; `StoreError` fires hub | ✅ Done (`b30fac0`) |
+
+**Open Q answers recorded:**
+- Q1: Reject (keep old value) + fire `SdcValidationEvents`.
+- Q2: Deferred — xsd2code++ regen timeline TBD; Phase 3 setter wiring held.
+- Q3: `AddDataTypesDE` errors → `SdcValidationEvents` (hub); `errors` out-param kept as secondary.
 
 ---
 
