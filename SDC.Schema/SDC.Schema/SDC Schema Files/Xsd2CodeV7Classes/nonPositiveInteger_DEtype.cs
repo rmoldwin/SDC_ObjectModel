@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,12 +28,12 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("nonPositiveInteger_DEtype")]
 public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
 {
     #region Private fields
@@ -84,6 +82,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
     [FractionDigitsAttribute(0)]
     [MaxDigitsAttribute(29)]
     [RangeAttribute(-7.9228162514264338E+28D, 0D)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual decimal minInclusive
     {
         get
@@ -131,6 +130,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
     [FractionDigitsAttribute(0)]
     [MaxDigitsAttribute(29)]
     [RangeAttribute(-7.9228162514264338E+28D, 0D)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual decimal maxInclusive
     {
         get
@@ -178,6 +178,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
     [MaxDigitsAttribute(29)]
     [FractionDigitsAttribute(0)]
     [RangeAttribute(-7.9228162514264338E+28D, -1D)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual decimal minExclusive
     {
         get
@@ -225,6 +226,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
     [MaxDigitsAttribute(29)]
     [FractionDigitsAttribute(0)]
     [RangeAttribute(-7.9228162514264338E+28D, 1D)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual decimal maxExclusive
     {
         get
@@ -271,6 +273,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
     [XmlAttribute]
     [FractionDigitsAttribute(0)]
     [MaxDigitsAttribute(2)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual sbyte totalDigits
     {
         get
@@ -312,6 +315,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string mask
     {
         get
@@ -335,6 +339,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowGT
     {
         get
@@ -354,6 +359,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowGTE
     {
         get
@@ -373,6 +379,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowLT
     {
         get
@@ -392,6 +399,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowLTE
     {
         get
@@ -411,6 +419,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowAPPROX
     {
         get
@@ -428,7 +437,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool maskSpecified
     {
@@ -442,7 +451,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowGTSpecified
     {
@@ -456,7 +465,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowGTESpecified
     {
@@ -470,7 +479,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowLTSpecified
     {
@@ -484,7 +493,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowLTESpecified
     {
@@ -498,7 +507,7 @@ public partial class nonPositiveInteger_DEtype : nonPositiveInteger_Stype
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowAPPROXSpecified
     {

@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This base item is the same as the SectionItemType, except it lacks the
@@ -41,6 +38,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("SectionBaseType")]
 public abstract partial class SectionBaseType : RepeatingType
 {
     #region Private fields
@@ -67,6 +65,7 @@ public abstract partial class SectionBaseType : RepeatingType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(true)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool ordered
     {
         get
@@ -85,6 +84,7 @@ public abstract partial class SectionBaseType : RepeatingType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool changedData
     {
         get
@@ -126,6 +126,7 @@ public abstract partial class SectionBaseType : RepeatingType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool newData
     {
         get
@@ -166,7 +167,7 @@ public abstract partial class SectionBaseType : RepeatingType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool orderedSpecified
     {

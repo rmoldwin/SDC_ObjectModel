@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// XMLPackageType represents the primary grouping of SDC artifacts that support
@@ -41,6 +38,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(AnonymousType=true, Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("XMLPackageTypeReportDesignTemplate")]
 public partial class XMLPackageTypeReportDesignTemplate : FormDesignType
 {
     #region Private fields
@@ -49,6 +47,7 @@ public partial class XMLPackageTypeReportDesignTemplate : FormDesignType
     #endregion
     
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string targetTemplateID
     {
         get
@@ -70,7 +69,7 @@ public partial class XMLPackageTypeReportDesignTemplate : FormDesignType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool targetTemplateIDSpecified
     {

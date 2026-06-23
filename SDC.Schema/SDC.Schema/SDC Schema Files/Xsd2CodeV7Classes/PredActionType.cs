@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// PredActionType receives the Boolean result from a PredicateGuardType object.  If the @returnVal is true, it executes the optional Actions under the Actions node.  If the PredGuardType @returnVal is false, it executes optional recursive PredActionType logic to potentially execute alternative Actions.
@@ -41,6 +38,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("PredActionType")]
 public partial class PredActionType : PredGuardType
 {
     #region Private fields
@@ -51,6 +49,7 @@ public partial class PredActionType : PredGuardType
     #endregion
     
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual ActionsType Actions
     {
         get
@@ -73,6 +72,7 @@ public partial class PredActionType : PredGuardType
     }
     
     [XmlElement("Else", Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<PredActionType> Else
     {
         get
@@ -94,7 +94,7 @@ public partial class PredActionType : PredGuardType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ActionsSpecified
     {
@@ -108,7 +108,7 @@ public partial class PredActionType : PredGuardType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ElseSpecified
     {

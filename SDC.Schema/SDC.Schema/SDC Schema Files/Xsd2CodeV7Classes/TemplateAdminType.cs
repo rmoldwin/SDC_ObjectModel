@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Contains information about a registered package, including a description of the package contents and purpose (PackageDescription), information about the registry that contains the package XML (RegistryData), and information about the package file characteristics (TemplateFile).
@@ -40,6 +37,7 @@ using  System.Text.Json;
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
 [XmlRootAttribute("TemplateAdmin", Namespace="urn:ihe:qrph:sdc:2016", IsNullable=false)]
+[JsonObject("TemplateAdminType")]
 public partial class TemplateAdminType : ExtensionBaseType
 {
     #region Private fields
@@ -57,6 +55,7 @@ public partial class TemplateAdminType : ExtensionBaseType
     /// Description of the XML package contents and the purpose for the contained XML templates.
     /// </summary>
     [XmlElement("PackageDescription", Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<RichTextType> PackageDescription
     {
         get
@@ -82,6 +81,7 @@ public partial class TemplateAdminType : ExtensionBaseType
     /// Information about the registry that contains the XML template, and registration status of the XML template. (The XML template may contain a package of sub-templates.  In this case, the the RegistryData refers primarily to the package, not the sub-templates.)
     /// </summary>
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual RegistryType RegistryData
     {
         get
@@ -107,6 +107,7 @@ public partial class TemplateAdminType : ExtensionBaseType
     /// Information about the  XML template's file characteristics (The XML template may contain a package of sub-templates.  In this case, the the RegistryData refers primarily to the entire package, not the sub-templates.)
     /// </summary>
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual FileType TemplateFile
     {
         get
@@ -132,6 +133,7 @@ public partial class TemplateAdminType : ExtensionBaseType
     /// NEW
     /// </summary>
     [XmlElement("DigitalSignature", Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<TemplateAdminTypeDigitalSignature> DigitalSignature
     {
         get
@@ -153,7 +155,7 @@ public partial class TemplateAdminType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool PackageDescriptionSpecified
     {
@@ -167,7 +169,7 @@ public partial class TemplateAdminType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool RegistryDataSpecified
     {
@@ -181,7 +183,7 @@ public partial class TemplateAdminType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool TemplateFileSpecified
     {
@@ -195,7 +197,7 @@ public partial class TemplateAdminType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DigitalSignatureSpecified
     {

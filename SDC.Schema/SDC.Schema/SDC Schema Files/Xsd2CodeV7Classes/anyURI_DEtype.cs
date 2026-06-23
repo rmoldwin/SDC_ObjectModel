@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,12 +28,12 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("anyURI_DEtype")]
 public partial class anyURI_DEtype : anyURI_Stype
 {
     #region Private fields
@@ -50,6 +48,7 @@ public partial class anyURI_DEtype : anyURI_Stype
     #endregion
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string description
     {
         get
@@ -72,6 +71,7 @@ public partial class anyURI_DEtype : anyURI_Stype
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual ulong minLength
     {
         get
@@ -113,6 +113,7 @@ public partial class anyURI_DEtype : anyURI_Stype
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual ulong maxLength
     {
         get
@@ -154,6 +155,7 @@ public partial class anyURI_DEtype : anyURI_Stype
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string pattern
     {
         get
@@ -175,7 +177,7 @@ public partial class anyURI_DEtype : anyURI_Stype
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool descriptionSpecified
     {
@@ -189,7 +191,7 @@ public partial class anyURI_DEtype : anyURI_Stype
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool patternSpecified
     {

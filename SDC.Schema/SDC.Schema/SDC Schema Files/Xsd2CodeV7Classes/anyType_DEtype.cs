@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,12 +28,12 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("anyType_DEtype")]
 public partial class anyType_DEtype : BaseType
 {
     #region Private fields
@@ -54,6 +52,7 @@ public partial class anyType_DEtype : BaseType
     #endregion
     
     [XmlAnyElementAttribute(Order=0)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<System.Xml.XmlElement> Any
     {
         get
@@ -76,6 +75,7 @@ public partial class anyType_DEtype : BaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual ulong minLength
     {
         get
@@ -117,6 +117,7 @@ public partial class anyType_DEtype : BaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual ulong maxLength
     {
         get
@@ -158,6 +159,7 @@ public partial class anyType_DEtype : BaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string schema
     {
         get
@@ -185,6 +187,7 @@ public partial class anyType_DEtype : BaseType
     /// See: http://www.w3.org/TR/xmlschema-0/#any
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string @namespace
     {
         get
@@ -207,6 +210,7 @@ public partial class anyType_DEtype : BaseType
     }
     
     [XmlAnyAttributeAttribute()]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<System.Xml.XmlAttribute> AnyAttr
     {
         get
@@ -228,7 +232,7 @@ public partial class anyType_DEtype : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool AnySpecified
     {
@@ -242,7 +246,7 @@ public partial class anyType_DEtype : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool schemaSpecified
     {
@@ -256,7 +260,7 @@ public partial class anyType_DEtype : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool namespaceSpecified
     {
@@ -270,7 +274,7 @@ public partial class anyType_DEtype : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool AnyAttrSpecified
     {

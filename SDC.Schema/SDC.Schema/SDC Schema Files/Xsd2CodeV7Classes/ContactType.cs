@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// A model structure for a Person or Organization that generally performs a particular stated role.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ContactType")]
 public partial class ContactType : ExtensionBaseType
 {
     #region Private fields
@@ -49,6 +47,7 @@ public partial class ContactType : ExtensionBaseType
     #endregion
     
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual PersonType Person
     {
         get
@@ -71,6 +70,7 @@ public partial class ContactType : ExtensionBaseType
     }
     
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual OrganizationType Organization
     {
         get
@@ -92,7 +92,7 @@ public partial class ContactType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool PersonSpecified
     {
@@ -106,7 +106,7 @@ public partial class ContactType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OrganizationSpecified
     {

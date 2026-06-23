@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Function or web service that returns a Boolean value.  Items that inherit from this class must test the result for being a Boolean true/false value or null.
@@ -48,6 +45,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("FuncBoolBaseType")]
 public abstract partial class FuncBoolBaseType : ExtensionBaseType
 {
     #region Private fields
@@ -73,6 +71,7 @@ public abstract partial class FuncBoolBaseType : ExtensionBaseType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(true)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowNull
     {
         get
@@ -94,6 +93,7 @@ public abstract partial class FuncBoolBaseType : ExtensionBaseType
     /// Optional message that appears when the rule evaluates to true
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string validationMessage
     {
         get
@@ -116,6 +116,7 @@ public abstract partial class FuncBoolBaseType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool returnVal
     {
         get
@@ -156,7 +157,7 @@ public abstract partial class FuncBoolBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowNullSpecified
     {
@@ -170,7 +171,7 @@ public abstract partial class FuncBoolBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool validationMessageSpecified
     {

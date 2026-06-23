@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [XmlInclude(typeof(TargetItemIDType))]
 [XmlInclude(typeof(anyURI_DEtype))]
@@ -38,6 +35,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("anyURI_Stype")]
 public partial class anyURI_Stype : BaseType
 {
     #region Private fields
@@ -51,6 +49,7 @@ public partial class anyURI_Stype : BaseType
     /// TBD: Must be a valid Media (MIME) type
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string mediaType
     {
         get
@@ -73,6 +72,7 @@ public partial class anyURI_Stype : BaseType
     }
     
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string val
     {
         get
@@ -94,7 +94,7 @@ public partial class anyURI_Stype : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool mediaTypeSpecified
     {
@@ -108,7 +108,7 @@ public partial class anyURI_Stype : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool valSpecified
     {

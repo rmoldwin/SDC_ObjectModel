@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This type represents information about the coding system used in CodingType. It may refer to any type of coding, terminology, classification, keyword, or local value system.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("CodeSystemType")]
 public partial class CodeSystemType : ExtensionBaseType
 {
     #region Private fields
@@ -61,6 +59,7 @@ public partial class CodeSystemType : ExtensionBaseType
     /// </summary>
     [XmlElement(Order=0)]
     [Required]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype CodeSystemName
     {
         get
@@ -89,6 +88,7 @@ public partial class CodeSystemType : ExtensionBaseType
     /// The day that the selected version of the coding system was released for general use by the coding system curators.
     /// </summary>
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual dateTime_Stype ReleaseDate
     {
         get
@@ -114,6 +114,7 @@ public partial class CodeSystemType : ExtensionBaseType
     /// Version of the coding system, using the version format defined by the coding system
     /// </summary>
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Version
     {
         get
@@ -139,6 +140,7 @@ public partial class CodeSystemType : ExtensionBaseType
     /// The ISO object identifier (OID) for the coding system, as found at the HL7 OID Registry: https://www.hl7.org/oid/index.cfm
     /// </summary>
     [XmlElement(Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype OID
     {
         get
@@ -164,6 +166,7 @@ public partial class CodeSystemType : ExtensionBaseType
     /// Web resource that uniquely identifies the coding system
     /// </summary>
     [XmlElement(Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual anyURI_Stype CodeSystemURI
     {
         get
@@ -185,7 +188,7 @@ public partial class CodeSystemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool CodeSystemNameSpecified
     {
@@ -199,7 +202,7 @@ public partial class CodeSystemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ReleaseDateSpecified
     {
@@ -213,7 +216,7 @@ public partial class CodeSystemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool VersionSpecified
     {
@@ -227,7 +230,7 @@ public partial class CodeSystemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OIDSpecified
     {
@@ -241,7 +244,7 @@ public partial class CodeSystemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool CodeSystemURISpecified
     {

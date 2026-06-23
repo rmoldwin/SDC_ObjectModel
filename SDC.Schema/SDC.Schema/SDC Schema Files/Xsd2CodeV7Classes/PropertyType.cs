@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Property is any type of data that is associated with any form item (e.g., section, question, list item) in any context.  The Property context is specified by the @type attribute.  Examples of @type values may include:
@@ -48,6 +45,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("PropertyType")]
 public partial class PropertyType : ExtensionBaseType
 {
     #region Private fields
@@ -65,6 +63,7 @@ public partial class PropertyType : ExtensionBaseType
     /// Contains optional typed data.
     /// </summary>
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual DataTypes_SType TypedValue
     {
         get
@@ -91,6 +90,7 @@ public partial class PropertyType : ExtensionBaseType
     /// </summary>
     [XmlAttribute(DataType="NMTOKEN")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string propName
     {
         get
@@ -119,6 +119,7 @@ public partial class PropertyType : ExtensionBaseType
     /// NEW
     /// </summary>
     [XmlAttribute(DataType="NMTOKENS")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string propClass
     {
         get
@@ -141,6 +142,7 @@ public partial class PropertyType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string val
     {
         get
@@ -162,7 +164,7 @@ public partial class PropertyType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool TypedValueSpecified
     {
@@ -176,7 +178,7 @@ public partial class PropertyType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool propNameSpecified
     {
@@ -190,7 +192,7 @@ public partial class PropertyType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool propClassSpecified
     {
@@ -204,7 +206,7 @@ public partial class PropertyType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool valSpecified
     {

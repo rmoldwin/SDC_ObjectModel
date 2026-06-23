@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Start here. This is the top level of the SDCFormDesign object model.
@@ -43,6 +40,7 @@ using  System.Text.Json;
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
 [XmlRootAttribute("FormDesign", Namespace="urn:ihe:qrph:sdc:2016", IsNullable=false)]
+[JsonObject("FormDesignType")]
 public partial class FormDesignType : IdentifiedExtensionType
 {
     #region Private fields
@@ -106,6 +104,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// preferences.
     /// </summary>
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual EventType BeforeLoadForm
     {
         get
@@ -134,6 +133,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// loaded and to perform the data loading.
     /// </summary>
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual EventType BeforeLoadData
     {
         get
@@ -162,6 +162,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// controlled by the loaded data.
     /// </summary>
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual EventType BeforeShowForm
     {
         get
@@ -184,6 +185,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     }
     
     [XmlElement(Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual EventType BeforeDataSubmit
     {
         get
@@ -206,6 +208,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     }
     
     [XmlElement(Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual EventType BeforeCloseForm
     {
         get
@@ -232,6 +235,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// specified.
     /// </summary>
     [XmlElement("OnEvent", Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<OnEventType> OnEvent
     {
         get
@@ -258,6 +262,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// form.
     /// </summary>
     [XmlElement(Order=6)]
+    [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
     public virtual SectionItemType Header
     {
         get
@@ -283,6 +288,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// Main Section of form
     /// </summary>
     [XmlElement(Order=7)]
+    [JsonProperty(Order=7, NullValueHandling=NullValueHandling.Ignore)]
     public virtual SectionItemType Body
     {
         get
@@ -309,6 +315,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// form.
     /// </summary>
     [XmlElement(Order=8)]
+    [JsonProperty(Order=8, NullValueHandling=NullValueHandling.Ignore)]
     public virtual SectionItemType Footer
     {
         get
@@ -331,6 +338,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     }
     
     [XmlElement(Order=9)]
+    [JsonProperty(Order=9, NullValueHandling=NullValueHandling.Ignore)]
     public virtual RulesType Rules
     {
         get
@@ -361,6 +369,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string lineage
     {
         get
@@ -391,6 +400,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string version
     {
         get
@@ -423,6 +433,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// helpful when deciding whether to adopt a newer version of an FDF.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string versionPrev
     {
         get
@@ -451,6 +462,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string fullURI
     {
         get
@@ -483,6 +495,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// reason.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string filename
     {
         get
@@ -509,6 +522,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// choosing forms. Added 4/27/16
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string formTitle
     {
         get
@@ -540,6 +554,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// fullURI, which is patterned after the SDC web service API.
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string basedOnURI
     {
         get
@@ -571,6 +586,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// allowed in an FDF.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string instanceID
     {
         get
@@ -602,6 +618,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute]
     [RegularExpression(".*(Z|(\\+|-)[0-9][0-9]:[0-9][0-9])")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual System.DateTime instanceVersion
     {
         get
@@ -673,6 +690,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// in an FDF.
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string instanceVersionURI
     {
         get
@@ -703,6 +721,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute]
     [RegularExpression(".*(Z|(\\+|-)[0-9][0-9]:[0-9][0-9])")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual System.DateTime instanceVersionPrev
     {
         get
@@ -755,6 +774,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// report has been deemed unfit for clinical or other action
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     [JsonConverter(typeof(StringEnumConverter))]
     public virtual FormDesignTypeApprovalStatus approvalStatus
     {
@@ -803,6 +823,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     /// available in the requested report
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     [JsonConverter(typeof(StringEnumConverter))]
     public virtual FormDesignTypeCompletionStatus completionStatus
     {
@@ -845,6 +866,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool changedData
     {
         get
@@ -886,6 +908,7 @@ public partial class FormDesignType : IdentifiedExtensionType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool newData
     {
         get
@@ -926,7 +949,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool BeforeLoadFormSpecified
     {
@@ -940,7 +963,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool BeforeLoadDataSpecified
     {
@@ -954,7 +977,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool BeforeShowFormSpecified
     {
@@ -968,7 +991,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool BeforeDataSubmitSpecified
     {
@@ -982,7 +1005,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool BeforeCloseFormSpecified
     {
@@ -996,7 +1019,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OnEventSpecified
     {
@@ -1010,7 +1033,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool HeaderSpecified
     {
@@ -1024,7 +1047,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool BodySpecified
     {
@@ -1038,7 +1061,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool FooterSpecified
     {
@@ -1052,7 +1075,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool RulesSpecified
     {
@@ -1066,7 +1089,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool lineageSpecified
     {
@@ -1080,7 +1103,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool versionSpecified
     {
@@ -1094,7 +1117,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool versionPrevSpecified
     {
@@ -1108,7 +1131,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool fullURISpecified
     {
@@ -1122,7 +1145,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool filenameSpecified
     {
@@ -1136,7 +1159,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool formTitleSpecified
     {
@@ -1150,7 +1173,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool basedOnURISpecified
     {
@@ -1164,7 +1187,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool instanceIDSpecified
     {
@@ -1178,7 +1201,7 @@ public partial class FormDesignType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool instanceVersionURISpecified
     {

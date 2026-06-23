@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 #region Base entity class
 public partial class SdcEntityBase<T> : INotifyPropertyChanged
@@ -438,10 +435,13 @@ public partial class SdcEntityBase<T> : INotifyPropertyChanged
     /// </summary>
     public virtual string SerializeJson()
     {
-        JsonSerializerOptions settings = new JsonSerializerOptions();
-        settings.WriteIndented = true;
-        settings.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
-        return System.Text.Json.JsonSerializer.Serialize(this, settings);
+        JsonSerializerSettings settings = new JsonSerializerSettings();
+        settings.Formatting = Newtonsoft.Json.Formatting.Indented;
+        settings.DefaultValueHandling = DefaultValueHandling.Include;
+        settings.DateParseHandling = DateParseHandling.DateTimeOffset;
+        settings.DateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind;
+        settings.FloatFormatHandling = FloatFormatHandling.DefaultValue;
+        return JsonConvert.SerializeObject(this, settings);
     }
     
     /// <summary>
@@ -475,10 +475,13 @@ public partial class SdcEntityBase<T> : INotifyPropertyChanged
     
     public new static T DeserializeJson(string input)
     {
-        JsonSerializerOptions settings = new JsonSerializerOptions();
-        settings.WriteIndented = true;
-        settings.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
-        return System.Text.Json.JsonSerializer.Deserialize<T>(input, settings);
+        JsonSerializerSettings settings = new JsonSerializerSettings();
+        settings.Formatting = Newtonsoft.Json.Formatting.Indented;
+        settings.DefaultValueHandling = DefaultValueHandling.Include;
+        settings.DateParseHandling = DateParseHandling.DateTimeOffset;
+        settings.DateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind;
+        settings.FloatFormatHandling = FloatFormatHandling.DefaultValue;
+        return JsonConvert.DeserializeObject<T>(input, settings);
     }
     #endregion
     

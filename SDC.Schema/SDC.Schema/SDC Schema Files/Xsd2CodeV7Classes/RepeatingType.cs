@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This type presents any display objects that may be repeated based upon
@@ -45,6 +42,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("RepeatingType")]
 public abstract partial class RepeatingType : DisplayedType
 {
     #region Private fields
@@ -82,6 +80,7 @@ public abstract partial class RepeatingType : DisplayedType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(typeof(uint), "1")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual uint minCard
     {
         get
@@ -108,6 +107,7 @@ public abstract partial class RepeatingType : DisplayedType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(typeof(uint), "1")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual uint maxCard
     {
         get
@@ -127,6 +127,7 @@ public abstract partial class RepeatingType : DisplayedType
     
     [XmlAttribute]
     [DefaultValue(typeof(uint), "0")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual uint repeat
     {
         get
@@ -145,6 +146,7 @@ public abstract partial class RepeatingType : DisplayedType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string instanceGUID
     {
         get
@@ -167,6 +169,7 @@ public abstract partial class RepeatingType : DisplayedType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string parentGUID
     {
         get
@@ -188,7 +191,7 @@ public abstract partial class RepeatingType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool minCardSpecified
     {
@@ -202,7 +205,7 @@ public abstract partial class RepeatingType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool maxCardSpecified
     {
@@ -216,7 +219,7 @@ public abstract partial class RepeatingType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool repeatSpecified
     {
@@ -230,7 +233,7 @@ public abstract partial class RepeatingType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool instanceGUIDSpecified
     {
@@ -244,7 +247,7 @@ public abstract partial class RepeatingType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool parentGUIDSpecified
     {

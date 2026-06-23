@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Duration Data Type
@@ -60,6 +57,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("duration_Stype")]
 public partial class duration_Stype : BaseType
 {
     #region Private fields
@@ -79,6 +77,7 @@ public partial class duration_Stype : BaseType
     }
     
     [XmlAttribute(DataType="duration")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string val
     {
         get
@@ -102,6 +101,7 @@ public partial class duration_Stype : BaseType
     
     [XmlAttribute]
     [DefaultValue(dtQuantEnum.EQ)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     [JsonConverter(typeof(StringEnumConverter))]
     public virtual dtQuantEnum quantEnum
     {
@@ -120,7 +120,7 @@ public partial class duration_Stype : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool valSpecified
     {
@@ -134,7 +134,7 @@ public partial class duration_Stype : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool quantEnumSpecified
     {

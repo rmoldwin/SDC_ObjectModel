@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// A dummy "data type" (dt) element to compensate for a code generator bug.  Do not use this type for anything.
@@ -40,6 +37,7 @@ using  System.Text.Json;
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(AnonymousType=true, Namespace="urn:ihe:qrph:sdc:2016")]
 [XmlRootAttribute(Namespace="urn:ihe:qrph:sdc:2016", IsNullable=false)]
+[JsonObject("dt")]
 public partial class dt : SdcEntityBase<dt>
 {
     #region Private fields
@@ -87,6 +85,7 @@ public partial class dt : SdcEntityBase<dt>
     /// </summary>
     [XmlAttribute]
     [DefaultValue(dtQuantEnum.EQ)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     [JsonConverter(typeof(StringEnumConverter))]
     public virtual dtQuantEnum quantEnum
     {
@@ -107,6 +106,7 @@ public partial class dt : SdcEntityBase<dt>
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowGT
     {
         get
@@ -126,6 +126,7 @@ public partial class dt : SdcEntityBase<dt>
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowGTE
     {
         get
@@ -145,6 +146,7 @@ public partial class dt : SdcEntityBase<dt>
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowLT
     {
         get
@@ -164,6 +166,7 @@ public partial class dt : SdcEntityBase<dt>
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowLTE
     {
         get
@@ -183,6 +186,7 @@ public partial class dt : SdcEntityBase<dt>
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowAPPROX
     {
         get
@@ -200,7 +204,7 @@ public partial class dt : SdcEntityBase<dt>
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool quantEnumSpecified
     {
@@ -214,7 +218,7 @@ public partial class dt : SdcEntityBase<dt>
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowGTSpecified
     {
@@ -228,7 +232,7 @@ public partial class dt : SdcEntityBase<dt>
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowGTESpecified
     {
@@ -242,7 +246,7 @@ public partial class dt : SdcEntityBase<dt>
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowLTSpecified
     {
@@ -256,7 +260,7 @@ public partial class dt : SdcEntityBase<dt>
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowLTESpecified
     {
@@ -270,7 +274,7 @@ public partial class dt : SdcEntityBase<dt>
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowAPPROXSpecified
     {

@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This type provides data about the current and original registries that host the template or package, and also provides information about the status of the template/package within the current registry.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("RegistryType")]
 public partial class RegistryType : ExtensionBaseType
 {
     #region Private fields
@@ -51,6 +49,7 @@ public partial class RegistryType : ExtensionBaseType
     #endregion
     
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual RegistrySummaryType OriginalRegistry
     {
         get
@@ -74,6 +73,7 @@ public partial class RegistryType : ExtensionBaseType
     
     [XmlElement(Order=1)]
     [Required]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual RegistrySummaryType CurrentRegistry
     {
         get
@@ -99,6 +99,7 @@ public partial class RegistryType : ExtensionBaseType
     }
     
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual RegisteredItemType RegistrationStatus
     {
         get
@@ -120,7 +121,7 @@ public partial class RegistryType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OriginalRegistrySpecified
     {
@@ -134,7 +135,7 @@ public partial class RegistryType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool CurrentRegistrySpecified
     {
@@ -148,7 +149,7 @@ public partial class RegistryType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool RegistrationStatusSpecified
     {

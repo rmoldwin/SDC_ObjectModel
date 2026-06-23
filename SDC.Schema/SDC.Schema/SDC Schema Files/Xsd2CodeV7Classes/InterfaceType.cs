@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This type provides information about an Applications Programming Interface (API)
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("InterfaceType")]
 public partial class InterfaceType : ExtensionBaseType
 {
     #region Private fields
@@ -59,6 +57,7 @@ public partial class InterfaceType : ExtensionBaseType
     #endregion
     
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Identifer
     {
         get
@@ -81,6 +80,7 @@ public partial class InterfaceType : ExtensionBaseType
     }
     
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype InterfaceName
     {
         get
@@ -103,6 +103,7 @@ public partial class InterfaceType : ExtensionBaseType
     }
     
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Description
     {
         get
@@ -125,6 +126,7 @@ public partial class InterfaceType : ExtensionBaseType
     }
     
     [XmlElement(Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype URL
     {
         get
@@ -147,6 +149,7 @@ public partial class InterfaceType : ExtensionBaseType
     }
     
     [XmlElement(Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Version
     {
         get
@@ -169,6 +172,7 @@ public partial class InterfaceType : ExtensionBaseType
     }
     
     [XmlElement(Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual InterfaceTypeFields Fields
     {
         get
@@ -191,6 +195,7 @@ public partial class InterfaceType : ExtensionBaseType
     }
     
     [XmlElement(Order=6)]
+    [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
     public virtual InterfaceTypeDocumentation Documentation
     {
         get
@@ -212,7 +217,7 @@ public partial class InterfaceType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool IdentiferSpecified
     {
@@ -226,7 +231,7 @@ public partial class InterfaceType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool InterfaceNameSpecified
     {
@@ -240,7 +245,7 @@ public partial class InterfaceType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DescriptionSpecified
     {
@@ -254,7 +259,7 @@ public partial class InterfaceType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool URLSpecified
     {
@@ -268,7 +273,7 @@ public partial class InterfaceType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool VersionSpecified
     {
@@ -282,7 +287,7 @@ public partial class InterfaceType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool FieldsSpecified
     {
@@ -296,7 +301,7 @@ public partial class InterfaceType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DocumentationSpecified
     {

@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This type represents any type of coding, terminology, classification, keyword, or local value system that may be applied to any displayable item in a
@@ -40,6 +37,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("CodingType")]
 public partial class CodingType : ExtensionBaseType
 {
     #region Private fields
@@ -64,6 +62,7 @@ public partial class CodingType : ExtensionBaseType
     /// standard value for, the coded item.
     /// </summary>
     [XmlElement(IsNullable=true, Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Code
     {
         get
@@ -94,6 +93,7 @@ public partial class CodingType : ExtensionBaseType
     /// manipulated mathematically.
     /// </summary>
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual DataTypes_SType TypedValue
     {
         get
@@ -120,6 +120,7 @@ public partial class CodingType : ExtensionBaseType
     /// usage.
     /// </summary>
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual RichTextType CodeText
     {
         get
@@ -146,6 +147,7 @@ public partial class CodingType : ExtensionBaseType
     /// list of match types.
     /// </summary>
     [XmlElement(Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual CodeMatchType CodeMatch
     {
         get
@@ -168,6 +170,7 @@ public partial class CodingType : ExtensionBaseType
     }
     
     [XmlElement(Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual CodeSystemType CodeSystem
     {
         get
@@ -193,6 +196,7 @@ public partial class CodingType : ExtensionBaseType
     /// NEW: Web resource that provides information about the code
     /// </summary>
     [XmlElement(Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual anyURI_Stype CodeURI
     {
         get
@@ -215,6 +219,7 @@ public partial class CodingType : ExtensionBaseType
     }
     
     [XmlElement(Order=6)]
+    [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
     public virtual UnitsType Units
     {
         get
@@ -236,7 +241,7 @@ public partial class CodingType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool CodeSpecified
     {
@@ -250,7 +255,7 @@ public partial class CodingType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool TypedValueSpecified
     {
@@ -264,7 +269,7 @@ public partial class CodingType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool CodeTextSpecified
     {
@@ -278,7 +283,7 @@ public partial class CodingType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool CodeMatchSpecified
     {
@@ -292,7 +297,7 @@ public partial class CodingType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool CodeSystemSpecified
     {
@@ -306,7 +311,7 @@ public partial class CodingType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool CodeURISpecified
     {
@@ -320,7 +325,7 @@ public partial class CodingType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool UnitsSpecified
     {

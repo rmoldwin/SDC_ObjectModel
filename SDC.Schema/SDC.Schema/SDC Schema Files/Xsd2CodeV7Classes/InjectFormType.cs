@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// CHANGED: This type represents a form or portion of a form that is
@@ -49,6 +46,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("InjectFormType")]
 public partial class InjectFormType : IdentifiedExtensionType
 {
     #region Private fields
@@ -113,6 +111,7 @@ public partial class InjectFormType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string InjectionSourceURI
     {
         get
@@ -144,6 +143,7 @@ public partial class InjectFormType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string rootItemID
     {
         get
@@ -173,6 +173,7 @@ public partial class InjectFormType : IdentifiedExtensionType
     /// retrieved. Former name "pkgManagerURI"
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string serverURI
     {
         get
@@ -196,6 +197,7 @@ public partial class InjectFormType : IdentifiedExtensionType
     
     [XmlAttribute]
     [DefaultValue(typeof(uint), "0")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual uint repeat
     {
         get
@@ -214,6 +216,7 @@ public partial class InjectFormType : IdentifiedExtensionType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string instanceGUID
     {
         get
@@ -236,6 +239,7 @@ public partial class InjectFormType : IdentifiedExtensionType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string parentGUID
     {
         get
@@ -257,7 +261,7 @@ public partial class InjectFormType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemSpecified
     {
@@ -271,7 +275,7 @@ public partial class InjectFormType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool InjectionSourceURISpecified
     {
@@ -285,7 +289,7 @@ public partial class InjectFormType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool rootItemIDSpecified
     {
@@ -299,7 +303,7 @@ public partial class InjectFormType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool serverURISpecified
     {
@@ -313,7 +317,7 @@ public partial class InjectFormType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool repeatSpecified
     {
@@ -327,7 +331,7 @@ public partial class InjectFormType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool instanceGUIDSpecified
     {
@@ -341,7 +345,7 @@ public partial class InjectFormType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool parentGUIDSpecified
     {

@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Function or web service that returns a string value.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("CallFuncBoolType")]
 public partial class CallFuncBoolType : CallFuncBaseType
 {
     #region Private fields
@@ -62,6 +60,7 @@ public partial class CallFuncBoolType : CallFuncBaseType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool not
     {
         get
@@ -83,6 +82,7 @@ public partial class CallFuncBoolType : CallFuncBaseType
     /// Optional message that appears when the rule evaluates to true
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string validationMessage
     {
         get
@@ -104,7 +104,7 @@ public partial class CallFuncBoolType : CallFuncBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool notSpecified
     {
@@ -118,7 +118,7 @@ public partial class CallFuncBoolType : CallFuncBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool validationMessageSpecified
     {

@@ -6,78 +6,77 @@
 #pragma warning disable
 namespace SDC.Schema
 {
-using System;
-using System.Diagnostics;
-using System.Xml.Serialization;
-using System.Runtime.Serialization;
-using System.Collections;
-using System.Xml.Schema;
-using System.ComponentModel;
-using System.Collections.Specialized;
-using System.Collections.ObjectModel;
-using System.Reflection;
-using System.Globalization;
-using System.Xml;
-using Newtonsoft.Json.Bson;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using MessagePack;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
-using System.IO;
-using System.Text;
-using System.ComponentModel.DataAnnotations;
-using System.Collections.Generic;
-using  System.Text.Json;
+    using System;
+    using System.Diagnostics;
+    using System.Xml.Serialization;
+    using System.Runtime.Serialization;
+    using System.Collections;
+    using System.Xml.Schema;
+    using System.ComponentModel;
+    using System.Collections.Specialized;
+    using System.Collections.ObjectModel;
+    using System.Reflection;
+    using System.Globalization;
+    using System.Xml;
+    using Newtonsoft.Json.Bson;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+    using MessagePack;
+    using YamlDotNet.Serialization;
+    using YamlDotNet.Serialization.NamingConventions;
+    using System.IO;
+    using System.Text;
+    using System.ComponentModel.DataAnnotations;
+    using System.Collections.Generic;
 
-[System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
-[Serializable]
-[DesignerCategoryAttribute("code")]
-[XmlTypeAttribute(AnonymousType=true, Namespace="urn:ihe:qrph:sdc:2016")]
-public partial class TemplateAdminTypeDigitalSignatureSignaturePropertiesImage : BaseType
-{
-    #region Private fields
-    private byte[] _val;
-    private bool _valSpecified;
-    #endregion
-    
-    [XmlAttribute(DataType="base64Binary")]
-    public virtual byte[] val
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
+    [Serializable]
+    [DesignerCategoryAttribute("code")]
+    [XmlTypeAttribute(AnonymousType = true, Namespace = "urn:ihe:qrph:sdc:2016")]
+    [JsonObject("TemplateAdminTypeDigitalSignatureSignaturePropertiesImage")]
+    public partial class TemplateAdminTypeDigitalSignatureSignaturePropertiesImage : BaseType
     {
-        get
+        #region Private fields
+        private byte[] _val;
+        private bool _valSpecified;
+        #endregion
+
+        [XmlAttribute(DataType = "base64Binary")]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public virtual byte[] val
         {
-            return _val;
-        }
-        set
-        {
-            if ((_val == value))
+            get
             {
-                return;
+                return _val;
             }
-            if (((_val == null) 
-                        || (_val.Equals(value) != true)))
+            set
             {
-                _val = value;
-                OnPropertyChanged("val", value);
+                if ((_val == value))
+                {
+                    return;
+                }
+                if (((_val == null)
+                            || (_val.Equals(value) != true)))
+                {
+                    _val = value;
+                    OnPropertyChanged("val", value);
+                }
+            }
+        }
+
+        [JsonIgnore]
+        [XmlIgnore()]
+        public bool valSpecified
+        {
+            get
+            {
+                return _valSpecified;
+            }
+            set
+            {
+                _valSpecified = value;
             }
         }
     }
-    
-    [System.Text.Json.JsonIgnoreAttribute()]
-    [XmlIgnore()]
-    public bool valSpecified
-    {
-        get
-        {
-            return _valSpecified;
-        }
-        set
-        {
-            _valSpecified = value;
-        }
-    }
-}
 }
 #pragma warning restore

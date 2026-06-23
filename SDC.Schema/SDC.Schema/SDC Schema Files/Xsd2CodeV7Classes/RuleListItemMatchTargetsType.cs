@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,12 +28,12 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("RuleListItemMatchTargetsType")]
 public partial class RuleListItemMatchTargetsType : ExtensionBaseType
 {
     #region Private fields
@@ -66,6 +64,7 @@ public partial class RuleListItemMatchTargetsType : ExtensionBaseType
     /// spaces.
     /// </summary>
     [XmlAttribute(DataType="NMTOKENS")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string MatchListItems
     {
         get
@@ -97,6 +96,7 @@ public partial class RuleListItemMatchTargetsType : ExtensionBaseType
     /// names may be specified, separated by spaces.
     /// </summary>
     [XmlAttribute(DataType="NMTOKENS")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string MatchQuestions
     {
         get
@@ -120,6 +120,7 @@ public partial class RuleListItemMatchTargetsType : ExtensionBaseType
     
     [XmlAttribute]
     [DefaultValue(RuleListItemMatchTargetsTypeAttributeToMatch.associatedValue)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     [JsonConverter(typeof(StringEnumConverter))]
     public virtual RuleListItemMatchTargetsTypeAttributeToMatch attributeToMatch
     {
@@ -138,7 +139,7 @@ public partial class RuleListItemMatchTargetsType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool MatchListItemsSpecified
     {
@@ -152,7 +153,7 @@ public partial class RuleListItemMatchTargetsType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool MatchQuestionsSpecified
     {
@@ -166,7 +167,7 @@ public partial class RuleListItemMatchTargetsType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool attributeToMatchSpecified
     {

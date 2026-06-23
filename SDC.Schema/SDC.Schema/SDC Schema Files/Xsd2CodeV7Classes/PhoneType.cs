@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Usage type of phone number, e.g., home, office, etc
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("PhoneType")]
 public partial class PhoneType : ExtensionBaseType
 {
     #region Private fields
@@ -57,7 +55,7 @@ public partial class PhoneType : ExtensionBaseType
     #endregion
     
     [XmlElement("PhoneType", Order=0)]
-    [JsonPropertyNameAttribute("PhoneType", Order=0)]
+    [JsonProperty("PhoneType", Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype PhoneType1
     {
         get
@@ -80,6 +78,7 @@ public partial class PhoneType : ExtensionBaseType
     }
     
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual CountryCodeType CountryCode
     {
         get
@@ -102,6 +101,7 @@ public partial class PhoneType : ExtensionBaseType
     }
     
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual AreaCodeType AreaCode
     {
         get
@@ -124,6 +124,7 @@ public partial class PhoneType : ExtensionBaseType
     }
     
     [XmlElement(Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual PhoneNumberType PhoneNumber
     {
         get
@@ -146,6 +147,7 @@ public partial class PhoneType : ExtensionBaseType
     }
     
     [XmlElement(Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype PhoneExtension
     {
         get
@@ -168,6 +170,7 @@ public partial class PhoneType : ExtensionBaseType
     }
     
     [XmlElement(Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Usage
     {
         get
@@ -189,7 +192,7 @@ public partial class PhoneType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool PhoneType1Specified
     {
@@ -203,7 +206,7 @@ public partial class PhoneType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool CountryCodeSpecified
     {
@@ -217,7 +220,7 @@ public partial class PhoneType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool AreaCodeSpecified
     {
@@ -231,7 +234,7 @@ public partial class PhoneType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool PhoneNumberSpecified
     {
@@ -245,7 +248,7 @@ public partial class PhoneType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool PhoneExtensionSpecified
     {
@@ -259,7 +262,7 @@ public partial class PhoneType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool UsageSpecified
     {

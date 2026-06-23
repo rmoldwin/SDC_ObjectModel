@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This type describes strongly-typed parameters used in functions and web services.  Values are hard-coded as constants in the XML instance document.  They are not user-entered values.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ParameterValueType")]
 public partial class ParameterValueType : DataTypes_SType
 {
     #region Private fields
@@ -48,6 +46,7 @@ public partial class ParameterValueType : DataTypes_SType
     
     [XmlAttribute(DataType="NCName")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string paramName
     {
         get
@@ -72,7 +71,7 @@ public partial class ParameterValueType : DataTypes_SType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool paramNameSpecified
     {

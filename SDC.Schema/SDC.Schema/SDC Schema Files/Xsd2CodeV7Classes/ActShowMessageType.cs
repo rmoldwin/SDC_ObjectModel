@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Display a message to the form user, triggered by activity within the
@@ -40,6 +37,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ActShowMessageType")]
 public partial class ActShowMessageType : ExtensionBaseType
 {
     #region Private fields
@@ -56,6 +54,7 @@ public partial class ActShowMessageType : ExtensionBaseType
     #endregion
     
     [XmlElement("Message", Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<RichTextType> Message
     {
         get
@@ -78,6 +77,7 @@ public partial class ActShowMessageType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string alertLevel
     {
         get
@@ -100,6 +100,7 @@ public partial class ActShowMessageType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string alertType
     {
         get
@@ -122,6 +123,7 @@ public partial class ActShowMessageType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string messageType
     {
         get
@@ -144,6 +146,7 @@ public partial class ActShowMessageType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string messageCode
     {
         get
@@ -165,7 +168,7 @@ public partial class ActShowMessageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool MessageSpecified
     {
@@ -179,7 +182,7 @@ public partial class ActShowMessageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool alertLevelSpecified
     {
@@ -193,7 +196,7 @@ public partial class ActShowMessageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool alertTypeSpecified
     {
@@ -207,7 +210,7 @@ public partial class ActShowMessageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool messageTypeSpecified
     {
@@ -221,7 +224,7 @@ public partial class ActShowMessageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool messageCodeSpecified
     {

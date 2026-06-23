@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This type contains one or more components comprising a list of SDC XMLPackage entities.  These include URI links to XMLPackages (PackageItemType), encoded HTML packages (HTMLPackageType), and/or recursive groups (SDCPackageListType) of of such links.
@@ -40,6 +37,7 @@ using  System.Text.Json;
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
 [XmlRootAttribute("SDCPackageList", Namespace="urn:ihe:qrph:sdc:2016", IsNullable=false)]
+[JsonObject("PackageListType")]
 public partial class PackageListType : ExtensionBaseType
 {
     #region Private fields
@@ -52,6 +50,7 @@ public partial class PackageListType : ExtensionBaseType
     #endregion
     
     [XmlElement("PackageItem", Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<PackageItemType> PackageItem
     {
         get
@@ -74,6 +73,7 @@ public partial class PackageListType : ExtensionBaseType
     }
     
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual HTMLPackageType HTML
     {
         get
@@ -96,6 +96,7 @@ public partial class PackageListType : ExtensionBaseType
     }
     
     [XmlElement("SDCPackageList", Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<PackageListType> SDCPackageList
     {
         get
@@ -117,7 +118,7 @@ public partial class PackageListType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool PackageItemSpecified
     {
@@ -131,7 +132,7 @@ public partial class PackageListType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool HTMLSpecified
     {
@@ -145,7 +146,7 @@ public partial class PackageListType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool SDCPackageListSpecified
     {

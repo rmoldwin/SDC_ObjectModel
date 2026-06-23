@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This type is used to act upon the value of common item attributes. If
@@ -44,6 +41,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ActSetAttributeType")]
 public partial class ActSetAttributeType : ExtensionBaseType
 {
     #region Private fields
@@ -93,6 +91,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// </summary>
     [XmlAttribute(DataType="NMTOKENS")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string targetNames
     {
         get
@@ -118,6 +117,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool actVisible
     {
         get
@@ -159,6 +159,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool actEnable
     {
         get
@@ -204,6 +205,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// minimum number of repeats.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual uint actMinCard
     {
         get
@@ -249,6 +251,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// question
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual uint actMaxCard
     {
         get
@@ -295,6 +298,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// visible properties.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool actActivate
     {
         get
@@ -340,6 +344,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// items.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool actSelect
     {
         get
@@ -385,6 +390,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// ListItem. Not applicable to other item types.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool actDeleteResponse
     {
         get
@@ -430,6 +436,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// ListItem. Not applicable to other item types.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool actReadOnly
     {
         get
@@ -474,6 +481,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// Set the @type attribute value
     /// </summary>
     [XmlAttribute(DataType="NMTOKENS")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string actType
     {
         get
@@ -499,6 +507,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// Set the @styleClass attribute value
     /// </summary>
     [XmlAttribute(DataType="NMTOKENS")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string actStyleClass
     {
         get
@@ -524,6 +533,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// Set the @title text on an item.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string actSetTitleText
     {
         get
@@ -549,6 +559,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// Set HTML as base-64-encoded binary
     /// </summary>
     [XmlAttribute(DataType="base64Binary")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual byte[] actSetBase64HTML
     {
         get
@@ -571,6 +582,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string actSetCode
     {
         get
@@ -593,6 +605,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string actSetCodeSystem
     {
         get
@@ -619,6 +632,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// data type must be used if applicable.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string actSetVal
     {
         get
@@ -646,6 +660,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// applicable.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string actSetAssociatedValue
     {
         get
@@ -674,6 +689,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// ignored.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string actSetValFromRef
     {
         get
@@ -702,6 +718,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
     /// ignored.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string actSetAssociatedValueFromRef
     {
         get
@@ -723,7 +740,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool targetNamesSpecified
     {
@@ -737,7 +754,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool actTypeSpecified
     {
@@ -751,7 +768,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool actStyleClassSpecified
     {
@@ -765,7 +782,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool actSetTitleTextSpecified
     {
@@ -779,7 +796,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool actSetBase64HTMLSpecified
     {
@@ -793,7 +810,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool actSetCodeSpecified
     {
@@ -807,7 +824,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool actSetCodeSystemSpecified
     {
@@ -821,7 +838,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool actSetValSpecified
     {
@@ -835,7 +852,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool actSetAssociatedValueSpecified
     {
@@ -849,7 +866,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool actSetValFromRefSpecified
     {
@@ -863,7 +880,7 @@ public partial class ActSetAttributeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool actSetAssociatedValueFromRefSpecified
     {

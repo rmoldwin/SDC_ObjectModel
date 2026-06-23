@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// General information about how information in a particular form package must be handled. This may include, e.g., security, completeness, transmission, and validation criteria.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ComplianceRuleType")]
 public partial class ComplianceRuleType : ExtensionBaseType
 {
     #region Private fields
@@ -54,6 +52,7 @@ public partial class ComplianceRuleType : ExtensionBaseType
     
     [XmlElement(Order=0)]
     [Required]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Description
     {
         get
@@ -79,6 +78,7 @@ public partial class ComplianceRuleType : ExtensionBaseType
     }
     
     [XmlElement("ComplianceOrganization", Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<OrganizationType> ComplianceOrganization
     {
         get
@@ -102,6 +102,7 @@ public partial class ComplianceRuleType : ExtensionBaseType
     
     [XmlAttribute(DataType="anyURI")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string ruleID
     {
         get
@@ -127,6 +128,7 @@ public partial class ComplianceRuleType : ExtensionBaseType
     }
     
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string formID
     {
         get
@@ -148,7 +150,7 @@ public partial class ComplianceRuleType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DescriptionSpecified
     {
@@ -162,7 +164,7 @@ public partial class ComplianceRuleType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ComplianceOrganizationSpecified
     {
@@ -176,7 +178,7 @@ public partial class ComplianceRuleType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ruleIDSpecified
     {
@@ -190,7 +192,7 @@ public partial class ComplianceRuleType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool formIDSpecified
     {

@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,12 +28,12 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ChangeType")]
 public partial class ChangeType : ExtensionBaseType
 {
     #region Private fields
@@ -50,6 +48,7 @@ public partial class ChangeType : ExtensionBaseType
     #endregion
     
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual TargetItemIDType TargetItemID
     {
         get
@@ -72,6 +71,7 @@ public partial class ChangeType : ExtensionBaseType
     }
     
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual TargetItemNameType TargetItemName
     {
         get
@@ -94,6 +94,7 @@ public partial class ChangeType : ExtensionBaseType
     }
     
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual TargetItemXPathType TargetItemXPath
     {
         get
@@ -116,6 +117,7 @@ public partial class ChangeType : ExtensionBaseType
     }
     
     [XmlElement(Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual DataTypes_SType NewValue
     {
         get
@@ -137,7 +139,7 @@ public partial class ChangeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool TargetItemIDSpecified
     {
@@ -151,7 +153,7 @@ public partial class ChangeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool TargetItemNameSpecified
     {
@@ -165,7 +167,7 @@ public partial class ChangeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool TargetItemXPathSpecified
     {
@@ -179,7 +181,7 @@ public partial class ChangeType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool NewValueSpecified
     {

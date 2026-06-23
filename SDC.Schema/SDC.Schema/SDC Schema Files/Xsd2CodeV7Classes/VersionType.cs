@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// A generic structure for recording file version metadata.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("VersionType")]
 public partial class VersionType : ExtensionBaseType
 {
     #region Private fields
@@ -68,6 +66,7 @@ public partial class VersionType : ExtensionBaseType
     /// Information about the document that describes the versioning methodology nomenclature.
     /// </summary>
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual FileType VersioningReference
     {
         get
@@ -93,6 +92,7 @@ public partial class VersionType : ExtensionBaseType
     /// Comments about the changes in this version
     /// </summary>
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual RichTextType VersionComments
     {
         get
@@ -118,6 +118,7 @@ public partial class VersionType : ExtensionBaseType
     /// Itemized list of changes in the new version
     /// </summary>
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual VersionTypeChanges Changes
     {
         get
@@ -140,6 +141,7 @@ public partial class VersionType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string fullVersion
     {
         get
@@ -162,6 +164,7 @@ public partial class VersionType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string versionRegExPattern
     {
         get
@@ -184,7 +187,7 @@ public partial class VersionType : ExtensionBaseType
     }
     
     [XmlAttribute("versionLevel.1")]
-    [JsonPropertyNameAttribute("versionLevel.1")]
+    [JsonProperty("versionLevel.1", NullValueHandling=NullValueHandling.Ignore)]
     public virtual string versionLevel1
     {
         get
@@ -207,7 +210,7 @@ public partial class VersionType : ExtensionBaseType
     }
     
     [XmlAttribute("versionLevel.2")]
-    [JsonPropertyNameAttribute("versionLevel.2")]
+    [JsonProperty("versionLevel.2", NullValueHandling=NullValueHandling.Ignore)]
     public virtual string versionLevel2
     {
         get
@@ -230,7 +233,7 @@ public partial class VersionType : ExtensionBaseType
     }
     
     [XmlAttribute("versionLevel.3")]
-    [JsonPropertyNameAttribute("versionLevel.3")]
+    [JsonProperty("versionLevel.3", NullValueHandling=NullValueHandling.Ignore)]
     public virtual string versionLevel3
     {
         get
@@ -253,7 +256,7 @@ public partial class VersionType : ExtensionBaseType
     }
     
     [XmlAttribute("versionLevel.4")]
-    [JsonPropertyNameAttribute("versionLevel.4")]
+    [JsonProperty("versionLevel.4", NullValueHandling=NullValueHandling.Ignore)]
     public virtual string versionLevel4
     {
         get
@@ -276,7 +279,7 @@ public partial class VersionType : ExtensionBaseType
     }
     
     [XmlAttribute("versionLevel.5")]
-    [JsonPropertyNameAttribute("versionLevel.5")]
+    [JsonProperty("versionLevel.5", NullValueHandling=NullValueHandling.Ignore)]
     public virtual string versionLevel5
     {
         get
@@ -298,7 +301,7 @@ public partial class VersionType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool VersioningReferenceSpecified
     {
@@ -312,7 +315,7 @@ public partial class VersionType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool VersionCommentsSpecified
     {
@@ -326,7 +329,7 @@ public partial class VersionType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ChangesSpecified
     {
@@ -340,7 +343,7 @@ public partial class VersionType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool fullVersionSpecified
     {
@@ -354,7 +357,7 @@ public partial class VersionType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool versionRegExPatternSpecified
     {
@@ -368,7 +371,7 @@ public partial class VersionType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool versionLevel1Specified
     {
@@ -382,7 +385,7 @@ public partial class VersionType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool versionLevel2Specified
     {
@@ -396,7 +399,7 @@ public partial class VersionType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool versionLevel3Specified
     {
@@ -410,7 +413,7 @@ public partial class VersionType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool versionLevel4Specified
     {
@@ -424,7 +427,7 @@ public partial class VersionType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool versionLevel5Specified
     {

@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Show a stored report. The following parameters may be used: reportID:
@@ -45,6 +42,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ActShowReportType")]
 public partial class ActShowReportType : ExtensionBaseType
 {
     #region Private fields
@@ -65,6 +63,7 @@ public partial class ActShowReportType : ExtensionBaseType
     /// displayed.
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string reportID
     {
         get
@@ -91,6 +90,7 @@ public partial class ActShowReportType : ExtensionBaseType
     /// be displayed.
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string packageID
     {
         get
@@ -113,6 +113,7 @@ public partial class ActShowReportType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string reportInstanceGuid
     {
         get
@@ -135,6 +136,7 @@ public partial class ActShowReportType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string reportInstanceVersonGuid
     {
         get
@@ -157,6 +159,7 @@ public partial class ActShowReportType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string displayState
     {
         get
@@ -178,7 +181,7 @@ public partial class ActShowReportType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool reportIDSpecified
     {
@@ -192,7 +195,7 @@ public partial class ActShowReportType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool packageIDSpecified
     {
@@ -206,7 +209,7 @@ public partial class ActShowReportType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool reportInstanceGuidSpecified
     {
@@ -220,7 +223,7 @@ public partial class ActShowReportType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool reportInstanceVersonGuidSpecified
     {
@@ -234,7 +237,7 @@ public partial class ActShowReportType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool displayStateSpecified
     {

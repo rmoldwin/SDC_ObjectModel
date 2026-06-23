@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Represents questions. Parent items may be Section, Question, and
@@ -41,6 +38,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("QuestionItemBaseType")]
 public abstract partial class QuestionItemBaseType : RepeatingType
 {
     #region Private fields
@@ -94,6 +92,7 @@ public abstract partial class QuestionItemBaseType : RepeatingType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool readOnly
     {
         get
@@ -112,6 +111,7 @@ public abstract partial class QuestionItemBaseType : RepeatingType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool changedData
     {
         get
@@ -153,6 +153,7 @@ public abstract partial class QuestionItemBaseType : RepeatingType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool newData
     {
         get
@@ -193,7 +194,7 @@ public abstract partial class QuestionItemBaseType : RepeatingType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemSpecified
     {
@@ -207,7 +208,7 @@ public abstract partial class QuestionItemBaseType : RepeatingType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool readOnlySpecified
     {

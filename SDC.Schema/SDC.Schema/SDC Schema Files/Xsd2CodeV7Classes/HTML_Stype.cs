@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,13 +28,13 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [XmlInclude(typeof(HTML_DEtype))]
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("HTML_Stype")]
 public partial class HTML_Stype : BaseType
 {
     #region Private fields
@@ -47,6 +45,7 @@ public partial class HTML_Stype : BaseType
     #endregion
     
     [XmlAnyElementAttribute(Namespace="http://www.w3.org/1999/xhtml", Order=0)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<System.Xml.XmlElement> Any
     {
         get
@@ -69,6 +68,7 @@ public partial class HTML_Stype : BaseType
     }
     
     [XmlAnyAttributeAttribute()]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<System.Xml.XmlAttribute> AnyAttr
     {
         get
@@ -90,7 +90,7 @@ public partial class HTML_Stype : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool AnySpecified
     {
@@ -104,7 +104,7 @@ public partial class HTML_Stype : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool AnyAttrSpecified
     {

@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Sets the value of any named attribute. However, it is primarily
@@ -44,6 +41,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ActSetBoolAttributeValueCodeType")]
 public partial class ActSetBoolAttributeValueCodeType : ScriptCodeBoolType
 {
     #region Private fields
@@ -67,6 +65,7 @@ public partial class ActSetBoolAttributeValueCodeType : ScriptCodeBoolType
     /// </summary>
     [XmlAttribute(DataType="NCName")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string elementName
     {
         get
@@ -97,6 +96,7 @@ public partial class ActSetBoolAttributeValueCodeType : ScriptCodeBoolType
     /// </summary>
     [XmlAttribute(DataType="NCName")]
     [DefaultValue("val")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string attributeName
     {
         get
@@ -118,7 +118,7 @@ public partial class ActSetBoolAttributeValueCodeType : ScriptCodeBoolType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool elementNameSpecified
     {
@@ -132,7 +132,7 @@ public partial class ActSetBoolAttributeValueCodeType : ScriptCodeBoolType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool attributeNameSpecified
     {

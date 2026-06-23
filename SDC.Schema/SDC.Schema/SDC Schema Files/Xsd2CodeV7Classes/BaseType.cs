@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// BaseType is inherited by all SDC complex types.  It contains attributes for:
@@ -252,6 +249,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("BaseType")]
 public abstract partial class BaseType : SdcEntityBase<BaseType>
 {
     #region Private fields
@@ -271,6 +269,7 @@ public abstract partial class BaseType : SdcEntityBase<BaseType>
     /// @name is a developer assigned unique identifier, similar to a unique control/object/variable name, used to provide the ability for programmatic manipulation of an element.  The value of name must be unique within an FDF and FDF-R, even when FDF sections are repeated in the XML.  @name values may begin with a letter or an underscore and may only contain characters that are legal for variable names.  These generally include letters, numbers and underscore.  The use of other characters may result in errors, depending on the programming language employed.  Since XML is case-sensitive, names should not be made unique solely on the basis of alphabetic case, since many programming languages are case insensitive and cannot distinguish names based only on case differences.
     /// </summary>
     [XmlAttribute(DataType="ID")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string name
     {
         get
@@ -296,6 +295,7 @@ public abstract partial class BaseType : SdcEntityBase<BaseType>
     /// The @type attribute can contain custom metadata "tokens" for the element, chosen from a standardized list of terms. Tokens are short alphanumeric text strings, defined by the W3C Schema NMTOKEN specification, that are defined in an Implementation Guide. The type xsd:NMTOKEN represents a single string token. NMTOKEN values may consist of letters, digits, periods ( . ), hyphens ( - ), underscores ( _ ), and colons ( : ). They may start with any of these characters. (www.datypic.com/sc/xsd/t-xsd_NMTOKEN.html) @type tokens may be specific for one or more kinds of SDC elements. Multiple tokens in the type attribute should be separated by whitespace. Type tokens may be used to specify special handling by an application, and are usually used to define form display constraints, but may include other custom metadata as well. Style metadata should generally be handled with @styleClass rather than @type. @type token examples include: tooltip, statusLineText, alignTopLeft, align:bottom, _pageBreak-after, etc. @type metadata should generally not affect the information content of a form.
     /// </summary>
     [XmlAttribute(DataType="NMTOKENS")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string type
     {
         get
@@ -321,6 +321,7 @@ public abstract partial class BaseType : SdcEntityBase<BaseType>
     /// @styleClass is a developer assigned class name for display styling, generally for use with an external style sheet..
     /// </summary>
     [XmlAttribute(DataType="NMTOKENS")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string styleClass
     {
         get
@@ -354,6 +355,7 @@ public abstract partial class BaseType : SdcEntityBase<BaseType>
     /// </summary>
     [XmlAttribute]
     [RegularExpression("[A-Za-z0-9\\-_]{22}")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string sGuid
     {
         get
@@ -383,6 +385,7 @@ public abstract partial class BaseType : SdcEntityBase<BaseType>
     /// </summary>
     [XmlAttribute]
     [RangeAttribute(0D, double.PositiveInfinity)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual decimal order
     {
         get
@@ -426,7 +429,7 @@ public abstract partial class BaseType : SdcEntityBase<BaseType>
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool nameSpecified
     {
@@ -440,7 +443,7 @@ public abstract partial class BaseType : SdcEntityBase<BaseType>
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool typeSpecified
     {
@@ -454,7 +457,7 @@ public abstract partial class BaseType : SdcEntityBase<BaseType>
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool styleClassSpecified
     {
@@ -468,7 +471,7 @@ public abstract partial class BaseType : SdcEntityBase<BaseType>
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool sGuidSpecified
     {

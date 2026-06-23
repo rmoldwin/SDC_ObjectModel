@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Type of address, e.g., home, office, etc
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("AddressType")]
 public partial class AddressType : ExtensionBaseType
 {
     #region Private fields
@@ -63,7 +61,7 @@ public partial class AddressType : ExtensionBaseType
     #endregion
     
     [XmlElement("AddressType", Order=0)]
-    [JsonPropertyNameAttribute("AddressType", Order=0)]
+    [JsonProperty("AddressType", Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype AddressType1
     {
         get
@@ -86,6 +84,7 @@ public partial class AddressType : ExtensionBaseType
     }
     
     [XmlElement("InternalAddress", Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<string_Stype> InternalAddress
     {
         get
@@ -108,6 +107,7 @@ public partial class AddressType : ExtensionBaseType
     }
     
     [XmlElement("AddressLine", Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<string_Stype> AddressLine
     {
         get
@@ -130,6 +130,7 @@ public partial class AddressType : ExtensionBaseType
     }
     
     [XmlElement(Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype City
     {
         get
@@ -152,6 +153,7 @@ public partial class AddressType : ExtensionBaseType
     }
     
     [XmlElement(Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Jurisdiction
     {
         get
@@ -174,6 +176,7 @@ public partial class AddressType : ExtensionBaseType
     }
     
     [XmlElement(Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype State
     {
         get
@@ -196,6 +199,7 @@ public partial class AddressType : ExtensionBaseType
     }
     
     [XmlElement(Order=6)]
+    [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype PostalCode
     {
         get
@@ -218,6 +222,7 @@ public partial class AddressType : ExtensionBaseType
     }
     
     [XmlElement(Order=7)]
+    [JsonProperty(Order=7, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Country
     {
         get
@@ -240,6 +245,7 @@ public partial class AddressType : ExtensionBaseType
     }
     
     [XmlElement(Order=8)]
+    [JsonProperty(Order=8, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Usage
     {
         get
@@ -261,7 +267,7 @@ public partial class AddressType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool AddressType1Specified
     {
@@ -275,7 +281,7 @@ public partial class AddressType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool InternalAddressSpecified
     {
@@ -289,7 +295,7 @@ public partial class AddressType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool AddressLineSpecified
     {
@@ -303,7 +309,7 @@ public partial class AddressType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool CitySpecified
     {
@@ -317,7 +323,7 @@ public partial class AddressType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool JurisdictionSpecified
     {
@@ -331,7 +337,7 @@ public partial class AddressType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool StateSpecified
     {
@@ -345,7 +351,7 @@ public partial class AddressType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool PostalCodeSpecified
     {
@@ -359,7 +365,7 @@ public partial class AddressType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool CountrySpecified
     {
@@ -373,7 +379,7 @@ public partial class AddressType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool UsageSpecified
     {

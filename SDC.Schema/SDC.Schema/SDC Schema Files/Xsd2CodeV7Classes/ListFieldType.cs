@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// ListField is a grouper for list-like answer choices, which may be
@@ -41,6 +38,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ListFieldType")]
 public partial class ListFieldType : ExtensionBaseType
 {
     #region Private fields
@@ -96,6 +94,7 @@ public partial class ListFieldType : ExtensionBaseType
     /// colTextDelimiter.
     /// </summary>
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual RichTextType ListHeaderText
     {
         get
@@ -127,6 +126,7 @@ public partial class ListFieldType : ExtensionBaseType
     /// in the returned list data.
     /// </summary>
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual CodeSystemType DefaultCodeSystem
     {
         get
@@ -172,6 +172,7 @@ public partial class ListFieldType : ExtensionBaseType
     }
     
     [XmlElement("IllegalListItemPairings", Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<PredSelectionTestType> IllegalListItemPairings
     {
         get
@@ -194,6 +195,7 @@ public partial class ListFieldType : ExtensionBaseType
     }
     
     [XmlElement("IllegalCoSelectedListItems", Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<PredSingleSelectionSetsType> IllegalCoSelectedListItems
     {
         get
@@ -220,6 +222,7 @@ public partial class ListFieldType : ExtensionBaseType
     /// changed.
     /// </summary>
     [XmlElement("AfterChange", Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<EventType> AfterChange
     {
         get
@@ -242,6 +245,7 @@ public partial class ListFieldType : ExtensionBaseType
     }
     
     [XmlElement("OnEvent", Order=6)]
+    [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<OnEventType> OnEvent
     {
         get
@@ -269,6 +273,7 @@ public partial class ListFieldType : ExtensionBaseType
     /// </summary>
     [XmlAttribute]
     [DefaultValue("|")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string colTextDelimiter
     {
         get
@@ -295,6 +300,7 @@ public partial class ListFieldType : ExtensionBaseType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(typeof(byte), "1")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual byte numCols
     {
         get
@@ -317,6 +323,7 @@ public partial class ListFieldType : ExtensionBaseType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(typeof(byte), "1")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual byte storedCol
     {
         get
@@ -342,6 +349,7 @@ public partial class ListFieldType : ExtensionBaseType
     [XmlAttribute]
     [DefaultValue(typeof(uint), "1")]
     [RangeAttribute(1, double.PositiveInfinity)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual uint minSelections
     {
         get
@@ -373,6 +381,7 @@ public partial class ListFieldType : ExtensionBaseType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(typeof(uint), "1")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual uint maxSelections
     {
         get
@@ -396,6 +405,7 @@ public partial class ListFieldType : ExtensionBaseType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(true)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool ordered
     {
         get
@@ -424,6 +434,7 @@ public partial class ListFieldType : ExtensionBaseType
     /// defaultListItemDataType.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string defaultListItemDataType
     {
         get
@@ -445,7 +456,7 @@ public partial class ListFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ListHeaderTextSpecified
     {
@@ -459,7 +470,7 @@ public partial class ListFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DefaultCodeSystemSpecified
     {
@@ -473,7 +484,7 @@ public partial class ListFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemSpecified
     {
@@ -487,7 +498,7 @@ public partial class ListFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool IllegalListItemPairingsSpecified
     {
@@ -501,7 +512,7 @@ public partial class ListFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool IllegalCoSelectedListItemsSpecified
     {
@@ -515,7 +526,7 @@ public partial class ListFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool AfterChangeSpecified
     {
@@ -529,7 +540,7 @@ public partial class ListFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OnEventSpecified
     {
@@ -543,7 +554,7 @@ public partial class ListFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool colTextDelimiterSpecified
     {
@@ -557,7 +568,7 @@ public partial class ListFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool numColsSpecified
     {
@@ -571,7 +582,7 @@ public partial class ListFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool storedColSpecified
     {
@@ -585,7 +596,7 @@ public partial class ListFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool minSelectionsSpecified
     {
@@ -599,7 +610,7 @@ public partial class ListFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool maxSelectionsSpecified
     {
@@ -613,7 +624,7 @@ public partial class ListFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool orderedSpecified
     {
@@ -627,7 +638,7 @@ public partial class ListFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool defaultListItemDataTypeSpecified
     {

@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This Rule sets the activation status of Items based on the selection
@@ -51,6 +48,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("RuleAutoActivateType")]
 public partial class RuleAutoActivateType : ExtensionBaseType
 {
     #region Private fields
@@ -84,6 +82,7 @@ public partial class RuleAutoActivateType : ExtensionBaseType
     }
     
     [XmlAttribute(DataType="NMTOKENS")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string selectedItemSet
     {
         get
@@ -107,6 +106,7 @@ public partial class RuleAutoActivateType : ExtensionBaseType
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool onlyIf
     {
         get
@@ -136,6 +136,7 @@ public partial class RuleAutoActivateType : ExtensionBaseType
     /// when @selectedItemSet is false.
     /// </summary>
     [XmlAttribute(DataType="NCName")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string targetNameActivationList
     {
         get
@@ -164,6 +165,7 @@ public partial class RuleAutoActivateType : ExtensionBaseType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(toggleType.@false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     [JsonConverter(typeof(StringEnumConverter))]
     public virtual toggleType setVisibility
     {
@@ -189,6 +191,7 @@ public partial class RuleAutoActivateType : ExtensionBaseType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(toggleType.@true)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     [JsonConverter(typeof(StringEnumConverter))]
     public virtual toggleType setEnabled
     {
@@ -214,6 +217,7 @@ public partial class RuleAutoActivateType : ExtensionBaseType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(toggleType.@true)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     [JsonConverter(typeof(StringEnumConverter))]
     public virtual toggleType setExpanded
     {
@@ -232,7 +236,7 @@ public partial class RuleAutoActivateType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool selectedItemSetSpecified
     {
@@ -246,7 +250,7 @@ public partial class RuleAutoActivateType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool onlyIfSpecified
     {
@@ -260,7 +264,7 @@ public partial class RuleAutoActivateType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool targetNameActivationListSpecified
     {
@@ -274,7 +278,7 @@ public partial class RuleAutoActivateType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool setVisibilitySpecified
     {
@@ -288,7 +292,7 @@ public partial class RuleAutoActivateType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool setEnabledSpecified
     {
@@ -302,7 +306,7 @@ public partial class RuleAutoActivateType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool setExpandedSpecified
     {

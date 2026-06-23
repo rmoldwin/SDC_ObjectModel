@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This type represents an XMLPackage in which the SDC FormDesign components have been transformed into HTML forms.  The SDC-based HTML forms embed all the other information contained in the original XMLPackage.
@@ -40,6 +37,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("HTMLPackageType")]
 public partial class HTMLPackageType : ExtensionBaseType
 {
     #region Private fields
@@ -48,7 +46,7 @@ public partial class HTMLPackageType : ExtensionBaseType
     #endregion
     
     [XmlElement("HTMLbase64", Order=0)]
-    [JsonPropertyNameAttribute("HTMLbase64", Order=0)]
+    [JsonProperty("HTMLbase64", Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual base64Binary_Stype Item
     {
         get
@@ -70,7 +68,7 @@ public partial class HTMLPackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemSpecified
     {

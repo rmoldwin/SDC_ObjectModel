@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Test the data in the form for proper data types, rule integrity, and
@@ -40,6 +37,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ActValidateFormType")]
 public partial class ActValidateFormType : ExtensionBaseType
 {
     #region Private fields
@@ -69,6 +67,7 @@ public partial class ActValidateFormType : ExtensionBaseType
     }
     
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual CallFuncType ValidationWebService
     {
         get
@@ -92,6 +91,7 @@ public partial class ActValidateFormType : ExtensionBaseType
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool validateDataTypes
     {
         get
@@ -111,6 +111,7 @@ public partial class ActValidateFormType : ExtensionBaseType
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool validateRules
     {
         get
@@ -130,6 +131,7 @@ public partial class ActValidateFormType : ExtensionBaseType
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool validateCompleteness
     {
         get
@@ -148,6 +150,7 @@ public partial class ActValidateFormType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string validationType
     {
         get
@@ -169,7 +172,7 @@ public partial class ActValidateFormType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ValidationWebServiceSpecified
     {
@@ -183,7 +186,7 @@ public partial class ActValidateFormType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool validateDataTypesSpecified
     {
@@ -197,7 +200,7 @@ public partial class ActValidateFormType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool validateRulesSpecified
     {
@@ -211,7 +214,7 @@ public partial class ActValidateFormType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool validateCompletenessSpecified
     {
@@ -225,7 +228,7 @@ public partial class ActValidateFormType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool validationTypeSpecified
     {

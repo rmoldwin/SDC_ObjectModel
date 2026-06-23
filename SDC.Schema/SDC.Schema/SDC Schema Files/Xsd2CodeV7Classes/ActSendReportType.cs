@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Send a report to an endpoint, via email, fax or web service. The
@@ -46,6 +43,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ActSendReportType")]
 public partial class ActSendReportType : ExtensionBaseType
 {
     #region Private fields
@@ -84,6 +82,7 @@ public partial class ActSendReportType : ExtensionBaseType
     }
     
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string reportID
     {
         get
@@ -106,6 +105,7 @@ public partial class ActSendReportType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string reportInstanceGuid
     {
         get
@@ -128,6 +128,7 @@ public partial class ActSendReportType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string reportInstanceVersonGuid
     {
         get
@@ -149,7 +150,7 @@ public partial class ActSendReportType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemsSpecified
     {
@@ -163,7 +164,7 @@ public partial class ActSendReportType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool reportIDSpecified
     {
@@ -177,7 +178,7 @@ public partial class ActSendReportType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool reportInstanceGuidSpecified
     {
@@ -191,7 +192,7 @@ public partial class ActSendReportType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool reportInstanceVersonGuidSpecified
     {

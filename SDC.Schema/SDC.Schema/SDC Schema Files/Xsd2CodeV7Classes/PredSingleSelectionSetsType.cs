@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This Rule tests combinations of co-selected ListItems (answers). If
@@ -47,6 +44,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("PredSingleSelectionSetsType")]
 public partial class PredSingleSelectionSetsType : FuncBoolBaseType
 {
     #region Private fields
@@ -71,6 +69,7 @@ public partial class PredSingleSelectionSetsType : FuncBoolBaseType
     /// </summary>
     [XmlAttribute(DataType="NMTOKENS")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string listItemNames
     {
         get
@@ -101,6 +100,7 @@ public partial class PredSingleSelectionSetsType : FuncBoolBaseType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(typeof(short), "1")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual short maxSelections
     {
         get
@@ -118,7 +118,7 @@ public partial class PredSingleSelectionSetsType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool listItemNamesSpecified
     {
@@ -132,7 +132,7 @@ public partial class PredSingleSelectionSetsType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool maxSelectionsSpecified
     {

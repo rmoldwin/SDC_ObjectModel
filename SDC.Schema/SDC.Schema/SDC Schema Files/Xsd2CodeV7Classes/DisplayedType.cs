@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This type represents any object that is designed to have a visual
@@ -50,6 +47,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("DisplayedType")]
 public partial class DisplayedType : IdentifiedExtensionType
 {
     #region Private fields
@@ -102,6 +100,7 @@ public partial class DisplayedType : IdentifiedExtensionType
     /// Link to external information.
     /// </summary>
     [XmlElement("Link", Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<LinkType> Link
     {
         get
@@ -129,6 +128,7 @@ public partial class DisplayedType : IdentifiedExtensionType
     /// must be base 64 encoded.
     /// </summary>
     [XmlElement("BlobContent", Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<BlobType> BlobContent
     {
         get
@@ -156,6 +156,7 @@ public partial class DisplayedType : IdentifiedExtensionType
     /// processs.
     /// </summary>
     [XmlElement("Contact", Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<ContactType> Contact
     {
         get
@@ -182,6 +183,7 @@ public partial class DisplayedType : IdentifiedExtensionType
     /// values
     /// </summary>
     [XmlElement("CodedValue", Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<CodingType> CodedValue
     {
         get
@@ -204,6 +206,7 @@ public partial class DisplayedType : IdentifiedExtensionType
     }
     
     [XmlElement("OnEnter", Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<EventType> OnEnter
     {
         get
@@ -226,6 +229,7 @@ public partial class DisplayedType : IdentifiedExtensionType
     }
     
     [XmlElement("OnExit", Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<EventType> OnExit
     {
         get
@@ -252,6 +256,7 @@ public partial class DisplayedType : IdentifiedExtensionType
     /// specified.
     /// </summary>
     [XmlElement("OnEvent", Order=6)]
+    [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<OnEventType> OnEvent
     {
         get
@@ -278,6 +283,7 @@ public partial class DisplayedType : IdentifiedExtensionType
     /// conditions are met.
     /// </summary>
     [XmlElement(Order=7)]
+    [JsonProperty(Order=7, NullValueHandling=NullValueHandling.Ignore)]
     public virtual PredGuardType ActivateIf
     {
         get
@@ -304,6 +310,7 @@ public partial class DisplayedType : IdentifiedExtensionType
     /// conditions are met.
     /// </summary>
     [XmlElement(Order=8)]
+    [JsonProperty(Order=8, NullValueHandling=NullValueHandling.Ignore)]
     public virtual PredGuardType DeActivateIf
     {
         get
@@ -330,6 +337,7 @@ public partial class DisplayedType : IdentifiedExtensionType
     /// "prompt" or "label" or "visibleText" or "caption"
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string title
     {
         get
@@ -359,6 +367,7 @@ public partial class DisplayedType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(true)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool enabled
     {
         get
@@ -383,6 +392,7 @@ public partial class DisplayedType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(true)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool visible
     {
         get
@@ -411,6 +421,7 @@ public partial class DisplayedType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(true)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool mustImplement
     {
         get
@@ -446,6 +457,7 @@ public partial class DisplayedType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(DisplayedTypeShowInReport.True)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     [JsonConverter(typeof(StringEnumConverter))]
     public virtual DisplayedTypeShowInReport showInReport
     {
@@ -464,7 +476,7 @@ public partial class DisplayedType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool LinkSpecified
     {
@@ -478,7 +490,7 @@ public partial class DisplayedType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool BlobContentSpecified
     {
@@ -492,7 +504,7 @@ public partial class DisplayedType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ContactSpecified
     {
@@ -506,7 +518,7 @@ public partial class DisplayedType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool CodedValueSpecified
     {
@@ -520,7 +532,7 @@ public partial class DisplayedType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OnEnterSpecified
     {
@@ -534,7 +546,7 @@ public partial class DisplayedType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OnExitSpecified
     {
@@ -548,7 +560,7 @@ public partial class DisplayedType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OnEventSpecified
     {
@@ -562,7 +574,7 @@ public partial class DisplayedType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ActivateIfSpecified
     {
@@ -576,7 +588,7 @@ public partial class DisplayedType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DeActivateIfSpecified
     {
@@ -590,7 +602,7 @@ public partial class DisplayedType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool titleSpecified
     {
@@ -604,7 +616,7 @@ public partial class DisplayedType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool enabledSpecified
     {
@@ -618,7 +630,7 @@ public partial class DisplayedType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool visibleSpecified
     {
@@ -632,7 +644,7 @@ public partial class DisplayedType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool mustImplementSpecified
     {
@@ -646,7 +658,7 @@ public partial class DisplayedType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool showInReportSpecified
     {

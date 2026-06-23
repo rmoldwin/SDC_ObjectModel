@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// A model structure for a Person object.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("PersonType")]
 public partial class PersonType : ExtensionBaseType
 {
     #region Private fields
@@ -66,6 +64,7 @@ public partial class PersonType : ExtensionBaseType
     
     [XmlElement(Order=0)]
     [Required]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual NameType PersonName
     {
         get
@@ -91,6 +90,7 @@ public partial class PersonType : ExtensionBaseType
     }
     
     [XmlElement("AliasName", Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<NameType> AliasName
     {
         get
@@ -113,6 +113,7 @@ public partial class PersonType : ExtensionBaseType
     }
     
     [XmlElement("Job", Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<JobType> Job
     {
         get
@@ -135,6 +136,7 @@ public partial class PersonType : ExtensionBaseType
     }
     
     [XmlElement("StreetAddress", Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<AddressType> StreetAddress
     {
         get
@@ -157,6 +159,7 @@ public partial class PersonType : ExtensionBaseType
     }
     
     [XmlElement("Email", Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<EmailType> Email
     {
         get
@@ -179,6 +182,7 @@ public partial class PersonType : ExtensionBaseType
     }
     
     [XmlElement("Phone", Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<PhoneType> Phone
     {
         get
@@ -201,6 +205,7 @@ public partial class PersonType : ExtensionBaseType
     }
     
     [XmlElement("WebURL", Order=6)]
+    [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<anyURI_Stype> WebURL
     {
         get
@@ -226,6 +231,7 @@ public partial class PersonType : ExtensionBaseType
     /// Role of the person, e.g., creator, copyright holder, accreditor, certifier, curator, etc.
     /// </summary>
     [XmlElement(Order=7)]
+    [JsonProperty(Order=7, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Role
     {
         get
@@ -248,6 +254,7 @@ public partial class PersonType : ExtensionBaseType
     }
     
     [XmlElement("Identifier", Order=8)]
+    [JsonProperty(Order=8, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<IdentifierType> Identifier
     {
         get
@@ -273,6 +280,7 @@ public partial class PersonType : ExtensionBaseType
     /// When this person should be contacted.
     /// </summary>
     [XmlElement(Order=9)]
+    [JsonProperty(Order=9, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Usage
     {
         get
@@ -294,7 +302,7 @@ public partial class PersonType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool PersonNameSpecified
     {
@@ -308,7 +316,7 @@ public partial class PersonType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool AliasNameSpecified
     {
@@ -322,7 +330,7 @@ public partial class PersonType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool JobSpecified
     {
@@ -336,7 +344,7 @@ public partial class PersonType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool StreetAddressSpecified
     {
@@ -350,7 +358,7 @@ public partial class PersonType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool EmailSpecified
     {
@@ -364,7 +372,7 @@ public partial class PersonType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool PhoneSpecified
     {
@@ -378,7 +386,7 @@ public partial class PersonType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool WebURLSpecified
     {
@@ -392,7 +400,7 @@ public partial class PersonType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool RoleSpecified
     {
@@ -406,7 +414,7 @@ public partial class PersonType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool IdentifierSpecified
     {
@@ -420,7 +428,7 @@ public partial class PersonType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool UsageSpecified
     {

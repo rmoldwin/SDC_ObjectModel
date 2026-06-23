@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// PredGuardType is a "predicate" expression, which combines various Boolean sub-expressions and returns a Boolean (true/false) result. It is primarily used to subscribe SDC IdentifiedExtensionType (IET) objects (i.e., SectionType, QuestionType, ListItemType, DisplayedType, ButtonItemType, InjectFormType) to changes in SDC form state (i.e., the values of SDC form attributes).  PredGuardType joins together one or more SDC Boolean-retuning functions, and applies a Boolean operator to the joined results to produce a Boolean result.  (Most of the joined functions monitor form state.)   The true/false result from the joined Boolean functions is then used to control the activation (enabled) status of IET objects or the selection status of ListItem nodes.
@@ -43,6 +40,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("PredGuardType")]
 public partial class PredGuardType : FuncBoolBaseType
 {
     #region Private fields
@@ -96,6 +94,7 @@ public partial class PredGuardType : FuncBoolBaseType
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool not
     {
         get
@@ -115,6 +114,7 @@ public partial class PredGuardType : FuncBoolBaseType
     
     [XmlAttribute]
     [DefaultValue(PredEvalAttribValuesTypeBoolOp.AND)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     [JsonConverter(typeof(StringEnumConverter))]
     public virtual PredEvalAttribValuesTypeBoolOp boolOp
     {
@@ -133,7 +133,7 @@ public partial class PredGuardType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemsSpecified
     {
@@ -147,7 +147,7 @@ public partial class PredGuardType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool notSpecified
     {
@@ -161,7 +161,7 @@ public partial class PredGuardType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool boolOpSpecified
     {

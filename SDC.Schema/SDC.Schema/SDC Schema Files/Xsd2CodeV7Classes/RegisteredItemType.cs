@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This type provides a structure to record information about a file, template or package stored in a registry.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("RegisteredItemType")]
 public partial class RegisteredItemType : ExtensionBaseType
 {
     #region Private fields
@@ -56,6 +54,7 @@ public partial class RegisteredItemType : ExtensionBaseType
     /// Description of the Registered Item
     /// </summary>
     [XmlElement("RegisteredItemDescription", Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<RichTextType> RegisteredItemDescription
     {
         get
@@ -81,6 +80,7 @@ public partial class RegisteredItemType : ExtensionBaseType
     /// Status of the Registered Item
     /// </summary>
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual RegisteredItemStateType State
     {
         get
@@ -106,6 +106,7 @@ public partial class RegisteredItemType : ExtensionBaseType
     /// Person(s) and Organization(s) to contact regarding the Registration Status of the Registered Item
     /// </summary>
     [XmlElement("Contact", Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<ContactType> Contact
     {
         get
@@ -128,6 +129,7 @@ public partial class RegisteredItemType : ExtensionBaseType
     }
     
     [XmlElement("ReferenceDocument", Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<FileType> ReferenceDocument
     {
         get
@@ -149,7 +151,7 @@ public partial class RegisteredItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool RegisteredItemDescriptionSpecified
     {
@@ -163,7 +165,7 @@ public partial class RegisteredItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool StateSpecified
     {
@@ -177,7 +179,7 @@ public partial class RegisteredItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ContactSpecified
     {
@@ -191,7 +193,7 @@ public partial class RegisteredItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ReferenceDocumentSpecified
     {

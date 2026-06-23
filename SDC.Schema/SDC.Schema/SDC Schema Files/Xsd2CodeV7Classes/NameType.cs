@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Structure to define a person's name, including prefixes, suffixes, and degrees.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("NameType")]
 public partial class NameType : ExtensionBaseType
 {
     #region Private fields
@@ -59,6 +57,7 @@ public partial class NameType : ExtensionBaseType
     #endregion
     
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype NamePrefix
     {
         get
@@ -81,6 +80,7 @@ public partial class NameType : ExtensionBaseType
     }
     
     [XmlElement(IsNullable=true, Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype FirstName
     {
         get
@@ -103,6 +103,7 @@ public partial class NameType : ExtensionBaseType
     }
     
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype MiddleName
     {
         get
@@ -125,6 +126,7 @@ public partial class NameType : ExtensionBaseType
     }
     
     [XmlElement(IsNullable=true, Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype LastName
     {
         get
@@ -147,6 +149,7 @@ public partial class NameType : ExtensionBaseType
     }
     
     [XmlElement(Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype NameSuffix
     {
         get
@@ -172,6 +175,7 @@ public partial class NameType : ExtensionBaseType
     /// Acronyms for degrees and certifications, e.g., MD, PhD, FACP (repeat element for each acronym)
     /// </summary>
     [XmlElement("DegreeCert", Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<string_Stype> DegreeCert
     {
         get
@@ -194,6 +198,7 @@ public partial class NameType : ExtensionBaseType
     }
     
     [XmlElement(Order=6)]
+    [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Title
     {
         get
@@ -215,7 +220,7 @@ public partial class NameType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool NamePrefixSpecified
     {
@@ -229,7 +234,7 @@ public partial class NameType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool FirstNameSpecified
     {
@@ -243,7 +248,7 @@ public partial class NameType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool MiddleNameSpecified
     {
@@ -257,7 +262,7 @@ public partial class NameType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool LastNameSpecified
     {
@@ -271,7 +276,7 @@ public partial class NameType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool NameSuffixSpecified
     {
@@ -285,7 +290,7 @@ public partial class NameType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DegreeCertSpecified
     {
@@ -299,7 +304,7 @@ public partial class NameType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool TitleSpecified
     {

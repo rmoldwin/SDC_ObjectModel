@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// DateTime Data Type The dateTime data type is used to specify a date
@@ -56,6 +53,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("dateTime_Stype")]
 public partial class dateTime_Stype : BaseType
 {
     #region Private fields
@@ -77,6 +75,7 @@ public partial class dateTime_Stype : BaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual System.DateTime val
     {
         get
@@ -118,6 +117,7 @@ public partial class dateTime_Stype : BaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string timeZone
     {
         get
@@ -141,6 +141,7 @@ public partial class dateTime_Stype : BaseType
     
     [XmlAttribute]
     [DefaultValue(dtQuantEnum.EQ)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     [JsonConverter(typeof(StringEnumConverter))]
     public virtual dtQuantEnum quantEnum
     {
@@ -159,7 +160,7 @@ public partial class dateTime_Stype : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool timeZoneSpecified
     {
@@ -173,7 +174,7 @@ public partial class dateTime_Stype : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool quantEnumSpecified
     {

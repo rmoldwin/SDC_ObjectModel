@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// List of standard kinds of dates that may apply to a file or its usage.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("FileDatesType")]
 public partial class FileDatesType : ExtensionBaseType
 {
     #region Private fields
@@ -61,6 +59,7 @@ public partial class FileDatesType : ExtensionBaseType
     #endregion
     
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual dateTime_Stype FileDate
     {
         get
@@ -83,6 +82,7 @@ public partial class FileDatesType : ExtensionBaseType
     }
     
     [XmlElement("PreviousRevisionDate", Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<dateTime_Stype> PreviousRevisionDate
     {
         get
@@ -105,6 +105,7 @@ public partial class FileDatesType : ExtensionBaseType
     }
     
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual dateTime_Stype ReleaseDate
     {
         get
@@ -127,6 +128,7 @@ public partial class FileDatesType : ExtensionBaseType
     }
     
     [XmlElement(Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual dateTime_Stype EffectiveDate
     {
         get
@@ -149,6 +151,7 @@ public partial class FileDatesType : ExtensionBaseType
     }
     
     [XmlElement(Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual dateTime_Stype FirstReleaseDate
     {
         get
@@ -171,6 +174,7 @@ public partial class FileDatesType : ExtensionBaseType
     }
     
     [XmlElement(Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual dateTime_Stype UsageStartDate
     {
         get
@@ -193,6 +197,7 @@ public partial class FileDatesType : ExtensionBaseType
     }
     
     [XmlElement(Order=6)]
+    [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
     public virtual dateTime_Stype RetirementDate
     {
         get
@@ -215,6 +220,7 @@ public partial class FileDatesType : ExtensionBaseType
     }
     
     [XmlElement("OtherDate", Order=7)]
+    [JsonProperty(Order=7, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<dateTime_Stype> OtherDate
     {
         get
@@ -236,7 +242,7 @@ public partial class FileDatesType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool FileDateSpecified
     {
@@ -250,7 +256,7 @@ public partial class FileDatesType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool PreviousRevisionDateSpecified
     {
@@ -264,7 +270,7 @@ public partial class FileDatesType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ReleaseDateSpecified
     {
@@ -278,7 +284,7 @@ public partial class FileDatesType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool EffectiveDateSpecified
     {
@@ -292,7 +298,7 @@ public partial class FileDatesType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool FirstReleaseDateSpecified
     {
@@ -306,7 +312,7 @@ public partial class FileDatesType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool UsageStartDateSpecified
     {
@@ -320,7 +326,7 @@ public partial class FileDatesType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool RetirementDateSpecified
     {
@@ -334,7 +340,7 @@ public partial class FileDatesType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OtherDateSpecified
     {

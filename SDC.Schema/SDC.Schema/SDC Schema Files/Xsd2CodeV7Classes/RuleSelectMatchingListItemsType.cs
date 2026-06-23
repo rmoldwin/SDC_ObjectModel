@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,12 +28,12 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("RuleSelectMatchingListItemsType")]
 public partial class RuleSelectMatchingListItemsType : ExtensionBaseType
 {
     #region Private fields
@@ -46,6 +44,7 @@ public partial class RuleSelectMatchingListItemsType : ExtensionBaseType
     #endregion
     
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual ItemNameAttributeType MatchSource
     {
         get
@@ -68,6 +67,7 @@ public partial class RuleSelectMatchingListItemsType : ExtensionBaseType
     }
     
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual RuleListItemMatchTargetsType ListItemMatchTargets
     {
         get
@@ -89,7 +89,7 @@ public partial class RuleSelectMatchingListItemsType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool MatchSourceSpecified
     {
@@ -103,7 +103,7 @@ public partial class RuleSelectMatchingListItemsType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ListItemMatchTargetsSpecified
     {

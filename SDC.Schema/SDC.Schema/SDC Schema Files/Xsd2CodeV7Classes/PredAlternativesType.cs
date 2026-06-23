@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This Rule tests if one (or more) items in a list of items has received
@@ -50,6 +47,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("PredAlternativesType")]
 public partial class PredAlternativesType : FuncBoolBaseType
 {
     #region Private fields
@@ -78,6 +76,7 @@ public partial class PredAlternativesType : FuncBoolBaseType
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool not
     {
         get
@@ -97,6 +96,7 @@ public partial class PredAlternativesType : FuncBoolBaseType
     
     [XmlAttribute]
     [DefaultValue(1)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual int minAnswered
     {
         get
@@ -120,6 +120,7 @@ public partial class PredAlternativesType : FuncBoolBaseType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(0)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual int maxAnswered
     {
         get
@@ -156,6 +157,7 @@ public partial class PredAlternativesType : FuncBoolBaseType
     /// true. Otherwise it returns false.
     /// </summary>
     [XmlAttribute(DataType="NMTOKENS")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string itemNames
     {
         get
@@ -177,7 +179,7 @@ public partial class PredAlternativesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool notSpecified
     {
@@ -191,7 +193,7 @@ public partial class PredAlternativesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool minAnsweredSpecified
     {
@@ -205,7 +207,7 @@ public partial class PredAlternativesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool maxAnsweredSpecified
     {
@@ -219,7 +221,7 @@ public partial class PredAlternativesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool itemNamesSpecified
     {

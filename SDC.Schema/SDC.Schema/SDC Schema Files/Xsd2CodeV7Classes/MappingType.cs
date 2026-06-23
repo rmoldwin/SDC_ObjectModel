@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This type supports the mapping of the targeted template items to any other template items or code system.  The @type tokens include PrePop, AutoPop, SNOMED, LOINC, Keys, LocalValues, etc.
@@ -40,6 +37,7 @@ using  System.Text.Json;
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
 [XmlRootAttribute("Map", Namespace="urn:ihe:qrph:sdc:2016", IsNullable=false)]
+[JsonObject("MappingType")]
 public partial class MappingType : ExtensionBaseType
 {
     #region Private fields
@@ -57,6 +55,7 @@ public partial class MappingType : ExtensionBaseType
     /// Specifies the default coding system to be implied for all MappedCode elements listed in thte ItemMap entries.  Any CodeSystem explicitly used in a MappedCode entry will override the default value.
     /// </summary>
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual CodeSystemType DefaultCodeSystem
     {
         get
@@ -82,6 +81,7 @@ public partial class MappingType : ExtensionBaseType
     /// Entries under this element map a target item in a FormDesignTemplate to a terminology code, local value, XML-based document entry, database record, RDF store triple, etc.
     /// </summary>
     [XmlElement("ItemMap", Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<ItemMapType> ItemMap
     {
         get
@@ -104,6 +104,7 @@ public partial class MappingType : ExtensionBaseType
     }
     
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string templateID
     {
         get
@@ -126,6 +127,7 @@ public partial class MappingType : ExtensionBaseType
     }
     
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string targetTemplateID
     {
         get
@@ -147,7 +149,7 @@ public partial class MappingType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DefaultCodeSystemSpecified
     {
@@ -161,7 +163,7 @@ public partial class MappingType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemMapSpecified
     {
@@ -175,7 +177,7 @@ public partial class MappingType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool templateIDSpecified
     {
@@ -189,7 +191,7 @@ public partial class MappingType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool targetTemplateIDSpecified
     {

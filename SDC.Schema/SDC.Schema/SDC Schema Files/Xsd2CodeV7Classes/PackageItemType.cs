@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This type contains a URI link to an SDC XMLPackage
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("PackageItemType")]
 public partial class PackageItemType : ExtensionBaseType
 {
     #region Private fields
@@ -80,6 +78,7 @@ public partial class PackageItemType : ExtensionBaseType
     /// NEW
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string formManagerURI
     {
         get
@@ -106,6 +105,7 @@ public partial class PackageItemType : ExtensionBaseType
     /// enumeration
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     [JsonConverter(typeof(StringEnumConverter))]
     public virtual PackageItemTypeFormat format
     {
@@ -149,6 +149,7 @@ public partial class PackageItemType : ExtensionBaseType
     
     [XmlAttribute(DataType="anyURI")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string packageID
     {
         get
@@ -177,6 +178,7 @@ public partial class PackageItemType : ExtensionBaseType
     /// NEW
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string title
     {
         get
@@ -204,6 +206,7 @@ public partial class PackageItemType : ExtensionBaseType
     /// Ideally, the baseURI + ID should combine to form a *globally* unique identifier, that uniquely identifies an item in a particular form.  The same baseURI and ID may be reused in derived or versioned forms, as long as the context stays the same, and any affected data elements remain unchanged in context and semantics.  Following this approach is likely to simplify analytics based on form content.
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string baseURI
     {
         get
@@ -231,6 +234,7 @@ public partial class PackageItemType : ExtensionBaseType
     /// but the naming convention may be use-case-specific.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string filename
     {
         get
@@ -260,6 +264,7 @@ public partial class PackageItemType : ExtensionBaseType
     /// 5/11/17:  Relying on data element mapping may be a better and more flexible approach than @basedOnURI. In this way, forms could compare data elements to determine if they contain semantic matches, and this is supported better with a more robust code map section.
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string basedOnURI
     {
         get
@@ -288,6 +293,7 @@ public partial class PackageItemType : ExtensionBaseType
     /// </summary>
     [XmlAttribute]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string lineage
     {
         get
@@ -317,6 +323,7 @@ public partial class PackageItemType : ExtensionBaseType
     /// </summary>
     [XmlAttribute]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string version
     {
         get
@@ -346,6 +353,7 @@ public partial class PackageItemType : ExtensionBaseType
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string fullURI
     {
         get
@@ -374,6 +382,7 @@ public partial class PackageItemType : ExtensionBaseType
     /// NEW: The full URI used to identify the form that is the immediate previous version of the current FormDesign
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string prevVersionURI
     {
         get
@@ -399,6 +408,7 @@ public partial class PackageItemType : ExtensionBaseType
     /// NEW: Unique URI used to identify a unique instance of a form.  Used for tracking form responses across time and across multiple episodes of editing by end-users.  This URI does not change for each edit session of a form instance.
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string formInstanceURI
     {
         get
@@ -424,6 +434,7 @@ public partial class PackageItemType : ExtensionBaseType
     /// NEW: Unique URI used to identify a unique instance of a form's saved responses.  It is used for tracking form responses across time and across multiple episodes of editing by end-users.  This URI must change for each edit/save session of a form instance.  It may be e.g., a new GUID, or a repeat of the formInstanceID followed by a version number.
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string formInstanceVersionURI
     {
         get
@@ -449,6 +460,7 @@ public partial class PackageItemType : ExtensionBaseType
     /// NEW: Unique URI used to identify the immediate previous instance of a form containing responses.  This is the @formInstanceVersionURI that represents the instance of the form that the user opened up before beginning a new cycle of edit/save.  This attribute is used for tracking form responses across time and across multiple episodes of editing by end-users.  This URI must change for each edit session of a form instance.
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string formPreviousInstanceVersionURI
     {
         get
@@ -471,6 +483,7 @@ public partial class PackageItemType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool changedData
     {
         get
@@ -512,6 +525,7 @@ public partial class PackageItemType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool newData
     {
         get
@@ -552,7 +566,7 @@ public partial class PackageItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool formManagerURISpecified
     {
@@ -566,7 +580,7 @@ public partial class PackageItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool packageIDSpecified
     {
@@ -580,7 +594,7 @@ public partial class PackageItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool titleSpecified
     {
@@ -594,7 +608,7 @@ public partial class PackageItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool baseURISpecified
     {
@@ -608,7 +622,7 @@ public partial class PackageItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool filenameSpecified
     {
@@ -622,7 +636,7 @@ public partial class PackageItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool basedOnURISpecified
     {
@@ -636,7 +650,7 @@ public partial class PackageItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool lineageSpecified
     {
@@ -650,7 +664,7 @@ public partial class PackageItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool versionSpecified
     {
@@ -664,7 +678,7 @@ public partial class PackageItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool fullURISpecified
     {
@@ -678,7 +692,7 @@ public partial class PackageItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool prevVersionURISpecified
     {
@@ -692,7 +706,7 @@ public partial class PackageItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool formInstanceURISpecified
     {
@@ -706,7 +720,7 @@ public partial class PackageItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool formInstanceVersionURISpecified
     {
@@ -720,7 +734,7 @@ public partial class PackageItemType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool formPreviousInstanceVersionURISpecified
     {

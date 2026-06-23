@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// ItemMapType defines a single mapped node in as SDC map, and the data source that is mapped to that node.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ItemMapType")]
 public partial class ItemMapType : ExtensionBaseType
 {
     #region Private fields
@@ -54,6 +52,7 @@ public partial class ItemMapType : ExtensionBaseType
     /// Target item in a FormDesignTemplate.
     /// </summary>
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual TemplateTargetType TemplateTarget
     {
         get
@@ -79,6 +78,7 @@ public partial class ItemMapType : ExtensionBaseType
     /// The DataSource is an object that maps to a target item in a FormDesignTemplate.  DataSources objects can include terminology codes, local values, XML-based document entries, database records, RDF store triples, etc.
     /// </summary>
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual DataSourceType DataSource
     {
         get
@@ -101,6 +101,7 @@ public partial class ItemMapType : ExtensionBaseType
     }
     
     [XmlElement("MapComment", Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<RichTextType> MapComment
     {
         get
@@ -122,7 +123,7 @@ public partial class ItemMapType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool TemplateTargetSpecified
     {
@@ -136,7 +137,7 @@ public partial class ItemMapType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DataSourceSpecified
     {
@@ -150,7 +151,7 @@ public partial class ItemMapType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool MapCommentSpecified
     {

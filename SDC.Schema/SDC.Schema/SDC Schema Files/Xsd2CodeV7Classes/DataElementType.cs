@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// May hold one  or more of the following:
@@ -45,6 +42,7 @@ using  System.Text.Json;
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
 [XmlRootAttribute("DataElement", Namespace="urn:ihe:qrph:sdc:2016", IsNullable=false)]
+[JsonObject("DataElementType")]
 public partial class DataElementType : IdentifiedExtensionType
 {
     #region Private fields
@@ -98,6 +96,7 @@ public partial class DataElementType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string lineage
     {
         get
@@ -129,6 +128,7 @@ public partial class DataElementType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string version
     {
         get
@@ -162,6 +162,7 @@ public partial class DataElementType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string versionPrev
     {
         get
@@ -192,6 +193,7 @@ public partial class DataElementType : IdentifiedExtensionType
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string fullURI
     {
         get
@@ -224,6 +226,7 @@ public partial class DataElementType : IdentifiedExtensionType
     /// identical to the original.
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string basedOnURI
     {
         get
@@ -252,6 +255,7 @@ public partial class DataElementType : IdentifiedExtensionType
     /// use-case-specific.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string filename
     {
         get
@@ -273,7 +277,7 @@ public partial class DataElementType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemsSpecified
     {
@@ -287,7 +291,7 @@ public partial class DataElementType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool lineageSpecified
     {
@@ -301,7 +305,7 @@ public partial class DataElementType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool versionSpecified
     {
@@ -315,7 +319,7 @@ public partial class DataElementType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool versionPrevSpecified
     {
@@ -329,7 +333,7 @@ public partial class DataElementType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool fullURISpecified
     {
@@ -343,7 +347,7 @@ public partial class DataElementType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool basedOnURISpecified
     {
@@ -357,7 +361,7 @@ public partial class DataElementType : IdentifiedExtensionType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool filenameSpecified
     {

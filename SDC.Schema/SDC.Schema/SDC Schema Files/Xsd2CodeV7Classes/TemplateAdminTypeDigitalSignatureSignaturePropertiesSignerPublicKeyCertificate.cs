@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This certificate is a structured document in ASN.1 format, that is created by a certificate authority (CA) to verify that certifiacte owner (the signer) has registered his/her/its identity with the CA.  The certificate contains information about the signer and the CA, and also contains the public key of the signer.  The signer's public key (obtained from the certificate) may be used to verify or decrypt any document signed by the signer.
@@ -43,6 +40,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(AnonymousType=true, Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("TemplateAdminTypeDigitalSignatureSignaturePropertiesSignerPublicKeyCertificate")]
 public partial class TemplateAdminTypeDigitalSignatureSignaturePropertiesSignerPublicKeyCertificate : BaseType
 {
     #region Private fields
@@ -51,6 +49,7 @@ public partial class TemplateAdminTypeDigitalSignatureSignaturePropertiesSignerP
     #endregion
     
     [XmlAttribute(DataType="base64Binary")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual byte[] val
     {
         get
@@ -72,7 +71,7 @@ public partial class TemplateAdminTypeDigitalSignatureSignaturePropertiesSignerP
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool valSpecified
     {

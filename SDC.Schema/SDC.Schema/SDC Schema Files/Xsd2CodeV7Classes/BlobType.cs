@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Standard structure for including Binary Large Objects (Blobs) in XML
@@ -44,6 +41,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("BlobType")]
 public partial class BlobType : ExtensionBaseType
 {
     #region Private fields
@@ -60,6 +58,7 @@ public partial class BlobType : ExtensionBaseType
     #endregion
     
     [XmlElement("Description", Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<RichTextType> Description
     {
         get
@@ -85,6 +84,7 @@ public partial class BlobType : ExtensionBaseType
     /// Binary hash of the blob data
     /// </summary>
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual HashType Hash
     {
         get
@@ -134,6 +134,7 @@ public partial class BlobType : ExtensionBaseType
     /// </summary>
     [XmlAttribute]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string mediaType
     {
         get
@@ -162,6 +163,7 @@ public partial class BlobType : ExtensionBaseType
     /// Use a common file extension (e.g., docx) if there is no @MIME_Type available
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string fileExtension
     {
         get
@@ -183,7 +185,7 @@ public partial class BlobType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DescriptionSpecified
     {
@@ -197,7 +199,7 @@ public partial class BlobType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool HashSpecified
     {
@@ -211,7 +213,7 @@ public partial class BlobType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemSpecified
     {
@@ -225,7 +227,7 @@ public partial class BlobType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool mediaTypeSpecified
     {
@@ -239,7 +241,7 @@ public partial class BlobType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool fileExtensionSpecified
     {

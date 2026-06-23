@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,12 +28,12 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("short_DEtype")]
 public partial class short_DEtype : short_Stype
 {
     #region Private fields
@@ -80,6 +78,7 @@ public partial class short_DEtype : short_Stype
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual short minInclusive
     {
         get
@@ -121,6 +120,7 @@ public partial class short_DEtype : short_Stype
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual short maxInclusive
     {
         get
@@ -163,6 +163,7 @@ public partial class short_DEtype : short_Stype
     
     [XmlAttribute]
     [RangeAttribute(double.NegativeInfinity, 32766)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual short minExclusive
     {
         get
@@ -208,6 +209,7 @@ public partial class short_DEtype : short_Stype
     
     [XmlAttribute]
     [RangeAttribute(-32767, 32767)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual short maxExclusive
     {
         get
@@ -254,6 +256,7 @@ public partial class short_DEtype : short_Stype
     [XmlAttribute]
     [MaxDigitsAttribute(1)]
     [FractionDigitsAttribute(0)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual byte totalDigits
     {
         get
@@ -294,6 +297,7 @@ public partial class short_DEtype : short_Stype
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string mask
     {
         get
@@ -317,6 +321,7 @@ public partial class short_DEtype : short_Stype
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowGT
     {
         get
@@ -336,6 +341,7 @@ public partial class short_DEtype : short_Stype
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowGTE
     {
         get
@@ -355,6 +361,7 @@ public partial class short_DEtype : short_Stype
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowLT
     {
         get
@@ -374,6 +381,7 @@ public partial class short_DEtype : short_Stype
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowLTE
     {
         get
@@ -393,6 +401,7 @@ public partial class short_DEtype : short_Stype
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowAPPROX
     {
         get
@@ -410,7 +419,7 @@ public partial class short_DEtype : short_Stype
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool maskSpecified
     {
@@ -424,7 +433,7 @@ public partial class short_DEtype : short_Stype
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowGTSpecified
     {
@@ -438,7 +447,7 @@ public partial class short_DEtype : short_Stype
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowGTESpecified
     {
@@ -452,7 +461,7 @@ public partial class short_DEtype : short_Stype
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowLTSpecified
     {
@@ -466,7 +475,7 @@ public partial class short_DEtype : short_Stype
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowLTESpecified
     {
@@ -480,7 +489,7 @@ public partial class short_DEtype : short_Stype
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowAPPROXSpecified
     {

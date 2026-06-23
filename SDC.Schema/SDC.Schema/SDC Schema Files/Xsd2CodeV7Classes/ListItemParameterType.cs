@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Parameters are named, uniquely identifiable, instances of form attributes (e.g., @selected).  They are fed into expressions, which are then used as part of a rule within the form.  Parameters can also be fed into URI expressions used inside a Lookup Endpoint, i.e., URIs that call web services to supply list items (e.g., a list of SNOMED-coded items) to a question.
@@ -41,6 +38,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ListItemParameterType")]
 public partial class ListItemParameterType : ExtensionBaseType
 {
     #region Private fields
@@ -65,6 +63,7 @@ public partial class ListItemParameterType : ExtensionBaseType
     
     [XmlAttribute]
     [DefaultValue("string")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string dataType
     {
         get
@@ -90,6 +89,7 @@ public partial class ListItemParameterType : ExtensionBaseType
     /// A locally useful name that describes the parameter
     /// </summary>
     [XmlAttribute(DataType="NCName")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string paramName
     {
         get
@@ -116,6 +116,7 @@ public partial class ListItemParameterType : ExtensionBaseType
     /// </summary>
     [XmlAttribute(DataType="NCName")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string sourceQuestionName
     {
         get
@@ -145,6 +146,7 @@ public partial class ListItemParameterType : ExtensionBaseType
     /// </summary>
     [XmlAttribute(DataType="NCName")]
     [DefaultValue("associatedValue")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string listItemAttribute
     {
         get
@@ -166,7 +168,7 @@ public partial class ListItemParameterType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool dataTypeSpecified
     {
@@ -180,7 +182,7 @@ public partial class ListItemParameterType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool paramNameSpecified
     {
@@ -194,7 +196,7 @@ public partial class ListItemParameterType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool sourceQuestionNameSpecified
     {
@@ -208,7 +210,7 @@ public partial class ListItemParameterType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool listItemAttributeSpecified
     {

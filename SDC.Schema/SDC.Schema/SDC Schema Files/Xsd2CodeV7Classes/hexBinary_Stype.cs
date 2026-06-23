@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,13 +28,13 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [XmlInclude(typeof(hexBinary_DEtype))]
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("hexBinary_Stype")]
 public partial class hexBinary_Stype : BaseType
 {
     #region Private fields
@@ -51,6 +49,7 @@ public partial class hexBinary_Stype : BaseType
     /// enumeration
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string mimeType
     {
         get
@@ -73,6 +72,7 @@ public partial class hexBinary_Stype : BaseType
     }
     
     [XmlAttribute(DataType="hexBinary")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual byte[] val
     {
         get
@@ -94,7 +94,7 @@ public partial class hexBinary_Stype : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool mimeTypeSpecified
     {
@@ -108,7 +108,7 @@ public partial class hexBinary_Stype : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool valSpecified
     {

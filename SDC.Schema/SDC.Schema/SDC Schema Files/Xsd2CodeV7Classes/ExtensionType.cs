@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// ExtensionType allows ad-hoc XML extensions to be added to any SDC type that inherits from ExtensionBaseType.
@@ -40,6 +37,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ExtensionType")]
 public partial class ExtensionType : BaseType
 {
     #region Private fields
@@ -50,6 +48,7 @@ public partial class ExtensionType : BaseType
     #endregion
     
     [XmlAnyElementAttribute(Order=0)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<System.Xml.XmlElement> Any
     {
         get
@@ -72,6 +71,7 @@ public partial class ExtensionType : BaseType
     }
     
     [XmlAnyAttributeAttribute()]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<System.Xml.XmlAttribute> AnyAttr
     {
         get
@@ -93,7 +93,7 @@ public partial class ExtensionType : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool AnySpecified
     {
@@ -107,7 +107,7 @@ public partial class ExtensionType : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool AnyAttrSpecified
     {

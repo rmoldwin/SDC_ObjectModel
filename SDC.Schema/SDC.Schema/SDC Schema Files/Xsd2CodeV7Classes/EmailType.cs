@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// A structure for recording email addresses.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("EmailType")]
 public partial class EmailType : ExtensionBaseType
 {
     #region Private fields
@@ -52,6 +50,7 @@ public partial class EmailType : ExtensionBaseType
     
     [XmlElement(Order=0)]
     [Required]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual EmailAddressType EmailAddress
     {
         get
@@ -80,6 +79,7 @@ public partial class EmailType : ExtensionBaseType
     /// Type of email, e.g., home, office, etc
     /// </summary>
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype EmailClass
     {
         get
@@ -105,6 +105,7 @@ public partial class EmailType : ExtensionBaseType
     /// When this email should be used
     /// </summary>
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Usage
     {
         get
@@ -126,7 +127,7 @@ public partial class EmailType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool EmailAddressSpecified
     {
@@ -140,7 +141,7 @@ public partial class EmailType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool EmailClassSpecified
     {
@@ -154,7 +155,7 @@ public partial class EmailType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool UsageSpecified
     {

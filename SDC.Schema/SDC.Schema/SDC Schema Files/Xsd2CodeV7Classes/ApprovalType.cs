@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,12 +28,12 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ApprovalType")]
 public partial class ApprovalType : ExtensionBaseType
 {
     #region Private fields
@@ -46,6 +44,7 @@ public partial class ApprovalType : ExtensionBaseType
     #endregion
     
     [XmlElement("ApprovalContact", Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<ContactType> ApprovalContact
     {
         get
@@ -71,6 +70,7 @@ public partial class ApprovalType : ExtensionBaseType
     /// Non-structured text describing file approval.
     /// </summary>
     [XmlElement("Description", Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<string_Stype> Description
     {
         get
@@ -92,7 +92,7 @@ public partial class ApprovalType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ApprovalContactSpecified
     {
@@ -106,7 +106,7 @@ public partial class ApprovalType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DescriptionSpecified
     {

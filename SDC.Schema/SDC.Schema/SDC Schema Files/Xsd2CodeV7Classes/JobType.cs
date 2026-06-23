@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// A structure to describe a type of employment
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("JobType")]
 public partial class JobType : ExtensionBaseType
 {
     #region Private fields
@@ -55,6 +53,7 @@ public partial class JobType : ExtensionBaseType
     #endregion
     
     [XmlElement("JobTitle", Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<string_Stype> JobTitle
     {
         get
@@ -77,6 +76,7 @@ public partial class JobType : ExtensionBaseType
     }
     
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual OrganizationType Organization
     {
         get
@@ -99,6 +99,7 @@ public partial class JobType : ExtensionBaseType
     }
     
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual date_Stype StartDate
     {
         get
@@ -121,6 +122,7 @@ public partial class JobType : ExtensionBaseType
     }
     
     [XmlElement(Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual date_Stype StopDate
     {
         get
@@ -146,6 +148,7 @@ public partial class JobType : ExtensionBaseType
     /// Job Description
     /// </summary>
     [XmlElement(Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Description
     {
         get
@@ -167,7 +170,7 @@ public partial class JobType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool JobTitleSpecified
     {
@@ -181,7 +184,7 @@ public partial class JobType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OrganizationSpecified
     {
@@ -195,7 +198,7 @@ public partial class JobType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool StartDateSpecified
     {
@@ -209,7 +212,7 @@ public partial class JobType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool StopDateSpecified
     {
@@ -223,7 +226,7 @@ public partial class JobType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DescriptionSpecified
     {

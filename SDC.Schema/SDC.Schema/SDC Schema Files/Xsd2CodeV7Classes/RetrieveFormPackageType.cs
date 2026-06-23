@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,13 +28,13 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
 [XmlRootAttribute("SDCPackage", Namespace="urn:ihe:qrph:sdc:2016", IsNullable=false)]
+[JsonObject("RetrieveFormPackageType")]
 public partial class RetrieveFormPackageType : BasePackageType
 {
     #region Private fields
@@ -51,6 +49,7 @@ public partial class RetrieveFormPackageType : BasePackageType
     #endregion
     
     [XmlElement("SubmissionRule", Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<SubmissionRuleType> SubmissionRule
     {
         get
@@ -73,6 +72,7 @@ public partial class RetrieveFormPackageType : BasePackageType
     }
     
     [XmlElement("ComplianceRule", Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<ComplianceRuleType> ComplianceRule
     {
         get
@@ -120,6 +120,7 @@ public partial class RetrieveFormPackageType : BasePackageType
     }
     
     [XmlElement("SDCPackage", Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<RetrieveFormPackageType> SDCPackage
     {
         get
@@ -141,7 +142,7 @@ public partial class RetrieveFormPackageType : BasePackageType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool SubmissionRuleSpecified
     {
@@ -155,7 +156,7 @@ public partial class RetrieveFormPackageType : BasePackageType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ComplianceRuleSpecified
     {
@@ -169,7 +170,7 @@ public partial class RetrieveFormPackageType : BasePackageType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemsSpecified
     {
@@ -183,7 +184,7 @@ public partial class RetrieveFormPackageType : BasePackageType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool SDCPackageSpecified
     {

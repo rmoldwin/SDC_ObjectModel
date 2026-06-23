@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// XMLPackageType represents the primary grouping of SDC artifacts that support
@@ -41,6 +38,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("XMLPackageType")]
 public partial class XMLPackageType : ExtensionBaseType
 {
     #region Private fields
@@ -84,6 +82,7 @@ public partial class XMLPackageType : ExtensionBaseType
     }
     
     [XmlElement("FormDesign", Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<FormDesignType> FormDesign
     {
         get
@@ -110,6 +109,7 @@ public partial class XMLPackageType : ExtensionBaseType
     /// (Previously, retrieve a Pkg that wraps FormDesign XML)
     /// </summary>
     [XmlElement("FormDesignPkgLink", Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<LinkType> FormDesignPkgLink
     {
         get
@@ -132,6 +132,7 @@ public partial class XMLPackageType : ExtensionBaseType
     }
     
     [XmlElement("DataElement", Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<DataElementType> DataElement
     {
         get
@@ -157,6 +158,7 @@ public partial class XMLPackageType : ExtensionBaseType
     /// Describes mappings between FormDesignTemplate items and data elements, terminologies, databases, XML files, local values, etc.
     /// </summary>
     [XmlElement("MapTemplate", Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<MappingType> MapTemplate
     {
         get
@@ -182,6 +184,7 @@ public partial class XMLPackageType : ExtensionBaseType
     /// ReportDesignTemplate describes the information content of a report (e.g., sections, questions etc).  This enables control of the presentation view of the user responses derived from a designated FormDesignTemplate.  It allows the report presentation to look substantially different from the data-entry form view defined by the FormDesignTemplate.
     /// </summary>
     [XmlElement("ReportDesignTemplate", Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<XMLPackageTypeReportDesignTemplate> ReportDesignTemplate
     {
         get
@@ -204,6 +207,7 @@ public partial class XMLPackageType : ExtensionBaseType
     }
     
     [XmlElement("HelperFile", Order=6)]
+    [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<XMLPackageTypeHelperFile> HelperFile
     {
         get
@@ -225,7 +229,7 @@ public partial class XMLPackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemSpecified
     {
@@ -239,7 +243,7 @@ public partial class XMLPackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool FormDesignSpecified
     {
@@ -253,7 +257,7 @@ public partial class XMLPackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool FormDesignPkgLinkSpecified
     {
@@ -267,7 +271,7 @@ public partial class XMLPackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DataElementSpecified
     {
@@ -281,7 +285,7 @@ public partial class XMLPackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool MapTemplateSpecified
     {
@@ -295,7 +299,7 @@ public partial class XMLPackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ReportDesignTemplateSpecified
     {
@@ -309,7 +313,7 @@ public partial class XMLPackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool HelperFileSpecified
     {

@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This type is a template for a data entry field that accepts entries
@@ -44,6 +41,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ResponseFieldType")]
 public partial class ResponseFieldType : ExtensionBaseType
 {
     #region Private fields
@@ -66,6 +64,7 @@ public partial class ResponseFieldType : ExtensionBaseType
     /// </summary>
     [XmlElement(Order=0)]
     [Required]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual DataTypes_DEType Response
     {
         get
@@ -119,6 +118,7 @@ public partial class ResponseFieldType : ExtensionBaseType
     /// be text for units such as "mm", "cm", etc.
     /// </summary>
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual RichTextType TextAfterResponse
     {
         get
@@ -141,6 +141,7 @@ public partial class ResponseFieldType : ExtensionBaseType
     }
     
     [XmlElement(Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual UnitsType ResponseUnits
     {
         get
@@ -168,6 +169,7 @@ public partial class ResponseFieldType : ExtensionBaseType
     /// field.
     /// </summary>
     [XmlElement("AfterChange", Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<EventType> AfterChange
     {
         get
@@ -190,6 +192,7 @@ public partial class ResponseFieldType : ExtensionBaseType
     }
     
     [XmlElement("OnEvent", Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<OnEventType> OnEvent
     {
         get
@@ -211,7 +214,7 @@ public partial class ResponseFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ResponseSpecified
     {
@@ -225,7 +228,7 @@ public partial class ResponseFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemSpecified
     {
@@ -239,7 +242,7 @@ public partial class ResponseFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool TextAfterResponseSpecified
     {
@@ -253,7 +256,7 @@ public partial class ResponseFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ResponseUnitsSpecified
     {
@@ -267,7 +270,7 @@ public partial class ResponseFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool AfterChangeSpecified
     {
@@ -281,7 +284,7 @@ public partial class ResponseFieldType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OnEventSpecified
     {

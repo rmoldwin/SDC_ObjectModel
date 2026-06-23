@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,13 +28,13 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [XmlInclude(typeof(RetrieveFormPackageType))]
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("BasePackageType")]
 public partial class BasePackageType : ExtensionBaseType
 {
     #region Private fields
@@ -76,6 +74,7 @@ public partial class BasePackageType : ExtensionBaseType
     /// Admin contains information about a package, including a description of the package contents and purpose (PackageDescription), information about the registry that contains the package file (RegistryData), and information about the package file characteristics (TemplateFile).
     /// </summary>
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual TemplateAdminType Admin
     {
         get
@@ -99,6 +98,7 @@ public partial class BasePackageType : ExtensionBaseType
     
     [XmlAttribute(DataType="anyURI")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string packageID
     {
         get
@@ -127,6 +127,7 @@ public partial class BasePackageType : ExtensionBaseType
     /// NEW Feb 2019
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string pkgTitle
     {
         get
@@ -152,6 +153,7 @@ public partial class BasePackageType : ExtensionBaseType
     /// @baseURI is required in the SDCPackage element but is optional elsewhere.  It identifies the organization that is responsible for designing and maintaining the Package contents.
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string baseURI
     {
         get
@@ -179,6 +181,7 @@ public partial class BasePackageType : ExtensionBaseType
     /// but the naming convention may be use-case-specific.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string filename
     {
         get
@@ -204,6 +207,7 @@ public partial class BasePackageType : ExtensionBaseType
     /// NEW: URI used to identify the package that that this package is based upon.  In most cases, this should be a standard package that is modified and/or extended by the current package.
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string basedOnURI
     {
         get
@@ -232,6 +236,7 @@ public partial class BasePackageType : ExtensionBaseType
     /// </summary>
     [XmlAttribute]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string lineage
     {
         get
@@ -261,6 +266,7 @@ public partial class BasePackageType : ExtensionBaseType
     /// </summary>
     [XmlAttribute]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string version
     {
         get
@@ -290,6 +296,7 @@ public partial class BasePackageType : ExtensionBaseType
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string fullURI
     {
         get
@@ -318,6 +325,7 @@ public partial class BasePackageType : ExtensionBaseType
     /// NEW: For packages containing FormDesign responses. Unique string used to identify a set of packaged versions (the package instance) over time. Used for tracking changed package responses across time and across multiple episodes of editing (versions) by end-users.  This string does not change for each edit session (version) of a package instance.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string instanceID
     {
         get
@@ -343,6 +351,7 @@ public partial class BasePackageType : ExtensionBaseType
     /// NEW: For packages containing FormDesign responses. Timestamp used to identify a unique instance of a package.  Used for tracking form responses across time and across multiple episodes of editing by end-users.  This field must change for each edit session of a form instance.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual System.DateTime instanceVersion
     {
         get
@@ -401,6 +410,7 @@ public partial class BasePackageType : ExtensionBaseType
     /// The instanceVersionURI is not required, and is not allowed in an FDF.
     /// </summary>
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string instanceVersionURI
     {
         get
@@ -426,6 +436,7 @@ public partial class BasePackageType : ExtensionBaseType
     /// NEW: Unique dateTime used to identify the immediate previous instance of a package.  Used for tracking form responses across time and across multiple episodes of editing by end-users.  This field must change for each edit session of a form instance.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual System.DateTime instanceVersionPrev
     {
         get
@@ -467,6 +478,7 @@ public partial class BasePackageType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool changedData
     {
         get
@@ -508,6 +520,7 @@ public partial class BasePackageType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool newData
     {
         get
@@ -548,7 +561,7 @@ public partial class BasePackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool AdminSpecified
     {
@@ -562,7 +575,7 @@ public partial class BasePackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool packageIDSpecified
     {
@@ -576,7 +589,7 @@ public partial class BasePackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool pkgTitleSpecified
     {
@@ -590,7 +603,7 @@ public partial class BasePackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool baseURISpecified
     {
@@ -604,7 +617,7 @@ public partial class BasePackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool filenameSpecified
     {
@@ -618,7 +631,7 @@ public partial class BasePackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool basedOnURISpecified
     {
@@ -632,7 +645,7 @@ public partial class BasePackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool lineageSpecified
     {
@@ -646,7 +659,7 @@ public partial class BasePackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool versionSpecified
     {
@@ -660,7 +673,7 @@ public partial class BasePackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool fullURISpecified
     {
@@ -674,7 +687,7 @@ public partial class BasePackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool instanceIDSpecified
     {
@@ -688,7 +701,7 @@ public partial class BasePackageType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool instanceVersionURISpecified
     {

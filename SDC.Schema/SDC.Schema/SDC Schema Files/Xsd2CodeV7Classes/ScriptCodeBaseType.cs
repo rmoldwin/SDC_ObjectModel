@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Programming code or pseudocode that describes a calculation.  THe code returns a value of the data type required by the parent Response field.  To assist with enabling the code in the form, the referenced form items and properties should be referenced by @name under the parameters elemeent.  It is possible to add mulitple calculation expressions to produce equivalent results using different programming languages and URIs.  The @ type attribute may be used to distinguish between them.  An Extension may be used instead of or along with an Expression and Parameters list.  Expressions may populate Responses that are set to @readOnly = "true" to ensure that all responses are calculated and not latered by the user.  Alternatively, the user may change a value created by (or instead of) the Expression.
@@ -43,6 +40,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ScriptCodeBaseType")]
 public abstract partial class ScriptCodeBaseType : ExtensionBaseType
 {
     #region Private fields
@@ -78,6 +76,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool returnList
     {
         get
@@ -97,6 +96,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
     
     [XmlAttribute]
     [DefaultValue("|")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string listDelimiter
     {
         get
@@ -119,6 +119,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string objectTypeName
     {
         get
@@ -141,6 +142,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string objectFormat
     {
         get
@@ -164,6 +166,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
     
     [XmlAttribute]
     [DefaultValue(true)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowNull
     {
         get
@@ -182,6 +185,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string returnVal
     {
         get
@@ -207,6 +211,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
     /// Programming language.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string language
     {
         get
@@ -232,6 +237,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
     /// Script contents.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string code
     {
         get
@@ -253,7 +259,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool returnListSpecified
     {
@@ -267,7 +273,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool listDelimiterSpecified
     {
@@ -281,7 +287,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool objectTypeNameSpecified
     {
@@ -295,7 +301,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool objectFormatSpecified
     {
@@ -309,7 +315,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowNullSpecified
     {
@@ -323,7 +329,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool returnValSpecified
     {
@@ -337,7 +343,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool languageSpecified
     {
@@ -351,7 +357,7 @@ public abstract partial class ScriptCodeBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool codeSpecified
     {

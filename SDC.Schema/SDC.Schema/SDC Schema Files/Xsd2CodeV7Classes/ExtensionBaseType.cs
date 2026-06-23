@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// ExtensionBaseType allows ad-hoc XML comments, extensions, and properties to be added to any SDC type that inherits from ExtensionBaseType.
@@ -156,6 +153,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ExtensionBaseType")]
 public abstract partial class ExtensionBaseType : BaseType
 {
     #region Private fields
@@ -168,6 +166,7 @@ public abstract partial class ExtensionBaseType : BaseType
     #endregion
     
     [XmlElement("Comment", Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<CommentType> Comment
     {
         get
@@ -190,6 +189,7 @@ public abstract partial class ExtensionBaseType : BaseType
     }
     
     [XmlElement("Extension", Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<ExtensionType> Extension
     {
         get
@@ -212,6 +212,7 @@ public abstract partial class ExtensionBaseType : BaseType
     }
     
     [XmlElement("Property", Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<PropertyType> Property
     {
         get
@@ -233,7 +234,7 @@ public abstract partial class ExtensionBaseType : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool CommentSpecified
     {
@@ -247,7 +248,7 @@ public abstract partial class ExtensionBaseType : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ExtensionSpecified
     {
@@ -261,7 +262,7 @@ public abstract partial class ExtensionBaseType : BaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool PropertySpecified
     {

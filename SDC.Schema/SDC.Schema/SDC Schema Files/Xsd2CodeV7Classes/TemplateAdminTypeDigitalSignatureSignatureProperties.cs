@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,12 +28,12 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(AnonymousType=true, Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("TemplateAdminTypeDigitalSignatureSignatureProperties")]
 public partial class TemplateAdminTypeDigitalSignatureSignatureProperties : ExtensionBaseType
 {
     #region Private fields
@@ -52,6 +50,7 @@ public partial class TemplateAdminTypeDigitalSignatureSignatureProperties : Exte
     #endregion
     
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual ContactType Signer
     {
         get
@@ -81,6 +80,7 @@ public partial class TemplateAdminTypeDigitalSignatureSignatureProperties : Exte
     /// Software to verify signatures and certificates and decrypt documents is provided with most operating systems and most programming languages.
     /// </summary>
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual TemplateAdminTypeDigitalSignatureSignaturePropertiesSignerPublicKeyCertificate SignerPublicKeyCertificate
     {
         get
@@ -103,6 +103,7 @@ public partial class TemplateAdminTypeDigitalSignatureSignatureProperties : Exte
     }
     
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual TemplateAdminTypeDigitalSignatureSignaturePropertiesSignatureReason SignatureReason
     {
         get
@@ -125,6 +126,7 @@ public partial class TemplateAdminTypeDigitalSignatureSignatureProperties : Exte
     }
     
     [XmlElement(Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual TemplateAdminTypeDigitalSignatureSignaturePropertiesSignatureDateTimeStamp SignatureDateTimeStamp
     {
         get
@@ -147,6 +149,7 @@ public partial class TemplateAdminTypeDigitalSignatureSignatureProperties : Exte
     }
     
     [XmlElement(Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual TemplateAdminTypeDigitalSignatureSignaturePropertiesImage Image
     {
         get
@@ -168,7 +171,7 @@ public partial class TemplateAdminTypeDigitalSignatureSignatureProperties : Exte
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool SignerSpecified
     {
@@ -182,7 +185,7 @@ public partial class TemplateAdminTypeDigitalSignatureSignatureProperties : Exte
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool SignerPublicKeyCertificateSpecified
     {
@@ -196,7 +199,7 @@ public partial class TemplateAdminTypeDigitalSignatureSignatureProperties : Exte
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool SignatureReasonSpecified
     {
@@ -210,7 +213,7 @@ public partial class TemplateAdminTypeDigitalSignatureSignatureProperties : Exte
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool SignatureDateTimeStampSpecified
     {
@@ -224,7 +227,7 @@ public partial class TemplateAdminTypeDigitalSignatureSignatureProperties : Exte
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ImageSpecified
     {

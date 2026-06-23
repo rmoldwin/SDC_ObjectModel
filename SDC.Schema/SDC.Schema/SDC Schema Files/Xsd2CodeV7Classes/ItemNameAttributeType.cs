@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// The type is a standard way to point to a named item anywhere in a FormDesign template.  A named item is any element that has the @name attribute set to a unique value.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ItemNameAttributeType")]
 public partial class ItemNameAttributeType : ItemNameType
 {
     #region Private fields
@@ -56,6 +54,7 @@ public partial class ItemNameAttributeType : ItemNameType
     
     [XmlAttribute(DataType="NCName")]
     [DefaultValue("val")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string attributeName
     {
         get
@@ -77,7 +76,7 @@ public partial class ItemNameAttributeType : ItemNameType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool attributeNameSpecified
     {

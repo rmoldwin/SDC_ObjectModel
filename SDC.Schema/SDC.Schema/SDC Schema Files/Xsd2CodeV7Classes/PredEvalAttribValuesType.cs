@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This Rule evaluates an arbitrary set of attribute values from any item
@@ -44,6 +41,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("PredEvalAttribValuesType")]
 public partial class PredEvalAttribValuesType : FuncBoolBaseType
 {
     #region Private fields
@@ -118,6 +116,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool not
     {
         get
@@ -137,6 +136,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     
     [XmlAttribute]
     [DefaultValue(PredEvalAttribValuesTypeBoolOp.AND)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     [JsonConverter(typeof(StringEnumConverter))]
     public virtual PredEvalAttribValuesTypeBoolOp boolOp
     {
@@ -165,6 +165,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     /// </summary>
     [XmlAttribute(DataType="NMTOKENS")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string itemNames
     {
         get
@@ -190,6 +191,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool isSelected
     {
         get
@@ -235,6 +237,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     /// true. Otherwise, it is false.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool isActive
     {
         get
@@ -281,6 +284,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     /// items equals or exceeds the entered value.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual uint hasSelectionsGTE
     {
         get
@@ -327,6 +331,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     /// items is less than or equal to the entered value.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual uint hasSelectionsLTE
     {
         get
@@ -373,6 +378,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     /// items equals the entered value.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual uint hasSelectionsExact
     {
         get
@@ -421,6 +427,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     /// retuns null and is not used for Boolean comparisons.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool hasResponse
     {
         get
@@ -462,6 +469,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool isVisible
     {
         get
@@ -503,6 +511,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool isEnabled
     {
         get
@@ -548,6 +557,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     /// "true" If the minCard = "0" then isRequired = "false"
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool isRequired
     {
         get
@@ -589,6 +599,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool isReadOnly
     {
         get
@@ -630,6 +641,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute(DataType="NMTOKENS")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string hasType
     {
         get
@@ -652,6 +664,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute(DataType="NMTOKENS")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string hasStyleClass
     {
         get
@@ -674,6 +687,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool hasValue
     {
         get
@@ -715,7 +729,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute("supportDatesAndIntervals...")]
-    [JsonPropertyNameAttribute("supportDatesAndIntervals...")]
+    [JsonProperty("supportDatesAndIntervals...", NullValueHandling=NullValueHandling.Ignore)]
     public virtual string supportDatesAndIntervals
     {
         get
@@ -738,6 +752,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string hasPattern
     {
         get
@@ -767,6 +782,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     /// datatype.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string hasValueEQ
     {
         get
@@ -789,6 +805,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string hasValueLT
     {
         get
@@ -811,6 +828,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string hasValueLTE
     {
         get
@@ -833,6 +851,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string hasValueGT
     {
         get
@@ -855,6 +874,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string hasValueGTE
     {
         get
@@ -877,6 +897,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string hasAssociatedValueEQ
     {
         get
@@ -899,6 +920,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string hasAssociatedValueLT
     {
         get
@@ -921,6 +943,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string hasAssociatedValueLTE
     {
         get
@@ -943,6 +966,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string hasAssociatedValueGT
     {
         get
@@ -965,6 +989,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string hasAssociatedValueGTE
     {
         get
@@ -986,7 +1011,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool notSpecified
     {
@@ -1000,7 +1025,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool boolOpSpecified
     {
@@ -1014,7 +1039,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool itemNamesSpecified
     {
@@ -1028,7 +1053,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool hasTypeSpecified
     {
@@ -1042,7 +1067,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool hasStyleClassSpecified
     {
@@ -1056,7 +1081,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool supportDatesAndIntervalsSpecified
     {
@@ -1070,7 +1095,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool hasPatternSpecified
     {
@@ -1084,7 +1109,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool hasValueEQSpecified
     {
@@ -1098,7 +1123,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool hasValueLTSpecified
     {
@@ -1112,7 +1137,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool hasValueLTESpecified
     {
@@ -1126,7 +1151,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool hasValueGTSpecified
     {
@@ -1140,7 +1165,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool hasValueGTESpecified
     {
@@ -1154,7 +1179,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool hasAssociatedValueEQSpecified
     {
@@ -1168,7 +1193,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool hasAssociatedValueLTSpecified
     {
@@ -1182,7 +1207,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool hasAssociatedValueLTESpecified
     {
@@ -1196,7 +1221,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool hasAssociatedValueGTSpecified
     {
@@ -1210,7 +1235,7 @@ public partial class PredEvalAttribValuesType : FuncBoolBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool hasAssociatedValueGTESpecified
     {

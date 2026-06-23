@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,12 +28,12 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9221.0")]
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("DataStoreType")]
 public partial class DataStoreType : ExtensionBaseType
 {
     #region Private fields
@@ -57,6 +55,7 @@ public partial class DataStoreType : ExtensionBaseType
     /// Logon credentials should be provided only if the connection is trusted, secure, and encrypted.  Whenever possible, this information should not be communicated in this manner, and another security model should be adopted.
     /// </summary>
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual DataStoreTypeSecurityInfo SecurityInfo
     {
         get
@@ -82,6 +81,7 @@ public partial class DataStoreType : ExtensionBaseType
     /// The path to the database server.
     /// </summary>
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype DataStoreLocation
     {
         get
@@ -105,6 +105,7 @@ public partial class DataStoreType : ExtensionBaseType
     
     [XmlElement(Order=2)]
     [Required]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype DatabaseSoftware
     {
         get
@@ -130,6 +131,7 @@ public partial class DataStoreType : ExtensionBaseType
     }
     
     [XmlElement(Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype DatabaseName
     {
         get
@@ -152,6 +154,7 @@ public partial class DataStoreType : ExtensionBaseType
     }
     
     [XmlElement(Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype ConnectiontonString
     {
         get
@@ -174,6 +177,7 @@ public partial class DataStoreType : ExtensionBaseType
     }
     
     [XmlElement(Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype OtherConnectionParameters
     {
         get
@@ -195,7 +199,7 @@ public partial class DataStoreType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool SecurityInfoSpecified
     {
@@ -209,7 +213,7 @@ public partial class DataStoreType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DataStoreLocationSpecified
     {
@@ -223,7 +227,7 @@ public partial class DataStoreType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DatabaseSoftwareSpecified
     {
@@ -237,7 +241,7 @@ public partial class DataStoreType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DatabaseNameSpecified
     {
@@ -251,7 +255,7 @@ public partial class DataStoreType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ConnectiontonStringSpecified
     {
@@ -265,7 +269,7 @@ public partial class DataStoreType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OtherConnectionParametersSpecified
     {

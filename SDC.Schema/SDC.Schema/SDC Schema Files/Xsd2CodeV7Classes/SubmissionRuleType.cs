@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// information about where to submit a completed form
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("SubmissionRuleType")]
 public partial class SubmissionRuleType : ExtensionBaseType
 {
     #region Private fields
@@ -54,6 +52,7 @@ public partial class SubmissionRuleType : ExtensionBaseType
     
     [XmlElement("Destination", Order=0)]
     [Required]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<DestinationType> Destination
     {
         get
@@ -79,6 +78,7 @@ public partial class SubmissionRuleType : ExtensionBaseType
     }
     
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype RuleDescription
     {
         get
@@ -101,6 +101,7 @@ public partial class SubmissionRuleType : ExtensionBaseType
     }
     
     [XmlAttribute(DataType="anyURI")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string formID
     {
         get
@@ -124,6 +125,7 @@ public partial class SubmissionRuleType : ExtensionBaseType
     
     [XmlAttribute(DataType="anyURI")]
     [Required]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string ruleID
     {
         get
@@ -148,7 +150,7 @@ public partial class SubmissionRuleType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DestinationSpecified
     {
@@ -162,7 +164,7 @@ public partial class SubmissionRuleType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool RuleDescriptionSpecified
     {
@@ -176,7 +178,7 @@ public partial class SubmissionRuleType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool formIDSpecified
     {
@@ -190,7 +192,7 @@ public partial class SubmissionRuleType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ruleIDSpecified
     {

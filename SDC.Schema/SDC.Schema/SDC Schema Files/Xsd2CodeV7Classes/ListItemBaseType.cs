@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This base element is the foundation for ListItems, but does not
@@ -41,6 +38,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ListItemBaseType")]
 public abstract partial class ListItemBaseType : DisplayedType
 {
     #region Private fields
@@ -101,6 +99,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     /// choice.
     /// </summary>
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual ListItemResponseFieldType ListItemResponseField
     {
         get
@@ -123,6 +122,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     }
     
     [XmlElement("OnSelect", Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<EventType> OnSelect
     {
         get
@@ -145,6 +145,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     }
     
     [XmlElement("OnDeselect", Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<EventType> OnDeselect
     {
         get
@@ -167,6 +168,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     }
     
     [XmlElement(Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual PredGuardType SelectIf
     {
         get
@@ -189,6 +191,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     }
     
     [XmlElement(Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual PredGuardType DeselectIf
     {
         get
@@ -218,6 +221,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool selected
     {
         get
@@ -245,6 +249,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool selectionDisablesChildren
     {
         get
@@ -270,6 +275,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     /// Prefixing the name with a tilde (~) will supress this reversal behavior.
     /// </summary>
     [XmlAttribute(DataType="NMTOKENS")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string selectionActivatesItems
     {
         get
@@ -299,6 +305,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     /// suppress this reversal behavior.
     /// </summary>
     [XmlAttribute(DataType="NMTOKENS")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string selectionSelectsListItems
     {
         get
@@ -327,6 +334,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool selectionDeselectsSiblings
     {
         get
@@ -357,6 +365,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     /// </summary>
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool omitWhenSelected
     {
         get
@@ -376,6 +385,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     
     [XmlAttribute]
     [DefaultValue(typeof(uint), "0")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual uint repeat
     {
         get
@@ -394,6 +404,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string instanceGUID
     {
         get
@@ -416,6 +427,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string parentGUID
     {
         get
@@ -450,6 +462,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     /// be specified in @AssociatedValueType
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string associatedValue
     {
         get
@@ -476,6 +489,7 @@ public abstract partial class ListItemBaseType : DisplayedType
     /// string.
     /// </summary>
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string associatedValueType
     {
         get
@@ -497,7 +511,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ListItemResponseFieldSpecified
     {
@@ -511,7 +525,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OnSelectSpecified
     {
@@ -525,7 +539,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OnDeselectSpecified
     {
@@ -539,7 +553,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool SelectIfSpecified
     {
@@ -553,7 +567,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DeselectIfSpecified
     {
@@ -567,7 +581,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool selectedSpecified
     {
@@ -581,7 +595,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool selectionDisablesChildrenSpecified
     {
@@ -595,7 +609,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool selectionActivatesItemsSpecified
     {
@@ -609,7 +623,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool selectionSelectsListItemsSpecified
     {
@@ -623,7 +637,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool selectionDeselectsSiblingsSpecified
     {
@@ -637,7 +651,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool omitWhenSelectedSpecified
     {
@@ -651,7 +665,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool repeatSpecified
     {
@@ -665,7 +679,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool instanceGUIDSpecified
     {
@@ -679,7 +693,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool parentGUIDSpecified
     {
@@ -693,7 +707,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool associatedValueSpecified
     {
@@ -707,7 +721,7 @@ public abstract partial class ListItemBaseType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool associatedValueTypeSpecified
     {

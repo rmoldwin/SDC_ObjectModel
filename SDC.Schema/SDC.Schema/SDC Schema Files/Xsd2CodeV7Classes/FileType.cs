@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Information about a file, usually thought of as a binary byte stream
@@ -44,6 +41,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("FileType")]
 public partial class FileType : ExtensionBaseType
 {
     #region Private fields
@@ -98,6 +96,7 @@ public partial class FileType : ExtensionBaseType
     /// of the FileURI used for all SDC FormDesign items.
     /// </summary>
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype FileID
     {
         get
@@ -121,6 +120,7 @@ public partial class FileType : ExtensionBaseType
     
     [XmlElement(Order=1)]
     [Required]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual anyURI_Stype FileURI
     {
         get
@@ -151,6 +151,7 @@ public partial class FileType : ExtensionBaseType
     /// file.
     /// </summary>
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype DisplayName
     {
         get
@@ -176,6 +177,7 @@ public partial class FileType : ExtensionBaseType
     /// Official title of the file.
     /// </summary>
     [XmlElement(Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Title
     {
         get
@@ -201,6 +203,7 @@ public partial class FileType : ExtensionBaseType
     /// File version
     /// </summary>
     [XmlElement(Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual VersionType Version
     {
         get
@@ -226,6 +229,7 @@ public partial class FileType : ExtensionBaseType
     /// The name of the file as saved on disk or other persistant storage.
     /// </summary>
     [XmlElement(Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype FileName
     {
         get
@@ -254,6 +258,7 @@ public partial class FileType : ExtensionBaseType
     /// etc.
     /// </summary>
     [XmlElement(Order=6)]
+    [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype FileExtension
     {
         get
@@ -279,6 +284,7 @@ public partial class FileType : ExtensionBaseType
     /// A short description of the class of file, such as "FormDesign XML"
     /// </summary>
     [XmlElement(Order=7)]
+    [JsonProperty(Order=7, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype FileClass
     {
         get
@@ -301,6 +307,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     [XmlElement(Order=8)]
+    [JsonProperty(Order=8, NullValueHandling=NullValueHandling.Ignore)]
     public virtual positiveInteger_Stype FileSizeKB
     {
         get
@@ -327,6 +334,7 @@ public partial class FileType : ExtensionBaseType
     /// attribute.
     /// </summary>
     [XmlElement("Description", Order=9)]
+    [JsonProperty(Order=9, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<string_Stype> Description
     {
         get
@@ -349,6 +357,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     [XmlElement(Order=10)]
+    [JsonProperty(Order=10, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Copyright
     {
         get
@@ -371,6 +380,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     [XmlElement(Order=11)]
+    [JsonProperty(Order=11, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype TermsofUse
     {
         get
@@ -396,6 +406,7 @@ public partial class FileType : ExtensionBaseType
     /// Guidance for when this file should be used, and when it should not be used.
     /// </summary>
     [XmlElement(Order=12)]
+    [JsonProperty(Order=12, NullValueHandling=NullValueHandling.Ignore)]
     public virtual FileUsageType Usage
     {
         get
@@ -421,6 +432,7 @@ public partial class FileType : ExtensionBaseType
     /// Various dates associated with the file release, versioning and usage.
     /// </summary>
     [XmlElement(Order=13)]
+    [JsonProperty(Order=13, NullValueHandling=NullValueHandling.Ignore)]
     public virtual FileDatesType Dates
     {
         get
@@ -448,6 +460,7 @@ public partial class FileType : ExtensionBaseType
     /// @type include Curator, Author, and Authority.
     /// </summary>
     [XmlElement(Order=14)]
+    [JsonProperty(Order=14, NullValueHandling=NullValueHandling.Ignore)]
     public virtual ContactsType Contacts
     {
         get
@@ -473,6 +486,7 @@ public partial class FileType : ExtensionBaseType
     /// Documentation of review and acceptance of the file for production usage.
     /// </summary>
     [XmlElement("Approval", Order=15)]
+    [JsonProperty(Order=15, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<ApprovalType> Approval
     {
         get
@@ -495,6 +509,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     [XmlElement(Order=16)]
+    [JsonProperty(Order=16, NullValueHandling=NullValueHandling.Ignore)]
     public virtual FileHashType FileHash
     {
         get
@@ -517,6 +532,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     [XmlElement("Language", Order=17)]
+    [JsonProperty(Order=17, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<LanguageType> Language
     {
         get
@@ -542,6 +558,7 @@ public partial class FileType : ExtensionBaseType
     /// Link to any associated files, such as schemas, reference documents, manuals, etc.
     /// </summary>
     [XmlElement(Order=18)]
+    [JsonProperty(Order=18, NullValueHandling=NullValueHandling.Ignore)]
     public virtual AssociatedFilesType AssociatedFiles
     {
         get
@@ -564,6 +581,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     [XmlElement(Order=19)]
+    [JsonProperty(Order=19, NullValueHandling=NullValueHandling.Ignore)]
     public virtual ProvenanceType Provenance
     {
         get
@@ -586,6 +604,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     [XmlElement("DefaultSubmissionRule", Order=20)]
+    [JsonProperty(Order=20, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<SubmissionRuleType> DefaultSubmissionRule
     {
         get
@@ -608,6 +627,7 @@ public partial class FileType : ExtensionBaseType
     }
     
     [XmlElement("DefaultComplianceRule", Order=21)]
+    [JsonProperty(Order=21, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<ComplianceRuleType> DefaultComplianceRule
     {
         get
@@ -629,7 +649,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool FileIDSpecified
     {
@@ -643,7 +663,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool FileURISpecified
     {
@@ -657,7 +677,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DisplayNameSpecified
     {
@@ -671,7 +691,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool TitleSpecified
     {
@@ -685,7 +705,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool VersionSpecified
     {
@@ -699,7 +719,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool FileNameSpecified
     {
@@ -713,7 +733,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool FileExtensionSpecified
     {
@@ -727,7 +747,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool FileClassSpecified
     {
@@ -741,7 +761,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool FileSizeKBSpecified
     {
@@ -755,7 +775,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DescriptionSpecified
     {
@@ -769,7 +789,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool CopyrightSpecified
     {
@@ -783,7 +803,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool TermsofUseSpecified
     {
@@ -797,7 +817,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool UsageSpecified
     {
@@ -811,7 +831,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DatesSpecified
     {
@@ -825,7 +845,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ContactsSpecified
     {
@@ -839,7 +859,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ApprovalSpecified
     {
@@ -853,7 +873,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool FileHashSpecified
     {
@@ -867,7 +887,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool LanguageSpecified
     {
@@ -881,7 +901,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool AssociatedFilesSpecified
     {
@@ -895,7 +915,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ProvenanceSpecified
     {
@@ -909,7 +929,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DefaultSubmissionRuleSpecified
     {
@@ -923,7 +943,7 @@ public partial class FileType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DefaultComplianceRuleSpecified
     {

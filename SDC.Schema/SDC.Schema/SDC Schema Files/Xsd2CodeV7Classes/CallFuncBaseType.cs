@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Function or web service that returns a string value.
@@ -42,6 +39,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("CallFuncBaseType")]
 public abstract partial class CallFuncBaseType : ExtensionBaseType
 {
     #region Private fields
@@ -127,6 +125,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
     /// Information about securly accessing the web service.  More detailed service patterns may be required.
     /// </summary>
     [XmlElement(Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual RichTextType Security
     {
         get
@@ -174,6 +173,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool returnList
     {
         get
@@ -193,6 +193,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
     
     [XmlAttribute]
     [DefaultValue("|")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string listDelimiter
     {
         get
@@ -215,6 +216,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string objectTypeName
     {
         get
@@ -237,6 +239,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string objectFormat
     {
         get
@@ -260,6 +263,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
     
     [XmlAttribute]
     [DefaultValue(true)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool allowNull
     {
         get
@@ -278,6 +282,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
     }
     
     [XmlAttribute]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string returnVal
     {
         get
@@ -299,7 +304,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemSpecified
     {
@@ -313,7 +318,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemElementNameSpecified
     {
@@ -327,7 +332,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool SecuritySpecified
     {
@@ -341,7 +346,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemsSpecified
     {
@@ -355,7 +360,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool returnListSpecified
     {
@@ -369,7 +374,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool listDelimiterSpecified
     {
@@ -383,7 +388,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool objectTypeNameSpecified
     {
@@ -397,7 +402,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool objectFormatSpecified
     {
@@ -411,7 +416,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool allowNullSpecified
     {
@@ -425,7 +430,7 @@ public abstract partial class CallFuncBaseType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool returnValSpecified
     {

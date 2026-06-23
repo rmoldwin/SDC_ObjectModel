@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// NEW
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(AnonymousType=true, Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("TemplateAdminTypeDigitalSignature")]
 public partial class TemplateAdminTypeDigitalSignature : ExtensionBaseType
 {
     #region Private fields
@@ -52,6 +50,7 @@ public partial class TemplateAdminTypeDigitalSignature : ExtensionBaseType
     /// The signature derives a hash from the entire contents of the package, including the package element and all its attributes, as well as all sub-elements.  Before creating the hash, the complete content of the SignatureProperties element is concatenated to the package contents.
     /// </summary>
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual TemplateAdminTypeDigitalSignaturePackageSignature PackageSignature
     {
         get
@@ -74,6 +73,7 @@ public partial class TemplateAdminTypeDigitalSignature : ExtensionBaseType
     }
     
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual TemplateAdminTypeDigitalSignatureSignatureProperties SignatureProperties
     {
         get
@@ -95,7 +95,7 @@ public partial class TemplateAdminTypeDigitalSignature : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool PackageSignatureSpecified
     {
@@ -109,7 +109,7 @@ public partial class TemplateAdminTypeDigitalSignature : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool SignaturePropertiesSpecified
     {

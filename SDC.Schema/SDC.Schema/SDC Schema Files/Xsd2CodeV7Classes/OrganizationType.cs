@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// A model structure for an Organization object.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("OrganizationType")]
 public partial class OrganizationType : ExtensionBaseType
 {
     #region Private fields
@@ -66,6 +64,7 @@ public partial class OrganizationType : ExtensionBaseType
     
     [XmlElement(IsNullable=true, Order=0)]
     [Required]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype OrgName
     {
         get
@@ -91,6 +90,7 @@ public partial class OrganizationType : ExtensionBaseType
     }
     
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Department
     {
         get
@@ -113,6 +113,7 @@ public partial class OrganizationType : ExtensionBaseType
     }
     
     [XmlElement("StreetAddress", Order=2)]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<AddressType> StreetAddress
     {
         get
@@ -135,6 +136,7 @@ public partial class OrganizationType : ExtensionBaseType
     }
     
     [XmlElement("Email", Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<EmailType> Email
     {
         get
@@ -157,6 +159,7 @@ public partial class OrganizationType : ExtensionBaseType
     }
     
     [XmlElement("Phone", Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<PhoneType> Phone
     {
         get
@@ -179,6 +182,7 @@ public partial class OrganizationType : ExtensionBaseType
     }
     
     [XmlElement("WebURL", Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<anyURI_Stype> WebURL
     {
         get
@@ -205,6 +209,7 @@ public partial class OrganizationType : ExtensionBaseType
     /// holder, accreditor, certifier, curator, etc.
     /// </summary>
     [XmlElement("Role", Order=6)]
+    [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<string_Stype> Role
     {
         get
@@ -227,6 +232,7 @@ public partial class OrganizationType : ExtensionBaseType
     }
     
     [XmlElement("ContactPerson", Order=7)]
+    [JsonProperty(Order=7, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<PersonType> ContactPerson
     {
         get
@@ -249,6 +255,7 @@ public partial class OrganizationType : ExtensionBaseType
     }
     
     [XmlElement("Identifier", Order=8)]
+    [JsonProperty(Order=8, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<IdentifierType> Identifier
     {
         get
@@ -275,6 +282,7 @@ public partial class OrganizationType : ExtensionBaseType
     /// contacted.
     /// </summary>
     [XmlElement(Order=9)]
+    [JsonProperty(Order=9, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype Usage
     {
         get
@@ -296,7 +304,7 @@ public partial class OrganizationType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool OrgNameSpecified
     {
@@ -310,7 +318,7 @@ public partial class OrganizationType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool DepartmentSpecified
     {
@@ -324,7 +332,7 @@ public partial class OrganizationType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool StreetAddressSpecified
     {
@@ -338,7 +346,7 @@ public partial class OrganizationType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool EmailSpecified
     {
@@ -352,7 +360,7 @@ public partial class OrganizationType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool PhoneSpecified
     {
@@ -366,7 +374,7 @@ public partial class OrganizationType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool WebURLSpecified
     {
@@ -380,7 +388,7 @@ public partial class OrganizationType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool RoleSpecified
     {
@@ -394,7 +402,7 @@ public partial class OrganizationType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ContactPersonSpecified
     {
@@ -408,7 +416,7 @@ public partial class OrganizationType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool IdentifierSpecified
     {
@@ -422,7 +430,7 @@ public partial class OrganizationType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool UsageSpecified
     {

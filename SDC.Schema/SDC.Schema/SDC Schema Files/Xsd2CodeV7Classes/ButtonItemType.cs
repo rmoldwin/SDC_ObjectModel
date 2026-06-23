@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// The ButtonItem type represents a visual area for a user to click, and
@@ -44,6 +41,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ButtonItemType")]
 public partial class ButtonItemType : DisplayedType
 {
     #region Private fields
@@ -52,7 +50,7 @@ public partial class ButtonItemType : DisplayedType
     #endregion
     
     [XmlElement("OnClick", Order=0)]
-    [JsonPropertyNameAttribute("OnClick", Order=0)]
+    [JsonProperty("OnClick", Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<EventType> Items
     {
         get
@@ -74,7 +72,7 @@ public partial class ButtonItemType : DisplayedType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ItemsSpecified
     {

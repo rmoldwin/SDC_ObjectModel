@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// This Rule selects/unselects ListItems based on the selected status of
@@ -51,6 +48,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("RuleAutoSelectType")]
 public partial class RuleAutoSelectType : ExtensionBaseType
 {
     #region Private fields
@@ -72,6 +70,7 @@ public partial class RuleAutoSelectType : ExtensionBaseType
     }
     
     [XmlAttribute(DataType="NMTOKENS")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string selectedItemSet
     {
         get
@@ -95,6 +94,7 @@ public partial class RuleAutoSelectType : ExtensionBaseType
     
     [XmlAttribute]
     [DefaultValue(false)]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual bool onlyIf
     {
         get
@@ -124,6 +124,7 @@ public partial class RuleAutoSelectType : ExtensionBaseType
     /// @selectedItemSet is false.
     /// </summary>
     [XmlAttribute(DataType="NCName")]
+    [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
     public virtual string targetNameSelectList
     {
         get
@@ -145,7 +146,7 @@ public partial class RuleAutoSelectType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool selectedItemSetSpecified
     {
@@ -159,7 +160,7 @@ public partial class RuleAutoSelectType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool onlyIfSpecified
     {
@@ -173,7 +174,7 @@ public partial class RuleAutoSelectType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool targetNameSelectListSpecified
     {

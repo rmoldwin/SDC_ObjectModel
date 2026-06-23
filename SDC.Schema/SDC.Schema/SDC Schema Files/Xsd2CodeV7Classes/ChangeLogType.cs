@@ -21,8 +21,6 @@ using System.Xml;
 using Newtonsoft.Json.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using MessagePack;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,7 +28,6 @@ using System.IO;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using  System.Text.Json;
 
 /// <summary>
 /// Information about changes to file or part of a file.
@@ -39,6 +36,7 @@ using  System.Text.Json;
 [Serializable]
 [DesignerCategoryAttribute("code")]
 [XmlTypeAttribute(Namespace="urn:ihe:qrph:sdc:2016")]
+[JsonObject("ChangeLogType")]
 public partial class ChangeLogType : ExtensionBaseType
 {
     #region Private fields
@@ -63,6 +61,7 @@ public partial class ChangeLogType : ExtensionBaseType
     #endregion
     
     [XmlElement(Order=0)]
+    [JsonProperty(Order=0, NullValueHandling=NullValueHandling.Ignore)]
     public virtual ChangedFieldType ChangedField
     {
         get
@@ -85,6 +84,7 @@ public partial class ChangeLogType : ExtensionBaseType
     }
     
     [XmlElement(Order=1)]
+    [JsonProperty(Order=1, NullValueHandling=NullValueHandling.Ignore)]
     public virtual DataTypes_SType ChangedTo
     {
         get
@@ -108,6 +108,7 @@ public partial class ChangeLogType : ExtensionBaseType
     
     [XmlElement(Order=2)]
     [Required]
+    [JsonProperty(Order=2, NullValueHandling=NullValueHandling.Ignore)]
     public virtual DataTypes_SType ChangedFrom
     {
         get
@@ -133,6 +134,7 @@ public partial class ChangeLogType : ExtensionBaseType
     }
     
     [XmlElement("ChangeType", Order=3)]
+    [JsonProperty(Order=3, NullValueHandling=NullValueHandling.Ignore)]
     public virtual List<string_Stype> ChangeType
     {
         get
@@ -158,6 +160,7 @@ public partial class ChangeLogType : ExtensionBaseType
     /// The retired/deprecated item that is being replaced.
     /// </summary>
     [XmlElement(Order=4)]
+    [JsonProperty(Order=4, NullValueHandling=NullValueHandling.Ignore)]
     public virtual ReplacedIDsType Replaces
     {
         get
@@ -180,6 +183,7 @@ public partial class ChangeLogType : ExtensionBaseType
     }
     
     [XmlElement(Order=5)]
+    [JsonProperty(Order=5, NullValueHandling=NullValueHandling.Ignore)]
     public virtual dateTime_Stype ChangeDate
     {
         get
@@ -202,6 +206,7 @@ public partial class ChangeLogType : ExtensionBaseType
     }
     
     [XmlElement(Order=6)]
+    [JsonProperty(Order=6, NullValueHandling=NullValueHandling.Ignore)]
     public virtual string_Stype ChangeDescription
     {
         get
@@ -224,6 +229,7 @@ public partial class ChangeLogType : ExtensionBaseType
     }
     
     [XmlElement(Order=7)]
+    [JsonProperty(Order=7, NullValueHandling=NullValueHandling.Ignore)]
     public virtual ContactsType Editors
     {
         get
@@ -246,6 +252,7 @@ public partial class ChangeLogType : ExtensionBaseType
     }
     
     [XmlElement(Order=8)]
+    [JsonProperty(Order=8, NullValueHandling=NullValueHandling.Ignore)]
     public virtual ChangeTrackingType ChangeTracking
     {
         get
@@ -267,7 +274,7 @@ public partial class ChangeLogType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ChangedFieldSpecified
     {
@@ -281,7 +288,7 @@ public partial class ChangeLogType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ChangedToSpecified
     {
@@ -295,7 +302,7 @@ public partial class ChangeLogType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ChangedFromSpecified
     {
@@ -309,7 +316,7 @@ public partial class ChangeLogType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ChangeTypeSpecified
     {
@@ -323,7 +330,7 @@ public partial class ChangeLogType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ReplacesSpecified
     {
@@ -337,7 +344,7 @@ public partial class ChangeLogType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ChangeDateSpecified
     {
@@ -351,7 +358,7 @@ public partial class ChangeLogType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ChangeDescriptionSpecified
     {
@@ -365,7 +372,7 @@ public partial class ChangeLogType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool EditorsSpecified
     {
@@ -379,7 +386,7 @@ public partial class ChangeLogType : ExtensionBaseType
         }
     }
     
-    [System.Text.Json.JsonIgnoreAttribute()]
+    [JsonIgnore]
     [XmlIgnore()]
     public bool ChangeTrackingSpecified
     {
