@@ -50,19 +50,24 @@ KEY FACTS ALREADY ESTABLISHED (see the plan doc for detail + line numbers):
   full ISO-8601 patterns authored.
 
 REGEN-SAFE STRATEGY (auto-generated date files in protected folders must NOT be edited without my
-explicit approval — stop and list exact files if needed): prefer a custom (Type, memberName) →
-ValidationAttribute[] rule registry consulted inside SdcUtil.ValidateAndRaise, OR [MetadataType] buddy
-classes (SPIKE FIRST whether Validator.TryValidateProperty honors buddy metadata in this project —
-it often does not without registering AssociatedMetadataTypeTypeDescriptionProvider). New code lives in
-SDC Customized Classes/, Utility Classes/, Interfaces/ only.
+explicit approval — stop and list exact files if needed): DECIDED — use a custom (Type, memberName) →
+ValidationAttribute[] rule registry consulted inside SdcUtil.ValidateAndRaise. Do NOT use [MetadataType]
+buddy classes: Validator.TryValidateProperty does not honor buddy metadata in this project without an
+AssociatedMetadataTypeTypeDescriptionProvider, so the registry is the robust, regen-safe choice. New
+code lives in SDC Customized Classes/, Utility Classes/, Interfaces/ only.
+
+DECIDED BEHAVIORS:
+- date/time lexical strictness: HARD soft-reject. Setting an xs:date from a string with a stray time
+  component (or an xs:time with a stray date component) is rejected with a helpful message — never
+  silently truncated via .Date. Matches "never store invalid" and real-world UI date/time pickers.
 
 DELIVERABLE FOR THIS PLAN PHASE: review the plan doc, validate my findings against the live code,
 refine the task breakdown in Section 5, resolve the Section 8 open questions with me (especially the
 buddy-vs-registry decision and date/time lexical strictness), and report the finalized plan back to me
 (the creator session) BEFORE implementing.
 
-GUARDRAILS: PascalCase branch (suggest Features/DateTimeValidation). Test budgets: unit <1s,
-functional <10s — abort/root-cause if exceeded, never loop. Tests need rationale comments. Cover legal
+GUARDRAILS: Branch Features/NET10/Net10_DateTimeValidation off Features/NET10/Net10Main. Test budgets:
+unit <1s, functional <10s — abort/root-cause if exceeded, never loop. Tests need rationale comments. Cover legal
 AND illegal values, timezone variants, and XML⇄OM⇄JSON/BSON/MsgPack round-trips incl. mixed/inherited
 namespaces. Close the VS solution before any checkout/merge. Keep all .md docs in git. Use the issue #8
 RejectedValues/event pipeline — do not invent a parallel mechanism.
@@ -73,7 +78,7 @@ RejectedValues/event pipeline — do not invent a parallel mechanism.
 ## Notes for the operator (not part of the prompt)
 
 - The full plan is committed at `SDC.Schema.Tests/Documentation/DateTimeValidation_Plan.md`.
-- Base the new session off `Features/NET10/Net10Main` (which now contains issue #8). Leave `base_branch`
-  unset so it branches from the project default unless you intend to stack.
+- Base the new session off `Features/NET10/Net10Main` (which now contains issue #8), in a new branch
+  named `Features/NET10/Net10_DateTimeValidation`.
 - First implementation task once approved: **fix-datetimestamp-i1** (the regression), since valid
   `dateTimeStamp` values are currently being dropped.

@@ -274,13 +274,23 @@ first as the regression fix.
 
 ---
 
-## 8. Open questions to resolve with the user before/early in implementation
+## 8. Open questions — user decisions
 
-1. **Buddy metadata vs rule registry** (task 1 spike) — confirm the regen-safe mechanism. Recommendation:
-   rule registry in `SdcUtil` (most robust, zero generated-file edits).
-2. **`date`/`time` lexical strictness** — should setting an `xs:date` from a string carrying a time
-   component be a hard soft-reject (recommended, per "never store invalid"), even though `.Date` *could*
-   truncate it? Recommendation: reject + helpful message.
+> **Branch:** this work proceeds in a new session on `Features/NET10/Net10_DateTimeValidation`, branched
+> off `Features/NET10/Net10Main` (which contains issue #8 at `f7fd14a`/merged).
+
+1. **Buddy metadata vs rule registry** (task 1 spike) — confirm the regen-safe mechanism. **DECIDED:
+   use the rule registry in `SdcUtil`.** Rationale: `Validator.TryValidateProperty` (called by
+   `ValidateAndRaise`) does not honor `[MetadataType]` buddy attributes without registering an
+   `AssociatedMetadataTypeTypeDescriptionProvider`, and even then only on `TypeDescriptor`-aware paths —
+   an unproven runtime risk. A custom `(Type, memberName) → ValidationAttribute[]` registry consulted
+   inside `ValidateAndRaise` keeps every date rule in an editable file, needs zero generated-file edits,
+   survives regen automatically, and is deterministic + unit-testable. (Buddy classes remain a fallback
+   only if a spike later proves them reliable.)
+2. **`date`/`time` lexical strictness** — **DECIDED: hard soft-reject.** Setting an `xs:date` from a
+   string carrying a time component (or an `xs:time` carrying a date component) is rejected with a
+   helpful message rather than silently truncated via `.Date`. Rationale: matches the "never store an
+   invalid value" contract and mirrors how real-world UI date/time pickers separate the components.
 3. **`timeZone` representation** — keep as validated `string`, or migrate to a `TimeSpan`/offset type?
    (`IDataHelpers` has a TODO musing this.) Recommendation: keep string + `XsdTimezoneOffsetAttribute`
    for this work; defer any type migration.
