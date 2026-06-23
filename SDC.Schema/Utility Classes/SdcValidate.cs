@@ -9,6 +9,36 @@ using System.Xml.Schema;
 //using SDC;
 namespace SDC.Schema
 {
+	/// <summary>
+	/// Hand-written validation helpers that enforce rules the object model and XML Schema cannot
+	/// express on their own.
+	/// </summary>
+	/// <remarks>
+	/// <b>Numeric ResponseType range divergences (XSD vs .NET).</b> Numeric <c>val</c> and constraint
+	/// facets are validated by the generated <c>[Range]</c>/<c>[MaxDigits]</c> attributes, not here, but
+	/// the following known divergences affect what these validators can rely on. Full detail and the
+	/// characterization tests live in <c>SDC.Schema.Tests/Documentation/NumericRange_XSD_vs_NET.md</c>:
+	/// <list type="bullet">
+	/// <item><description><b>A.</b> Integer-family <c>MaxDigitsAttribute(29)</c> counts the sign, so
+	/// negatives are capped at 28 significant digits and positives at 29 (<c>decimal.MinValue</c>
+	/// throws; <c>decimal.MaxValue</c> is accepted).</description></item>
+	/// <item><description><b>B.</b> <c>long_DEtype</c> exclusive facets use the
+	/// <c>RangeAttribute(double,double)</c> overload and cannot be enforced at <c>long.MaxValue</c>
+	/// (double precision collapse).</description></item>
+	/// <item><description><b>C.</b> Sign of zero (<c>−0</c>) is not preserved when assigned to a fresh
+	/// float/double node (the setter's <c>Equals</c> change-guard treats <c>+0</c>/<c>−0</c> as
+	/// equal).</description></item>
+	/// <item><description><b>D.</b> JSON cannot round-trip large whole-number decimal/integer-family
+	/// values beyond ulong range (deserialized as BigInteger → InvalidCastException). XML preserves
+	/// them.</description></item>
+	/// <item><description><b>E.</b> BSON cannot serialize <c>ulong</c> values above
+	/// <c>long.MaxValue</c> (no unsigned support).</description></item>
+	/// <item><description><b>F.</b> BSON loses precision on high-precision decimals (encoded as IEEE
+	/// double).</description></item>
+	/// </list>
+	/// Integer-family and decimal types additionally narrow the unbounded XSD value spaces to the .NET
+	/// <c>decimal</c> range (≈ ±7.92e28), which is the binding constraint.
+	/// </remarks>
 	public static partial class SdcValidate
 	{
 
