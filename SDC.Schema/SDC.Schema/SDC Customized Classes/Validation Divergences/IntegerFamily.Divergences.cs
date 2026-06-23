@@ -12,7 +12,9 @@ namespace SDC.Schema
 	/// <para><b>Divergence A — MaxDigitsAttribute(29) counts the sign.</b> Validation checks
 	/// <c>value.ToString().Length &lt;= 29</c>, so the leading '-' on a negative consumes one slot:
 	/// negatives are limited to 28 significant digits, positives to 29. Thus <c>decimal.MaxValue</c>
-	/// (29 digits) is accepted but <c>decimal.MinValue</c> (30 chars) throws ValidationException.</para>
+	/// (29 digits) is accepted but <c>decimal.MinValue</c> (30 chars) is <b>soft-rejected</b>: the
+	/// setter keeps the prior/unset value, does not throw, and records the offending value on the
+	/// node (see <see cref="BaseType.RejectedValues"/>). See issue #8.</para>
 	/// <para><b>Divergence D — JSON cannot round-trip large whole numbers.</b> A whole-number value
 	/// beyond ulong range serializes to a bare JSON integer and deserializes as
 	/// <c>System.Numerics.BigInteger</c>, which cannot be assigned to the decimal <c>val</c>

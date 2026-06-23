@@ -67,14 +67,13 @@ public partial class CodeSystemType : ExtensionBaseType
             if (((_codeSystemName == null) 
                         || (_codeSystemName.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "CodeSystemName";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "CodeSystemName";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_codeSystemName = value;
+                	OnPropertyChanged("CodeSystemName", value);
                 }
-                _codeSystemName = value;
-                OnPropertyChanged("CodeSystemName", value);
             }
         }
     }

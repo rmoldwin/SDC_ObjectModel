@@ -120,16 +120,19 @@ public partial class long_DEtype : long_Stype
         {
             if ((_minExclusive.Equals(value) != true))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "minExclusive";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "minExclusive";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_minExclusive = value;
+                	OnPropertyChanged("minExclusive", value);
+                	_shouldSerializeminExclusive = true;
                 }
-                _minExclusive = value;
-                OnPropertyChanged("minExclusive", value);
             }
-            _shouldSerializeminExclusive = true;
+            else
+            {
+            	_shouldSerializeminExclusive = true;
+            }
         }
     }
     
@@ -146,16 +149,19 @@ public partial class long_DEtype : long_Stype
         {
             if ((_maxExclusive.Equals(value) != true))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "maxExclusive";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "maxExclusive";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_maxExclusive = value;
+                	OnPropertyChanged("maxExclusive", value);
+                	_shouldSerializemaxExclusive = true;
                 }
-                _maxExclusive = value;
-                OnPropertyChanged("maxExclusive", value);
             }
-            _shouldSerializemaxExclusive = true;
+            else
+            {
+            	_shouldSerializemaxExclusive = true;
+            }
         }
     }
     

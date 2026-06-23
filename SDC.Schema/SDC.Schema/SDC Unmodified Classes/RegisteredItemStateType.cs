@@ -134,14 +134,13 @@ public partial class RegisteredItemStateType : ExtensionBaseType
             if (((_registrationStatus == null) 
                         || (_registrationStatus.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "RegistrationStatus";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "RegistrationStatus";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_registrationStatus = value;
+                	OnPropertyChanged("RegistrationStatus", value);
                 }
-                _registrationStatus = value;
-                OnPropertyChanged("RegistrationStatus", value);
             }
         }
     }

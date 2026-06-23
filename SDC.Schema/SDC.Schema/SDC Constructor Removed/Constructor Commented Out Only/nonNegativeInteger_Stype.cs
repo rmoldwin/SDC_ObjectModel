@@ -64,16 +64,19 @@ public partial class nonNegativeInteger_Stype : BaseType
         {
             if ((_val.Equals(value) != true))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "val";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "val";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_val = value;
+                	OnPropertyChanged("val", value);
+                	_shouldSerializeval = true;
                 }
-                _val = value;
-                OnPropertyChanged("val", value);
             }
-            _shouldSerializeval = true;
+            else
+            {
+            	_shouldSerializeval = true;
+            }
         }
     }
     

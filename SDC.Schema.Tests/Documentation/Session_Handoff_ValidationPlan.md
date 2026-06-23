@@ -35,6 +35,10 @@
 
 **Open Q answers recorded:**
 - Q1: Non-throwing assign-and-raise semantics (always assign; surface via event).
+  **⚠️ SUPERSEDED by issue #8 (soft-reject):** the setter/deserialization path now keeps the prior/unset
+  value (never assigns the invalid value), still does not throw, and records the offending value on the
+  node (`BaseType.RejectedValues`). Events/`ValidationCollector` fire only when not suppressed; rejection
+  and recording are unconditional. See `NumericRange_XSD_vs_NET.md` and the divergence `<remarks>`.
 - Q2: xsd2code++ regen deferred; Phase 3 setter wiring proceeded against current generated code.
 - Q3: `AddDataTypesDE` errors → `SdcValidationEvents` hub; `errors` out-param kept as secondary.
 
@@ -201,13 +205,37 @@ Two independent `AsyncLocal<bool>` flags in `SdcUtil`:
 
 ---
 
+## Regeneration (xsd2code++) — soft-reject setter post-processing
+
+The soft-reject setter shape is **not** produced directly by xsd2code++. The tool's setter template is
+internal to the commercial product (there is no template file in this repo); with
+`<ValidatePropertyInSetter>true</ValidatePropertyInSetter>` (see
+`SDC.Schema/SDC.Schema/SDC Schema Files/xsd2code.config`) it emits the throwing
+`Validator.ValidateProperty(value, ctx); _field = value;` form. To make issue #8 survive regeneration,
+a committed post-processor rewrites every generated setter into the soft-reject form
+(`if (SdcUtil.ValidateAndRaise(value, ctx)) { _field = value; … }`).
+
+**After any xsd2code++ regeneration, run:**
+
+```
+python "SDC.Schema/SDC.Schema/SDC Schema Files/Apply_SoftReject_Setters.py"
+```
+
+* Idempotent — only matches the raw `Validator.ValidateProperty` form, so re-running is a no-op.
+* Use `--check` to see what would change (CI guard: exits non-zero if any setter still needs converting).
+* Targets the two compiled generated-class folders (`SDC Constructor Removed`, `SDC Unmodified Classes`).
+* `BaseType.sGuid` is a deliberate **hard-reject** identity invariant outside those folders and is never
+  touched.
+
+---
+
 ## Audit Results — What Exists Now
 
 ### Existing Validation Infrastructure
 
 | Component | Location | Description |
 |---|---|---|
-| `Validator.ValidateProperty(...)` | ~35 generated type files | DataAnnotations-based setter validation; throws `ValidationException` |
+| `SdcUtil.ValidateAndRaise(value, ctx)` → `bool` | `SdcUtil.cs` + ~32 generated type files | Soft-reject (issue #8): returns true=valid (setter assigns) / false=invalid (setter skips); records `SdcRejectedValue` on the node; fires events/collector when not suppressed |
 | `[RangeAttribute]`, `[FractionDigitsAttribute]`, `[MaxDigitsAttribute]`, `[RegularExpressionAttribute]` | Generated type files | Decorates properties that use setter validation |
 | `SdcUtil.IsDeserializing` (`AsyncLocal<bool>`) | `SdcUtil.cs` | Gate used in **some** setters (only `integer_DEtype` confirmed) to skip validation during deserialization |
 | `SdcValidate.ValidateSdcObjectTree / ValidateSdcXml` | `Utilities/SdcValidate.cs` | XSD-schema post-hoc XML validator; returns `List<ValidationEventArgs>` |
@@ -361,6 +389,7 @@ public static class SdcValidationEvents
 ## Open Questions for Next Session
 
 1. **Validation assignment semantics:** Should a setter that receives an invalid value (a) reject it and keep the old value, (b) assign it anyway and emit an event, or (c) assign it only if deserialization is active? This must be decided before Phase 2/3 implementation.
+   **✅ RESOLVED (issue #8) → (a), extended to deserialization.** The setter rejects the invalid value and keeps the prior/unset value on every path (programmatic mutation AND all deserialization formats). It does not throw (soft reject), records the offending value out-of-band on the node (`BaseType.RejectedValues`) unconditionally, and fires `SdcValidationEvents.ValidationOccurred` + populates `ValidationCollector` only when validation is not suppressed (plain `Deserialize` stays quiet but still records). `ValidateAndRaise` now returns `bool` so the generated setter assigns only on success. The one deliberate exception is `BaseType.sGuid`, a structural identity property that remains a hard-reject invariant.
 
 2. **`IDataHelpers` scope:** Should `IDataHelpers` remain an interface with static methods, become an abstract base, or move to a static class? The current interface-with-static-members pattern (C# 8+) works but has IDE limitations.
 

@@ -74,32 +74,118 @@ namespace SDC.Schema
 		/// </summary>
 		public static System.Threading.AsyncLocal<SdcValidationReport?> ValidationCollector { get; } = new System.Threading.AsyncLocal<SdcValidationReport?>();
 
+		// Out-of-band per-node store of values that were rejected by a setter (soft-reject, issue #8).
+		// Keyed by node, then by property name (last invalid attempt per property wins). Held in a
+		// ConditionalWeakTable so it is never serialized and is GC'd together with the owning node.
+		private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<BaseType, Dictionary<string, SdcRejectedValue>> _rejectedValues = new();
+
 		/// <summary>
-		/// Non-throwing property validator: runs DataAnnotations validation on <paramref name="value"/>
-		/// and, if validation fails:<br/>
-		/// • appends an <see cref="SdcNodeValidationIssue"/> to <see cref="ValidationCollector"/>
-		///   (if one is active), and<br/>
-		/// • fires <see cref="SdcValidationEvents.ValidationOccurred"/> with full context.<br/>
-		/// This method is a no-op when <see cref="SuppressValidation"/> is <see langword="true"/>.<br/>
-		/// The value is never rejected — callers assign <c>_field = value</c> unconditionally
-		/// after this call (assign-and-raise semantics, Q1 decision).
+		/// Records a value that was rejected by a setter on <paramref name="node"/> so it can be
+		/// surfaced to the user for correction. The most recent rejected attempt per property wins.
+		/// Called unconditionally by <see cref="ValidateAndRaise"/> on failure (even when
+		/// <see cref="SuppressValidation"/> is <see langword="true"/>).
+		/// </summary>
+		internal static void RecordRejectedValue(BaseType node, SdcRejectedValue rejected)
+		{
+			if (node is null || string.IsNullOrEmpty(rejected.PropertyName)) return;
+			var map = _rejectedValues.GetOrCreateValue(node);
+			lock (map) { map[rejected.PropertyName] = rejected; }
+		}
+
+		/// <summary>
+		/// Returns the values that were rejected (and therefore not stored) on
+		/// <paramref name="node"/>, keyed by property name. Empty when the node has no rejected values.
+		/// </summary>
+		public static IReadOnlyDictionary<string, SdcRejectedValue> GetRejectedValues(BaseType node)
+		{
+			if (node is not null && _rejectedValues.TryGetValue(node, out var map))
+			{
+				lock (map) { return new Dictionary<string, SdcRejectedValue>(map); }
+			}
+			return EmptyRejected;
+		}
+
+		private static readonly IReadOnlyDictionary<string, SdcRejectedValue> EmptyRejected =
+			new Dictionary<string, SdcRejectedValue>();
+
+		/// <summary><see langword="true"/> when <paramref name="node"/> has at least one rejected value.</summary>
+		public static bool HasRejectedValues(BaseType node) =>
+			node is not null && _rejectedValues.TryGetValue(node, out var map) && map.Count > 0;
+
+		/// <summary>
+		/// Clears the recorded rejected value for a single property on <paramref name="node"/>
+		/// (e.g., after the user supplies a valid value). Returns <see langword="true"/> if one was removed.
+		/// </summary>
+		public static bool ClearRejectedValue(BaseType node, string propertyName)
+		{
+			if (node is not null && propertyName is not null && _rejectedValues.TryGetValue(node, out var map))
+			{
+				lock (map) { return map.Remove(propertyName); }
+			}
+			return false;
+		}
+
+		/// <summary>Clears all recorded rejected values for <paramref name="node"/>.</summary>
+		public static void ClearRejectedValues(BaseType node)
+		{
+			if (node is not null) _rejectedValues.Remove(node);
+		}
+
+		/// <summary>
+		/// Non-throwing property validator implementing the <b>soft-reject</b> contract (issue #8):
+		/// runs DataAnnotations validation on <paramref name="value"/> and returns whether it is valid.<br/>
+		/// • Returns <see langword="true"/> when the value is valid — the caller (generated setter)
+		///   then assigns <c>_field = value</c>.<br/>
+		/// • Returns <see langword="false"/> when the value is invalid — the caller <b>must not</b>
+		///   assign it (the prior/unset value is retained). On failure this method <b>always</b>:<br/>
+		///   &#160;&#160;– records the offending value on the node via
+		///   <see cref="RecordRejectedValue"/> (so it can be surfaced for correction), and<br/>
+		///   &#160;&#160;– when <see cref="SuppressValidation"/> is <see langword="false"/>, appends an
+		///   <see cref="SdcNodeValidationIssue"/> to <see cref="ValidationCollector"/> (if active) and
+		///   fires <see cref="SdcValidationEvents.ValidationOccurred"/>.<br/>
+		/// Rejection and rejected-value recording are <b>unconditional</b>; <see cref="SuppressValidation"/>
+		/// only suppresses event/report <em>noise</em> (e.g., during plain, non-validating deserialization)
+		/// — it never permits an invalid value to be stored.<br/>
+		/// The produced message always includes the offending value.
 		/// </summary>
 		/// <param name="value">The incoming property value to validate.</param>
 		/// <param name="ctx">
 		/// A <see cref="ValidationContext"/> with <see cref="ValidationContext.MemberName"/>
 		/// set to the property name.
 		/// </param>
-		public static void ValidateAndRaise(object? value, ValidationContext ctx)
+		/// <returns><see langword="true"/> if the value is valid and may be assigned; otherwise <see langword="false"/>.</returns>
+		public static bool ValidateAndRaise(object? value, ValidationContext ctx)
 		{
-			if (SuppressValidation.Value) return;
-
 			var results = new List<ValidationResult>();
-			if (!Validator.TryValidateProperty(value, ctx, results))
+			if (Validator.TryValidateProperty(value, ctx, results))
 			{
-				string nodeID   = (ctx.ObjectInstance as BaseType)?.sGuid ?? "(unknown)";
-				string nodeType = ctx.ObjectInstance?.GetType().Name ?? "(unknown)";
-				string message  = string.Join("; ", results.Select(r => r.ErrorMessage ?? "(validation error)"));
+				// A valid value supersedes any prior rejection recorded for this property.
+				if (ctx.ObjectInstance is BaseType okNode && ctx.MemberName is string okProp)
+					ClearRejectedValue(okNode, okProp);
+				return true;
+			}
 
+			string nodeID   = (ctx.ObjectInstance as BaseType)?.sGuid ?? "(unknown)";
+			string nodeType = ctx.ObjectInstance?.GetType().Name ?? "(unknown)";
+			string detail   = string.Join("; ", results.Select(r => r.ErrorMessage ?? "(validation error)"));
+			string message  = $"Value '{value ?? "null"}' is invalid for '{ctx.MemberName}': {detail}";
+
+			// Unconditional: record the offending value on the node so it is never silently lost.
+			if (ctx.ObjectInstance is BaseType node && ctx.MemberName is string prop)
+			{
+				RecordRejectedValue(node, new SdcRejectedValue
+				{
+					PropertyName   = prop,
+					AttemptedValue = value,
+					Message        = message,
+					RejectedAt     = System.DateTimeOffset.Now,
+					Results        = results.AsReadOnly()
+				});
+			}
+
+			// Gated: events + report collection are suppressed during non-validating deserialization.
+			if (!SuppressValidation.Value)
+			{
 				var issue = new SdcNodeValidationIssue
 				{
 					NodeID         = nodeID,
@@ -125,6 +211,8 @@ namespace SDC.Schema
 					Results        = results.AsReadOnly()
 				});
 			}
+
+			return false;
 		}
 
 		/// <summary>

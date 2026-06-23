@@ -112,14 +112,13 @@ public partial class ChangeLogType : ExtensionBaseType
             if (((_changedFrom == null) 
                         || (_changedFrom.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "ChangedFrom";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "ChangedFrom";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_changedFrom = value;
+                	OnPropertyChanged("ChangedFrom", value);
                 }
-                _changedFrom = value;
-                OnPropertyChanged("ChangedFrom", value);
             }
         }
     }

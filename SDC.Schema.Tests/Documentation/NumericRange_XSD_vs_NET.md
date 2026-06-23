@@ -22,7 +22,35 @@ and in the hand-written validator (`SDC.Schema/Utility Classes/SdcValidate.cs`).
 
 ---
 
-## 1. Datatype range matrix (16 types)
+## 0. Validation contract: soft-reject (issue #8)
+
+When a numeric (or any) setter — or any deserialization path (XML/JSON/BSON/MsgPack) — receives a
+value that fails its DataAnnotations facets (`[Range]`, `[MaxDigits]`, `[FractionDigits]`, …), the OM
+**soft-rejects** it:
+
+1. **Never stores the invalid value.** The typed backing field keeps its prior value (or stays unset).
+   The OM is never left holding data that violates its own schema.
+2. **Does not throw.** Assignment and deserialization continue (soft reject), so an invalid source
+   document surfaces *all* of its problems instead of aborting on the first one.
+3. **Always records the offending value** on the node, out-of-band, in
+   `BaseType.RejectedValues[propertyName]` (an `SdcRejectedValue` carrying the attempted value, a
+   message that includes that value, the timestamp, and the `ValidationResult`s). Nothing is silently
+   dropped — a UI can read `RejectedValues` to show the user what to correct.
+4. **Surfaces events/reports only when validation is not suppressed.** `SdcValidationEvents.ValidationOccurred`
+   fires and `ValidationCollector` is populated on programmatic mutation and on the
+   `Deserialize*Validating` overloads; the plain (non-validating) `Deserialize` stays quiet but **still**
+   rejects and records (recording is unconditional, event/report noise is gated by `SuppressValidation`).
+
+The mechanism is `SdcUtil.ValidateAndRaise`, which now returns `bool` (true = valid → the generated
+setter assigns; false = invalid → the setter skips the assignment). A subsequent **valid** set for the
+same property clears its recorded rejected value.
+
+**Deliberate exception — `BaseType.sGuid`:** the structural node-identity property is a hard-reject
+invariant (its value is decode-validated before assignment and node dictionaries are re-registered
+against it), so it is *not* soft-rejected.
+
+---
+
 
 | `ItemChoiceType` | `*_Stype` | `val` .NET type | XSD value space | Effective min | Effective max | .NET narrows XSD? |
 |---|---|---|---|---|---|---|
@@ -62,8 +90,10 @@ The custom `MaxDigitsAttribute(29)` (in
 `value.ToString().Length <= 29`. For negative values the leading `-` consumes one of the
 29 characters, so **negative** integer-family values are limited to **28 significant
 digits** while **positive** values get **29**. Consequently `decimal.MaxValue`
-(29 digits) is accepted, but `decimal.MinValue` (30 chars including the sign) throws
-`ValidationException`. Test constants therefore use `7.9e28` (positive, 29 digits) and
+(29 digits) is accepted, but `decimal.MinValue` (30 chars including the sign) is
+**soft-rejected** (issue #8): the setter keeps the prior/unset value, does **not** throw, and
+records the offending value on the node (`BaseType.RejectedValues`). Test constants therefore
+use `7.9e28` (positive, 29 digits) and
 `-7.9e27` (negative, 28 digits).
 *Tests:* `NumericResponseTypeBoundaryTests.Integer_Val_DecimalExtremes_RangeEdgeBehavior`.
 

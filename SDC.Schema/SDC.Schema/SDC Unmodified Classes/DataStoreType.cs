@@ -112,14 +112,13 @@ public partial class DataStoreType : ExtensionBaseType
             if (((_databaseSoftware == null) 
                         || (_databaseSoftware.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "DatabaseSoftware";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "DatabaseSoftware";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_databaseSoftware = value;
+                	OnPropertyChanged("DatabaseSoftware", value);
                 }
-                _databaseSoftware = value;
-                OnPropertyChanged("DatabaseSoftware", value);
             }
         }
     }

@@ -1734,6 +1734,32 @@ namespace SDC.Schema
 	public partial class BaseType : IBaseType //IBaseType inherits IMoveRemove and INavigate
 	{
 		/// <summary>
+		/// Values that were <b>rejected</b> by this node's setters (soft-reject, issue #8) and therefore
+		/// never stored in their strongly-typed backing fields, keyed by property name. Use this to
+		/// surface invalid input to the user for correction. Empty when nothing was rejected.<br/>
+		/// Backed by an out-of-band store (<see cref="SdcUtil.GetRejectedValues(BaseType)"/>), so it is
+		/// never serialized.
+		/// </summary>
+		[System.Xml.Serialization.XmlIgnore]
+		[Newtonsoft.Json.JsonIgnore]
+		public IReadOnlyDictionary<string, SdcRejectedValue> RejectedValues => SdcUtil.GetRejectedValues(this);
+
+		/// <summary><see langword="true"/> when this node has at least one rejected (unstored) value.</summary>
+		[System.Xml.Serialization.XmlIgnore]
+		[Newtonsoft.Json.JsonIgnore]
+		public bool HasRejectedValues => SdcUtil.HasRejectedValues(this);
+
+		/// <summary>
+		/// Clears the recorded rejected value for <paramref name="propertyName"/> (e.g., after the user
+		/// supplies a valid value). Returns <see langword="true"/> if a rejected value was removed.
+		/// </summary>
+		public bool ClearRejectedValue(string propertyName) => SdcUtil.ClearRejectedValue(this, propertyName);
+
+		/// <summary>Clears all recorded rejected values for this node.</summary>
+		public void ClearRejectedValues() => SdcUtil.ClearRejectedValues(this);
+
+
+		/// <summary>
 		/// This constructor is used only to deserialize SDC classes with the SDC.Schema serializers.<br/>
 		///		Parent Nodes cannot be assigned through this constructor. <br/>
 		///		Node dictionaries cannot be populated here either.<br/>

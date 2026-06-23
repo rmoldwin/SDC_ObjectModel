@@ -83,16 +83,19 @@ namespace SDC.Schema
 			{
 				if ((_minInclusive.Equals(value) != true))
 				{
-					if (!SdcUtil.SuppressValidation.Value)
+					ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+					validatorPropContext.MemberName = "minInclusive";
+					if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
 					{
-						ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-						validatorPropContext.MemberName = "minInclusive";
-						SdcUtil.ValidateAndRaise(value, validatorPropContext);
+						_minInclusive = value;
+						OnPropertyChanged("minInclusive", value);
+						_shouldSerializeminInclusive = true;
 					}
-					_minInclusive = value;
-					OnPropertyChanged("minInclusive", value);
 				}
-				_shouldSerializeminInclusive = true;
+				else
+				{
+					_shouldSerializeminInclusive = true;
+				}
 			}
 		}
 
@@ -111,16 +114,19 @@ namespace SDC.Schema
 			{
 				if ((_maxInclusive.Equals(value) != true))
 				{
-					if (!SdcUtil.SuppressValidation.Value)
+					ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+					validatorPropContext.MemberName = "maxInclusive";
+					if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
 					{
-						ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-						validatorPropContext.MemberName = "maxInclusive";
-						SdcUtil.ValidateAndRaise(value, validatorPropContext);
+						_maxInclusive = value;
+						OnPropertyChanged("maxInclusive", value);
+						_shouldSerializemaxInclusive = true;
 					}
-					_maxInclusive = value;
-					OnPropertyChanged("maxInclusive", value);
 				}
-				_shouldSerializemaxInclusive = true;
+				else
+				{
+					_shouldSerializemaxInclusive = true;
+				}
 			}
 		}
 
@@ -139,16 +145,19 @@ namespace SDC.Schema
 			{
 				if ((_minExclusive.Equals(value) != true))
 				{
-					if (!SdcUtil.SuppressValidation.Value)
+					ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+					validatorPropContext.MemberName = "minExclusive";
+					if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
 					{
-						ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-						validatorPropContext.MemberName = "minExclusive";
-						SdcUtil.ValidateAndRaise(value, validatorPropContext);
+						_minExclusive = value;
+						OnPropertyChanged("minExclusive", value);
+						_shouldSerializeminExclusive = true;
 					}
-					_minExclusive = value;
-					OnPropertyChanged("minExclusive", value);
 				}
-				_shouldSerializeminExclusive = true;
+				else
+				{
+					_shouldSerializeminExclusive = true;
+				}
 			}
 		}
 
@@ -167,16 +176,19 @@ namespace SDC.Schema
 			{
 				if ((_maxExclusive.Equals(value) != true))
 				{
-					if (!SdcUtil.SuppressValidation.Value)
+					ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+					validatorPropContext.MemberName = "maxExclusive";
+					if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
 					{
-						ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-						validatorPropContext.MemberName = "maxExclusive";
-						SdcUtil.ValidateAndRaise(value, validatorPropContext);
+						_maxExclusive = value;
+						OnPropertyChanged("maxExclusive", value);
+						_shouldSerializemaxExclusive = true;
 					}
-					_maxExclusive = value;
-					OnPropertyChanged("maxExclusive", value);
 				}
-				_shouldSerializemaxExclusive = true;
+				else
+				{
+					_shouldSerializemaxExclusive = true;
+				}
 			}
 		}
 

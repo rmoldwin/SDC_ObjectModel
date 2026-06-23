@@ -67,14 +67,13 @@ public partial class PersonType : ExtensionBaseType
             if (((_personName == null) 
                         || (_personName.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "PersonName";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "PersonName";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_personName = value;
+                	OnPropertyChanged("PersonName", value);
                 }
-                _personName = value;
-                OnPropertyChanged("PersonName", value);
             }
         }
     }

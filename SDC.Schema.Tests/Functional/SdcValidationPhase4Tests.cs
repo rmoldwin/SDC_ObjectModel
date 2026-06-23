@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace SDC.Schema.Tests.Functional
@@ -181,6 +182,11 @@ namespace SDC.Schema.Tests.Functional
 			}
 
 			Assert.AreEqual(0, _captured.Count, "SuppressValidation=true must prevent any ValidationOccurred event.");
+			// Soft-reject is unconditional: even with events suppressed, the invalid value must NOT
+			// be written to the typed field and MUST be recorded out-of-band for later UI correction.
+			Assert.AreNotEqual(1.5m, intDt.minInclusive, "Invalid value must never be stored, even when validation events are suppressed.");
+			Assert.IsTrue(intDt.HasRejectedValues, "The rejected value must be recorded even when events are suppressed.");
+			Assert.AreEqual(1.5m, intDt.RejectedValues["minInclusive"].AttemptedValue, "The offending value must be retrievable from RejectedValues.");
 		}
 
 		[TestMethod]
@@ -194,6 +200,8 @@ namespace SDC.Schema.Tests.Functional
 			intDt.minInclusive = 1.5m;
 
 			Assert.IsTrue(_captured.Count > 0, "SuppressValidation=false must allow validation events to fire.");
+			// Soft-reject: the invalid value must not be stored even though the event fired.
+			Assert.AreNotEqual(1.5m, intDt.minInclusive, "Invalid value must never be assigned to the typed field.");
 		}
 
 		[TestMethod]
@@ -216,6 +224,8 @@ namespace SDC.Schema.Tests.Functional
 
 			Assert.IsTrue(report.ErrorCount > 0 || report.WarningCount > 0,
 				"ValidationCollector must be populated when ValidateAndRaise fires.");
+			// Soft-reject: collection of the issue does not imply the value was stored — it wasn't.
+			Assert.AreNotEqual(1.5m, intDt.minInclusive, "Invalid value must never be assigned to the typed field.");
 		}
 
 		// ─── Phase 4C: DeserializeXmlValidating ───────────────────────────────────
@@ -326,23 +336,23 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void ValidateTree_AfterProgrammaticMutation_CapturesIssue()
 		{
-			// Rationale: programmatically setting an invalid fractional value on an integer
-			// field, then calling ValidateTree, must produce an Error entry in the report.
-			// This confirms the sweep detects problems introduced by code, not just deserialization.
+			// Rationale: under soft-reject the setter refuses to store an invalid fractional value,
+			// so to simulate stale/corrupt data that bypassed the setter (e.g. legacy persisted data
+			// or a direct field write) we seed the backing field via reflection. ValidateTree must
+			// then surface that pre-existing corruption as an Error — proving the sweep detects
+			// problems regardless of how they entered the tree, not only through the setter path.
 			var de = new DataElementType(null);
 			var q  = new QuestionItemType(de, "q_sweep");
 			q.AddQuestionResponseField(out DataTypes_DEType deType, ItemChoiceType.integer);
 			var intDt = (integer_DEtype)deType.Item;
 
-			// Suppress validation to silently corrupt the value (simulates stale data)
-			SdcUtil.SuppressValidation.Value = true;
-			try { intDt.minInclusive = 1.5m; }
-			finally { SdcUtil.SuppressValidation.Value = false; }
+			// Bypass the soft-reject setter to plant an illegal fractional value directly.
+			SeedBackingField(intDt, "_minInclusive", 1.5m);
 
 			var report = ((ITopNode)de).ValidateTree(recurseSubTrees: false);
 
 			Assert.IsFalse(report.IsValid,
-				"ValidateTree must detect the illegally set fractional value on minInclusive.");
+				"ValidateTree must detect the illegally seeded fractional value on minInclusive.");
 			Assert.IsTrue(report.ErrorCount > 0);
 		}
 
@@ -350,21 +360,31 @@ namespace SDC.Schema.Tests.Functional
 		public void ValidateNode_SingleNode_InvalidValue_ReturnsIssue()
 		{
 			// Rationale: ValidateNode (single-node variant) must detect the same fractional
-			// violation as ValidateTree, but operating on a single BaseType instance.
+			// violation as ValidateTree, but operating on a single BaseType instance. As above,
+			// the invalid value is seeded directly into the backing field because the soft-reject
+			// setter would otherwise refuse to store it.
 			var de = new DataElementType(null);
 			var q  = new QuestionItemType(de, "q_singlenode");
 			q.AddQuestionResponseField(out DataTypes_DEType deType, ItemChoiceType.integer);
 			var intDt = (integer_DEtype)deType.Item;
 
-			SdcUtil.SuppressValidation.Value = true;
-			try { intDt.minInclusive = 1.5m; }
-			finally { SdcUtil.SuppressValidation.Value = false; }
+			SeedBackingField(intDt, "_minInclusive", 1.5m);
 
 			var report = intDt.ValidateNode();
 
 			Assert.IsFalse(report.IsValid,
 				"ValidateNode must report an error for the fractional minInclusive value.");
 			Assert.AreEqual(1, report.AffectedNodeCount);
+		}
+
+		// Writes directly to a private backing field, bypassing the soft-reject setter. Used to
+		// simulate invalid data that entered the tree through a non-setter path (legacy data, a
+		// future bug, manual reflection) so the validation sweep can be exercised against it.
+		private static void SeedBackingField(object target, string fieldName, object value)
+		{
+			var f = target.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+			Assert.IsNotNull(f, $"Backing field '{fieldName}' not found on {target.GetType().Name}.");
+			f!.SetValue(target, value);
 		}
 
 		[TestMethod]

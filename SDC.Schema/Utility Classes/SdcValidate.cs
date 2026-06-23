@@ -21,7 +21,7 @@ namespace SDC.Schema
 	/// <list type="bullet">
 	/// <item><description><b>A.</b> Integer-family <c>MaxDigitsAttribute(29)</c> counts the sign, so
 	/// negatives are capped at 28 significant digits and positives at 29 (<c>decimal.MinValue</c>
-	/// throws; <c>decimal.MaxValue</c> is accepted).</description></item>
+	/// is soft-rejected; <c>decimal.MaxValue</c> is accepted).</description></item>
 	/// <item><description><b>B.</b> <c>long_DEtype</c> exclusive facets use the
 	/// <c>RangeAttribute(double,double)</c> overload and cannot be enforced at <c>long.MaxValue</c>
 	/// (double precision collapse).</description></item>

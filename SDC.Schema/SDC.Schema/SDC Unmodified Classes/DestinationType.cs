@@ -61,14 +61,13 @@ public partial class DestinationType : ExtensionBaseType
             if (((_endpoint == null) 
                         || (_endpoint.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "Endpoint";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "Endpoint";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_endpoint = value;
+                	OnPropertyChanged("Endpoint", value);
                 }
-                _endpoint = value;
-                OnPropertyChanged("Endpoint", value);
             }
         }
     }
@@ -91,14 +90,13 @@ public partial class DestinationType : ExtensionBaseType
             if (((_endpointDescription == null) 
                         || (_endpointDescription.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "EndpointDescription";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "EndpointDescription";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_endpointDescription = value;
+                	OnPropertyChanged("EndpointDescription", value);
                 }
-                _endpointDescription = value;
-                OnPropertyChanged("EndpointDescription", value);
             }
         }
     }

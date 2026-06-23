@@ -60,14 +60,13 @@ public partial class EmailType : ExtensionBaseType
             if (((_emailAddress == null) 
                         || (_emailAddress.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "EmailAddress";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "EmailAddress";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_emailAddress = value;
+                	OnPropertyChanged("EmailAddress", value);
                 }
-                _emailAddress = value;
-                OnPropertyChanged("EmailAddress", value);
             }
         }
     }

@@ -27,6 +27,30 @@ namespace SDC.Schema.Tests.OM
 		private static T DE<T>(ItemChoiceType ict) where T : BaseType
 			=> NumericResponseTypeTestHelpers.DE<T>(ict, out _);
 
+		/// <summary>
+		/// Verifies the soft-reject contract (issue #8) for a numeric setter: the assignment must
+		/// NOT throw, the stored value must be unchanged from <paramref name="prior"/>, and the
+		/// offending value must be recorded on the node (<see cref="BaseType.RejectedValues"/>
+		/// keyed by <paramref name="prop"/>) with a message that includes the offending value so a
+		/// UI can surface it for correction.
+		/// </summary>
+		private static void AssertValSoftRejected(
+			BaseType node, string prop, decimal prior,
+			Func<decimal> read, Action assign, object offending, string because)
+		{
+			assign(); // soft reject: must not throw
+			// Rationale: an invalid value must never enter the OM — the prior/unset value is retained.
+			Assert.AreEqual(prior, read(), $"{because} — invalid value must not be stored (prior retained).");
+			// Rationale: the offending value is relocated to the out-of-band store, never silently dropped.
+			Assert.IsTrue(node.RejectedValues.TryGetValue(prop, out var rv),
+				$"{because} — a rejected value for '{prop}' must be recorded.");
+			Assert.AreEqual(offending, rv!.AttemptedValue,
+				$"{because} — the recorded rejected value must be the offending value.");
+			// Rationale: the message must name the offending value so the user knows what to fix.
+			StringAssert.Contains(rv.Message, offending!.ToString(),
+				$"{because} — the rejection message must include the offending value.");
+		}
+
 		#region Axis A — val min / max
 
 		[TestMethod]
@@ -143,15 +167,16 @@ namespace SDC.Schema.Tests.OM
 			// Characterizes a documented divergence caused by the custom MaxDigitsAttribute(29) on val,
 			// which validates value.ToString().Length <= 29. decimal.MaxValue is 29 digits ("7922...0335")
 			// and is accepted, but decimal.MinValue renders as "-7922...0335" (30 chars including the
-			// sign) and is rejected with ValidationException. The minus sign is counted toward the digit
-			// budget, so the negative value space is one significant digit narrower than the positive.
+			// sign) and is rejected by MaxDigits(29). Under the soft-reject contract the rejected value
+			// is not stored (val keeps its prior default) and is recorded on the node — no exception.
 			var accept = DE<integer_DEtype>(ItemChoiceType.integer);
 			accept.val = decimal.MaxValue;
 			Assert.AreEqual(decimal.MaxValue, accept.val, "decimal.MaxValue is 29 chars and is accepted by MaxDigits(29).");
 
 			var reject = DE<integer_DEtype>(ItemChoiceType.integer);
-			Assert.Throws<ValidationException>(() => reject.val = decimal.MinValue,
-				"decimal.MinValue is 30 chars (sign + 29 digits) and is rejected by MaxDigits(29) (documented divergence).");
+			AssertValSoftRejected(reject, "val", reject.val, () => reject.val,
+				() => reject.val = decimal.MinValue, decimal.MinValue,
+				"decimal.MinValue is 30 chars (sign + 29 digits) and is rejected by MaxDigits(29) (documented divergence)");
 		}
 
 		[TestMethod]
@@ -284,14 +309,16 @@ namespace SDC.Schema.Tests.OM
 		#region Axis B — [Range] enforcement (negative tests)
 
 		[TestMethod]
-		public void Int_MaxExclusive_SetToIntMinValue_ThrowsValidationException()
+		public void Int_MaxExclusive_SetToIntMinValue_SoftRejected()
 		{
 			// int_DEtype.maxExclusive carries [Range(-2147483647, 2147483647)], which EXCLUDES
-			// int.MinValue (-2147483648). Assigning it must throw — a documented .NET narrowing of
-			// the xs:int value space at the exclusive-bound facet.
+			// int.MinValue (-2147483648). Under soft-reject the assignment must not throw, the value
+			// must stay at its prior default, and the offending value must be recorded — a documented
+			// .NET narrowing of the xs:int value space at the exclusive-bound facet.
 			var de = DE<int_DEtype>(ItemChoiceType.@int);
-			Assert.Throws<ValidationException>(() => de.maxExclusive = int.MinValue,
-				"maxExclusive = int.MinValue must throw because the [Range] lower bound is -2147483647.");
+			AssertValSoftRejected(de, "maxExclusive", de.maxExclusive, () => de.maxExclusive,
+				() => de.maxExclusive = int.MinValue, int.MinValue,
+				"maxExclusive = int.MinValue is below the [Range] lower bound -2147483647");
 		}
 
 		[TestMethod]
@@ -319,40 +346,41 @@ namespace SDC.Schema.Tests.OM
 		}
 
 		[TestMethod]
-		public void PositiveInteger_Val_SetToNegativeOne_ThrowsValidationException()
+		public void PositiveInteger_Val_SetToNegativeOne_SoftRejected()
 		{
 			// positiveInteger.val [Range] is [1, ~7.92e28]; -1 is below the lower bound. (0 is the
 			// decimal default and is skipped by the setter's change-guard, so -1 is used to trigger.)
+			// Soft-reject: no throw, value unchanged, offending value recorded.
 			var de = DE<positiveInteger_DEtype>(ItemChoiceType.positiveInteger);
-			Assert.Throws<ValidationException>(() => de.val = -1m,
-				"positiveInteger val = -1 must throw; the value space starts at 1.");
+			AssertValSoftRejected(de, "val", de.val, () => de.val, () => de.val = -1m, -1m,
+				"positiveInteger val = -1 is below the value space, which starts at 1");
 		}
 
 		[TestMethod]
-		public void NegativeInteger_Val_SetToOne_ThrowsValidationException()
+		public void NegativeInteger_Val_SetToOne_SoftRejected()
 		{
 			// negativeInteger.val [Range] is [~-7.92e28, -1]; 1 is above the upper bound.
 			var de = DE<negativeInteger_DEtype>(ItemChoiceType.negativeInteger);
-			Assert.Throws<ValidationException>(() => de.val = 1m,
-				"negativeInteger val = 1 must throw; the value space ends at -1.");
+			AssertValSoftRejected(de, "val", de.val, () => de.val, () => de.val = 1m, 1m,
+				"negativeInteger val = 1 is above the value space, which ends at -1");
 		}
 
 		[TestMethod]
-		public void NonNegativeInteger_Val_SetToNegativeOne_ThrowsValidationException()
+		public void NonNegativeInteger_Val_SetToNegativeOne_SoftRejected()
 		{
 			// nonNegativeInteger.val [Range] is [0, ~7.92e28]; -1 is below the lower bound.
 			var de = DE<nonNegativeInteger_DEtype>(ItemChoiceType.nonNegativeInteger);
-			Assert.Throws<ValidationException>(() => de.val = -1m,
-				"nonNegativeInteger val = -1 must throw; the value space starts at 0.");
+			AssertValSoftRejected(de, "val", de.val, () => de.val, () => de.val = -1m, -1m,
+				"nonNegativeInteger val = -1 is below the value space, which starts at 0");
 		}
 
 		[TestMethod]
-		public void NonPositiveInteger_Val_SetToOne_ThrowsValidationException()
+		public void NonPositiveInteger_Val_SetToOne_SoftRejected()
 		{
 			// nonPositiveInteger.val [Range] is [~-7.92e28, 0]; 1 is above the upper bound.
 			var de = DE<nonPositiveInteger_DEtype>(ItemChoiceType.nonPositiveInteger);
-			Assert.Throws<ValidationException>(() => de.val = 1m,
-				"nonPositiveInteger val = 1 must throw; the value space ends at 0.");
+			AssertValSoftRejected(de, "val", de.val, () => de.val, () => de.val = 1m, 1m,
+				"nonPositiveInteger val = 1 is above the value space, which ends at 0");
 		}
 
 		#endregion

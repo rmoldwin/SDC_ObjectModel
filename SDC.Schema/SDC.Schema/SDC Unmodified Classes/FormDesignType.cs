@@ -595,16 +595,19 @@ public partial class FormDesignType : IdentifiedExtensionType
         {
             if ((_instanceVersion.Equals(value) != true))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "instanceVersion";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "instanceVersion";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_instanceVersion = value;
+                	OnPropertyChanged("instanceVersion", value);
+                	_shouldSerializeinstanceVersion = true;
                 }
-                _instanceVersion = value;
-                OnPropertyChanged("instanceVersion", value);
             }
-            _shouldSerializeinstanceVersion = true;
+            else
+            {
+            	_shouldSerializeinstanceVersion = true;
+            }
         }
     }
     
@@ -678,16 +681,19 @@ public partial class FormDesignType : IdentifiedExtensionType
         {
             if ((_instanceVersionPrev.Equals(value) != true))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "instanceVersionPrev";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "instanceVersionPrev";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_instanceVersionPrev = value;
+                	OnPropertyChanged("instanceVersionPrev", value);
+                	_shouldSerializeinstanceVersionPrev = true;
                 }
-                _instanceVersionPrev = value;
-                OnPropertyChanged("instanceVersionPrev", value);
             }
-            _shouldSerializeinstanceVersionPrev = true;
+            else
+            {
+            	_shouldSerializeinstanceVersionPrev = true;
+            }
         }
     }
     

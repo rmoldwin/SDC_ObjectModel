@@ -138,16 +138,19 @@ namespace SDC.Schema
 			{
 				if ((_maxExclusive.Equals(value) != true))
 				{
-					if (!SdcUtil.SuppressValidation.Value)
+					ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+					validatorPropContext.MemberName = "maxExclusive";
+					if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
 					{
-						ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-						validatorPropContext.MemberName = "maxExclusive";
-						SdcUtil.ValidateAndRaise(value, validatorPropContext);
+						_maxExclusive = value;
+						OnPropertyChanged("maxExclusive", value);
+						_shouldSerializemaxExclusive = true;
 					}
-					_maxExclusive = value;
-					OnPropertyChanged("maxExclusive", value);
 				}
-				_shouldSerializemaxExclusive = true;
+				else
+				{
+					_shouldSerializemaxExclusive = true;
+				}
 			}
 		}
 

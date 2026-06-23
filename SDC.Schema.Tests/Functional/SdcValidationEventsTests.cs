@@ -172,17 +172,25 @@ namespace SDC.Schema.Tests.Functional
 		}
 
 		[TestMethod]
-		public void IntegerDEtype_SetFractionalMinInclusive_ValueIsAssignedDespiteFailure()
+		public void IntegerDEtype_SetFractionalMinInclusive_ValueIsSoftRejected()
 		{
-			// Rationale: Q1 decision — assign-and-raise semantics. The backing field must be
-			// updated unconditionally so the OM is never left in an inconsistent state after
-			// a validation event.
+			// Rationale: Issue #8 reverses the earlier assign-and-raise contract. The setter must
+			// soft-reject an invalid fractional value: the backing field keeps its prior value (the
+			// OM is never corrupted), no exception is thrown, and the offending value is recorded
+			// out-of-band so the UI can surface it for correction.
 			var intDt = CreateIntegerNode();
+			var prior = intDt.minInclusive;
 
 			intDt.minInclusive = 1.5m;
 
-			Assert.AreEqual(1.5m, intDt.minInclusive,
-				"Assign-and-raise: the value must be stored even when validation fails.");
+			Assert.AreEqual(prior, intDt.minInclusive,
+				"Soft-reject: the invalid value must NOT be stored; the prior value must be retained.");
+			Assert.IsTrue(intDt.HasRejectedValues,
+				"The rejected value must be recorded for later UI correction.");
+			Assert.AreEqual(1.5m, intDt.RejectedValues["minInclusive"].AttemptedValue,
+				"The offending value must be retrievable from RejectedValues.");
+			StringAssert.Contains(intDt.RejectedValues["minInclusive"].Message, "1.5",
+				"The rejection message must include the offending value.");
 		}
 
 		[TestMethod]
@@ -248,11 +256,14 @@ namespace SDC.Schema.Tests.Functional
 		}
 
 		[TestMethod]
-		public void IntegerDEtype_SetFractional_WhenIsDeserializingTrue_ValueIsStillAssigned()
+		public void IntegerDEtype_SetFractional_WhenIsDeserializingTrue_ValueIsSoftRejected()
 		{
-			// Rationale: suppressing events during deserialization must not prevent the backing
-			// field from being updated — the graph must still reconstruct faithfully.
+			// Rationale: under soft-reject, an invalid value must never enter the typed field on ANY
+			// path, including deserialization. With IsDeserializing=true (events still suppressed by
+			// default SuppressValidation), the invalid value is rejected and recorded rather than
+			// stored — an invalid source document leaves the field unset/prior and surfaces the error.
 			var intDt = CreateIntegerNode();
+			var prior = intDt.minInclusive;
 
 			SdcUtil.IsDeserializing.Value = true;
 			try
@@ -264,8 +275,29 @@ namespace SDC.Schema.Tests.Functional
 				SdcUtil.IsDeserializing.Value = false;
 			}
 
-			Assert.AreEqual(1.5m, intDt.minInclusive,
-				"Backing field must be written even when IsDeserializing suppresses the event.");
+			Assert.AreEqual(prior, intDt.minInclusive,
+				"Soft-reject: the invalid value must NOT be written even during deserialization.");
+			Assert.IsTrue(intDt.HasRejectedValues,
+				"The rejected value must be recorded even during deserialization so it is not silently dropped.");
+			Assert.AreEqual(1.5m, intDt.RejectedValues["minInclusive"].AttemptedValue,
+				"The offending value must be retrievable from RejectedValues.");
+		}
+
+		[TestMethod]
+		public void ClearRejectedValue_AfterSubsequentValidSet_RemovesRecord()
+		{
+			// Rationale: a recorded rejected value represents data still needing correction. Once the
+			// user supplies a VALID value for that property, the soft-reject record must be cleared
+			// automatically so stale "needs correction" state does not linger on the node.
+			var intDt = CreateIntegerNode();
+
+			intDt.minInclusive = 1.5m; // invalid → soft-rejected and recorded
+			Assert.IsTrue(intDt.HasRejectedValues, "Precondition: the invalid value must be recorded.");
+
+			intDt.minInclusive = 5m;   // valid → must store AND clear the prior rejection
+			Assert.AreEqual(5m, intDt.minInclusive, "The valid value must now be stored.");
+			Assert.IsFalse(intDt.HasRejectedValues,
+				"A subsequent valid set must clear the recorded rejected value for that property.");
 		}
 
 		// ─── Serializer round-trip / gap-fix tests ─────────────────────────────────

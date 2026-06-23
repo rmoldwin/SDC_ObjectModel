@@ -81,14 +81,13 @@ public partial class yearMonthDuration_DEtype : yearMonthDuration_Stype
             if (((_minInclusive == null) 
                         || (_minInclusive.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "minInclusive";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "minInclusive";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_minInclusive = value;
+                	OnPropertyChanged("minInclusive", value);
                 }
-                _minInclusive = value;
-                OnPropertyChanged("minInclusive", value);
             }
         }
     }
@@ -111,14 +110,13 @@ public partial class yearMonthDuration_DEtype : yearMonthDuration_Stype
             if (((_maxInclusive == null) 
                         || (_maxInclusive.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "maxInclusive";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "maxInclusive";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_maxInclusive = value;
+                	OnPropertyChanged("maxInclusive", value);
                 }
-                _maxInclusive = value;
-                OnPropertyChanged("maxInclusive", value);
             }
         }
     }
@@ -141,14 +139,13 @@ public partial class yearMonthDuration_DEtype : yearMonthDuration_Stype
             if (((_minExclusive == null) 
                         || (_minExclusive.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "minExclusive";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "minExclusive";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_minExclusive = value;
+                	OnPropertyChanged("minExclusive", value);
                 }
-                _minExclusive = value;
-                OnPropertyChanged("minExclusive", value);
             }
         }
     }
@@ -171,14 +168,13 @@ public partial class yearMonthDuration_DEtype : yearMonthDuration_Stype
             if (((_maxExclusive == null) 
                         || (_maxExclusive.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "maxExclusive";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "maxExclusive";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_maxExclusive = value;
+                	OnPropertyChanged("maxExclusive", value);
                 }
-                _maxExclusive = value;
-                OnPropertyChanged("maxExclusive", value);
             }
         }
     }

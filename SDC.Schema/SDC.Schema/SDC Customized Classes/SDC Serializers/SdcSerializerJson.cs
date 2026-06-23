@@ -175,8 +175,10 @@ namespace SDC.Schema
 		/// </summary>
 		/// <returns>
 		/// A tuple of the deserialized object and an <see cref="SdcValidationReport"/> containing
-		/// any validation issues found. The object is always returned even if the report has errors
-		/// (assign-and-raise semantics).
+		/// any validation issues found. The object is always returned even if the report has errors;
+		/// under the soft-reject contract (issue #8) each invalid field keeps its prior/unset value
+		/// (never the invalid value) and the offending value is recorded on the node
+		/// (<see cref="BaseType.RejectedValues"/>).
 		/// </returns>
 		public static (T result, SdcValidationReport report) DeserializeJsonValidating<T>(string input)
 		{

@@ -67,14 +67,13 @@ public partial class OrganizationType : ExtensionBaseType
             if (((_orgName == null) 
                         || (_orgName.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "OrgName";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "OrgName";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_orgName = value;
+                	OnPropertyChanged("OrgName", value);
                 }
-                _orgName = value;
-                OnPropertyChanged("OrgName", value);
             }
         }
     }

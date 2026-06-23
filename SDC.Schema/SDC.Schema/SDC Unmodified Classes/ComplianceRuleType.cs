@@ -61,14 +61,13 @@ public partial class ComplianceRuleType : ExtensionBaseType
             if (((_description == null) 
                         || (_description.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "Description";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "Description";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_description = value;
+                	OnPropertyChanged("Description", value);
                 }
-                _description = value;
-                OnPropertyChanged("Description", value);
             }
         }
     }

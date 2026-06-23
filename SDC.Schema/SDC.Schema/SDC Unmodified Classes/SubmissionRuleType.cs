@@ -61,14 +61,13 @@ public partial class SubmissionRuleType : ExtensionBaseType
             if (((_destination == null) 
                         || (_destination.Equals(value) != true)))
             {
-                if (!SdcUtil.SuppressValidation.Value)
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "Destination";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
                 {
-                	ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                	validatorPropContext.MemberName = "Destination";
-                	SdcUtil.ValidateAndRaise(value, validatorPropContext);
+                	_destination = value;
+                	OnPropertyChanged("Destination", value);
                 }
-                _destination = value;
-                OnPropertyChanged("Destination", value);
             }
         }
     }
