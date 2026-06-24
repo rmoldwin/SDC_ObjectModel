@@ -30,15 +30,14 @@ namespace SDC.Schema.Tests.OM
 		[TestInitialize]
 		public void Init() => BaseType.ResetLastTopNode();
 
-		// These date/date-part DEtypes cannot all be built through the form-tree helper: several
-		// (e.g. gMonth_DEtype) are intentionally reused for more than one XML element name
-		// (gMonth AND gYearMonth), so the tree builder cannot pick an element name without one being
-		// supplied. That ambiguity is orthogonal to validation, so for these OM setter-pipeline tests
-		// we construct the node directly via its (non-public) deserialization constructor — exactly the
-		// instance shape the XML/JSON deserializers produce. ChangeTracker is lazily initialized, so a
-		// parentless node accepts val assignments and records rejections normally.
+		// All twelve date/date-part DEtypes are now built through the standard response-tree API
+		// (AddChildQuestionResponse → AddDataType). gMonth/gYearMonth/dayTimeDuration previously could
+		// not be attached because the generated DataTypes_DEType choice bound gYearMonth to the wrong
+		// CLR type (gMonth_DEtype) and had no dayTimeDuration element at all; that generated-binding bug
+		// was hand-corrected under issue #10, so the deserialization-ctor workaround is no longer needed
+		// and these tests exercise the real builder path the same as every other datatype.
 		private static T DE<T>(ItemChoiceType ict) where T : BaseType
-			=> (T)Activator.CreateInstance(typeof(T), nonPublic: true)!;
+			=> NumericResponseTypeTestHelpers.DE<T>(ict, out _);
 
 		// ─── String-backed: legal values stored exactly ───────────────────────────
 

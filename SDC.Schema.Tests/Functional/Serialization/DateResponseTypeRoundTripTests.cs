@@ -13,12 +13,11 @@ namespace SDC.Schema.Tests.Functional.Serialization
 	/// (never stored, never throws, recorded in <see cref="BaseType.RejectedValues"/>) — the same
 	/// contract as the in-memory setter.
 	///
-	/// Coverage note: these tests use the date types whose <c>*_DEtype</c> maps to a single XML element
-	/// under <c>DataTypes_DEType</c> and can therefore be built through the standard response API:
-	/// date, dateTime, time, dateTimeStamp, gYear, gMonthDay, gDay, duration, yearMonthDuration.
-	/// <c>gMonth</c>/<c>gYearMonth</c> (one shared DEtype reused for two element names) and
-	/// <c>dayTimeDuration</c> cannot be constructed via that API (a pre-existing builder limitation
-	/// unrelated to validation); their lexical validation is covered by the OM boundary tests.
+	/// Coverage note: every date/date-part <c>*_DEtype</c> is now built through the standard response
+	/// API. <c>gMonth</c>/<c>gYearMonth</c> and <c>dayTimeDuration</c> previously could not be
+	/// constructed because the generated <c>DataTypes_DEType</c> choice bound <c>gYearMonth</c> to the
+	/// wrong CLR type and had no <c>dayTimeDuration</c> element; that generated-binding bug was
+	/// hand-corrected under issue #10, so all twelve types are exercised through the real builder here.
 	/// </summary>
 	[TestClass]
 	public class DateResponseTypeRoundTripTests
@@ -67,6 +66,21 @@ namespace SDC.Schema.Tests.Functional.Serialization
 				NumericResponseTypeTestHelpers.AssertValRoundTrip<yearMonthDuration_DEtype>(
 					ItemChoiceType.yearMonthDuration, n => n.val = "P3Y6M", n => n.val == "P3Y6M", rt,
 					$"xs:yearMonthDuration must survive a {sz} round-trip.");
+
+				// gMonth/gYearMonth/dayTimeDuration are now buildable through the standard API after the
+				// issue #10 binding hand-correction, so they get the same exact-round-trip coverage as the
+				// other string-backed g-types and durations.
+				NumericResponseTypeTestHelpers.AssertValRoundTrip<gMonth_DEtype>(
+					ItemChoiceType.gMonth, n => n.val = "--06", n => n.val == "--06", rt,
+					$"xs:gMonth '--06' must survive a {sz} round-trip.");
+
+				NumericResponseTypeTestHelpers.AssertValRoundTrip<gYearMonth_DEtype>(
+					ItemChoiceType.gYearMonth, n => n.val = "2026-06", n => n.val == "2026-06", rt,
+					$"xs:gYearMonth '2026-06' must survive a {sz} round-trip.");
+
+				NumericResponseTypeTestHelpers.AssertValRoundTrip<dayTimeDuration_DEtype>(
+					ItemChoiceType.dayTimeDuration, n => n.val = "P4DT12H30M5S", n => n.val == "P4DT12H30M5S", rt,
+					$"xs:dayTimeDuration must survive a {sz} round-trip.");
 			}
 		}
 

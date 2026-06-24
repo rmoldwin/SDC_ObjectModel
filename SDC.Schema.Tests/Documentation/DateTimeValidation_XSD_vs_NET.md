@@ -111,42 +111,45 @@ ISO-8601 `duration`/`dayTimeDuration`/`yearMonthDuration` forms (rejecting a bar
 and parts illegal for the restricted duration subtypes). These anchored patterns are the
 authoritative validation; the registry replaces the weak generated regexes with them.
 
-### 2.6 Construction limitation for `gMonth`/`gYearMonth` and `dayTimeDuration` (root-caused; not regex-related)
+### 2.6 Construction limitation for `gMonth`/`gYearMonth` and `dayTimeDuration` — RESOLVED (issue #10)
 Investigated against the live tree-builder. The standard response builder
-(`AddChildQuestionResponse` → `AddDataType` → the generic by-CLR-type attach matcher) throws
+(`AddChildQuestionResponse` → `AddDataType` → the generic by-CLR-type attach matcher) **used to throw**
 `InvalidOperationException` for exactly three types:
 
-| Built type | Exception detail |
+| Built type | Original exception detail |
 | --- | --- |
 | `gMonth_DEtype` | "a unique XmlElementAttribute Type match to newNode's Type could not be determined" (**ambiguous — 2 matches**) |
 | `gYearMonth_DEtype` | "a property with a unique type match to newNode's datatype could not be found" (**0 matches**) |
 | `dayTimeDuration_DEtype` | "a property with a unique type match to newNode's datatype could not be found" (**0 matches**) |
 
-**Root cause** is the generated `DataTypes_DEType.Item` polymorphic choice mapping
-(`SDC Unmodified Classes/DataTypes_DEType.cs`), **not** validation: the matcher resolves a node's
-element name by scanning the parent's `[XmlElement]` attributes for the node's runtime CLR type, and
-the schema mapping makes that impossible for these three:
+**Root cause** was the generated `DataTypes_DEType.Item` polymorphic choice mapping, **not**
+validation: the matcher resolves a node's element name by scanning the parent's `[XmlElement]`
+attributes for the node's runtime CLR type, and the generated mapping made that impossible for these
+three:
 
 ```
 [XmlElement("gMonth",     typeof(gMonth_DEtype), ...)]
-[XmlElement("gYearMonth", typeof(gMonth_DEtype), ...)]   // SAME CLR type as gMonth → ambiguous
-// (no [XmlElement("dayTimeDuration", ...)] exists at all — only "duration" and "yearMonthDuration")
+[XmlElement("gYearMonth", typeof(gMonth_DEtype), ...)]   // WRONG: SAME CLR type as gMonth → ambiguous
+// (no [XmlElement("dayTimeDuration", ...)] existed at all — only "duration" and "yearMonthDuration")
 ```
 
-So `gMonth_DEtype` matches **two** elements (ambiguous), while `gYearMonth_DEtype` and
-`dayTimeDuration_DEtype` match **zero** (no element is bound to those exact CLR types). The anchored
-lexical patterns run only **after** a node is attached and therefore cannot influence this; the
-prefix-ambiguity of the *old unanchored* regexes is unrelated (those regexes are value validators
-inside `AddDataTypesDE`, not the type→element resolver).
+So `gMonth_DEtype` matched **two** elements (ambiguous), while `gYearMonth_DEtype` and
+`dayTimeDuration_DEtype` matched **zero**. The anchored lexical patterns run only **after** a node is
+attached and therefore could not influence this; the prefix-ambiguity of the *old unanchored* regexes
+is unrelated (those regexes are value validators inside `AddDataTypesDE`, not the type→element
+resolver).
 
-**Why not fixed here.** A proper fix is either (a) editing the generated `DataTypes_DEType`
-`[XmlElement]` bindings — which lives in the regen-special `SDC Unmodified Classes/` folder and needs
-explicit approval — or (b) threading an explicit `newNodeElementName` through the
-`AddChildQuestionResponse`/`AddDataType` builder chain (a pre-existing builder enhancement, unrelated
-to date validation). Both are out of scope for this work and are tracked as follow-up issue #10. Until then,
-the OM boundary tests construct these three nodes via the deserialization constructor (the same path
-the serializers use), which fully exercises their lexical validation; the round-trip suite covers the
-nine types the standard builder can construct.
+**Resolution (issue #10, approved Option 1).** The generated bindings were hand-corrected:
+`gYearMonth` now binds `typeof(gYearMonth_DEtype)`, and a `[XmlElement("dayTimeDuration",
+typeof(dayTimeDuration_DEtype), ...)]` binding was added. Because the file is no longer
+auto-generated in place, it was moved out of the regen-special `SDC Unmodified Classes/` folder to
+`SDC Customized Classes/Hand-Corrected Generated Classes/DataTypes_DEType.cs`, annotated at each edit
+site with `ISSUE #10 HAND-CORRECTION` markers, and a README documents the regen-survival procedure
+(re-apply the correction and delete any regenerated copy; the `partial class` would otherwise cause a
+loud duplicate-member build failure). All twelve date/date-part types now build through the standard
+tree API, and the boundary + round-trip suites construct these three the same way as every other
+datatype (the deserialization-ctor workaround was removed). All four serializers round-trip them
+exactly.
 
 ---
 
