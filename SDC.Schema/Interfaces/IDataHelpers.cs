@@ -96,6 +96,8 @@ namespace SDC.Schema
                     // are therefore accepted here. .NET Framework 4.x rejected raw spaces; that
                     // stricter behavior was .NET-version-specific, not mandated by the XSD spec.
                     {
+                        var dt = new anyURI_DEtype(rfParent.Response);
+                        rfParent.Response.DataTypeDE_Item = dt;
                         string? tmp = null;
                         if (value != null)
                         {
@@ -109,18 +111,18 @@ namespace SDC.Schema
                                         "relative paths (\"../foo\"), fragment references (\"#section\"), " +
                                         "bare strings, and the empty string are all valid. " +
                                         "Strings containing \"##\", all-whitespace strings, and strings " +
-                                        "with raw internal spaces are not accepted.");
+                                        "with raw internal spaces are not accepted.", "val", s);
                             }
                             else
-                                StoreError($"Supplied value parameter (type {value.GetType().Name}) could not be used as xs:anyURI; a string is required.");
+                                StoreError($"Supplied value parameter (type {value.GetType().Name}) could not be used as xs:anyURI; a string is required.", "val", value);
                         }
-                        var dt = new anyURI_DEtype(rfParent.Response);
                         if (tmp != null) dt.val = tmp;      // empty string IS a valid anyURI — do not use IsNullOrWhiteSpace
-                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.base64Binary:
                     {
+                        var dt = new base64Binary_DEtype(rfParent.Response);
+                        rfParent.Response.DataTypeDE_Item = dt;
                         byte[]? tmp = null; //start with a default value that is not zero
                         if (value != null)
                         {
@@ -129,32 +131,32 @@ namespace SDC.Schema
                                 var s64 = new Span<byte>();
                                 if (Convert.TryFromBase64String(s, s64, out int bytesWritten)) tmp = s64.ToArray();
                                 else StoreError("Supplied value parameter could not be parsed as base64Binary (byte[]).  " +
-                                    $"Bytes written = {bytesWritten}");
+                                    $"Bytes written = {bytesWritten}", "val", s);
                             }
                             else if (value is byte[] bVal) tmp = bVal;
-                            else StoreError("Supplied value parameter could not be parsed as base64Binary (byte[])");
+                            else StoreError("Supplied value parameter could not be parsed as base64Binary (byte[])", "val", value);
                         }
-                        var dt = new base64Binary_DEtype(rfParent.Response);
+
                         if (tmp != null) dt.val = (byte[])tmp;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.boolean:
                     {
+                        var dt = new boolean_DEtype(rfParent.Response);
+                        rfParent.Response.DataTypeDE_Item = dt;
                         bool? tmp = null;
                         if (value != null)
                         {
                             if (value is string s)
                             {
                                 if (bool.TryParse(s, out bool sVal)) tmp = sVal;
-                                else StoreError("Supplied value parameter could not be parsed as bool");
+                                else StoreError("Supplied value parameter could not be parsed as bool", "val", s);
                             }
                             else if (value is bool v) tmp = v;
-                            else StoreError("Supplied value parameter could not be parsed as bool");
+                            else StoreError("Supplied value parameter could not be parsed as bool", "val", value);
                         }
-                        var dt = new boolean_DEtype(rfParent.Response);
                         if (tmp != null && tmp != false) dt.val = (bool)tmp;
-                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@byte: //XML signed "byte" is "sbyte" in .NET
@@ -820,19 +822,21 @@ namespace SDC.Schema
                 foreach (var ex in exList) errors.Add(ex);
             return rfParent.Response;
 
-            void StoreError(string errorMsg)
+            void StoreError(string errorMsg, string? propertyName = "val", object? attemptedValue = null)
             {
                 var exData = new Exception();
                 exData.Data.Add("QuestionID: ", rfParent?.ParentIETnode?.ID.ToString() ?? "null");
                 exData.Data.Add("Error: ", errorMsg);
                 exList.Add(exData);
 
-                // Fire the central validation event so subscribers (UI, logger, SdcValidate) are notified.
-                if (!SdcUtil.IsDeserializing.Value)
-                    SdcValidationEvents.Raise(
-                        message:      errorMsg,
-                        nodeID:       rfParent?.ParentIETnode?.ID.ToString(),
-                        propertyName: nameof(DataTypes_DEType.Item));
+                var targetNode = rfParent.Response?.DataTypeDE_Item as BaseType ?? rfParent.Response as BaseType;
+                if (targetNode is not null)
+                    targetNode.StoreError(errorMsg, propertyName, attemptedValue);
+                else
+                {
+                    // Fall back to the container node when no datatype item has been created yet.
+                    rfParent.Response?.StoreError(errorMsg, propertyName, attemptedValue);
+                }
             }
 
             // Validates a candidate xs:anyURI value using the same logic as .NET's internal

@@ -155,6 +155,9 @@ namespace SDC.Schema
 		/// </param>
 		/// <returns><see langword="true"/> if the value is valid and may be assigned; otherwise <see langword="false"/>.</returns>
 		public static bool ValidateAndRaise(object? value, ValidationContext ctx)
+			=> ValidateAndRaise(value, ctx, null);
+
+		internal static bool ValidateAndRaise(object? value, ValidationContext ctx, IEnumerable<ValidationAttribute>? attributes)
 		{
 			var results = new List<ValidationResult>();
 			bool ok;
@@ -163,7 +166,11 @@ namespace SDC.Schema
 			// declared on the generated property). This is how the impossible dateTimeStamp regex is
 			// neutralized (issue I-1) and the weak duration regexes are strengthened without editing
 			// any auto-generated file. Otherwise fall back to the property's declared attributes.
-			if (ctx.ObjectInstance is not null && ctx.MemberName is string member
+			if (attributes is not null)
+			{
+				ok = Validator.TryValidateValue(value!, ctx, results, attributes.ToList());
+			}
+			else if (ctx.ObjectInstance is not null && ctx.MemberName is string member
 				&& SdcValidationRuleRegistry.TryGet(ctx.ObjectInstance.GetType(), member, out var registered))
 			{
 				ok = Validator.TryValidateValue(value!, ctx, results, registered);
@@ -208,7 +215,7 @@ namespace SDC.Schema
 		// Shared failure path for ValidateAndRaise / ValidateLexicalAndRaise: unconditionally records
 		// the offending value on the node, and (unless suppressed) collects + raises the event. Always
 		// returns false so callers can `return RaiseAndRecord(...)`.
-		private static bool RaiseAndRecord(ValidationContext ctx, object? value, List<ValidationResult> results)
+		internal static bool RaiseAndRecord(ValidationContext ctx, object? value, List<ValidationResult> results)
 		{
 			string nodeID   = (ctx.ObjectInstance as BaseType)?.sGuid ?? "(unknown)";
 			string nodeType = ctx.ObjectInstance?.GetType().Name ?? "(unknown)";
