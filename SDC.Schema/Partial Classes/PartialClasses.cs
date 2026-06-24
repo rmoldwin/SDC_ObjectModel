@@ -1,10 +1,11 @@
-﻿
+
 using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -1945,12 +1946,11 @@ namespace SDC.Schema
 
 		#region  Local Members
 		//internal static int LastObjectID { get => lastObjectID; private set => lastObjectID = value; }
-		internal void StoreError(string errorMsg) //TODO: Replace with event that logs each error
+		internal void StoreError(string errorMsg, string? propertyName = null, object? attemptedValue = null) //TODO: Replace with event that logs each error
 		{
-			var exData = new Exception();
-			exData.Data.Add("QuestionID: ", ParentIETnode?.ID.ToString() ?? "null");
-			exData.Data.Add("Error: ", errorMsg);
-			ExceptionList.Add(exData);
+			var ctx = new ValidationContext(this) { MemberName = propertyName ?? "value" };
+			var results = new List<ValidationResult> { new ValidationResult(errorMsg) };
+			SdcUtil.RaiseAndRecord(ctx, attemptedValue, results);
 		}
 
 		/// <summary>
@@ -2974,7 +2974,7 @@ namespace SDC.Schema
 			{
 				var s64 = new Span<byte>();
 				if (Convert.TryFromBase64String(value, s64, out int bytesWritten)) val = s64.ToArray();
-				else StoreError("Supplied value parameter was not in base64Binary string format");
+				else StoreError("Supplied value parameter was not in base64Binary string format", "val", value);
 			}
 		}
 	}
@@ -3015,7 +3015,7 @@ namespace SDC.Schema
 			set
 			{
 				if (Boolean.TryParse(value, out bool result)) val = result;
-				else StoreError("Supplied value parameter was not in boolean string format");
+				else StoreError("Supplied value parameter was not in boolean string format", "val", value);
 			}
 		}
 	}

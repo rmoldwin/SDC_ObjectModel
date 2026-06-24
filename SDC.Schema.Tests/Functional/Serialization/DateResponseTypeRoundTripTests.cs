@@ -119,6 +119,32 @@ namespace SDC.Schema.Tests.Functional.Serialization
 			}
 		}
 
+		[TestMethod]
+		public void TimeZoneOffset_Property_RoundTripsThroughJsonBsonAndMsgPack()
+		{
+			// Rationale: the new typed offset property should survive the non-XML serializer paths with the
+			// canonical +/−hh:mm string form and the same backing timezone content on deserialize.
+			var serializers = new (string Name, Func<FormDesignType, FormDesignType> RoundTrip)[]
+			{
+				("JSON", fd => TopNodeSerializer<FormDesignType>.DeserializeFromJson(TopNodeSerializer<FormDesignType>.GetJson(fd))),
+				("BSON", fd => TopNodeSerializer<FormDesignType>.DeserializeFromBson(TopNodeSerializer<FormDesignType>.GetBson(fd))),
+				("MsgPack", fd => TopNodeSerializer<FormDesignType>.DeserializeFromMsgPack(TopNodeSerializer<FormDesignType>.GetMsgPack(fd)))
+			};
+
+			foreach (var serializer in serializers)
+			{
+				BaseType.ResetLastTopNode();
+				var node = NumericResponseTypeTestHelpers.DE<dateTime_DEtype>(ItemChoiceType.dateTime, out var form);
+				node.SetLexicalValue("2026-06-22T10:30:00-05:00");
+				Assert.AreEqual(TimeSpan.FromHours(-5), node.TimeZoneOffset, "The typed getter should expose the parsed offset.");
+
+				var roundTrip = serializer.RoundTrip(form);
+				var roundTripNode = NumericResponseTypeTestHelpers.FindResponseDE<dateTime_DEtype>(roundTrip);
+				Assert.AreEqual(TimeSpan.FromHours(-5), roundTripNode.TimeZoneOffset, $"{serializer.Name} should preserve the typed offset.");
+				Assert.AreEqual("-05:00", roundTripNode.timeZone, $"{serializer.Name} should preserve the canonical timezone string.");
+			}
+		}
+
 		// ─── Invalid value in a source document is soft-rejected on deserialize ────
 
 		[TestMethod]

@@ -70,6 +70,15 @@ namespace SDC.Schema.Tests.Functional
 			return (integer_DEtype)deType.Item;
 		}
 
+		private static (DataTypes_DEType deType, BaseType node) CreateBuilderNode(ItemChoiceType kind, object? value)
+		{
+			var de = new DataElementType(null);
+			var q  = new QuestionItemType(de, $"q_ph4_{kind}");
+			q.AddQuestionResponseField(out DataTypes_DEType deType, kind);
+			IDataHelpers.AddDataTypesDE(q.ResponseField_Item!, kind, value: value);
+			return (deType, deType.Item!);
+		}
+
 		// ─── Phase 4A: SdcValidationReport / SdcNodeValidationIssue ──────────────
 
 		[TestMethod]
@@ -226,6 +235,75 @@ namespace SDC.Schema.Tests.Functional
 				"ValidationCollector must be populated when ValidateAndRaise fires.");
 			// Soft-reject: collection of the issue does not imply the value was stored — it wasn't.
 			Assert.AreNotEqual(1.5m, intDt.minInclusive, "Invalid value must never be assigned to the typed field.");
+		}
+
+		[TestMethod]
+		public void AddDataTypesDE_AnyUriInvalidValue_RecordsRejectionAndEvent()
+		{
+			// Rationale: the builder path must now use the same rejection/reporting pipeline as other
+			// setter-like entry points so invalid values are recorded and surfaced without throwing.
+			var report = new SdcValidationReport();
+			SdcUtil.ValidationCollector.Value = report;
+			try
+			{
+				var (_, node) = CreateBuilderNode(ItemChoiceType.anyURI, "https://example.com/path##badFragment");
+				var anyUriNode = (anyURI_DEtype)node;
+				Assert.IsNull(anyUriNode.val, "An invalid anyURI must be rejected and not stored.");
+				Assert.IsTrue(anyUriNode.HasRejectedValues, "Rejected values must be recorded for the builder path.");
+				Assert.IsTrue(anyUriNode.RejectedValues.ContainsKey("val"), "The offending builder value must be recorded under the val property.");
+				Assert.IsTrue(report.ErrorCount > 0 || _captured.Count > 0,
+					"The builder path must raise validation events/reports for invalid values.");
+			}
+			finally
+			{
+				SdcUtil.ValidationCollector.Value = null;
+			}
+		}
+
+		[TestMethod]
+		public void AddDataTypesDE_BooleanInvalidValue_RecordsRejectionAndEvent()
+		{
+			// Rationale: invalid boolean builder input must follow the same soft-reject contract so
+			// callers can inspect the rejection and the report instead of seeing a silent drop.
+			var report = new SdcValidationReport();
+			SdcUtil.ValidationCollector.Value = report;
+			try
+			{
+				var (_, node) = CreateBuilderNode(ItemChoiceType.boolean, "not-a-bool");
+				var booleanNode = (boolean_DEtype)node;
+				Assert.IsFalse(booleanNode.val, "An invalid boolean value must be rejected and the default false value must remain in place.");
+				Assert.IsTrue(booleanNode.HasRejectedValues, "Rejected values must be recorded for invalid boolean builder input.");
+				Assert.IsTrue(booleanNode.RejectedValues.ContainsKey("val"), "The invalid boolean value must be recorded under the val property.");
+				Assert.IsTrue(report.ErrorCount > 0 || _captured.Count > 0,
+					"Invalid boolean builder input must participate in the validation event/report pipeline.");
+			}
+			finally
+			{
+				SdcUtil.ValidationCollector.Value = null;
+			}
+		}
+
+		[TestMethod]
+		public void AddDataTypesDE_Base64InvalidValue_RecordsRejectionAndEvent()
+		{
+			// Rationale: malformed base64Binary builder input must be recorded through the same contract
+			// as other datatype construction paths so the UI/test harness can reason about it.
+			var report = new SdcValidationReport();
+			SdcUtil.ValidationCollector.Value = report;
+			try
+			{
+				var (_, node) = CreateBuilderNode(ItemChoiceType.base64Binary, "not-base64");
+				var base64Node = (base64Binary_DEtype)node;
+				Assert.IsNull(base64Node.val, "An invalid base64Binary value must be rejected and not stored.");
+				Assert.IsTrue(base64Node.HasRejectedValues, "Rejected values must be recorded for malformed base64Binary builder input.");
+				Assert.IsTrue(base64Node.RejectedValues.ContainsKey("val"), "The invalid base64Binary value must be recorded under the val property.");
+				Assert.IsTrue(report.ErrorCount > 0 || _captured.Count > 0,
+					"Malformed base64Binary builder input must participate in the validation event/report pipeline.");
+			}
+			finally
+			{
+				SdcUtil.ValidationCollector.Value = null;
+			}
 		}
 
 		// ─── Phase 4C: DeserializeXmlValidating ───────────────────────────────────

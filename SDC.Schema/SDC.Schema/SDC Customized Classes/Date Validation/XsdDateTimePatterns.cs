@@ -327,8 +327,67 @@ namespace SDC.Schema
 
 		/// <summary>Builds the helpful message for an invalid standalone timezone offset.</summary>
 		public static string BuildTimezoneErrorMessage(string? value) =>
-			$"'{value ?? "null"}' is not a valid timezone. Offsets must be Z or ±hh:mm within -14:00..+14:00; " +
+			$"'{value ?? "null"}' is not a valid timezone. Offsets must be ±hh:mm within -14:00..+14:00; " +
 			$"you supplied '{value ?? "null"}'.";
+
+		/// <summary>Normalizes a timezone token to the canonical <c>±hh:mm</c> form used by the OM.</summary>
+		public static bool TryNormalizeTimeZoneToken(string? value, out string? normalized)
+		{
+			normalized = null;
+			if (string.IsNullOrWhiteSpace(value)) return true;
+
+			var trimmed = value.Trim();
+			if (trimmed.Equals("Z", StringComparison.OrdinalIgnoreCase))
+			{
+				normalized = "+00:00";
+				return true;
+			}
+
+			if (!Regex.IsMatch(trimmed, @"^([+-])([0-9]{2}):([0-9]{2})$", RegexOptions.CultureInvariant))
+				return false;
+
+			var signChar = trimmed[0];
+			var hh = int.Parse(trimmed.Substring(1, 2), CultureInfo.InvariantCulture);
+			var mm = int.Parse(trimmed.Substring(4, 2), CultureInfo.InvariantCulture);
+			if (hh < 0 || hh > 14 || mm < 0 || mm > 59 || (hh == 14 && mm != 0))
+				return false;
+
+			normalized = $"{signChar}{hh:D2}:{mm:D2}";
+			return true;
+		}
+
+		/// <summary>Parses a canonical or legacy timezone token into a <see cref="TimeSpan"/> offset.</summary>
+		public static bool TryParseOffset(string? value, out TimeSpan? offset)
+		{
+			offset = null;
+			if (string.IsNullOrWhiteSpace(value)) return true;
+			if (!TryNormalizeTimeZoneToken(value, out var normalized) || normalized is null)
+				return false;
+
+			var sign = normalized[0] == '-' ? -1 : 1;
+			var hh = int.Parse(normalized.Substring(1, 2), CultureInfo.InvariantCulture);
+			var mm = int.Parse(normalized.Substring(4, 2), CultureInfo.InvariantCulture);
+			var totalMinutes = sign * (hh * 60 + mm);
+			offset = TimeSpan.FromMinutes(totalMinutes);
+			return true;
+		}
+
+		/// <summary>Formats a <see cref="TimeSpan"/> offset as a canonical <c>±hh:mm</c> token.</summary>
+		public static string FormatOffset(TimeSpan offset)
+		{
+			if (offset.Ticks % TimeSpan.FromMinutes(1).Ticks != 0)
+				throw new ArgumentOutOfRangeException(nameof(offset), offset, "Timezone offsets must have minute precision.");
+
+			var totalMinutes = offset.Ticks / TimeSpan.FromMinutes(1).Ticks;
+			if (totalMinutes < MinOffsetMinutes || totalMinutes > MaxOffsetMinutes)
+				throw new ArgumentOutOfRangeException(nameof(offset), offset, "Timezone offsets must be within -14:00..+14:00.");
+
+			var sign = totalMinutes < 0 ? "-" : "+";
+			var absMinutes = Math.Abs(totalMinutes);
+			var hh = (int)(absMinutes / 60);
+			var mm = (int)(absMinutes % 60);
+			return $"{sign}{hh:D2}:{mm:D2}";
+		}
 
 		#endregion
 
@@ -357,10 +416,11 @@ namespace SDC.Schema
 		public static bool TryParseDateTime(XsdDateKind kind, string? lexical, out DateTime value, out string? timezone)
 		{
 			value = default;
-			timezone = ExtractTimezoneToken(lexical);
+			var extracted = ExtractTimezoneToken(lexical);
+			timezone = TryNormalizeTimeZoneToken(extracted, out var normalized) ? normalized : null;
 			if (string.IsNullOrEmpty(lexical)) return false;
 
-			string body = timezone is null ? lexical! : lexical!.Substring(0, lexical!.Length - timezone.Length);
+			string body = extracted is null ? lexical! : lexical!.Substring(0, lexical!.Length - extracted.Length);
 			bool endOfDay = body.Contains("24:00:00");
 			if (endOfDay) body = body.Replace("24:00:00", "00:00:00");
 

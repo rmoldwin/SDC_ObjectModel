@@ -71,22 +71,58 @@ namespace SDC.Schema
                     }
                     break;
                 case ItemChoiceType.anyURI:
+                    // XSD anyURI is an IRI-reference (RFC 3986 / RFC 3987), not a simple character set.
+                    // It accepts absolute URIs, relative paths, fragment-only references (e.g. "#top"),
+                    // bare path segments, Unicode IRI characters (U+00A0..U+D7FF, U+F900..U+FFEF, etc.),
+                    // and the empty string (same-document reference, RFC 3986 §4.4). It does NOT require
+                    // a scheme — e.g. "../foo" and "urn:example:thing" are both valid xs:anyURI values.
+                    //
+                    // The original code used the XML 1.0 Char production [#x1-#xD7FF] | [#xE000-#xFFFD]
+                    // | [#x10000-#x10FFFF], which (a) is not the anyURI grammar and (b) contains the
+                    // character-range literal "#x1-#" which is invalid in .NET regex (ArgumentException).
+                    //
+                    // .NET's own xs:anyURI schema validator (XmlConvert.TryToUri, internal) does:
+                    //   1. Trim XML whitespace (space / tab / CR / LF) → XSD whiteSpace=collapse facet.
+                    //   2. Reject all-whitespace strings (trimmed result is empty but original was not).
+                    //   3. Reject strings containing "##" (only one '#' fragment delimiter is legal per
+                    //      RFC 3986; Uri.TryCreate may accept "##" on some .NET versions).
+                    //   4. Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out _) as the final gate.
+                    // We mirror those four steps here so validation matches .NET's own XSD engine exactly.
+                    //
+                    // Note on raw spaces: XSD anyURI "highly discourages" but does NOT forbid raw
+                    // internal spaces (XSD 1.0 §3.2.17). In .NET 10, Uri.TryCreate(s, RelativeOrAbsolute)
+                    // accepts strings with spaces (treating them as relative-URI paths), which is
+                    // consistent with the XSD spec's permissive stance. Strings like "hello world"
+                    // are therefore accepted here. .NET Framework 4.x rejected raw spaces; that
+                    // stricter behavior was .NET-version-specific, not mandated by the XSD spec.
                     {
+                        var dt = new anyURI_DEtype(rfParent.Response);
+                        rfParent.Response.DataTypeDE_Item = dt;
                         string? tmp = null;
                         if (value != null)
                         {
                             if (value is string s)
-                                if (Regex.Match(s, @"([#x1-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF])+").Success) tmp = (string)value;
-                                else StoreError("Supplied value parameter was not in anyURI string format");
-                            else StoreError("Supplied value parameter was not in anyURI string format");
+                            {
+                                if (IsValidAnyUri(s))
+                                    tmp = s;
+                                else
+                                    StoreError($"Supplied value '{s}' is not a valid xs:anyURI. " +
+                                        "xs:anyURI accepts any IRI-reference: absolute URIs (e.g. \"https://example.com/path\"), " +
+                                        "relative paths (\"../foo\"), fragment references (\"#section\"), " +
+                                        "bare strings, and the empty string are all valid. " +
+                                        "Strings containing \"##\", all-whitespace strings, and strings " +
+                                        "with raw internal spaces are not accepted.", "val", s);
+                            }
+                            else
+                                StoreError($"Supplied value parameter (type {value.GetType().Name}) could not be used as xs:anyURI; a string is required.", "val", value);
                         }
-                        var dt = new anyURI_DEtype(rfParent.Response);
-                        if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
-                        rfParent.Response.DataTypeDE_Item = dt;
+                        if (tmp != null) dt.val = tmp;      // empty string IS a valid anyURI — do not use IsNullOrWhiteSpace
                     }
                     break;
                 case ItemChoiceType.base64Binary:
                     {
+                        var dt = new base64Binary_DEtype(rfParent.Response);
+                        rfParent.Response.DataTypeDE_Item = dt;
                         byte[]? tmp = null; //start with a default value that is not zero
                         if (value != null)
                         {
@@ -95,32 +131,32 @@ namespace SDC.Schema
                                 var s64 = new Span<byte>();
                                 if (Convert.TryFromBase64String(s, s64, out int bytesWritten)) tmp = s64.ToArray();
                                 else StoreError("Supplied value parameter could not be parsed as base64Binary (byte[]).  " +
-                                    $"Bytes written = {bytesWritten}");
+                                    $"Bytes written = {bytesWritten}", "val", s);
                             }
                             else if (value is byte[] bVal) tmp = bVal;
-                            else StoreError("Supplied value parameter could not be parsed as base64Binary (byte[])");
+                            else StoreError("Supplied value parameter could not be parsed as base64Binary (byte[])", "val", value);
                         }
-                        var dt = new base64Binary_DEtype(rfParent.Response);
+
                         if (tmp != null) dt.val = (byte[])tmp;
                         rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.boolean:
                     {
+                        var dt = new boolean_DEtype(rfParent.Response);
+                        rfParent.Response.DataTypeDE_Item = dt;
                         bool? tmp = null;
                         if (value != null)
                         {
                             if (value is string s)
                             {
                                 if (bool.TryParse(s, out bool sVal)) tmp = sVal;
-                                else StoreError("Supplied value parameter could not be parsed as bool");
+                                else StoreError("Supplied value parameter could not be parsed as bool", "val", s);
                             }
                             else if (value is bool v) tmp = v;
-                            else StoreError("Supplied value parameter could not be parsed as bool");
+                            else StoreError("Supplied value parameter could not be parsed as bool", "val", value);
                         }
-                        var dt = new boolean_DEtype(rfParent.Response);
                         if (tmp != null && tmp != false) dt.val = (bool)tmp;
-                        rfParent.Response.DataTypeDE_Item = dt;
                     }
                     break;
                 case ItemChoiceType.@byte: //XML signed "byte" is "sbyte" in .NET
@@ -786,19 +822,47 @@ namespace SDC.Schema
                 foreach (var ex in exList) errors.Add(ex);
             return rfParent.Response;
 
-            void StoreError(string errorMsg)
+            void StoreError(string errorMsg, string? propertyName = "val", object? attemptedValue = null)
             {
                 var exData = new Exception();
                 exData.Data.Add("QuestionID: ", rfParent?.ParentIETnode?.ID.ToString() ?? "null");
                 exData.Data.Add("Error: ", errorMsg);
                 exList.Add(exData);
 
-                // Fire the central validation event so subscribers (UI, logger, SdcValidate) are notified.
-                if (!SdcUtil.IsDeserializing.Value)
-                    SdcValidationEvents.Raise(
-                        message:      errorMsg,
-                        nodeID:       rfParent?.ParentIETnode?.ID.ToString(),
-                        propertyName: nameof(DataTypes_DEType.Item));
+                var targetNode = rfParent.Response?.DataTypeDE_Item as BaseType ?? rfParent.Response as BaseType;
+                if (targetNode is not null)
+                    targetNode.StoreError(errorMsg, propertyName, attemptedValue);
+                else
+                {
+                    // Fall back to the container node when no datatype item has been created yet.
+                    rfParent.Response?.StoreError(errorMsg, propertyName, attemptedValue);
+                }
+            }
+
+            // Validates a candidate xs:anyURI value using the same logic as .NET's internal
+            // XmlConvert.TryToUri, which is what the .NET XSD schema validator calls for xs:anyURI
+            // attributes and elements. The four-step sequence mirrors that internal method exactly:
+            //   1. Trim XML whitespace (the XSD whiteSpace=collapse facet is applied first).
+            //   2. Empty string after trim of a non-empty input → reject (all-whitespace string).
+            //      Note: a genuinely empty string ("") IS a valid anyURI (same-document reference).
+            //   3. "##" → reject: only one '#' fragment delimiter is syntactically legal per RFC 3986.
+            //   4. Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out _) as the structural gate.
+            // See the anyURI case above and Tests/Documentation for the full semantic discussion.
+            static bool IsValidAnyUri(string s)
+            {
+                // A truly empty string is a valid same-document URI-reference (RFC 3986 §4.4).
+                if (s.Length == 0) return true;
+
+                // Apply XSD whiteSpace=collapse: trim XML whitespace chars.
+                string trimmed = s.Trim(' ', '\t', '\r', '\n');
+
+                // All-whitespace input (non-empty before trim, empty after) is not a valid anyURI.
+                if (trimmed.Length == 0) return false;
+
+                // "##" is syntactically invalid per RFC 3986 (only one fragment delimiter '#' is allowed).
+                if (trimmed.Contains("##")) return false;
+
+                return Uri.TryCreate(trimmed, UriKind.RelativeOrAbsolute, out _);
             }
 
             // Builds an exceptionally-helpful, XSD-accurate message for a malformed date/date-part value
