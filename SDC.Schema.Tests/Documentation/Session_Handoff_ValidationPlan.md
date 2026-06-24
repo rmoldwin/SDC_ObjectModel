@@ -67,7 +67,7 @@ Two independent `AsyncLocal<bool>` flags in `SdcUtil`:
 
 | # | Issue | Location | Severity |
 |---|---|---|---|
-| I-1 | `[RegularExpression]` on `DateTime` properties in `dateTimeStamp_DEtype`/`Stype` produces false-positive errors in `ValidateTree` — `TryValidateObject` calls `value.ToString()` with locale formatting instead of ISO 8601. Fix requires a custom `DateTimeStampTimezoneAttribute`. | `dateTimeStamp_DEtype.cs`, `dateTimeStamp_Stype.cs` | Medium |
+| I-1 | **RESOLVED** (branch `Features/NET10/Net10_DateTimeValidation`). The impossible `[RegularExpression]` on the `DateTime` `dateTimeStamp_Stype.val` / `dateTimeStamp_DEtype` facets dropped every value under issue #8 soft-reject. Fixed regen-safely via the rule registry (empty rule set neutralizes the broken regex) with the timezone-required rule enforced at the lexical string boundary (`SetLexicalValue`, `XsdDateKind.DateTimeStamp`). See `DateTimeValidation_XSD_vs_NET.md` §2.2 and regression `DateResponseTypeBoundaryTests.DateTimeStamp_ValidDateTime_IsStored_I1Regression`. | `dateTimeStamp_DEtype.cs`, `dateTimeStamp_Stype.cs` (not edited) | ~~Medium~~ Resolved |
 | I-2 | `anyURI` regex in `IDataHelpers.AddDataTypesDE` uses XSD `#x1-#xD7FF` syntax (invalid C# regex). Will throw `ArgumentException` at runtime if that branch is exercised. | `IDataHelpers.cs` | High |
 | I-3 | HTML, XML, `anyType` content in `AddDataTypesDE` has no secondary validator. A well-formed check would require an HTML parser or XML parser call. | `IDataHelpers.cs` | Low — defer to future |
 | I-4 | `yearMonthDuration`/`dayTimeDuration` `[RegularExpression]` patterns lack human-readable `FormatErrorMessage` overrides. | `dayTimeDuration_Stype.cs`, `yearMonthDuration_Stype.cs` | Low |
@@ -160,7 +160,7 @@ Two independent `AsyncLocal<bool>` flags in `SdcUtil`:
 
 ## Open Questions
 
-1. **`DateTimeStampTimezoneAttribute`:** Should a custom validation attribute replace `[RegularExpression]` on `DateTime` properties in `dateTimeStamp_DEtype` to avoid false positives in `ValidateTree`? (See issue I-1.) — **Not yet resolved.**
+1. **`DateTimeStampTimezoneAttribute`:** Should a custom validation attribute replace `[RegularExpression]` on `DateTime` properties in `dateTimeStamp_DEtype` to avoid false positives in `ValidateTree`? (See issue I-1.) — **RESOLVED.** Rather than a custom attribute on the (un-encodable) `DateTime`, the broken regex is neutralized regen-safely via the rule registry and the timezone-required rule is enforced on the lexical string via `SetLexicalValue`. See `DateTimeValidation_XSD_vs_NET.md` §2.2.
 
 2. **Secondary validators for HTML/XML content:** Should `ValidateNode`/`ValidateTree` call an HTML/XML parser to validate `anyType` / `HTML` / `XML` field content? — **Deferred; file GitHub Issue (I-3).**
 

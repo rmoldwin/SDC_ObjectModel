@@ -157,7 +157,23 @@ namespace SDC.Schema
 		public static bool ValidateAndRaise(object? value, ValidationContext ctx)
 		{
 			var results = new List<ValidationResult>();
-			if (Validator.TryValidateProperty(value, ctx, results))
+			bool ok;
+			// Regen-safe override: when a date/date-part rule is registered for this (Type, member),
+			// validate against the REGISTERED attributes (so they replace the attributes physically
+			// declared on the generated property). This is how the impossible dateTimeStamp regex is
+			// neutralized (issue I-1) and the weak duration regexes are strengthened without editing
+			// any auto-generated file. Otherwise fall back to the property's declared attributes.
+			if (ctx.ObjectInstance is not null && ctx.MemberName is string member
+				&& SdcValidationRuleRegistry.TryGet(ctx.ObjectInstance.GetType(), member, out var registered))
+			{
+				ok = Validator.TryValidateValue(value!, ctx, results, registered);
+			}
+			else
+			{
+				ok = Validator.TryValidateProperty(value, ctx, results);
+			}
+
+			if (ok)
 			{
 				// A valid value supersedes any prior rejection recorded for this property.
 				if (ctx.ObjectInstance is BaseType okNode && ctx.MemberName is string okProp)
@@ -165,6 +181,35 @@ namespace SDC.Schema
 				return true;
 			}
 
+			return RaiseAndRecord(ctx, value, results);
+		}
+
+		/// <summary>
+		/// Soft-reject entry point for a raw XSD <b>lexical string</b> (used by the DateTime-backed
+		/// date types' <c>SetLexicalValue</c> methods and by the <c>IDataHelpers</c> parse path).
+		/// Validates <paramref name="lexical"/> against <paramref name="kind"/>; on success clears any
+		/// prior rejection for <paramref name="memberName"/> and returns <see langword="true"/>; on
+		/// failure records the offending value (and, when not suppressed, raises the validation event)
+		/// and returns <see langword="false"/> — exactly mirroring <see cref="ValidateAndRaise"/>.
+		/// </summary>
+		public static bool ValidateLexicalAndRaise(BaseType node, string memberName, string? lexical, XsdDateKind kind)
+		{
+			var ctx = new ValidationContext(node) { MemberName = memberName };
+			var results = new List<ValidationResult>();
+			if (Validator.TryValidateValue(lexical ?? string.Empty, ctx, results,
+					new ValidationAttribute[] { new XsdDateLexicalAttribute(kind) }))
+			{
+				ClearRejectedValue(node, memberName);
+				return true;
+			}
+			return RaiseAndRecord(ctx, lexical, results);
+		}
+
+		// Shared failure path for ValidateAndRaise / ValidateLexicalAndRaise: unconditionally records
+		// the offending value on the node, and (unless suppressed) collects + raises the event. Always
+		// returns false so callers can `return RaiseAndRecord(...)`.
+		private static bool RaiseAndRecord(ValidationContext ctx, object? value, List<ValidationResult> results)
+		{
 			string nodeID   = (ctx.ObjectInstance as BaseType)?.sGuid ?? "(unknown)";
 			string nodeType = ctx.ObjectInstance?.GetType().Name ?? "(unknown)";
 			string detail   = string.Join("; ", results.Select(r => r.ErrorMessage ?? "(validation error)"));

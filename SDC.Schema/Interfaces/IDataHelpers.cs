@@ -155,12 +155,12 @@ namespace SDC.Schema
                                 {
                                     if (Regex.Match(s, @"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?") //date
                                         .Success) tmp = sVal;
-                                    else StoreError("Supplied value parameter could not be parsed as date");
+                                    else StoreError(DescribeDateError(value, XsdDateKind.Date));
                                 }
-                                else StoreError("Supplied value parameter could not be parsed as date");
+                                else StoreError(DescribeDateError(value, XsdDateKind.Date));
                             }
                             else if (value is DateTime v) tmp = v;
-                            else StoreError("Supplied value parameter could not be parsed as date");
+                            else StoreError(DescribeDateError(value, XsdDateKind.Date));
                         }
                         var dt = new date_DEtype(rfParent.Response);
                         if (tmp != null && tmp != default(DateTime)) dt.val = ((DateTime)tmp).Date;
@@ -183,10 +183,10 @@ namespace SDC.Schema
                                         @"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?|(24:00:00(\.0+)?))(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?")
                                         .Success)
                                     tmp = sVal;
-                                else StoreError("Supplied value parameter could not be parsed as dateTime");
+                                else StoreError(DescribeDateError(value, XsdDateKind.DateTime));
                             }
                             else if (value is DateTime v) tmp = v;
-                            else StoreError("Supplied value parameter could not be parsed as dateTime");
+                            else StoreError(DescribeDateError(value, XsdDateKind.DateTime));
                         }
                         var dt = new dateTime_DEtype(rfParent.Response);
                         if (tmp != null && tmp != default(DateTime)) dt.val = (DateTime)tmp;
@@ -208,10 +208,10 @@ namespace SDC.Schema
                                         @"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?|(24:00:00(\.0+)?))(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))")
                                         .Success)
                                     tmp = sVal;
-                                else StoreError("Supplied value parameter could not be parsed as dateTimeStamp");
+                                else StoreError(DescribeDateError(value, XsdDateKind.DateTimeStamp));
                             }
                             else if (value is DateTime v) tmp = v;
-                            else StoreError("Supplied value parameter could not be parsed as dateTimeStamp");
+                            else StoreError(DescribeDateError(value, XsdDateKind.DateTimeStamp));
                         }
                         var dt = new dateTimeStamp_DEtype(rfParent.Response);
                         if (tmp != null && tmp != default(DateTime)) dt.val = (DateTime)tmp;
@@ -227,11 +227,11 @@ namespace SDC.Schema
                             {
                                 if (Regex.Match(s, @"-?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.[0-9]+)?S)?)?").Success) //dayTimeDuration
                                     tmp = s;
-                                else StoreError("Supplied value parameter could not be parsed as dayTimeDuration");
+                                else StoreError(DescribeDateError(value, XsdDateKind.DayTimeDuration));
                             }
                             else if (value is TimeSpan ts) 
                                 tmp = XmlConvert.ToString(ts); //ToDo: Need to modify the Year part (convert Years to hours [ts.totalHours] and add to hours part); e.g., P13DT10H57M18S
-                            else StoreError("Supplied value parameter could not be parsed as dayTimeDuration");
+                            else StoreError(DescribeDateError(value, XsdDateKind.DayTimeDuration));
                         }
                         var dt = new dayTimeDuration_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
@@ -286,11 +286,11 @@ namespace SDC.Schema
                             {
                                 if (Regex.Match(s, @"-?P[0-9]+Y?([0-9]+M)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.[0-9]+)?S)?)?").Success) //duration
                                     tmp = s;
-                                else StoreError("Supplied value parameter could not be parsed as duration");
+                                else StoreError(DescribeDateError(value, XsdDateKind.Duration));
                             }
                             else if (value is TimeSpan ts && ts != default)
                                 tmp = XmlConvert.ToString(ts);
-                            else StoreError("Supplied value parameter could not be parsed as duration");
+                            else StoreError(DescribeDateError(value, XsdDateKind.Duration));
                         }
                         var dt = new duration_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
@@ -327,9 +327,9 @@ namespace SDC.Schema
                                 if (Regex.Match(s, @"---(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?").Success) //gDay;
                                     //ToDo: We'll probably want to trim the initial 3 dashes before using the regex on UI form fields, and restore them when storing in the SDC OM
                                     tmp = s;
-                                else StoreError("Supplied value parameter could not be parsed as gDay");
+                                else StoreError(DescribeDateError(value, XsdDateKind.GDay));
                             }
-                            else StoreError("Supplied value parameter could not be parsed as gDay");
+                            else StoreError(DescribeDateError(value, XsdDateKind.GDay));
                         }
                         var dt = new gDay_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
@@ -347,9 +347,9 @@ namespace SDC.Schema
                                 if (Regex.Match(s, @"--(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?").Success) //gMonth
                                     //ToDo: We'll probably want to trim the initial 2 dashes before using the regex on UI form fields, and restore them when storing in the SDC OM
                                     tmp = s;
-                                else StoreError("Supplied value parameter could not be parsed as gMonth");
+                                else StoreError(DescribeDateError(value, XsdDateKind.GMonth));
                             }
-                            else StoreError("Supplied value parameter could not be parsed as gMonth");
+                            else StoreError(DescribeDateError(value, XsdDateKind.GMonth));
                         }
                         var dt = new gMonth_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
@@ -367,9 +367,9 @@ namespace SDC.Schema
                                 if (Regex.Match(s, @"--(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?").Success) //gMonthDay
                                     //ToDo: We'll probably want to trim the initial 2 dashes before using the regex on UI form fields, and restore them when storing in the SDC OM
                                     tmp = s;
-                                else StoreError("Supplied value parameter could not be parsed as gMonthDay");
+                                else StoreError(DescribeDateError(value, XsdDateKind.GMonthDay));
                             }
-                            else StoreError("Supplied value parameter could not be parsed as gMonthDay");
+                            else StoreError(DescribeDateError(value, XsdDateKind.GMonthDay));
                         }
                         var dt = new gMonthDay_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
@@ -386,9 +386,9 @@ namespace SDC.Schema
                             {
                                 if (Regex.Match(s, @"-?([1-9][0-9]{3,}|0[0-9]{3})(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?").Success) //gYear
                                     tmp = s;
-                                else StoreError("Supplied value parameter could not be parsed as gYear");
+                                else StoreError(DescribeDateError(value, XsdDateKind.GYear));
                             }
-                            else StoreError("Supplied value parameter could not be parsed as gYear");
+                            else StoreError(DescribeDateError(value, XsdDateKind.GYear));
                         }
                         var dt = new gYear_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
@@ -405,9 +405,9 @@ namespace SDC.Schema
                             {
                                 if (Regex.Match(s, @"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?").Success) //gYearMonth
                                     tmp = s;
-                                else StoreError("Supplied value parameter could not be parsed as gYearMonth");
+                                else StoreError(DescribeDateError(value, XsdDateKind.GYearMonth));
                             }
-                            else StoreError("Supplied value parameter could not be parsed as gYearMonth");
+                            else StoreError(DescribeDateError(value, XsdDateKind.GYearMonth));
                         }
                         var dt = new gYearMonth_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
@@ -651,12 +651,12 @@ namespace SDC.Schema
                                 {
                                     if (Regex.Match(s, @"(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?|(24:00:00(\.0+)?))(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?")
                                         .Success) tmp = sVal;
-                                    else StoreError("Supplied value parameter could not be parsed as time");
+                                    else StoreError(DescribeDateError(value, XsdDateKind.Time));
                                 }
-                                else StoreError("Supplied value parameter could not be parsed as time");
+                                else StoreError(DescribeDateError(value, XsdDateKind.Time));
                             }
                             else if (value is DateTime v) tmp = v.ToLocalTime();
-                            else StoreError("Supplied value parameter could not be parsed as time");
+                            else StoreError(DescribeDateError(value, XsdDateKind.Time));
                         }
                         var dt = new time_DEtype(rfParent.Response);
                         if (tmp != null && tmp != default(DateTime))
@@ -767,11 +767,11 @@ namespace SDC.Schema
                             {
                                 if (Regex.Match(s, @"^-?P[0-9]+Y?([0-9]+M)?$").Success) //yearMonthDuration
                                     tmp = s;
-                                else StoreError("Supplied value parameter could not be parsed as yearMonthDuration");
+                                else StoreError(DescribeDateError(value, XsdDateKind.YearMonthDuration));
                             }
                             else if (value is TimeSpan ts && ts != default)
                                 tmp = XmlConvert.ToString(ts); //ToDo: Need to truncate after hh, mm, ss via regex, e.g., P13DT10H57M18S
-                            else StoreError("Supplied value parameter could not be parsed as yearMonthDuration");
+                            else StoreError(DescribeDateError(value, XsdDateKind.YearMonthDuration));
                         }
                         var dt = new yearMonthDuration_DEtype(rfParent.Response);
                         if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
@@ -799,6 +799,18 @@ namespace SDC.Schema
                         message:      errorMsg,
                         nodeID:       rfParent?.ParentIETnode?.ID.ToString(),
                         propertyName: nameof(DataTypes_DEType.Item));
+            }
+
+            // Builds an exceptionally-helpful, XSD-accurate message for a malformed date/date-part value
+            // (mirrors the soft-reject setter messages): quotes the value, names the xs: type, gives the
+            // canonical form + example, and pinpoints the violation. Falls back to a representability note
+            // when the supplied value is not even a string.
+            string DescribeDateError(object? badValue, XsdDateKind kind)
+            {
+                if (badValue is string s)
+                    return XsdDateTimePatterns.BuildLexicalErrorMessage(kind, s);
+                return $"A {XsdDateTimePatterns.XsdName(kind)} value could not be obtained from '{badValue ?? "null"}'"
+                     + $" (type {badValue?.GetType().Name ?? "null"}).";
             }
 
         }
