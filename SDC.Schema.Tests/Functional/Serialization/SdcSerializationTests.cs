@@ -442,7 +442,12 @@ namespace SDC.Schema.Tests.Functional.Serialization
 
 			if (changedNodes.Count != 0)
 				{
-					// Dump diagnostics to TestArtifacts for offline inspection
+					// Dump diagnostics to TestArtifacts for offline inspection.
+					// NOTE: TestArtifacts/{format}_RoundTrip_Diffs.json is a run-specific,
+					// machine-specific diagnostic dump for LOCAL inspection only. It is gitignored
+					// (see repo-root .gitignore and TestArtifacts/README.md) and intentionally NOT
+					// committed: its contents change every run and previously caused recurring
+					// spurious merge conflicts. It is overwritten on each failing run.
 					try
 					{
 						// Use a repo-anchored absolute path so the dump is always findable

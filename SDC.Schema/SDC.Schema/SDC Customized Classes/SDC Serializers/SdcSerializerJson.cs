@@ -141,7 +141,12 @@ namespace SDC.Schema
 				}
 			catch (System.Exception ex)
 			{
-				// Dump input to temp file to aid debugging of deserialization failures in tests
+				// Dump input to temp file to aid debugging of deserialization failures in tests.
+				// NOTE: TestArtifacts/SdcSerializerJson_DeserializeError.{json,txt} are run-specific,
+				// machine-specific diagnostic dumps for LOCAL inspection only. They are gitignored
+				// (see repo-root .gitignore and TestArtifacts/README.md) and intentionally NOT
+				// committed: their contents change every run (input/stack trace) and previously
+				// caused recurring spurious merge conflicts. They are overwritten on each failure.
 				try
 				{
 					// Use a repository-local path so test runners can find the dump reliably

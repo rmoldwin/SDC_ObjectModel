@@ -368,3 +368,9 @@ FodyWeavers.xsd
 /SDC_CodeGeneratorTest/SDC.Schema/SDC Schema Files/Excluded SDC Schema Classes
 /SDC.Schema.Tests/Test files/CompareTrees Test Output.csv
 /SDC.Schema.Tests/Test files/CompareTrees Test Output.xlsx
+
+# Run-specific diagnostic dumps written by tests / the JSON serializer on failure.
+# These are local-only debugging artifacts (machine/run-specific, change every run, caused
+# recurring merge conflicts). Only the explanatory README.md is tracked. See TestArtifacts/README.md.
+/TestArtifacts/*
+!/TestArtifacts/README.md
