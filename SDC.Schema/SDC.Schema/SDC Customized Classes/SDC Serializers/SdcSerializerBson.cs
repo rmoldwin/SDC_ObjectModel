@@ -156,6 +156,13 @@ namespace SDC.Schema
                 data = Convert.FromBase64String(input);
                 memoryStream = new MemoryStream(data);
                 BsonDataReader bsonDataReader = new BsonDataReader(memoryStream);
+                // DateTimeKindHandling.Utc: the BSON Date type stores an absolute UTC instant, but
+                // BsonDataReader defaults to DateTimeKind.Local and re-projects that instant into the
+                // host's local zone on read, shifting the tick count by the local UTC offset (so an
+                // xs:date/xs:dateTime/xs:dateTimeStamp value round-tripped through BSON came back
+                // off by the host offset). Reading as Utc returns the stored instant unchanged,
+                // giving exact tick parity with the XML/JSON/MsgPack round-trips.
+                bsonDataReader.DateTimeKindHandling = DateTimeKind.Utc;
                 try
                 {
                     // Set IsDeserializing to suppress setter side-effects (validation, tree-mutation)
@@ -206,6 +213,9 @@ namespace SDC.Schema
                 byte[] data = Convert.FromBase64String(input);
                 memoryStream = new MemoryStream(data);
                 BsonDataReader bsonDataReader = new BsonDataReader(memoryStream);
+                // DateTimeKindHandling.Utc: see DeserializeBson — read the stored UTC instant as Utc
+                // instead of re-projecting it into the host local zone (which shifts the tick count).
+                bsonDataReader.DateTimeKindHandling = DateTimeKind.Utc;
                 SdcUtil.IsDeserializing.Value     = true;
                 SdcUtil.SuppressValidation.Value  = false;  // enable setter validation during load
                 SdcUtil.ValidationCollector.Value = report;

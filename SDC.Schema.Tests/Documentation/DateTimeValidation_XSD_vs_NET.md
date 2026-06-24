@@ -79,12 +79,29 @@ normalized to **UTC** on assignment (matching the existing `IDataHelpers` behavi
 XSD permits the end-of-day time `24:00:00`; .NET cannot store hour 24. `SetLexicalValue` accepts it
 lexically and normalizes it to `00:00:00` of the next day.
 
-### 2.4 BSON / MsgPack shift DateTime by the host offset
-The string-backed types survive **all four** wire formats byte-for-byte. The DateTime-backed types'
-exact stored instant is round-trip-asserted only for **XML and JSON**: BSON and MsgPack encode a
-`DateTime` as a UTC tick count and apply the serializer's `DateTimeZoneHandling`, which shifts an
-`Unspecified`-Kind local `DateTime` by the host offset. This is a property of those wire formats'
-DateTime handling, not of the validation work.
+### 2.4 BSON DateTime read offset — root-caused and fixed (exact 4-format parity)
+All date/date-part types — string-backed **and** DateTime-backed — now round-trip with the exact
+stored instant across **all four** wire formats (XML, JSON, BSON, MsgPack); the
+`DateResponseTypeRoundTripTests.DateTimeBacked_Values_RoundTripThroughAllSerializers` test asserts
+this for `date`/`dateTime`/`dateTimeStamp` with no carve-out.
+
+**Root cause (BSON only).** Earlier the BSON path returned DateTime-backed values shifted by the host
+UTC offset (e.g. host `UTC−05:00`: `xs:date 2026-06-22T00:00:00` came back as `2026-06-21T19:00:00`).
+The write side was correct — `BsonDataWriter` with `DateTimeZoneHandling.Utc` relabels an
+`Unspecified`-Kind value to UTC **without shifting** the tick count and stores it as an absolute UTC
+instant. The defect was on read: **`BsonDataReader.DateTimeKindHandling` defaults to
+`DateTimeKind.Local`**, so the reader re-projected that stored UTC instant into the host's local zone,
+subtracting the local offset from the ticks. The serializer-level `DateTimeZoneHandling` does **not**
+override the BSON reader's kind handling. (JSON and MsgPack never exhibited this — they decode dates
+as UTC, preserving ticks; MsgPack was verified correct empirically.)
+
+**Fix.** `SdcSerializerBson` sets `bsonDataReader.DateTimeKindHandling = DateTimeKind.Utc` on both the
+`DeserializeBson` and `DeserializeBsonValidating` read paths, so the stored UTC instant is returned
+unchanged. This is a strict correctness improvement for **every** `DateTime` value carried through
+BSON, not only date/date-part types. Note `DateTimeKind` itself is not part of the XSD value (the
+lexical instant is): XML preserves `Unspecified`, while JSON/BSON/MsgPack normalize to `Utc`; since
+`DateTime` equality compares the absolute instant, the round-tripped **value** is identical in all
+four formats.
 
 ### 2.5 Duration family — full ISO-8601 patterns authored
 The generated `dayTimeDuration`/`yearMonthDuration` setters carried a weak/partial regex; the

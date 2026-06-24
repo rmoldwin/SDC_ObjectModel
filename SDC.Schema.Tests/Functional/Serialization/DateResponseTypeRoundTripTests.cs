@@ -73,40 +73,35 @@ namespace SDC.Schema.Tests.Functional.Serialization
 		// ─── DateTime-backed: instant survives every serializer ────────────────────
 
 		[TestMethod]
-		public void DateTimeBacked_Values_RoundTripThroughXmlAndJson()
+		public void DateTimeBacked_Values_RoundTripThroughAllSerializers()
 		{
-			// Rationale: the DateTime instant (set via the lexical boundary) must survive the
-			// value-preserving formats. NOTE: exact-value comparison is limited to XML and JSON here —
-			// BSON/MsgPack encode DateTime as a UTC tick count and apply the serializer's
-			// DateTimeZoneHandling, which shifts an Unspecified-Kind local DateTime by the host offset.
-			// That is a property of the wire format's DateTime handling, not of this validation work, so
-			// the string-backed lexical types (above) carry the full 4-serializer matrix instead.
+			// Rationale: the DateTime instant (set via the lexical boundary) must survive ALL four wire
+			// formats exactly. DateTime equality compares the absolute instant (ticks), so even though
+			// XML preserves DateTimeKind.Unspecified while JSON/BSON/MsgPack normalise to UTC, the value
+			// (== the XSD lexical instant) must be identical after every round-trip. BSON previously came
+			// back shifted by the host UTC offset because BsonDataReader.DateTimeKindHandling defaults to
+			// Local (re-projecting the stored UTC instant into local time); SdcSerializerBson now reads as
+			// Utc, restoring exact parity. See DateTimeValidation_XSD_vs_NET.md §2.4.
 			var date = new DateTime(2026, 6, 22);
 			var dtm = new DateTime(2026, 6, 22, 10, 30, 0);
 			var utc = new DateTime(2026, 6, 22, 10, 0, 0, DateTimeKind.Utc);
 
-			Func<FormDesignType, FormDesignType>[] preserving =
+			for (int i = 0; i < AllSerializers.Length; i++)
 			{
-				NumericResponseTypeTestHelpers.XmlRoundTrip,
-				NumericResponseTypeTestHelpers.JsonRoundTrip,
-			};
-
-			for (int i = 0; i < preserving.Length; i++)
-			{
-				var rt = preserving[i];
+				var rt = AllSerializers[i];
 				string sz = SerializerName(i);
 
 				NumericResponseTypeTestHelpers.AssertValRoundTrip<date_DEtype>(
 					ItemChoiceType.date, n => n.SetLexicalValue("2026-06-22"), n => n.val == date, rt,
-					$"xs:date must survive a {sz} round-trip.");
+					$"xs:date must survive a {sz} round-trip with the exact instant.");
 
 				NumericResponseTypeTestHelpers.AssertValRoundTrip<dateTime_DEtype>(
 					ItemChoiceType.dateTime, n => n.SetLexicalValue("2026-06-22T10:30:00"), n => n.val == dtm, rt,
-					$"xs:dateTime must survive a {sz} round-trip.");
+					$"xs:dateTime must survive a {sz} round-trip with the exact instant.");
 
 				NumericResponseTypeTestHelpers.AssertValRoundTrip<dateTimeStamp_DEtype>(
 					ItemChoiceType.dateTimeStamp, n => n.SetLexicalValue("2026-06-22T10:00:00Z"), n => n.val == utc, rt,
-					$"xs:dateTimeStamp (UTC) must survive a {sz} round-trip.");
+					$"xs:dateTimeStamp (UTC) must survive a {sz} round-trip with the exact instant.");
 			}
 		}
 
