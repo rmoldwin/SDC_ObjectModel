@@ -217,13 +217,39 @@ namespace SDC.Schema.Tests.OM
 		}
 
 		[TestMethod]
+		public void DateTimeBacked_TimeZoneOffset_Property_CanonicalizesAndUpdatesBackingValue()
+		{
+			// Rationale: the typed offset property should expose the same logical timezone information as the
+			// existing string property, but canonicalize it to the OM's +/−hh:mm form and keep the backing
+			// lexical string in sync for the existing XML contract.
+			var dateNode = DE<date_DEtype>(ItemChoiceType.date);
+			Assert.IsTrue(dateNode.SetLexicalValue("2026-06-22Z"), "A date with a Z timezone should be accepted.");
+			Assert.AreEqual("+00:00", dateNode.timeZone, "Z should be normalized to the canonical +00:00 offset.");
+			Assert.AreEqual(TimeSpan.Zero, dateNode.TimeZoneOffset, "The typed getter should expose a zero offset for +00:00.");
+			dateNode.TimeZoneOffset = TimeSpan.FromHours(-5);
+			Assert.AreEqual("-05:00", dateNode.timeZone, "The typed setter should canonicalize the backing timezone string.");
+			dateNode.TimeZoneOffset = null;
+			Assert.IsNull(dateNode.timeZone, "Clearing the typed offset should clear the backing timezone string.");
+
+			var dtNode = DE<dateTime_DEtype>(ItemChoiceType.dateTime);
+			dtNode.TimeZoneOffset = TimeSpan.FromMinutes(330);
+			Assert.AreEqual("+05:30", dtNode.timeZone, "A 5h30m offset should format as +05:30.");
+			Assert.AreEqual(TimeSpan.FromMinutes(330), dtNode.TimeZoneOffset, "The typed property should preserve the offset value.");
+
+			var timeNode = DE<time_DEtype>(ItemChoiceType.time);
+			Assert.IsTrue(timeNode.SetLexicalValue("10:30:00-05:00"), "An xs:time with a -05:00 offset should be accepted.");
+			Assert.AreEqual("-05:00", timeNode.timeZone, "The lexical parse path should canonicalize the timezone token.");
+			Assert.AreEqual(TimeSpan.FromHours(-5), timeNode.TimeZoneOffset, "The typed getter should parse the canonical offset.");
+		}
+
+		[TestMethod]
 		public void Time_SetLexicalValue_EndOfDayAndStrayDate()
 		{
 			// Rationale: xs:time allows the end-of-day '24:00:00' (which .NET cannot store as hour 24 —
 			// it is normalized), and must reject a value that carries a date component.
 			var eod = DE<time_DEtype>(ItemChoiceType.time);
 			Assert.IsTrue(eod.SetLexicalValue("24:00:00"), "xs:time end-of-day 24:00:00 must be accepted (normalized).");
-
+			
 			var bad = DE<time_DEtype>(ItemChoiceType.time);
 			Assert.IsFalse(bad.SetLexicalValue("2026-06-22T10:00:00"), "An xs:time carrying a date must be rejected.");
 		}

@@ -24,7 +24,7 @@ namespace SDC.Schema
 			if (XsdDateTimePatterns.TryParseDateTime(XsdDateKind.Date, lexicalValue, out var dt, out var tz))
 			{
 				val = dt;
-				timeZone = tz;
+				timeZone = XsdDateTimePatterns.TryNormalizeTimeZoneToken(tz, out var normalized) ? normalized : tz;
 			}
 			return true;
 		}
@@ -43,7 +43,7 @@ namespace SDC.Schema
 			if (XsdDateTimePatterns.TryParseDateTime(XsdDateKind.DateTime, lexicalValue, out var dt, out var tz))
 			{
 				val = dt;
-				timeZone = tz;
+				timeZone = XsdDateTimePatterns.TryNormalizeTimeZoneToken(tz, out var normalized) ? normalized : tz;
 			}
 			return true;
 		}
@@ -62,7 +62,7 @@ namespace SDC.Schema
 			if (XsdDateTimePatterns.TryParseDateTime(XsdDateKind.Time, lexicalValue, out var dt, out var tz))
 			{
 				val = dt;
-				timeZone = tz;
+				timeZone = XsdDateTimePatterns.TryNormalizeTimeZoneToken(tz, out var normalized) ? normalized : tz;
 			}
 			return true;
 		}
