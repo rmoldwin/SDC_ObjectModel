@@ -4,6 +4,18 @@
 - User prefers test cases to include comments explaining the rationale of the assertions, not just descriptive test names.
 - Whenever code changes are made, all affected tests must be identified and run, and the task is not finished until all those tests pass.
 - For branch names, use PascalCase and avoid dashes; underscores are allowed sparingly. Use branch Features/AnyAtt_Support for this work.
+
+## Tooling / UX Preferences
+- Do NOT use the `ask_user` QA panel (multiple-choice question UI) in ANY of this user's repos or other work in this tool. It is too sensitive to stray clicks and questions disappear from view. Always ask questions as a regular chat message instead, and explain each option in enough detail to be understood without re-reading the code.
+
+## Branch Management & Naming
+- Do NOT add new branches at the same Git folder level as `master`/`main`. Use Git folders to create semantic branch groups like `/Features`, `/Features/NET10`, `/BugFixes`, etc. Place new working branches inside the appropriate group folder.
+- When unsure where to place a new working branch, ASK — do not guess the folder.
+- Do NOT create branches with random/auto-generated names — ASK for a branch name.
+- Do NOT use dashes in branch names. Follow the user's file/folder naming rules (PascalCase; underscores sparingly).
+- When many branches are in use, append the date as a `yyyymmdd` suffix (e.g. `20260613`) to the end of the branch name.
+- Keep branch names concise.
+- NOTE: the `rename_branch` tool forces kebab-case and flattens slashes; to set a true grouped name like `Features/NET10/DateTimeValidation`, rename via git in the appropriate checkout instead.
 - Ensure round-tripping between SDC OM and XML is covered in tests to handle complex and unexpected ad-hoc attribute cases, including support for multiple mixed namespaces and inherited/default namespace usage.
 - Include tests for legal and illegal ad-hoc attribute content, with proper escaping and graceful handling of illegal content.
 - Unit tests running > 1 second and functional/integration tests running > 10 seconds are considered failed and must be aborted; root cause must be identified and a fix plan presented; tests must never be allowed to enter an infinite loop.
