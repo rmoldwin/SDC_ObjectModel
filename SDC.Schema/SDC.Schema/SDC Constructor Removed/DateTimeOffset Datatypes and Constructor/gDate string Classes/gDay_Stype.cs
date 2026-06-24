@@ -66,8 +66,13 @@ public partial class gDay_Stype : BaseType
             if (((_val == null) 
                         || (_val.Equals(value) != true)))
             {
-                _val = value;
-                OnPropertyChanged("val", value);
+                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
+                validatorPropContext.MemberName = "val";
+                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
+                {
+                	_val = value;
+                	OnPropertyChanged("val", value);
+                }
             }
         }
     }
