@@ -140,46 +140,14 @@ namespace SDC.Schema
 				if(textAfterResponse is not null)lirf.AddTextAfterResponse(textAfterResponse);
 
 				deType = rsp;
-				//deType = IDataHelpers.AddDataTypesDE(lirf, dt, dtQuant, valDefault);
-				return li;
+					return li;
 
-			}
-			else throw new InvalidOperationException("You can only add a ListItem to a QuestionSingle or QuestionMultiple");
-		}
-		private static ListItemType X_AddListItemResponse(this QuestionItemType q,
-			string id,
-			out DataTypes_DEType deType,
-			string defTitle = null,
-			int insertPosition = -1,
-			ItemChoiceType dt = ItemChoiceType.@string,
-			bool responseRequired = false,
-			string textAfterResponse = null,
-			string units = null,
-			dtQuantEnum dtQuant = dtQuantEnum.EQ,
-			object valDefault = null
-			)
-		{
-			if (q.GetQuestionSubtype() == QuestionEnum.QuestionMultiple ||
-				q.GetQuestionSubtype() == QuestionEnum.QuestionSingle ||
-				q.GetQuestionSubtype() == QuestionEnum.QuestionRaw) //TODO: handle the last case
-			{
-				var li = q.AddListItem(id, defTitle, insertPosition);
-				var lirf = li.AddListItemResponseField();
-				var rsp = lirf.AddDataType(dt, dtQuant, valDefault);
-
-				lirf.responseRequired = responseRequired;
-				lirf.AddResponseUnits(units);
-				lirf.AddTextAfterResponse(textAfterResponse);
-
-				deType = IDataHelpers.AddDataTypesDE(lirf, dt, dtQuant, valDefault);
-				return li;
-
-			}
-			else throw new InvalidOperationException("You can only add a ListItem to a QuestionSingle or QuestionMultiple");
+				}
+				else throw new InvalidOperationException("You can only add a ListItem to a QuestionSingle or QuestionMultiple");
 		}
 		public static DisplayedType AddDisplayedTypeToList(this QuestionItemType q,
-			string id,
-			string? title = null,
+				string id,
+				string? title = null,
 			int insertPosition = -1)
 		{
 			if (q.GetQuestionSubtype() == QuestionEnum.QuestionMultiple ||

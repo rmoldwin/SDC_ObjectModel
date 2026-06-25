@@ -58,9 +58,19 @@ namespace SDC.Schema
 	/// Design goals:<br/>
 	/// • Non-throwing — callers decide whether to abort, log, or surface errors in UI.<br/>
 	/// • Lightweight — a single static event; no DI container required.<br/>
-	/// • Deserialization-safe — callers should gate raises with
-	///   <c>if (!SdcUtil.IsDeserializing.Value)</c> to avoid noise during round-trips.<br/>
-	/// • Subscribable by UI view-models, loggers, and <see cref="SdcValidate"/> alike.
+	/// • Deserialization-safe — <see cref="SdcUtil.SuppressValidation"/> suppresses event
+	///   firing and <see cref="SdcUtil.ValidationCollector"/> entries during normal (non-validating)
+	///   deserialization, while rejected-value recording via
+	///   <see cref="SdcUtil.RecordRejectedValue"/> proceeds unconditionally.<br/>
+	/// • Subscribable by UI view-models, loggers, and <see cref="SdcValidate"/> alike.<br/>
+	/// <br/>
+	/// <b>Unified validation flow:</b><br/>
+	/// All data-entry paths (extension methods → <see cref="SdcDataTypeBuilder"/>, direct
+	/// property setters, <c>SetLexicalValue</c> date methods) converge at
+	/// <see cref="SdcUtil.ValidateAndRaise"/> or <see cref="SdcUtil.ValidateLexicalAndRaise"/>,
+	/// which fire this event on failure. Cross-property coherence is enforced by
+	/// <see cref="SdcValidate.CheckValAgainstConstraints"/> and
+	/// <see cref="SdcValidate.CheckConstraintCoherence"/>, which also route through this event.
 	/// </remarks>
 	public static class SdcValidationEvents
 	{
