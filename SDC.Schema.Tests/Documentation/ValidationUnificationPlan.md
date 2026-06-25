@@ -2,9 +2,9 @@
 **Session:** `730e6451-32ce-4ec4-bbed-5820dac35bba`  
 **Branch:** `Features/NET10/IDataHelpers`  
 **Created:** 2026-06-24  
-**Last Updated:** 2026-06-25  
-**Status:** Phases 1–9 ✅ COMPLETE. Pending merge of Phase 9 to Net10Main.
-**Test count: 656 passed, 0 failed (post-Phase 9)**
+**Last Updated:** 2026-06-26  
+**Status:** Phases 1–10 ✅ COMPLETE. All phases merged to Net10Main.
+**Test count: 671 passed, 0 failed (post-Phase 10)**
 
 ---
 
@@ -449,8 +449,8 @@ A `.md` file (`SDC.Schema.Tests/Documentation/ValidationScenarios.md`) covering 
 ---
 
 ### PHASE 10 — COMPLETE val/CONSTRAINT SWEEP COVERAGE
-**Branch:** `Features/NET10/ValConstraintSweep` (to be created from Net10Main after Ph9 merge)
-**Status:** 📋 PLANNED
+**Branch:** `Features/NET10/ValConstraintSweep` (merged to Net10Main, commit `eea8193`)
+**Status:** ✅ COMPLETE — 15 new tests, 671 total passing
 **Baseline:** 656 tests passing (post-Phase 9)
 
 #### Three gaps to fix
@@ -537,73 +537,17 @@ XML properties arrive in document order (arbitrary). If `val` is deserialized be
 | `Features/NET10/IntegerDEtypeCoherence` | 7 | ✅ merged | Gap fix |
 | `Features/NET10/ValidationPatternNormalize` | 8-A | ✅ merged | Correctness bugs |
 | `Features/NET10/ValidationDocs` | 8-B | ✅ merged (regression fixed) | Docs |
-| `Features/NET10/TryAssignValue` | 9 | ✅ complete, pending merge | New API |
-| `Features/NET10/ValConstraintSweep` | 10 | 📋 planned | Gaps + ValidateTree |
+| `Features/NET10/TryAssignValue` | 9 | ✅ complete, merged | New API |
+| `Features/NET10/ValConstraintSweep` | 10 | ✅ complete, merged | Gaps + ValidateTree |
 
 ---
 
 ## Kickstart Prompt (for new sessions resuming this work)
 
+**ALL PHASES 1–10 ARE COMPLETE.** The validation unification project is done.
+Net10Main = commit `ab93bbe` (Phase 10 merge), 671 tests passing.
+
+If continuing with a new phase, branch from Net10Main using:
 ```
-This session continues SDC validation unification work on SDC.Schema
-(rmoldwin/SDC_ObjectModel). Read the full plan before doing anything:
-  SDC.Schema.Tests/Documentation/ValidationUnificationPlan.md  (in the repo)
-
-CURRENT STATE (as of session end 2026-06-25):
-- Net10Main = commit e70e0d4, 656 tests passing
-- Phase 9 branch Features/NET10/TryAssignValue (commit cf8bd0c) is MERGED to Net10Main
-- Phase 10 is next — branch Features/NET10/ValConstraintSweep (not yet created)
-
-PHASE 10 GOALS (3 gaps):
-1. Integer-family Stype AddedValidationLogic (5 files): integer, negativeInteger,
-   nonNegativeInteger, nonPositiveInteger, positiveInteger — add CheckValAgainstConstraints
-   to val setters. Template: existing int_Stype.cs in AddedValidationLogic.
-2. Duration/TimeSpan Stype AddedValidationLogic (3 files): duration, dayTimeDuration,
-   yearMonthDuration — same treatment. Verify CheckValAgainstConstraints handles
-   TimeSpan/string constraint types before relying on it.
-3. Extend ValidateTree() to call CheckValAgainstConstraints in POST-SWEEP (report-only)
-   mode — violations recorded in ValidationCollector/SdcValidationReport, values NOT
-   discarded (they are already stored). This enables post-deserialization auditing.
-
-KEY ARCHITECTURE:
-- CheckValAgainstConstraints is SUPPRESSED during deserialization (!IsDeserializing guard)
-  because XML properties arrive in document order — val may arrive before constraints,
-  making inline checking order-dependent and unreliable. Post-sweep is the right model.
-- TryAssignValue success detection uses value-was-stored comparison (pi.GetValue), NOT
-  rejection store — because CheckConstraintCoherence records rejections even on successfully
-  stored values (coherence Warning ≠ DataAnnotations Error).
-- AddedValidationLogic pattern: copy original to subfolder, comment out original logic,
-  add new logic; exclude originals in .csproj, include copies.
-- All 4 AddedValidationLogic subfolders:
-    SDC Unmodified Classes/AddedValidationLogic/
-    SDC Constructor Removed/Constructor Commented Out Only/AddedValidationLogic/
-    SDC Constructor Removed/DateTimeOffset Datatypes and Constructor/AddedValidationLogic/
-    SDC Constructor Removed/SDC TimeSpan string Datatypes/AddedValidationLogic/
-
-VALIDATION CALL CHAIN (reference):
-  dt.val = x  →  val setter  →  SdcUtil.ValidateAndRaise()  →  RaiseAndRecord()
-                              →  [if !IsDeserializing] SdcValidate.CheckValAgainstConstraints()
-  dt.minInclusive = x  →  constraint setter  →  SdcUtil.ValidateAndRaise()
-                                              →  SdcValidate.CheckConstraintCoherence()
-
-IMPORTANT AGENT INSTRUCTIONS:
-- When proposing to fix a set of files/gaps, LIST ALL of them explicitly. Do not silently
-  drop items from a proposal. If you identify N gaps, all N must appear in the plan.
-- After any phase claiming to fix a set of files, run an exhaustive per-setter grep audit
-  before marking the phase complete.
-- No test may run >1 second (unit) or >10 seconds (integration). Abort and report on timeout.
-- Branch naming: Features/NET10/PascalCase — NEVER use rename_branch tool (forces kebab).
-  Use: git checkout -b Features/NET10/BranchName origin/Features/NET10/Net10Main
-- Always push to origin/Features/NET10/Net10Main via:
-  git push origin HEAD:Features/NET10/Net10Main
-
-REPO LAYOUT (key files):
-- SDC.Schema/Utility Classes/SdcDataTypeBuilder.cs — factory, all type dispatch
-- SDC.Schema/Utility Classes/SdcValidate.Coherence.cs — CheckValAgainstConstraints, CheckConstraintCoherence
-- SDC.Schema/Utility Classes/SdcUtil.cs — ValidateAndRaise, ValidateLexicalAndRaise, RaiseAndRecord,
-    SuppressValidation, IsDeserializing, ValidationCollector, RecordRejectedValue, GetRejectedValues
-- SDC.Schema/Utility Classes/SdcValidationEvents.cs — ValidationOccurred event hub
-- SDC.Schema/Utility Classes/Extensions/SdcValidationExtensions.cs — WouldBeValid, TryAssignValue
-- SDC.Schema/Interfaces/IDataHelpers.cs — [Obsolete] shim only; use SdcDataTypeBuilder directly
-- SDC.Schema/SDC.Schema/SDC.Schema.csproj — excludes originals, includes AddedValidationLogic copies
+git checkout -b Features/NET10/NewBranchName origin/Features/NET10/Net10Main
 ```
