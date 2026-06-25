@@ -404,7 +404,7 @@ namespace SDC.Schema.Tests.Functional
 		[TestMethod]
 		public void AddDataTypesDE_InvalidByteValue_FiresValidationEventViaStoreError()
 		{
-			// Rationale: IDataHelpers.AddDataTypesDE.StoreError routes parse failures through
+			// Rationale: SdcDataTypeBuilder.AddDataTypesDE.StoreError routes parse failures through
 			// SdcValidationEvents.Raise(), so callers that subscribe to the hub see type-parse
 			// errors without needing to pass the optional errors out-parameter.
 			var de = new DataElementType(null);
@@ -414,7 +414,7 @@ namespace SDC.Schema.Tests.Functional
 			_captured.Clear(); // Discard construction events
 
 			// "not_a_byte" cannot be parsed as sbyte → StoreError fires → SdcValidationEvents.Raise
-			IDataHelpers.AddDataTypesDE(rf, ItemChoiceType.@byte, value: "not_a_byte");
+			SdcDataTypeBuilder.AddDataTypesDE(rf, ItemChoiceType.@byte, value: "not_a_byte");
 
 			Assert.IsTrue(_captured.Count > 0,
 				"At least one SdcValidationEvent must fire when AddDataTypesDE cannot parse the value.");

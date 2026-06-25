@@ -12,7 +12,7 @@ namespace SDC.Schema.Extensions
 			ItemChoiceType dataType = ItemChoiceType.@string,
 			dtQuantEnum dtQuant = dtQuantEnum.EQ,
 			object? valDefault = null)
-			=> IDataHelpers.AddDataTypesDE(rf, dataType, dtQuant, valDefault);  //Convert to generic type for valDefault
+			=> SdcDataTypeBuilder.AddDataTypesDE(rf, dataType, dtQuant, valDefault);  //Convert to generic type for valDefault
 
 		/// <summary>
 		/// 

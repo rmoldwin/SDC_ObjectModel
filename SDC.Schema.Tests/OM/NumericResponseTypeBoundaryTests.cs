@@ -467,7 +467,7 @@ namespace SDC.Schema.Tests.OM
 			var errors = new List<Exception>();
 			// AddDataTypesDE uses TryParse internally and must NOT throw on malformed numeric input;
 			// it records a structured error in the supplied list instead.
-			IDataHelpers.AddDataTypesDE(rf, ict, dtQuantEnum.EQ, badValue, errors);
+			SdcDataTypeBuilder.AddDataTypesDE(rf, ict, dtQuantEnum.EQ, badValue, errors);
 			return errors;
 		}
 
@@ -516,7 +516,7 @@ namespace SDC.Schema.Tests.OM
 			var fd = NumericResponseTypeTestHelpers.NewForm(ItemChoiceType.@decimal, out var q, out _);
 			var rf = q.ResponseField_Item!;
 			var errors = new List<Exception>();
-			IDataHelpers.AddDataTypesDE(rf, ItemChoiceType.@decimal, dtQuantEnum.EQ, "12.3.4", errors);
+			SdcDataTypeBuilder.AddDataTypesDE(rf, ItemChoiceType.@decimal, dtQuantEnum.EQ, "12.3.4", errors);
 			Assert.IsTrue(errors.Count > 0, "Malformed decimal input must be recorded as an error without throwing.");
 		}
 
