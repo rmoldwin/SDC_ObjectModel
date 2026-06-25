@@ -399,27 +399,28 @@ namespace SDC.Schema.Tests.Functional
 			SdcValidationEvents.ValidationOccurred += _handler;
 		}
 
-		// ─── AddDataTypesDE StoreError integration test ────────────────────────────
+		// ─── AddDataTypesDE RecordAndRaise integration test ─────────────────────────
 
 		[TestMethod]
 		public void AddDataTypesDE_InvalidByteValue_FiresValidationEventViaStoreError()
 		{
-			// Rationale: SdcDataTypeBuilder.AddDataTypesDE.StoreError routes parse failures through
-			// SdcValidationEvents.Raise(), so callers that subscribe to the hub see type-parse
-			// errors without needing to pass the optional errors out-parameter.
+			// Rationale: SdcDataTypeBuilder.AddDataTypesDE.RecordAndRaise routes parse failures
+			// through SdcValidationEvents.Raise() and SdcUtil.RecordRejectedValue(), so callers
+			// that subscribe to the hub see type-parse errors without needing to pass the optional
+			// errors out-parameter.
 			var de = new DataElementType(null);
 			var q  = new QuestionItemType(de, "q_storeerror");
 			q.AddQuestionResponseField(out DataTypes_DEType deType, ItemChoiceType.@string);
 			var rf = q.ResponseField_Item;
 			_captured.Clear(); // Discard construction events
 
-			// "not_a_byte" cannot be parsed as sbyte → StoreError fires → SdcValidationEvents.Raise
+			// "not_a_byte" cannot be parsed as sbyte → RecordAndRaise fires → SdcValidationEvents.Raise
 			SdcDataTypeBuilder.AddDataTypesDE(rf, ItemChoiceType.@byte, value: "not_a_byte");
 
 			Assert.IsTrue(_captured.Count > 0,
 				"At least one SdcValidationEvent must fire when AddDataTypesDE cannot parse the value.");
 			Assert.AreEqual(SdcValidationSeverity.Error, _captured[0].Severity,
-				"Parse failures reported via StoreError must have Error severity.");
+				"Parse failures reported via RecordAndRaise must have Error severity.");
 			Assert.IsFalse(string.IsNullOrWhiteSpace(_captured[0].Message),
 				"The event message must describe the parse failure.");
 		}
