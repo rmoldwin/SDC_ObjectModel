@@ -61,26 +61,22 @@ public partial class float_Stype : BaseType
         {
             if ((_val.Equals(value) != true))
             {
-                //SDC-CUSTOM: replaced raw assignment with ValidateAndRaise pipeline (Phase 4)
-                //_val = value;
-                //OnPropertyChanged("val", value);
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "val";
-                if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
+                var ctx = new ValidationContext(this, null, null) { MemberName = "val" };
+                // Soft-reject: fires ValidationOccurred and records the rejected value without throwing
+                if (SdcUtil.ValidateAndRaise(value, ctx))
                 {
+                    // Cross-check val against any already-set constraints; skip during deserialization order replay
+                    if (!SdcUtil.IsDeserializing.Value)
+                        SdcValidate.CheckValAgainstConstraints(this, "val", value);
                     _val = value;
                     OnPropertyChanged("val", value);
                     _shouldSerializeval = true;
-                    if (!SdcUtil.SuppressValidation.Value)
-                        SdcValidate.CheckValAgainstConstraints(this, "val", value);
                 }
             }
             else
             {
                 _shouldSerializeval = true;
             }
-            //SDC-CUSTOM: _shouldSerializeval = true; moved inside ValidateAndRaise block above (and else branch)
-            //_shouldSerializeval = true;
         }
     }
     
