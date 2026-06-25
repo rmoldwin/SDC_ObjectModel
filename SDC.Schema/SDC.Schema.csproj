@@ -112,6 +112,16 @@
     <Compile Remove="SDC.Schema\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\dateTime_DEtype.cs" />
     <!-- SDC TimeSpan string Datatypes: DEtype constraint-setter originals -->
     <Compile Remove="SDC.Schema\SDC Constructor Removed\SDC TimeSpan string Datatypes\duration_DEtype.cs" />
+    <!-- Phase 10: Exclude integer-family Stype originals replaced by AddedValidationLogic copies -->
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\integer_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\negativeInteger_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\nonNegativeInteger_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\nonPositiveInteger_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\positiveInteger_Stype.cs" />
+    <!-- Phase 10: Exclude duration-family Stype originals replaced by AddedValidationLogic copies -->
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\SDC TimeSpan string Datatypes\duration_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\SDC TimeSpan string Datatypes\dayTimeDuration_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\SDC TimeSpan string Datatypes\yearMonthDuration_Stype.cs" />
 
     <Compile Remove="Utility Classes\Attribute and PI Structs and Methods\CompareTreesTests.cs" />
     <Compile Remove="Utility Classes\Extensions\Unimplemented Extensions.cs" />
