@@ -11,8 +11,17 @@ namespace SDC.Schema
 	/// </summary>
 	public enum SdcValidationSeverity
 	{
+		/// <summary>
+		/// Informational notice only; no corrective action is required.
+		/// </summary>
 		Info,
+		/// <summary>
+		/// The value was applied, but the result may lead to a coherence issue or other follow-up concern.
+		/// </summary>
 		Warning,
+		/// <summary>
+		/// The validation failed and the attempted value was not applied.
+		/// </summary>
 		Error
 	}
 
@@ -25,7 +34,7 @@ namespace SDC.Schema
 	/// </summary>
 	public class SdcValidationEventArgs : EventArgs
 	{
-		/// <summary><see cref="BaseType.ID"/> of the node being validated, or null if unknown.</summary>
+		/// <summary>The node's <c>ID</c> value when available, or null if the source node has no stable ID.</summary>
 		public string? NodeID { get; init; }
 
 		/// <summary>Name of the property that triggered the validation issue.</summary>
@@ -49,44 +58,45 @@ namespace SDC.Schema
 	}
 
 	/// <summary>
-	/// Central, static event hub for SDC validation issues.<br/>
-	/// Subscribe to <see cref="ValidationOccurred"/> to receive non-throwing validation
-	/// notifications from any part of the SDC OM (property setters, node-builder helpers, etc.).<br/>
-	/// Subscribers must be added before calling the code that may raise events.
+	/// Central, static event hub for SDC validation issues.
 	/// </summary>
 	/// <remarks>
-	/// Design goals:<br/>
-	/// • Non-throwing — callers decide whether to abort, log, or surface errors in UI.<br/>
-	/// • Lightweight — a single static event; no DI container required.<br/>
-	/// • Deserialization-safe — callers should gate raises with
-	///   <c>if (!SdcUtil.IsDeserializing.Value)</c> to avoid noise during round-trips.<br/>
-	/// • Subscribable by UI view-models, loggers, and <see cref="SdcValidate"/> alike.
+	/// Subscribe to <see cref="ValidationOccurred"/> before performing operations that may validate.
+	/// All scoped validation entry points in this cleanup pass—
+	/// <see cref="SdcDataTypeBuilder.AddDataTypesDE"/>,
+	/// <see cref="SdcUtil.ValidateAndRaise(object?, ValidationContext)"/>, and
+	/// <see cref="SdcUtil.ValidateLexicalAndRaise(BaseType, string, string?, XsdDateKind)"/>—
+	/// converge here so callers can observe one consistent stream of non-throwing validation notifications.
+	/// Rejected-value recording remains separate and is preserved even when
+	/// <see cref="SdcUtil.SuppressValidation"/> silences this event.
 	/// </remarks>
 	public static class SdcValidationEvents
 	{
 		/// <summary>
 		/// Raised whenever an SDC validation issue is detected.
-		/// The <c>sender</c> argument is always <see langword="null"/>
-		/// (the event is module-level, not instance-level).
+		/// The <c>sender</c> argument is always <see langword="null"/> because the event is module-level.
 		/// </summary>
+		/// <seealso cref="SdcUtil.ValidateAndRaise(object?, ValidationContext)"/>
+		/// <seealso cref="SdcUtil.ValidateLexicalAndRaise(BaseType, string, string?, XsdDateKind)"/>
 		public static event EventHandler<SdcValidationEventArgs>? ValidationOccurred;
 
 		/// <summary>
-		/// Raise a validation event.  Intended to be called by SDC OM internals;
-		/// external callers may also use it to inject custom validation results.
+		/// Raises a validation event using a preconstructed payload.
 		/// </summary>
-		/// <param name="e">The validation event arguments.</param>
+		/// <param name="e">The validation event arguments to publish.</param>
+		/// <seealso cref="ValidationOccurred"/>
 		internal static void Raise(SdcValidationEventArgs e) =>
 			ValidationOccurred?.Invoke(null, e);
 
 		/// <summary>
-		/// Convenience overload: raise a simple error with a message and optional node/property context.
+		/// Convenience overload that raises a simple validation event from raw message/context values.
 		/// </summary>
 		/// <param name="message">Human-readable description of the issue.</param>
-		/// <param name="nodeID">Optional: <see cref="BaseType.ID"/> of the affected node.</param>
-		/// <param name="propertyName">Optional: name of the failing property.</param>
-		/// <param name="attemptedValue">Optional: the value that was rejected.</param>
-		/// <param name="severity">Severity level (defaults to <see cref="SdcValidationSeverity.Error"/>).</param>
+		/// <param name="nodeID">Optional: the affected node's <c>ID</c> value when one is available.</param>
+		/// <param name="propertyName">Optional: the property associated with the validation issue.</param>
+		/// <param name="attemptedValue">Optional: the value that was rejected or flagged.</param>
+		/// <param name="severity">Severity classification for the event.</param>
+		/// <seealso cref="Raise(SdcValidationEventArgs)"/>
 		internal static void Raise(
 			string message,
 			string? nodeID = null,
