@@ -5,14 +5,21 @@ using System.Xml;
 namespace SDC.Schema
 {
     /// <summary>
-    /// Thin compatibility shim. All logic lives in <see cref="SdcDataTypeBuilder"/>.
-    /// Use <c>rf.AddDataType()</c> extension methods or <see cref="SdcDataTypeBuilder"/> directly.
+    /// Obsolete facade for <see cref="SdcDataTypeBuilder"/>. All methods delegate to
+    /// <see cref="SdcDataTypeBuilder"/> and will be removed in a future release.
     /// </summary>
+    /// <remarks>
+    /// Use the extension method <c>rf.AddDataType(...)</c> from
+    /// <see cref="Extensions.IResponseFieldExtensions"/> as the public API for constructing
+    /// SDC response datatypes. Internal code should call <see cref="SdcDataTypeBuilder"/>
+    /// directly.
+    /// </remarks>
     [Obsolete("Use rf.AddDataType() extension method. Direct internal use: SdcDataTypeBuilder.")]
     public interface IDataHelpers
     {
         #region Data Helpers
 
+        /// <inheritdoc cref="SdcDataTypeBuilder.AddDataTypesDE"/>
         static DataTypes_DEType AddDataTypesDE(
             ResponseFieldType rfParent,
             ItemChoiceType dataTypeEnum = ItemChoiceType.@string,
@@ -21,18 +28,23 @@ namespace SDC.Schema
             IList<Exception>? errors = null)
             => SdcDataTypeBuilder.AddDataTypesDE(rfParent, dataTypeEnum, quantifierEnum, value, errors);
 
+        /// <inheritdoc cref="SdcDataTypeBuilder.AddHTML_DE"/>
         static DataTypes_DEType AddHTML_DE(ResponseFieldType rfParent, List<XmlElement> valEl = null!, List<XmlAttribute> valAtt = null!)
             => SdcDataTypeBuilder.AddHTML_DE(rfParent, valEl, valAtt);
 
+        /// <inheritdoc cref="SdcDataTypeBuilder.AddXML_DE"/>
         static DataTypes_DEType AddXML_DE(ResponseFieldType rfParent, List<XmlElement> valEl = null!)
             => SdcDataTypeBuilder.AddXML_DE(rfParent, valEl);
 
+        /// <inheritdoc cref="SdcDataTypeBuilder.AddAny_DE"/>
         static DataTypes_DEType AddAny_DE(ResponseFieldType rfParent, List<XmlElement> valEl = null!, List<XmlAttribute> valAtt = null!, string nameSpace = null!, string schema = null!)
             => SdcDataTypeBuilder.AddAny_DE(rfParent, valEl, valAtt, nameSpace, schema);
 
+        /// <inheritdoc cref="SdcDataTypeBuilder.AddBase64_DE"/>
         static DataTypes_DEType AddBase64_DE(ResponseFieldType rfParent, byte[] value = null!, string mediaType = null!)
             => SdcDataTypeBuilder.AddBase64_DE(rfParent, value, mediaType);
 
+        /// <inheritdoc cref="SdcDataTypeBuilder.AssignQuantifier"/>
         dtQuantEnum AssignQuantifier(string quantifier)
             => SdcDataTypeBuilder.AssignQuantifier(quantifier);
 
