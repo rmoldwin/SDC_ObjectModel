@@ -11,8 +11,7 @@ namespace SDC.Schema
 	{
 		// ──── Private reflection helpers ────────────────────────────────────────────
 
-		// Retrieves a property value from obj and converts it to decimal.
-		// Returns null if the property doesn't exist, is null, or cannot be converted.
+		/// <summary>Retrieves a property value from <paramref name="obj"/> and converts it to <see cref="decimal"/>. Returns <see langword="null"/> if the property does not exist, is null, or cannot be converted.</summary>
 		private static decimal? GetDecimalProp(object obj, string propName)
 		{
 			var pi = obj.GetType().GetProperty(propName);
@@ -22,8 +21,7 @@ namespace SDC.Schema
 			try { return Convert.ToDecimal(v); } catch { return null; }
 		}
 
-		// Retrieves a property value from obj and converts it to ulong.
-		// Returns null if the property doesn't exist, is null, or cannot be converted.
+		/// <summary>Retrieves a property value from <paramref name="obj"/> and converts it to <see cref="ulong"/>. Returns <see langword="null"/> if the property does not exist, is null, or cannot be converted.</summary>
 		private static ulong? GetUlongProp(object obj, string propName)
 		{
 			var pi = obj.GetType().GetProperty(propName);
@@ -33,8 +31,7 @@ namespace SDC.Schema
 			try { return Convert.ToUInt64(v); } catch { return null; }
 		}
 
-		// Retrieves a string property value from obj.
-		// Returns null if the property doesn't exist or the value is null.
+		/// <summary>Retrieves a <see cref="string"/> property value from <paramref name="obj"/>. Returns <see langword="null"/> if the property does not exist or its value is null.</summary>
 		private static string? GetStringProp(object obj, string propName)
 		{
 			var pi = obj.GetType().GetProperty(propName);
@@ -42,8 +39,7 @@ namespace SDC.Schema
 			return pi.GetValue(obj) as string;
 		}
 
-		// Returns true if the constraint named propName has been explicitly set on obj.
-		// Calls ShouldSerialize{propName}() when available; falls back to a non-default check.
+		/// <summary>Returns <see langword="true"/> if the constraint property named <paramref name="propName"/> has been explicitly set on <paramref name="obj"/>. Calls <c>ShouldSerialize{propName}()</c> when available; falls back to a non-default-value check.</summary>
 		private static bool IsConstraintSet(object obj, string propName)
 		{
 			var method = obj.GetType().GetMethod(
@@ -61,8 +57,7 @@ namespace SDC.Schema
 			return !val.Equals(defaultVal);
 		}
 
-		// Attempts to convert value to decimal. Returns false for null or string values
-		// (strings are handled via the string path) and for unconvertible objects.
+		/// <summary>Attempts to convert <paramref name="value"/> to <see cref="decimal"/>. Returns <see langword="false"/> for null or string values (handled via the string path) and for unconvertible objects.</summary>
 		private static bool TryToDecimal(object? value, out decimal result)
 		{
 			result = 0m;
@@ -71,7 +66,7 @@ namespace SDC.Schema
 			catch { return false; }
 		}
 
-		// Attempts to convert value to ulong. Returns false for null or unconvertible objects.
+		/// <summary>Attempts to convert <paramref name="value"/> to <see cref="ulong"/>. Returns <see langword="false"/> for null or unconvertible objects.</summary>
 		private static bool TryToUlong(object? value, out ulong result)
 		{
 			result = 0UL;
@@ -82,9 +77,12 @@ namespace SDC.Schema
 
 		// ──── Coherence violation reporter ──────────────────────────────────────────
 
-		// Records the violation and fires the event/collector according to severity semantics.
-		// Error → records rejected value, fires event (if not suppressed), returns false.
-		// Warning → records rejected value, fires event (if not suppressed), returns true.
+		/// <summary>
+		/// Records a coherence violation and fires the validation event according to severity.
+		/// Error → records rejected value, fires event (if not suppressed), returns <see langword="false"/>.<br/>
+		/// Warning → records the value, fires the event (if not suppressed), returns <see langword="true"/>
+		/// (the change is accepted with a warning).
+		/// </summary>
 		private static bool RaiseCoherenceViolation(
 			BaseType node,
 			string memberName,
@@ -142,16 +140,32 @@ namespace SDC.Schema
 
 		/// <summary>
 		/// Validates <paramref name="newVal"/> against all constraint facets currently set on
-		/// <paramref name="node"/> (minInclusive, maxInclusive, minExclusive, maxExclusive for
-		/// numeric types; pattern, minLength, maxLength for string types; totalDigits for decimal
-		/// types). Returns <see langword="true"/> if <paramref name="newVal"/> is coherent with
-		/// all constraints currently set on the node. On violation, fires
-		/// <see cref="SdcValidationEvents.ValidationOccurred"/> (unless
-		/// <see cref="SdcUtil.SuppressValidation"/> is <see langword="true"/>).
-		/// Must be called AFTER property-level DataAnnotations validation succeeds.
-		/// Is a no-op (returns <see langword="true"/>) when SuppressValidation is
-		/// <see langword="true"/>.
+		/// <paramref name="node"/>. Returns <see langword="true"/> when <paramref name="newVal"/>
+		/// is coherent with all active constraints; returns <see langword="false"/> on any violation.
 		/// </summary>
+		/// <param name="node">The SDC node whose constraint facets will be checked.</param>
+		/// <param name="memberName">
+		/// The property name being validated, typically <c>"val"</c>. Used as context in
+		/// validation events.
+		/// </param>
+		/// <param name="newVal">The proposed new value to check against the node's constraints.</param>
+		/// <returns>
+		/// <see langword="true"/> if <paramref name="newVal"/> satisfies all active constraint
+		/// facets; <see langword="false"/> if any constraint is violated.
+		/// </returns>
+		/// <remarks>
+		/// Constraint facets checked (when set on the node):<br/>
+		/// • <b>Numeric path</b> — minInclusive, maxInclusive, minExclusive, maxExclusive, totalDigits<br/>
+		/// • <b>String path</b> — minLength, maxLength, pattern<br/>
+		/// <br/>
+		/// Additional notes:<br/>
+		/// • Is a no-op (returns <see langword="true"/>) when
+		///   <see cref="SdcUtil.SuppressValidation"/> is <see langword="true"/>.<br/>
+		/// • Must be called <i>after</i> DataAnnotations (<see cref="System.ComponentModel.DataAnnotations.Validator"/>) validation succeeds.<br/>
+		/// • Violations fire <see cref="SdcValidationEvents.ValidationOccurred"/> (gated by
+		///   <see cref="SdcUtil.SuppressValidation"/>) and record the rejected value via
+		///   <see cref="SdcUtil.RecordRejectedValue"/> (unconditional).
+		/// </remarks>
 		public static bool CheckValAgainstConstraints(BaseType node, string memberName, object? newVal)
 		{
 			if (SdcUtil.SuppressValidation.Value) return true;
@@ -258,15 +272,42 @@ namespace SDC.Schema
 
 		/// <summary>
 		/// Validates that a proposed new constraint value is coherent with other currently-set
-		/// constraints and the current <c>val</c>.<br/>
-		/// Returns <see langword="false"/> (Error) for constraint-vs-constraint incoherence
-		/// (e.g. minInclusive &gt; maxInclusive).<br/>
-		/// Returns <see langword="true"/> with a Warning when the constraint is internally
-		/// consistent but would invalidate the current <c>val</c> (val may be updated separately;
-		/// rejecting the constraint would be too aggressive).<br/>
+		/// constraints on <paramref name="node"/> and with the node's current <c>val</c>.
+		/// </summary>
+		/// <param name="node">The SDC node whose existing constraints will be checked for coherence.</param>
+		/// <param name="constraintName">
+		/// The name of the constraint property being set (e.g., <c>"minInclusive"</c>,
+		/// <c>"maxLength"</c>, <c>"pattern"</c>).
+		/// </param>
+		/// <param name="newConstraintValue">The proposed new value for the constraint.</param>
+		/// <returns>
+		/// <see langword="false"/> (Error) when a constraint-vs-constraint incoherence is detected
+		/// (e.g., <c>minInclusive</c> &gt; <c>maxInclusive</c>); the proposed constraint is rejected.<br/>
+		/// <see langword="true"/> with a Warning event when the constraint is internally consistent
+		/// but would invalidate the node's current <c>val</c> — the constraint change is allowed
+		/// (val may be corrected separately), but a warning is raised so subscribers can react.<br/>
+		/// <see langword="true"/> with no event when the proposed constraint is fully coherent.
+		/// </returns>
+		/// <remarks>
+		/// Constraint pairs checked:<br/>
+		/// • minInclusive vs maxInclusive, maxExclusive, and current val<br/>
+		/// • maxInclusive vs minInclusive, minExclusive, and current val<br/>
+		/// • minExclusive vs maxExclusive, maxInclusive, and current val<br/>
+		/// • maxExclusive vs minExclusive, minInclusive, and current val<br/>
+		/// • minLength vs maxLength and current val length<br/>
+		/// • maxLength vs minLength and current val length<br/>
+		/// • pattern — must be a valid compilable regex; warns if current val does not match<br/>
+		/// <br/>
+		/// <b>Error vs Warning severity:</b><br/>
+		/// <i>Error</i> (returns <see langword="false"/>) — constraint-vs-constraint incoherence
+		/// that would make the schema unsatisfiable (e.g., min &gt; max).<br/>
+		/// <i>Warning</i> (returns <see langword="true"/>) — constraint-vs-current-val: the new
+		/// constraint is valid in isolation but the existing val would no longer satisfy it. The
+		/// constraint is accepted; the caller is responsible for updating or clearing val.<br/>
+		/// <br/>
 		/// Is a no-op (returns <see langword="true"/>) when
 		/// <see cref="SdcUtil.SuppressValidation"/> is <see langword="true"/>.
-		/// </summary>
+		/// </remarks>
 		public static bool CheckConstraintCoherence(BaseType node, string constraintName, object? newConstraintValue)
 		{
 			if (SdcUtil.SuppressValidation.Value) return true;
