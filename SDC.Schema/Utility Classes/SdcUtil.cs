@@ -43,35 +43,48 @@ namespace SDC.Schema
 		#region Local
 
 		#region Serialization
-		// AsyncLocal flag used to indicate a serializer is actively deserializing an object graph.
-		// When true, property setters and mutators should avoid performing runtime side-effects
-		// such as Move(), RegisterAll(), or DataAnnotations validation that assume a fully
-		// initialized parent/top-node context. The deserializers set this flag during object
-		// graph reconstruction and clear it afterward. ReflectRefreshTree will rebuild
-		// runtime dictionaries and parent mappings after deserialization completes.
+		/// <summary>
+		/// Tracks whether the current async flow is actively deserializing an SDC object graph.
+		/// </summary>
+		/// <remarks>
+		/// This flag is stored in <see cref="System.Threading.AsyncLocal{T}"/>, so each thread/async
+		/// context gets its own value. Serializers set it to <see langword="true"/> while rebuilding
+		/// object graphs so setters and mutators can skip runtime side effects that assume a fully
+		/// connected tree. It is independent from <see cref="SuppressValidation"/>: deserialization
+		/// state and validation suppression often move together, but they are not the same control.
+		/// </remarks>
+		/// <seealso cref="SuppressValidation"/>
 		public static System.Threading.AsyncLocal<bool> IsDeserializing { get; } = new System.Threading.AsyncLocal<bool>();
 		#endregion
 
 		#region Validation
 		/// <summary>
-		/// When <see langword="true"/>, <see cref="ValidateAndRaise"/> is a no-op: no
-		/// <see cref="SdcValidationEvents.ValidationOccurred"/> event is fired and nothing is
-		/// added to <see cref="ValidationCollector"/>.<br/>
-		/// Serializers set this to <see langword="true"/> during normal (non-validating)
-		/// deserialization, alongside <see cref="IsDeserializing"/>. Set to
-		/// <see langword="false"/> (the default) for programmatic mutation and for
-		/// <em>validating</em> deserialization (see <c>Deserialize*Validating</c> overloads).
+		/// Controls whether validation failures are surfaced through events and reports in the current async flow.
 		/// </summary>
+		/// <remarks>
+		/// This flag is stored in <see cref="System.Threading.AsyncLocal{T}"/>, so it is isolated per
+		/// thread/async context. When <see langword="true"/>, validation helpers still reject invalid
+		/// values, but they suppress <see cref="SdcValidationEvents.ValidationOccurred"/> and
+		/// <see cref="ValidationCollector"/> output. Serializers typically set this during normal
+		/// non-validating deserialization; validating-deserialize overloads leave it
+		/// <see langword="false"/> so the same setters can populate reports.
+		/// </remarks>
+		/// <seealso cref="IsDeserializing"/>
+		/// <seealso cref="ValidationCollector"/>
 		public static System.Threading.AsyncLocal<bool> SuppressValidation { get; } = new System.Threading.AsyncLocal<bool>();
 
 		/// <summary>
-		/// When non-<see langword="null"/>, <see cref="ValidateAndRaise"/> appends every
-		/// <see cref="SdcNodeValidationIssue"/> to this report in addition to firing
-		/// <see cref="SdcValidationEvents.ValidationOccurred"/>.<br/>
-		/// Used by validating deserialization overloads and explicit
-		/// <see cref="SdcValidate.ValidateTree"/> / <see cref="SdcValidate.ValidateNode"/> sweeps
-		/// to collect a structured <see cref="SdcValidationReport"/> without requiring a separate pass.
+		/// Holds the active validation report for the current async flow, when one is being collected.
 		/// </summary>
+		/// <remarks>
+		/// This value is stored in <see cref="System.Threading.AsyncLocal{T}"/>, so each thread/async
+		/// context can collect into a different report without cross-talk. When non-<see langword="null"/>,
+		/// validation helpers append <see cref="SdcNodeValidationIssue"/> entries here in addition to
+		/// raising <see cref="SdcValidationEvents.ValidationOccurred"/>. Validating-deserialize overloads
+		/// and explicit sweeps such as <see cref="SdcValidate.ValidateTree"/> set this to gather a
+		/// structured <see cref="SdcValidationReport"/> during the main pass.
+		/// </remarks>
+		/// <seealso cref="SuppressValidation"/>
 		public static System.Threading.AsyncLocal<SdcValidationReport?> ValidationCollector { get; } = new System.Threading.AsyncLocal<SdcValidationReport?>();
 
 		// Out-of-band per-node store of values that were rejected by a setter (soft-reject, issue #8).
@@ -82,9 +95,15 @@ namespace SDC.Schema
 		/// <summary>
 		/// Records a value that was rejected by a setter on <paramref name="node"/> so it can be
 		/// surfaced to the user for correction. The most recent rejected attempt per property wins.
-		/// Called unconditionally by <see cref="ValidateAndRaise"/> on failure (even when
-		/// <see cref="SuppressValidation"/> is <see langword="true"/>).
 		/// </summary>
+		/// <param name="node">The node that rejected the value.</param>
+		/// <param name="rejected">The rejected-value payload to record for later inspection.</param>
+		/// <remarks>
+		/// This is the durable part of the soft-reject contract: invalid values are never stored on the
+		/// typed property, but the user's last rejected attempt is preserved out-of-band even when
+		/// <see cref="SuppressValidation"/> silences events and report collection.
+		/// </remarks>
+		/// <seealso cref="GetRejectedValues(BaseType)"/>
 		internal static void RecordRejectedValue(BaseType node, SdcRejectedValue rejected)
 		{
 			if (node is null || string.IsNullOrEmpty(rejected.PropertyName)) return;
@@ -96,6 +115,16 @@ namespace SDC.Schema
 		/// Returns the values that were rejected (and therefore not stored) on
 		/// <paramref name="node"/>, keyed by property name. Empty when the node has no rejected values.
 		/// </summary>
+		/// <param name="node">The node whose rejected values should be returned.</param>
+		/// <returns>
+		/// A snapshot of the rejected values currently recorded for <paramref name="node"/>, keyed by
+		/// property name, or an empty dictionary when nothing has been rejected.
+		/// </returns>
+		/// <remarks>
+		/// The returned dictionary is a defensive copy so callers can enumerate it without mutating the
+		/// backing store.
+		/// </remarks>
+		/// <seealso cref="RecordRejectedValue(BaseType, SdcRejectedValue)"/>
 		public static IReadOnlyDictionary<string, SdcRejectedValue> GetRejectedValues(BaseType node)
 		{
 			if (node is not null && _rejectedValues.TryGetValue(node, out var map))
@@ -154,27 +183,24 @@ namespace SDC.Schema
 		/// set to the property name.
 		/// </param>
 		/// <returns><see langword="true"/> if the value is valid and may be assigned; otherwise <see langword="false"/>.</returns>
+		/// <remarks>
+		/// This method is the main setter-facing entry point. It first honors any registered override
+		/// rules from <see cref="SdcValidationRuleRegistry"/> and otherwise falls back to the
+		/// DataAnnotations declared on the property itself. Callers should only assign the incoming
+		/// value when this method returns <see langword="true"/>.
+		/// </remarks>
+		/// <seealso cref="ValidateLexicalAndRaise(BaseType, string, string?, XsdDateKind)"/>
 		public static bool ValidateAndRaise(object? value, ValidationContext ctx)
-			=> ValidateAndRaise(value, ctx, null);
-
-		internal static bool ValidateAndRaise(object? value, ValidationContext ctx, IEnumerable<ValidationAttribute>? attributes)
 		{
 			var results = new List<ValidationResult>();
 			bool ok;
-			// Regen-safe override: when a date/date-part rule is registered for this (Type, member),
-			// validate against the REGISTERED attributes (so they replace the attributes physically
-			// declared on the generated property). This is how the impossible dateTimeStamp regex is
-			// neutralized (issue I-1) and the weak duration regexes are strengthened without editing
-			// any auto-generated file. Otherwise fall back to the property's declared attributes.
-			if (attributes is not null)
-			{
-				ok = Validator.TryValidateValue(value!, ctx, results, attributes.ToList());
-			}
-			else if (ctx.ObjectInstance is not null && ctx.MemberName is string member
+			// Registered rules replace generated-property attributes without editing auto-generated files.
+			if (ctx.ObjectInstance is not null && ctx.MemberName is string member
 				&& SdcValidationRuleRegistry.TryGet(ctx.ObjectInstance.GetType(), member, out var registered))
 			{
 				ok = Validator.TryValidateValue(value!, ctx, results, registered);
 			}
+			// Fall back to the DataAnnotations physically declared on the property.
 			else
 			{
 				ok = Validator.TryValidateProperty(value, ctx, results);
@@ -193,28 +219,51 @@ namespace SDC.Schema
 
 		/// <summary>
 		/// Soft-reject entry point for a raw XSD <b>lexical string</b> (used by the DateTime-backed
-		/// date types' <c>SetLexicalValue</c> methods and by the <c>IDataHelpers</c> parse path).
+		/// date types' <c>SetLexicalValue</c> methods and by the datatype-builder parse path).
 		/// Validates <paramref name="lexical"/> against <paramref name="kind"/>; on success clears any
 		/// prior rejection for <paramref name="memberName"/> and returns <see langword="true"/>; on
 		/// failure records the offending value (and, when not suppressed, raises the validation event)
-		/// and returns <see langword="false"/> — exactly mirroring <see cref="ValidateAndRaise"/>.
+		/// and returns <see langword="false"/> — exactly mirroring
+		/// <see cref="ValidateAndRaise(object?, ValidationContext)"/>.
 		/// </summary>
+		/// <param name="node">The node whose lexical value is being updated.</param>
+		/// <param name="memberName">The property name to report in validation messages.</param>
+		/// <param name="lexical">The raw lexical string to validate against the XSD grammar.</param>
+		/// <param name="kind">The XSD date/date-part kind that determines the lexical grammar.</param>
+		/// <returns><see langword="true"/> when the lexical string is valid; otherwise <see langword="false"/>.</returns>
+		/// <remarks>
+		/// Unlike <see cref="ValidateAndRaise(object?, ValidationContext)"/>, this method validates the
+		/// raw string representation directly instead of a parsed CLR value.
+		/// </remarks>
+		/// <seealso cref="ValidateAndRaise(object?, ValidationContext)"/>
 		public static bool ValidateLexicalAndRaise(BaseType node, string memberName, string? lexical, XsdDateKind kind)
 		{
 			var ctx = new ValidationContext(node) { MemberName = memberName };
 			var results = new List<ValidationResult>();
+			// Check the raw lexical token against the XSD grammar before any parsed value is committed.
 			if (Validator.TryValidateValue(lexical ?? string.Empty, ctx, results,
 					new ValidationAttribute[] { new XsdDateLexicalAttribute(kind) }))
 			{
+				// A valid lexical update supersedes any earlier rejected raw string for the same member.
 				ClearRejectedValue(node, memberName);
 				return true;
 			}
 			return RaiseAndRecord(ctx, lexical, results);
 		}
 
-		// Shared failure path for ValidateAndRaise / ValidateLexicalAndRaise: unconditionally records
-		// the offending value on the node, and (unless suppressed) collects + raises the event. Always
-		// returns false so callers can `return RaiseAndRecord(...)`.
+		/// <summary>
+		/// Shared failure path for validation helpers that need to reject a value without throwing.
+		/// </summary>
+		/// <param name="ctx">Validation context describing the member that failed.</param>
+		/// <param name="value">The offending value that was rejected.</param>
+		/// <param name="results">Validation results explaining why the value failed.</param>
+		/// <returns>Always returns <see langword="false"/> so callers can return it directly.</returns>
+		/// <remarks>
+		/// This helper always records the rejected value. Event firing and report collection remain gated
+		/// by <see cref="SuppressValidation"/>, which keeps non-validating deserialization quiet without
+		/// ever storing the invalid value.
+		/// </remarks>
+		/// <seealso cref="RecordRejectedValue(BaseType, SdcRejectedValue)"/>
 		internal static bool RaiseAndRecord(ValidationContext ctx, object? value, List<ValidationResult> results)
 		{
 			string nodeID   = (ctx.ObjectInstance as BaseType)?.sGuid ?? "(unknown)";
@@ -222,7 +271,7 @@ namespace SDC.Schema
 			string detail   = string.Join("; ", results.Select(r => r.ErrorMessage ?? "(validation error)"));
 			string message  = $"Value '{value ?? "null"}' is invalid for '{ctx.MemberName}': {detail}";
 
-			// Unconditional: record the offending value on the node so it is never silently lost.
+			// Always preserve the rejected attempt so UI/tests can surface it later.
 			if (ctx.ObjectInstance is BaseType node && ctx.MemberName is string prop)
 			{
 				RecordRejectedValue(node, new SdcRejectedValue
@@ -235,7 +284,7 @@ namespace SDC.Schema
 				});
 			}
 
-			// Gated: events + report collection are suppressed during non-validating deserialization.
+			// Suppressing validation silences event/report noise, but it never changes the rejection outcome.
 			if (!SuppressValidation.Value)
 			{
 				var issue = new SdcNodeValidationIssue
@@ -3414,7 +3463,7 @@ namespace SDC.Schema
 		/// In addition, if a name collision occurs in the hashtable <see cref="_ITopNode._UniqueBaseNames"/>, sGuid characters will be added <br/>
 		/// until there is no longer a collision, and thus the returned BaseName string may be longer than  <paramref name="minNameBaseLength"/></param>
 		/// <returns>The method tries to find an sGuid-derived string of length <paramref name="minNameBaseLength" />, more or less, that does not contain unusual characters.<br/>
-		/// May rarely return an empty string or a string shorter or longer than <paramref name="minNameBaseLength" /> if a name collision occurs in the hashtable <see cref="_ITopNode._UniqueBaseNames"/>.</returns>
+		/// May rarely return an empty string or a string shorter or longer than <paramref name="minNameBaseLength" /> if a name collision occurs in the hashtable <see cref="UniqueBaseNames"/>.</returns>
 		/// <exception cref="ArgumentException"></exception>
 		public static string CreateBaseNameFromsGuid(BaseType node, int minNameBaseLength = 6)
 		{ //TODO: change to private after all testing complete
