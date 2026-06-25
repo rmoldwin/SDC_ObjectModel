@@ -54,19 +54,21 @@ public partial class string_DEtype : string_Stype
         {
             if ((_minLength.Equals(value) != true))
             {
-                //SDC-CUSTOM: added ValidateProperty + CheckConstraintCoherence (Phase 4)
-                //_minLength = value;
-                //OnPropertyChanged("minLength", value);
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "minLength";
-                if (!SdcUtil.IsDeserializing.Value)
-                    Validator.ValidateProperty(value, validatorPropContext);
-                _minLength = value;
-                OnPropertyChanged("minLength", value);
-                if (!SdcUtil.SuppressValidation.Value)
+                var ctx = new ValidationContext(this, null, null) { MemberName = "minLength" };
+                // Soft-reject: fires ValidationOccurred and records the rejected constraint without throwing
+                if (SdcUtil.ValidateAndRaise(value, ctx))
+                {
+                    _minLength = value;
+                    OnPropertyChanged("minLength", value);
+                    _shouldSerializeminLength = true;
+                    // Recheck this constraint against sibling constraint settings after accepting the value
                     SdcValidate.CheckConstraintCoherence(this, "minLength", value);
+                }
             }
-            _shouldSerializeminLength = true;
+            else
+            {
+                _shouldSerializeminLength = true;
+            }
         }
     }
     
@@ -82,19 +84,21 @@ public partial class string_DEtype : string_Stype
         {
             if ((_maxLength.Equals(value) != true))
             {
-                //SDC-CUSTOM: added ValidateProperty + CheckConstraintCoherence (Phase 4)
-                //_maxLength = value;
-                //OnPropertyChanged("maxLength", value);
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "maxLength";
-                if (!SdcUtil.IsDeserializing.Value)
-                    Validator.ValidateProperty(value, validatorPropContext);
-                _maxLength = value;
-                OnPropertyChanged("maxLength", value);
-                if (!SdcUtil.SuppressValidation.Value)
+                var ctx = new ValidationContext(this, null, null) { MemberName = "maxLength" };
+                // Soft-reject: fires ValidationOccurred and records the rejected constraint without throwing
+                if (SdcUtil.ValidateAndRaise(value, ctx))
+                {
+                    _maxLength = value;
+                    OnPropertyChanged("maxLength", value);
+                    _shouldSerializemaxLength = true;
+                    // Recheck this constraint against sibling constraint settings after accepting the value
                     SdcValidate.CheckConstraintCoherence(this, "maxLength", value);
+                }
             }
-            _shouldSerializemaxLength = true;
+            else
+            {
+                _shouldSerializemaxLength = true;
+            }
         }
     }
     
@@ -113,19 +117,17 @@ public partial class string_DEtype : string_Stype
                 return;
             }
             if (((_pattern == null) 
-                        || (_pattern.Equals(value) != true)))
+                    || (_pattern.Equals(value) != true)))
             {
-                //SDC-CUSTOM: added ValidateProperty + CheckConstraintCoherence (Phase 4)
-                //_pattern = value;
-                //OnPropertyChanged("pattern", value);
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "pattern";
-                if (!SdcUtil.IsDeserializing.Value)
-                    Validator.ValidateProperty(value, validatorPropContext);
-                _pattern = value;
-                OnPropertyChanged("pattern", value);
-                if (!SdcUtil.SuppressValidation.Value)
+                var ctx = new ValidationContext(this, null, null) { MemberName = "pattern" };
+                // Soft-reject: fires ValidationOccurred and records the rejected constraint without throwing
+                if (SdcUtil.ValidateAndRaise(value, ctx))
+                {
+                    _pattern = value;
+                    OnPropertyChanged("pattern", value);
+                    // Recheck this constraint against sibling constraint settings after accepting the value
                     SdcValidate.CheckConstraintCoherence(this, "pattern", value);
+                }
             }
         }
     }

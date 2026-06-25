@@ -78,19 +78,17 @@ public partial class duration_DEtype : duration_Stype
                 return;
             }
             if (((_minInclusive == null) 
-                        || (_minInclusive.Equals(value) != true)))
+                    || (_minInclusive.Equals(value) != true)))
             {
-                //SDC-CUSTOM: added ValidateProperty + CheckConstraintCoherence (Phase 4)
-                //_minInclusive = value;
-                //OnPropertyChanged("minInclusive", value);
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "minInclusive";
-                if (!SdcUtil.IsDeserializing.Value)
-                    Validator.ValidateProperty(value, validatorPropContext);
-                _minInclusive = value;
-                OnPropertyChanged("minInclusive", value);
-                if (!SdcUtil.SuppressValidation.Value)
+                var ctx = new ValidationContext(this, null, null) { MemberName = "minInclusive" };
+                // Soft-reject: fires ValidationOccurred and records the rejected constraint without throwing
+                if (SdcUtil.ValidateAndRaise(value, ctx))
+                {
+                    _minInclusive = value;
+                    OnPropertyChanged("minInclusive", value);
+                    // Recheck this constraint against sibling constraint settings after accepting the value
                     SdcValidate.CheckConstraintCoherence(this, "minInclusive", value);
+                }
             }
         }
     }
@@ -110,19 +108,17 @@ public partial class duration_DEtype : duration_Stype
                 return;
             }
             if (((_maxInclusive == null) 
-                        || (_maxInclusive.Equals(value) != true)))
+                    || (_maxInclusive.Equals(value) != true)))
             {
-                //SDC-CUSTOM: added ValidateProperty + CheckConstraintCoherence (Phase 4)
-                //_maxInclusive = value;
-                //OnPropertyChanged("maxInclusive", value);
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "maxInclusive";
-                if (!SdcUtil.IsDeserializing.Value)
-                    Validator.ValidateProperty(value, validatorPropContext);
-                _maxInclusive = value;
-                OnPropertyChanged("maxInclusive", value);
-                if (!SdcUtil.SuppressValidation.Value)
+                var ctx = new ValidationContext(this, null, null) { MemberName = "maxInclusive" };
+                // Soft-reject: fires ValidationOccurred and records the rejected constraint without throwing
+                if (SdcUtil.ValidateAndRaise(value, ctx))
+                {
+                    _maxInclusive = value;
+                    OnPropertyChanged("maxInclusive", value);
+                    // Recheck this constraint against sibling constraint settings after accepting the value
                     SdcValidate.CheckConstraintCoherence(this, "maxInclusive", value);
+                }
             }
         }
     }
@@ -142,19 +138,17 @@ public partial class duration_DEtype : duration_Stype
                 return;
             }
             if (((_minExclusive == null) 
-                        || (_minExclusive.Equals(value) != true)))
+                    || (_minExclusive.Equals(value) != true)))
             {
-                //SDC-CUSTOM: added ValidateProperty + CheckConstraintCoherence (Phase 4)
-                //_minExclusive = value;
-                //OnPropertyChanged("minExclusive", value);
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "minExclusive";
-                if (!SdcUtil.IsDeserializing.Value)
-                    Validator.ValidateProperty(value, validatorPropContext);
-                _minExclusive = value;
-                OnPropertyChanged("minExclusive", value);
-                if (!SdcUtil.SuppressValidation.Value)
+                var ctx = new ValidationContext(this, null, null) { MemberName = "minExclusive" };
+                // Soft-reject: fires ValidationOccurred and records the rejected constraint without throwing
+                if (SdcUtil.ValidateAndRaise(value, ctx))
+                {
+                    _minExclusive = value;
+                    OnPropertyChanged("minExclusive", value);
+                    // Recheck this constraint against sibling constraint settings after accepting the value
                     SdcValidate.CheckConstraintCoherence(this, "minExclusive", value);
+                }
             }
         }
     }
@@ -174,19 +168,17 @@ public partial class duration_DEtype : duration_Stype
                 return;
             }
             if (((_maxExclusive == null) 
-                        || (_maxExclusive.Equals(value) != true)))
+                    || (_maxExclusive.Equals(value) != true)))
             {
-                //SDC-CUSTOM: added ValidateProperty + CheckConstraintCoherence (Phase 4)
-                //_maxExclusive = value;
-                //OnPropertyChanged("maxExclusive", value);
-                ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-                validatorPropContext.MemberName = "maxExclusive";
-                if (!SdcUtil.IsDeserializing.Value)
-                    Validator.ValidateProperty(value, validatorPropContext);
-                _maxExclusive = value;
-                OnPropertyChanged("maxExclusive", value);
-                if (!SdcUtil.SuppressValidation.Value)
+                var ctx = new ValidationContext(this, null, null) { MemberName = "maxExclusive" };
+                // Soft-reject: fires ValidationOccurred and records the rejected constraint without throwing
+                if (SdcUtil.ValidateAndRaise(value, ctx))
+                {
+                    _maxExclusive = value;
+                    OnPropertyChanged("maxExclusive", value);
+                    // Recheck this constraint against sibling constraint settings after accepting the value
                     SdcValidate.CheckConstraintCoherence(this, "maxExclusive", value);
+                }
             }
         }
     }

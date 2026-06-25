@@ -78,24 +78,16 @@ namespace SDC.Schema
 			}
 			set
 			{
-				// ORIGINAL:
-				// ORIGINAL: 				if ((_minInclusive.Equals(value) != true))
-				// ORIGINAL: 				{
-				// ORIGINAL: 					_minInclusive = value;
-				// ORIGINAL: 					OnPropertyChanged("minInclusive", value);
-				// ORIGINAL: 				}
-				// ORIGINAL: 				_shouldSerializeminInclusive = true;
-				// ORIGINAL:
-
 				if ((_minInclusive.Equals(value) != true))
 				{
-					ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-					validatorPropContext.MemberName = "minInclusive";
-					if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
+					var ctx = new ValidationContext(this, null, null) { MemberName = "minInclusive" };
+					// Soft-reject: fires ValidationOccurred and records the rejected constraint without throwing
+					if (SdcUtil.ValidateAndRaise(value, ctx))
 					{
 						_minInclusive = value;
 						OnPropertyChanged("minInclusive", value);
 						_shouldSerializeminInclusive = true;
+						// Recheck this constraint against sibling constraint settings after accepting the value
 						SdcValidate.CheckConstraintCoherence(this, "minInclusive", value);
 					}
 				}
@@ -116,24 +108,16 @@ namespace SDC.Schema
 			}
 			set
 			{
-				// ORIGINAL:
-				// ORIGINAL: 				if ((_maxInclusive.Equals(value) != true))
-				// ORIGINAL: 				{
-				// ORIGINAL: 					_maxInclusive = value;
-				// ORIGINAL: 					OnPropertyChanged("maxInclusive", value);
-				// ORIGINAL: 				}
-				// ORIGINAL: 				_shouldSerializemaxInclusive = true;
-				// ORIGINAL:
-
 				if ((_maxInclusive.Equals(value) != true))
 				{
-					ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-					validatorPropContext.MemberName = "maxInclusive";
-					if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
+					var ctx = new ValidationContext(this, null, null) { MemberName = "maxInclusive" };
+					// Soft-reject: fires ValidationOccurred and records the rejected constraint without throwing
+					if (SdcUtil.ValidateAndRaise(value, ctx))
 					{
 						_maxInclusive = value;
 						OnPropertyChanged("maxInclusive", value);
 						_shouldSerializemaxInclusive = true;
+						// Recheck this constraint against sibling constraint settings after accepting the value
 						SdcValidate.CheckConstraintCoherence(this, "maxInclusive", value);
 					}
 				}
@@ -154,24 +138,16 @@ namespace SDC.Schema
 			}
 			set
 			{
-				// ORIGINAL:
-				// ORIGINAL: 				if ((_minExclusive.Equals(value) != true))
-				// ORIGINAL: 				{
-				// ORIGINAL: 					_minExclusive = value;
-				// ORIGINAL: 					OnPropertyChanged("minExclusive", value);
-				// ORIGINAL: 				}
-				// ORIGINAL: 				_shouldSerializeminExclusive = true;
-				// ORIGINAL:
-
 				if ((_minExclusive.Equals(value) != true))
 				{
-					ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-					validatorPropContext.MemberName = "minExclusive";
-					if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
+					var ctx = new ValidationContext(this, null, null) { MemberName = "minExclusive" };
+					// Soft-reject: fires ValidationOccurred and records the rejected constraint without throwing
+					if (SdcUtil.ValidateAndRaise(value, ctx))
 					{
 						_minExclusive = value;
 						OnPropertyChanged("minExclusive", value);
 						_shouldSerializeminExclusive = true;
+						// Recheck this constraint against sibling constraint settings after accepting the value
 						SdcValidate.CheckConstraintCoherence(this, "minExclusive", value);
 					}
 				}
@@ -193,33 +169,16 @@ namespace SDC.Schema
 			}
 			set
 			{
-				// ORIGINAL:
-				// ORIGINAL: 				if ((_maxExclusive.Equals(value) != true))
-				// ORIGINAL: 				{
-				// ORIGINAL: 					ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-				// ORIGINAL: 					validatorPropContext.MemberName = "maxExclusive";
-				// ORIGINAL: 					if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
-				// ORIGINAL: 					{
-				// ORIGINAL: 						_maxExclusive = value;
-				// ORIGINAL: 						OnPropertyChanged("maxExclusive", value);
-				// ORIGINAL: 						_shouldSerializemaxExclusive = true;
-				// ORIGINAL: 					}
-				// ORIGINAL: 				}
-				// ORIGINAL: 				else
-				// ORIGINAL: 				{
-				// ORIGINAL: 					_shouldSerializemaxExclusive = true;
-				// ORIGINAL: 				}
-				// ORIGINAL:
-
 				if ((_maxExclusive.Equals(value) != true))
 				{
-					ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-					validatorPropContext.MemberName = "maxExclusive";
-					if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
+					var ctx = new ValidationContext(this, null, null) { MemberName = "maxExclusive" };
+					// Soft-reject: fires ValidationOccurred and records the rejected constraint without throwing
+					if (SdcUtil.ValidateAndRaise(value, ctx))
 					{
 						_maxExclusive = value;
 						OnPropertyChanged("maxExclusive", value);
 						_shouldSerializemaxExclusive = true;
+						// Recheck this constraint against sibling constraint settings after accepting the value
 						SdcValidate.CheckConstraintCoherence(this, "maxExclusive", value);
 					}
 				}
@@ -242,24 +201,16 @@ namespace SDC.Schema
 			}
 			set
 			{
-				// ORIGINAL:
-				// ORIGINAL: 				if ((_totalDigits.Equals(value) != true))
-				// ORIGINAL: 				{
-				// ORIGINAL: 					_totalDigits = value;
-				// ORIGINAL: 					OnPropertyChanged("totalDigits", value);
-				// ORIGINAL: 				}
-				// ORIGINAL: 				_shouldSerializetotalDigits = true;
-				// ORIGINAL:
-
 				if ((_totalDigits.Equals(value) != true))
 				{
-					ValidationContext validatorPropContext = new ValidationContext(this, null, null);
-					validatorPropContext.MemberName = "totalDigits";
-					if (SdcUtil.ValidateAndRaise(value, validatorPropContext))
+					var ctx = new ValidationContext(this, null, null) { MemberName = "totalDigits" };
+					// Soft-reject: fires ValidationOccurred and records the rejected constraint without throwing
+					if (SdcUtil.ValidateAndRaise(value, ctx))
 					{
 						_totalDigits = value;
 						OnPropertyChanged("totalDigits", value);
 						_shouldSerializetotalDigits = true;
+						// Recheck this constraint against sibling constraint settings after accepting the value
 						SdcValidate.CheckConstraintCoherence(this, "totalDigits", value);
 					}
 				}
