@@ -43,30 +43,98 @@ namespace SDC.Schema
                 switch (dataTypeEnum)
                 {
                     case ItemChoiceType.HTML:
-                        {//TODO:
+                        {
+                            // HTML_DEtype stores raw XmlElement nodes. Full HTML validation requires an
+                            // external HTML parser (not added as a dependency here). Instead: if value is
+                            // List<XmlElement>, assign directly; if value is a string, attempt to parse as
+                            // XML fragments (XHTML/HTML5 must be well-formed XML in this pipeline). Anything
+                            // else is soft-rejected.
                             var dt = new HTML_DEtype(rfParent.Response);
-                            if (value != null)
-                            {   //check is value is valid HTML and assign value to dt
-                                dt.Any = value as List<XmlElement> ?? new List<XmlElement>();
+                            if (value is List<XmlElement> elems)
+                                dt.Any = elems;
+                            else if (value is string s)
+                            {
+                                try
+                                {
+                                    var xdoc = new XmlDocument();
+                                    xdoc.LoadXml($"<_root>{s}</_root>"); // wrap to allow multiple sibling elements
+                                    var children = new List<XmlElement>();
+                                    foreach (XmlNode child in xdoc.DocumentElement!.ChildNodes)
+                                        if (child is XmlElement el) children.Add(el);
+                                    dt.Any = children;
+                                }
+                                catch (XmlException)
+                                {
+                                    RecordAndRaise($"Supplied string could not be parsed as XML fragments for HTML_DEtype: {s}", dt, value, rfParent);
+                                    dt.Any = new List<XmlElement>();
+                                }
                             }
+                            else if (value != null)
+                            {
+                                RecordAndRaise($"Unsupported type {value.GetType().Name} for HTML_DEtype; supply List<XmlElement> or a valid XML string.", dt, value, rfParent);
+                                dt.Any = new List<XmlElement>();
+                            }
+                            else dt.Any = new List<XmlElement>();
                             dt.AnyAttr = new List<XmlAttribute>();
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
-                    case ItemChoiceType.XML: //TODO: Need to be able to add custom attributes to first wrapper element - see anyType; in fact, do we even need XML as a separate type?
-                        {//TODO:
+                    // Note: XML_DEtype and anyType_DEtype serve overlapping purposes; whether XML needs
+                    // to remain as a distinct type alongside anyType is an open design question.
+                    case ItemChoiceType.XML:
+                        {
                             var dt = new XML_DEtype(rfParent.Response);
-                            dt.Any = new List<XmlElement>();
-                            //check is value is valid XML and assign value to dt
+                            if (value is List<XmlElement> xmlElems)
+                                dt.Any = xmlElems;
+                            else if (value is string xs)
+                            {
+                                try
+                                {
+                                    var xdoc = new XmlDocument();
+                                    xdoc.LoadXml(xs);
+                                    dt.Any = new List<XmlElement> { xdoc.DocumentElement! };
+                                }
+                                catch (XmlException)
+                                {
+                                    RecordAndRaise($"Supplied string could not be parsed as well-formed XML for XML_DEtype: {xs}", dt, value, rfParent);
+                                    dt.Any = new List<XmlElement>();
+                                }
+                            }
+                            else if (value != null)
+                            {
+                                RecordAndRaise($"Unsupported type {value.GetType().Name} for XML_DEtype; supply List<XmlElement> or a valid XML string.", dt, value, rfParent);
+                                dt.Any = new List<XmlElement>();
+                            }
+                            else dt.Any = new List<XmlElement>();
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
                     case ItemChoiceType.anyType:
-                        {//TODO:
+                        {
                             var dt = new anyType_DEtype(rfParent.Response);
-                            dt.Any = new List<XmlElement>();
+                            if (value is List<XmlElement> anyElems)
+                                dt.Any = anyElems;
+                            else if (value is string anys)
+                            {
+                                try
+                                {
+                                    var xdoc = new XmlDocument();
+                                    xdoc.LoadXml(anys);
+                                    dt.Any = new List<XmlElement> { xdoc.DocumentElement! };
+                                }
+                                catch (XmlException)
+                                {
+                                    RecordAndRaise($"Supplied string could not be parsed as well-formed XML for anyType_DEtype: {anys}", dt, value, rfParent);
+                                    dt.Any = new List<XmlElement>();
+                                }
+                            }
+                            else if (value != null)
+                            {
+                                RecordAndRaise($"Unsupported type {value.GetType().Name} for anyType_DEtype; supply List<XmlElement> or a valid XML string.", dt, value, rfParent);
+                                dt.Any = new List<XmlElement>();
+                            }
+                            else dt.Any = new List<XmlElement>();
                             dt.AnyAttr = new List<XmlAttribute>();
-                            //check is value is valid XML and assign value to dt
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
@@ -77,7 +145,7 @@ namespace SDC.Schema
                             if (value != null)
                             {
                                 if (value is string s)
-                                    if (Regex.Match(s, @"([#x1-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF])+").Success) tmp = (string)value;
+                                    if (Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out _)) tmp = s;
                                     else RecordAndRaise("Supplied value parameter was not in anyURI string format", dt, value, rfParent);
                                 else RecordAndRaise("Supplied value parameter was not in anyURI string format", dt, value, rfParent);
                             }
@@ -225,12 +293,14 @@ namespace SDC.Schema
                             {
                                 if (value is string s)
                                 {
-                                    if (Regex.Match(s, @"-?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.[0-9]+)?S)?)?").Success) //dayTimeDuration
+                                    // ^-?P(\d+D)?(T(\d+H)?(\d+M)?(\d+(\.\d+)?S)?)?$ — dayTimeDuration allows
+                                    // only day + time parts; Y (year) and month M are not legal here.
+                                    if (Regex.IsMatch(s, @"^-?P(\d+D)?(T(\d+H)?(\d+M)?(\d+(\.\d+)?S)?)?$")) //dayTimeDuration
                                         tmp = s;
                                     else RecordAndRaise(DescribeDateError(value, XsdDateKind.DayTimeDuration), dt, value, rfParent);
                                 }
                                 else if (value is TimeSpan ts)
-                                    tmp = XmlConvert.ToString(ts); //ToDo: Need to modify the Year part (convert Years to hours [ts.totalHours] and add to hours part); e.g., P13DT10H57M18S
+                                    tmp = XmlConvert.ToString(ts); // TimeSpan has no year/month concept; XmlConvert produces valid dayTimeDuration, e.g., P13DT10H57M18S
                                 else RecordAndRaise(DescribeDateError(value, XsdDateKind.DayTimeDuration), dt, value, rfParent);
                             }
                             if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
@@ -324,9 +394,12 @@ namespace SDC.Schema
                             {
                                 if (value is string s)
                                 {
-                                    if (Regex.Match(s, @"---(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?").Success) //gDay;
-                                        //ToDo: We'll probably want to trim the initial 3 dashes before using the regex on UI form fields, and restore them when storing in the SDC OM
-                                        tmp = s;
+                                    // Normalize: UI fields may supply just the day digits without leading dashes.
+                                    // gDay canonical form is '---DD'; if the string lacks the three-dash prefix,
+                                    // strip any existing leading dashes and prepend '---' automatically.
+                                    var normalized = s.StartsWith("---") ? s : "---" + s.TrimStart('-');
+                                    if (Regex.IsMatch(normalized, @"^---(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$")) //gDay
+                                        tmp = normalized;
                                     else RecordAndRaise(DescribeDateError(value, XsdDateKind.GDay), dt, value, rfParent);
                                 }
                                 else RecordAndRaise(DescribeDateError(value, XsdDateKind.GDay), dt, value, rfParent);
@@ -344,9 +417,12 @@ namespace SDC.Schema
                             {
                                 if (value is string s)
                                 {
-                                    if (Regex.Match(s, @"--(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?").Success) //gMonth
-                                        //ToDo: We'll probably want to trim the initial 2 dashes before using the regex on UI form fields, and restore them when storing in the SDC OM
-                                        tmp = s;
+                                    // Normalize: UI fields may supply just the month digits without leading dashes.
+                                    // gMonth canonical form is '--MM'; if the string lacks the two-dash prefix,
+                                    // strip any existing leading dashes and prepend '--' automatically.
+                                    var normalized = s.StartsWith("--") ? s : "--" + s.TrimStart('-');
+                                    if (Regex.IsMatch(normalized, @"^--(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$")) //gMonth
+                                        tmp = normalized;
                                     else RecordAndRaise(DescribeDateError(value, XsdDateKind.GMonth), dt, value, rfParent);
                                 }
                                 else RecordAndRaise(DescribeDateError(value, XsdDateKind.GMonth), dt, value, rfParent);
@@ -364,9 +440,12 @@ namespace SDC.Schema
                             {
                                 if (value is string s)
                                 {
-                                    if (Regex.Match(s, @"--(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?").Success) //gMonthDay
-                                        //ToDo: We'll probably want to trim the initial 2 dashes before using the regex on UI form fields, and restore them when storing in the SDC OM
-                                        tmp = s;
+                                    // Normalize: UI fields may supply just 'MM-DD' without the leading dashes.
+                                    // gMonthDay canonical form is '--MM-DD'; if the string lacks the two-dash
+                                    // prefix, strip any existing leading dashes and prepend '--' automatically.
+                                    var normalized = s.StartsWith("--") ? s : "--" + s.TrimStart('-');
+                                    if (Regex.IsMatch(normalized, @"^--(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$")) //gMonthDay
+                                        tmp = normalized;
                                     else RecordAndRaise(DescribeDateError(value, XsdDateKind.GMonthDay), dt, value, rfParent);
                                 }
                                 else RecordAndRaise(DescribeDateError(value, XsdDateKind.GMonthDay), dt, value, rfParent);
@@ -763,12 +842,14 @@ namespace SDC.Schema
                             {
                                 if (value is string s)
                                 {
-                                    if (Regex.Match(s, @"^-?P[0-9]+Y?([0-9]+M)?$").Success) //yearMonthDuration
+                                    // ^-?P(\d+Y)?(\d+M)?$ — yearMonthDuration allows only year + month
+                                    // parts; D (day), T, H, S are not legal here.
+                                    if (Regex.IsMatch(s, @"^-?P(\d+Y)?(\d+M)?$")) //yearMonthDuration
                                         tmp = s;
                                     else RecordAndRaise(DescribeDateError(value, XsdDateKind.YearMonthDuration), dt, value, rfParent);
                                 }
-                                else if (value is TimeSpan ts && ts != default)
-                                    tmp = XmlConvert.ToString(ts); //ToDo: Need to truncate after hh, mm, ss via regex, e.g., P13DT10H57M18S
+                                else if (value is TimeSpan)
+                                    RecordAndRaise("TimeSpan cannot represent a yearMonthDuration (years/months have no fixed day count); supply a lexical string like \"P1Y6M\" instead.", dt, value, rfParent);
                                 else RecordAndRaise(DescribeDateError(value, XsdDateKind.YearMonthDuration), dt, value, rfParent);
                             }
                             if (!string.IsNullOrWhiteSpace(tmp)) dt.val = tmp;
