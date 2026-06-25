@@ -8,25 +8,96 @@ using System.ComponentModel.DataAnnotations;
 namespace SDC.Schema
 {
     /// <summary>
-    /// Internal factory for constructing, parsing, and validating SDC datatype nodes.
-    /// Parse failures are recorded via <see cref="SdcUtil.RecordRejectedValue"/> and
-    /// fired through <see cref="SdcValidationEvents"/>. Caller-supplied
-    /// <see cref="IList{T}"/> errors are populated through an event-bridge subscription
-    /// (see <see cref="SubscribeErrorCollector"/>).
-    /// Public API: use extension methods in <c>IResponseFieldExtensions</c>
-    /// (e.g. <c>rf.AddDataType(...)</c>) rather than calling this class directly.
+    /// Internal factory that parses, validates, and constructs <see cref="DataTypes_DEType"/>
+    /// nodes for every XSD datatype supported by the SDC schema.
     /// </summary>
+    /// <remarks>
+    /// <b>Intended use:</b><br/>
+    /// This class is <c>internal</c>. The public entry point is the extension method
+    /// <c>rf.AddDataType(...)</c> in <c>IResponseFieldExtensions</c>. Internal code may
+    /// call <see cref="AddDataTypesDE"/> directly.<br/>
+    /// <br/>
+    /// <b>Supported <see cref="ItemChoiceType"/> values:</b><br/>
+    /// • <i>Numeric</i> — byte, short, int, long, float, double, decimal, integer,
+    ///   negativeInteger, nonNegativeInteger, nonPositiveInteger, positiveInteger,
+    ///   unsignedByte, unsignedShort, unsignedInt, unsignedLong<br/>
+    /// • <i>Date / Time</i> — date, dateTime, dateTimeStamp, time<br/>
+    /// • <i>Duration</i> — duration, dayTimeDuration, yearMonthDuration<br/>
+    /// • <i>Gregorian date-parts</i> — gDay, gMonth, gMonthDay, gYear, gYearMonth<br/>
+    /// • <i>Binary</i> — base64Binary, hexBinary<br/>
+    /// • <i>String / URI</i> — string, anyURI<br/>
+    /// • <i>Markup / open content</i> — HTML, XML, anyType<br/>
+    /// • <i>Other</i> — boolean<br/>
+    /// <br/>
+    /// <b>Error handling contract:</b><br/>
+    /// Parse or validation failures are <i>soft-rejected</i>: the factory never throws.
+    /// Instead it calls <see cref="SdcUtil.RecordRejectedValue"/> (unconditional) and
+    /// fires <see cref="SdcValidationEvents.ValidationOccurred"/> (gated by
+    /// <see cref="SdcUtil.SuppressValidation"/>). When the caller passes a non-null
+    /// <c>errors</c> list, a short-lived event-bridge subscription
+    /// (<see cref="SubscribeErrorCollector"/>) translates every Error event into an
+    /// <see cref="InvalidOperationException"/> appended to that list.<br/>
+    /// <br/>
+    /// <b>Date / duration types and <c>SetLexicalValue</c>:</b><br/>
+    /// Date-family values are validated against XSD lexical patterns before assignment.
+    /// Subsequent updates to date properties can be made via <c>SetLexicalValue</c>
+    /// helper methods on each concrete date node type.<br/>
+    /// <br/>
+    /// <b>Markup / open-content types (HTML, XML, anyType):</b><br/>
+    /// These store raw <see cref="System.Xml.XmlElement"/> lists. Well-formedness is
+    /// checked via <see cref="System.Xml.XmlDocument.LoadXml"/>, but no schema or
+    /// HTML5 validation is performed.
+    /// </remarks>
     internal static class SdcDataTypeBuilder
     {
         /// <summary>
-        /// Creates and attaches a <see cref="DataTypes_DEType"/> to the supplied
-        /// <paramref name="rfParent"/>, with the appropriate concrete data-type child
-        /// node selected by <paramref name="dataTypeEnum"/>.
-        /// Parse failures are recorded on the node via <see cref="SdcUtil.RecordRejectedValue"/>
-        /// and reported through <see cref="SdcValidationEvents"/>. When
-        /// <paramref name="errors"/> is non-null a local subscription bridges those events
-        /// into the list so no separate polling is required.
+        /// Creates and attaches a <see cref="DataTypes_DEType"/> node to
+        /// <paramref name="rfParent"/>, with the concrete datatype child selected by
+        /// <paramref name="dataTypeEnum"/> and an optional initial value parsed from
+        /// <paramref name="value"/>.
         /// </summary>
+        /// <param name="rfParent">
+        /// The <see cref="ResponseFieldType"/> that will own the new
+        /// <see cref="DataTypes_DEType"/>. A new <c>Response</c> node is created on
+        /// <paramref name="rfParent"/> if one does not already exist.
+        /// </param>
+        /// <param name="dataTypeEnum">
+        /// The XSD datatype to construct. Defaults to <c>string</c>.
+        /// See <see cref="ItemChoiceType"/> for all supported values.
+        /// </param>
+        /// <param name="quantifierEnum">
+        /// The comparison quantifier (e.g., EQ, GT, LTE) to set on numeric and date
+        /// types that carry a <c>quantEnum</c> property. Defaults to <c>EQ</c>.
+        /// </param>
+        /// <param name="value">
+        /// An optional initial value. May be the native .NET type (e.g., <c>int</c>,
+        /// <c>DateTime</c>, <c>byte[]</c>) or a lexical string representation.
+        /// When <see langword="null"/>, the datatype node is created with its default
+        /// (zero/empty) value. Malformed values are soft-rejected via
+        /// <see cref="SdcUtil.RecordRejectedValue"/> and
+        /// <see cref="SdcValidationEvents.ValidationOccurred"/>.
+        /// </param>
+        /// <param name="errors">
+        /// Optional list to collect parse/validation errors as
+        /// <see cref="InvalidOperationException"/> instances. When non-null, a
+        /// temporary event-bridge subscription forwards every Error-severity
+        /// <see cref="SdcValidationEvents.ValidationOccurred"/> event into this list
+        /// for the duration of the call.
+        /// </param>
+        /// <returns>
+        /// The <see cref="DataTypes_DEType"/> attached to <paramref name="rfParent"/>,
+        /// whose <c>DataTypeDE_Item</c> holds the constructed concrete datatype node
+        /// and whose <c>ItemElementName</c> is set to match <paramref name="dataTypeEnum"/>.
+        /// </returns>
+        /// <remarks>
+        /// <b>Deserialization / SuppressValidation interaction:</b><br/>
+        /// Event firing and <see cref="SdcUtil.ValidationCollector"/> entries are
+        /// suppressed when <see cref="SdcUtil.SuppressValidation"/> is
+        /// <see langword="true"/> (e.g., during non-validating round-trip
+        /// deserialization). Rejected-value recording via
+        /// <see cref="SdcUtil.RecordRejectedValue"/> is <i>unconditional</i> and is
+        /// never suppressed.
+        /// </remarks>
         internal static DataTypes_DEType AddDataTypesDE(
             ResponseFieldType rfParent,
             ItemChoiceType dataTypeEnum = ItemChoiceType.@string,
@@ -42,6 +113,7 @@ namespace SDC.Schema
 
                 switch (dataTypeEnum)
                 {
+                    #region Markup types (HTML, XML, anyType)
                     case ItemChoiceType.HTML:
                         {
                             // HTML_DEtype stores raw XmlElement nodes. Full HTML validation requires an
@@ -138,6 +210,9 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    #endregion // Markup types
+
+                    // ── String and URI ──────────────────────────────────────────────────────
                     case ItemChoiceType.anyURI:
                         {
                             var dt = new anyURI_DEtype(rfParent.Response);
@@ -153,6 +228,7 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    // ── Binary ─────────────────────────────────────────────────────────────
                     case ItemChoiceType.base64Binary:
                         {
                             var dt = new base64Binary_DEtype(rfParent.Response);
@@ -173,6 +249,7 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    // ── Boolean ────────────────────────────────────────────────────────────
                     case ItemChoiceType.boolean:
                         {
                             var dt = new boolean_DEtype(rfParent.Response);
@@ -191,6 +268,7 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    // ── Numeric: byte ──────────────────────────────────────────────────────
                     case ItemChoiceType.@byte: //XML signed "byte" is "sbyte" in .NET
                         {
                             var dt = new byte_DEtype(rfParent.Response);
@@ -210,6 +288,7 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    #region Date and time types (date, dateTime, dateTimeStamp)
                     case ItemChoiceType.date:
                         {
                             var dt = new date_DEtype(rfParent.Response);
@@ -285,6 +364,9 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    #endregion // Date and time types (date, dateTime, dateTimeStamp)
+
+                    // ── Duration: dayTimeDuration ──────────────────────────────────────────
                     case ItemChoiceType.dayTimeDuration:
                         {
                             var dt = new dayTimeDuration_DEtype(rfParent.Response);
@@ -308,6 +390,7 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    // ── Numeric: decimal, double ──────────────────────────────────────────
                     case ItemChoiceType.@decimal:
                         {
                             var dt = new decimal_DEtype(rfParent.Response);
@@ -346,6 +429,7 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    // ── Duration: duration ────────────────────────────────────────────────
                     case ItemChoiceType.duration:
                         {
                             var dt = new duration_DEtype(rfParent.Response);
@@ -367,6 +451,7 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    // ── Numeric: float ────────────────────────────────────────────────────
                     case ItemChoiceType.@float:
                         {
                             var dt = new float_DEtype(rfParent.Response);
@@ -386,6 +471,7 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    #region Gregorian date-part types (gDay, gMonth, gMonthDay, gYear, gYearMonth)
                     case ItemChoiceType.gDay: //# of day of month, +/- timezone
                         {
                             var dt = new gDay_DEtype(rfParent.Response);
@@ -493,6 +579,9 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    #endregion // Gregorian date-part types
+
+                    // ── Binary: hexBinary ─────────────────────────────────────────────────
                     case ItemChoiceType.hexBinary:
                         {
                             var dt = new hexBinary_DEtype(rfParent.Response);
@@ -512,6 +601,7 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    // ── Numeric: int, integer, long ───────────────────────────────────────
                     case ItemChoiceType.@int:
                         {
                             var dt = new int_DEtype(rfParent.Response);
@@ -573,6 +663,7 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    #region Numeric types — integer family (negativeInteger, nonNegativeInteger, nonPositiveInteger, positiveInteger)
                     case ItemChoiceType.negativeInteger:
                         {
                             decimal? tmp = null; //start with a default value that is not zero
@@ -673,6 +764,9 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    #endregion // Numeric types — integer family
+
+                    // ── Numeric: short ────────────────────────────────────────────────────
                     case ItemChoiceType.@short:
                         {
                             var dt = new short_DEtype(rfParent.Response);
@@ -692,6 +786,7 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    // ── String and URI: string ────────────────────────────────────────────
                     case ItemChoiceType.@string:
                         {
                             var dt = new @string_DEtype(rfParent.Response);
@@ -714,6 +809,7 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    // ── Date and time: time ───────────────────────────────────────────────
                     case ItemChoiceType.time:
                         {
                             var dt = new time_DEtype(rfParent.Response);
@@ -758,6 +854,7 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    #region Numeric types — unsigned family (unsignedByte, unsignedInt, unsignedLong, unsignedShort)
                     case ItemChoiceType.unsignedByte:
                         {
                             var dt = new unsignedByte_DEtype(rfParent.Response);
@@ -834,6 +931,9 @@ namespace SDC.Schema
                             rfParent.Response.DataTypeDE_Item = dt;
                         }
                         break;
+                    #endregion // Numeric types — unsigned family
+
+                    // ── Duration: yearMonthDuration ───────────────────────────────────────
                     case ItemChoiceType.yearMonthDuration:
                         {
                             var dt = new yearMonthDuration_DEtype(rfParent.Response);
@@ -868,6 +968,15 @@ namespace SDC.Schema
             }
         }
 
+        /// <summary>
+        /// Creates a <see cref="DataTypes_DEType"/> with an <see cref="HTML_DEtype"/> child
+        /// attached to <paramref name="rfParent"/>. Accepts pre-parsed
+        /// <see cref="System.Xml.XmlElement"/> lists directly; no HTML parsing is performed.
+        /// </summary>
+        /// <param name="rfParent">The response field to attach the datatype to.</param>
+        /// <param name="valEl">Optional list of XML elements representing XHTML content. Defaults to an empty list.</param>
+        /// <param name="valAtt">Optional list of XML attributes for the HTML node. Defaults to an empty list.</param>
+        /// <returns>The constructed <see cref="DataTypes_DEType"/> attached to <paramref name="rfParent"/>.</returns>
         internal static DataTypes_DEType AddHTML_DE(ResponseFieldType rfParent, List<XmlElement> valEl = null!, List<XmlAttribute> valAtt = null!)
         {
             rfParent.Response = new DataTypes_DEType(rfParent);
@@ -881,6 +990,13 @@ namespace SDC.Schema
             return rfParent.Response;
         }
 
+        /// <summary>
+        /// Creates a <see cref="DataTypes_DEType"/> with an <see cref="XML_DEtype"/> child
+        /// attached to <paramref name="rfParent"/>. The supplied elements must be well-formed XML.
+        /// </summary>
+        /// <param name="rfParent">The response field to attach the datatype to.</param>
+        /// <param name="valEl">Optional list of XML elements. Defaults to an empty list.</param>
+        /// <returns>The constructed <see cref="DataTypes_DEType"/> attached to <paramref name="rfParent"/>.</returns>
         internal static DataTypes_DEType AddXML_DE(ResponseFieldType rfParent, List<XmlElement> valEl = null!)
         {
             rfParent.Response = new DataTypes_DEType(rfParent);
@@ -893,6 +1009,17 @@ namespace SDC.Schema
             return rfParent.Response;
         }
 
+        /// <summary>
+        /// Creates a <see cref="DataTypes_DEType"/> with an <see cref="anyType_DEtype"/> child
+        /// attached to <paramref name="rfParent"/>. Supports an optional namespace URI and
+        /// schema location alongside the raw element and attribute lists.
+        /// </summary>
+        /// <param name="rfParent">The response field to attach the datatype to.</param>
+        /// <param name="valEl">Optional list of XML elements. Defaults to an empty list.</param>
+        /// <param name="valAtt">Optional list of XML attributes. Defaults to an empty list.</param>
+        /// <param name="nameSpace">Optional XML namespace URI for the <c>anyType</c> node.</param>
+        /// <param name="schema">Optional schema location URI for the <c>anyType</c> node.</param>
+        /// <returns>The constructed <see cref="DataTypes_DEType"/> attached to <paramref name="rfParent"/>.</returns>
         internal static DataTypes_DEType AddAny_DE(ResponseFieldType rfParent, List<XmlElement> valEl = null!, List<XmlAttribute> valAtt = null!, string nameSpace = null!, string schema = null!)
         {
             rfParent.Response = new DataTypes_DEType(rfParent);
@@ -921,6 +1048,21 @@ namespace SDC.Schema
             return rfParent.Response;
         }
 
+        /// <summary>
+        /// Parses a string or symbol representation of an SDC quantifier and returns the
+        /// corresponding <see cref="dtQuantEnum"/> value.
+        /// </summary>
+        /// <param name="quantifier">
+        /// Accepted inputs (case-sensitive):<br/>
+        /// <c>"EQ"</c>, <c>"="</c>, <c>"=="</c> → <see cref="dtQuantEnum.EQ"/><br/>
+        /// <c>"GT"</c>, <c>"&gt;"</c> → <see cref="dtQuantEnum.GT"/><br/>
+        /// <c>"GTE"</c>, <c>"&gt;="</c> → <see cref="dtQuantEnum.GTE"/><br/>
+        /// <c>"LT"</c>, <c>"&lt;"</c> → <see cref="dtQuantEnum.LT"/><br/>
+        /// <c>"LTE"</c>, <c>"&lt;="</c> → <see cref="dtQuantEnum.LTE"/><br/>
+        /// <c>"APPROX"</c>, <c>"~"</c>, <c>"@"</c> → <see cref="dtQuantEnum.APPROX"/><br/>
+        /// <c>null</c>, <c>""</c>, or any unrecognized string → <see cref="dtQuantEnum.EQ"/> (default)
+        /// </param>
+        /// <returns>The <see cref="dtQuantEnum"/> that corresponds to <paramref name="quantifier"/>.</returns>
         internal static dtQuantEnum AssignQuantifier(string quantifier)
         {
             var dtQE = new dtQuantEnum();
@@ -966,9 +1108,12 @@ namespace SDC.Schema
             return dtQE;
         }
 
-        // Subscribes a temporary handler to ValidationOccurred so that every Error event
-        // fired during AddDataTypesDE is also appended to the caller's IList<Exception>.
-        // Returns the handler so the caller can unsubscribe it in a finally block.
+        /// <summary>
+        /// Subscribes a temporary handler to <see cref="SdcValidationEvents.ValidationOccurred"/>
+        /// that forwards every Error-severity event into <paramref name="errors"/> as an
+        /// <see cref="InvalidOperationException"/>. Returns the handler for cleanup in a
+        /// <c>finally</c> block via <see cref="UnsubscribeErrorCollector"/>.
+        /// </summary>
         private static EventHandler<SdcValidationEventArgs> SubscribeErrorCollector(IList<Exception>? errors)
         {
             EventHandler<SdcValidationEventArgs> handler = (_, e) =>
@@ -981,16 +1126,21 @@ namespace SDC.Schema
             return handler;
         }
 
-        // Removes the bridge handler subscribed by SubscribeErrorCollector.
+        /// <summary>
+        /// Removes the bridge handler subscribed by <see cref="SubscribeErrorCollector"/>.
+        /// </summary>
         private static void UnsubscribeErrorCollector(EventHandler<SdcValidationEventArgs> handler, IList<Exception>? errors)
         {
             if (errors != null)
                 SdcValidationEvents.ValidationOccurred -= handler;
         }
 
-        // Centralized parse-failure path: records the rejected value on the dt node
-        // (so it can be retrieved via SdcUtil.GetRejectedValues) and fires the central
-        // validation event so subscribers (UI, logger, SubscribeErrorCollector bridge) see it.
+        /// <summary>
+        /// Centralized parse-failure path: records the rejected value on <paramref name="dtNode"/>
+        /// (retrievable via <see cref="SdcUtil.GetRejectedValues"/>) and fires
+        /// <see cref="SdcValidationEvents.ValidationOccurred"/> so all subscribers
+        /// (UI, logger, error-bridge) are notified. Gated by <see cref="SdcUtil.SuppressValidation"/>.
+        /// </summary>
         private static void RecordAndRaise(string message, BaseType dtNode, object? attemptedValue, ResponseFieldType rfParent)
         {
             SdcUtil.RecordRejectedValue(dtNode, new SdcRejectedValue
@@ -1007,9 +1157,12 @@ namespace SDC.Schema
                     propertyName: "val");
         }
 
-        // Builds an XSD-accurate error message for a malformed date/date-part value.
-        // Quotes the value, names the xs: type, gives the canonical form + example, and
-        // pinpoints the violation. Falls back to a representability note for non-string values.
+        /// <summary>
+        /// Builds an XSD-accurate error message for a malformed date/date-part value.
+        /// Quotes the value, names the <c>xs:</c> type, gives the canonical form and an
+        /// example, and pinpoints the violation. Falls back to a representability note
+        /// for non-string values.
+        /// </summary>
         private static string DescribeDateError(object? badValue, XsdDateKind kind)
         {
             if (badValue is string s)
