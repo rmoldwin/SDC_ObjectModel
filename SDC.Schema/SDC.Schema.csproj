@@ -47,6 +47,29 @@
 
   <ItemGroup>
     <Compile Remove="Partial Classes\CC.cs" />
+    <!-- Phase 4: Exclude originals replaced by AddedValidationLogic copies (Group A - val setters) -->
+    <!-- Constructor Commented Out Only: numeric Stype originals -->
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\decimal_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\float_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\double_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\byte_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\short_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\int_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\long_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedByte_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedShort_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedInt_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedLong_Stype.cs" />
+    <!-- SDC Unmodified Classes: string/binary Stype originals -->
+    <Compile Remove="SDC.Schema\SDC Unmodified Classes\string_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Unmodified Classes\anyURI_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Unmodified Classes\boolean_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Unmodified Classes\base64Binary_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Unmodified Classes\hexBinary_Stype.cs" />
+    <!-- DateTimeOffset Datatypes: date/time Stype originals -->
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\date_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\time_Stype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\dateTime_Stype.cs" />
     <Compile Remove="SDC.Schema\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\dayTimeDuration_Stype.cs" />
     <Compile Remove="Utility Classes\Attribute and PI Structs and Methods\CompareTreesTests.cs" />
     <Compile Remove="Utility Classes\Extensions\Unimplemented Extensions.cs" />
