@@ -218,13 +218,19 @@ namespace SDC.Schema
 		/// <summary>
 		/// Validates all SDC nodes in <paramref name="topNode"/>'s tree using DataAnnotations
 		/// attributes (FractionDigits, MaxDigits, Range, RegularExpression, StringLength, etc.)
-		/// declared on each node's most-derived type.<br/>
+		/// declared on each node's most-derived type, and also performs a cross-property coherence
+		/// sweep (<c>val</c> vs. runtime constraint facets) for each node that has a <c>val</c>
+		/// property.<br/>
 		/// <br/>
 		/// No XML Schema (XSD) validation is performed; for XSD validation use
 		/// <see cref="ValidateSdcObjectTree"/>.<br/>
 		/// <br/>
-		/// When <paramref name="recurseSubTrees"/> is <see langword="true"/>, any node that is
-		/// itself an <see cref="ITopNode"/> is also walked recursively.
+		/// The coherence sweep is post-reportorial only: stored values are never discarded, only
+		/// flagged. <see cref="SuppressValidation"/> is forced to <see langword="false"/> for the
+		/// duration of the call so that coherence issues always populate the returned report,
+		/// regardless of ambient caller state. When <paramref name="recurseSubTrees"/> is
+		/// <see langword="true"/>, any node that is itself an <see cref="ITopNode"/> is also
+		/// walked recursively.
 		/// </summary>
 		/// <param name="topNode">The SDC top node whose tree will be validated.</param>
 		/// <param name="recurseSubTrees">
@@ -238,6 +244,10 @@ namespace SDC.Schema
 		{
 			var report = new SdcValidationReport();
 			SdcUtil.ValidationCollector.Value = report;
+			// Force SuppressValidation=false so coherence checks always flow into the report.
+			// ValidateTree is an explicit sweep — callers expect results regardless of ambient state.
+			var prevSuppress = SdcUtil.SuppressValidation.Value;
+			SdcUtil.SuppressValidation.Value = false;
 			try
 			{
 				var visited = new System.Collections.Generic.HashSet<object>(ReferenceEqualityComparer.Instance);
@@ -246,6 +256,7 @@ namespace SDC.Schema
 			finally
 			{
 				SdcUtil.ValidationCollector.Value = null;
+				SdcUtil.SuppressValidation.Value = prevSuppress;
 			}
 			return report;
 		}
@@ -261,7 +272,19 @@ namespace SDC.Schema
 			foreach (var node in topNode.Nodes.Values)
 			{
 				if (node is BaseType bt)
+				{
 					ValidateNodeInto(bt, report);
+					// Post-sweep coherence: check val against runtime constraints already stored on the node.
+					// IsDeserializing is false here (post-deserialization sweep), so CheckValAgainstConstraints runs.
+					// Values are NOT discarded — this is purely reportorial.
+					var valProp = bt.GetType().GetProperty("val");
+					if (valProp != null)
+					{
+						var currentVal = valProp.GetValue(bt);
+						if (currentVal != null)
+							SdcValidate.CheckValAgainstConstraints(bt, "val", currentVal);
+					}
+				}
 
 				// Recurse into sub-TopNodes if requested (e.g. InjectedForm references)
 				if (recurseSubTrees && node is ITopNode subTopNode && !ReferenceEquals(subTopNode, topNode))
