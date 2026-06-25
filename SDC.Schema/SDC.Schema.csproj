@@ -81,6 +81,28 @@
     <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedShort_DEtype.cs" />
     <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedInt_DEtype.cs" />
     <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedLong_DEtype.cs" />
+    <!-- Phase 6: Exclude integer-family originals replaced by AddedValidationLogic copies -->
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\integer_DEtype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\long_DEtype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\int_DEtype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\negativeInteger_DEtype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\nonNegativeInteger_DEtype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\nonPositiveInteger_DEtype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\positiveInteger_DEtype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\integer_DEtype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\long_DEtype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\int_DEtype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\negativeInteger_DEtype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\nonNegativeInteger_DEtype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\nonPositiveInteger_DEtype.cs" />
+    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\positiveInteger_DEtype.cs" />
+    <Compile Include="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\integer_DEtype.cs" />
+    <Compile Include="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\long_DEtype.cs" />
+    <Compile Include="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\int_DEtype.cs" />
+    <Compile Include="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\negativeInteger_DEtype.cs" />
+    <Compile Include="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\nonNegativeInteger_DEtype.cs" />
+    <Compile Include="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\nonPositiveInteger_DEtype.cs" />
+    <Compile Include="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\positiveInteger_DEtype.cs" />
     <!-- SDC Unmodified Classes: DEtype constraint-setter originals -->
     <Compile Remove="SDC.Schema\SDC Unmodified Classes\string_DEtype.cs" />
     <Compile Remove="SDC.Schema\SDC Unmodified Classes\anyURI_DEtype.cs" />
