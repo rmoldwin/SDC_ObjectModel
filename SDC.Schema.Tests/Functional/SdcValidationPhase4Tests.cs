@@ -231,16 +231,20 @@ namespace SDC.Schema.Tests.Functional
 		// ─── Phase 4C: DeserializeXmlValidating ───────────────────────────────────
 
 		[TestMethod]
-		public void DeserializeXmlValidating_ValidDocument_ReportIsValid()
+		public void DeserializeXmlValidating_KnownFixture_ReportsConstraintError()
 		{
-			// Rationale: a known-good BreastStagingTest.xml must round-trip through the
-			// validating overload without producing any Error-severity issues.
+			// Rationale: with Phase 4 constraint-setter validation enabled during XML
+			// hydration, the BreastStagingTest.xml fixture now surfaces its contradictory
+			// byte minExclusive/maxExclusive pair as a deserialization-time validation error.
 			var (result, report) = SdcSerializer<FormDesignType>.DeserializeXmlValidating(_xmlContent);
 
 			Assert.IsNotNull(result, "Deserialized FormDesignType must not be null.");
-			Assert.IsTrue(report.IsValid,
-				$"No validation errors expected for BreastStagingTest.xml. Errors: {report.ErrorCount}. " +
-				$"Summary: {report.Summary}");
+			Assert.IsFalse(report.IsValid,
+				"Constraint-coherence validation during deserialization must mark the contradictory fixture as invalid.");
+			Assert.AreEqual(1, report.ErrorCount,
+				$"Exactly one constraint-coherence error is expected from BreastStagingTest.xml. Summary: {report.Summary}");
+			Assert.AreEqual(0, report.WarningCount,
+				"Only the contradictory exclusive-range constraint should be reported for this fixture.");
 		}
 
 		[TestMethod]

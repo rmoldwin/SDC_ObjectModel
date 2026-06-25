@@ -263,11 +263,12 @@ namespace SDC.Schema.Tests.Functional
 		}
 
 		[TestMethod]
-		public void InvalidRegexPattern_ValNotRejected_WarningFired()
+		public void InvalidRegexPattern_ValNotRejected_ErrorFired()
 		{
-			// Rationale: if the pattern property contains a syntactically invalid regex,
-			// the defect is in the constraint, not in the val. The val must not be rejected
-			// (returns true) but a Warning event must fire to surface the bad pattern.
+			// Rationale: once pattern setters run ValidateProperty directly, a malformed
+			// regex is now rejected as an invalid constraint value at assignment time.
+			// The later val coherence check must still return true because the defect is
+			// in the constraint, not in the val being checked.
 			var node = CreateStringNode();
 			node.pattern = "[invalid_regex("; // malformed regex
 
@@ -276,9 +277,9 @@ namespace SDC.Schema.Tests.Functional
 			Assert.IsTrue(result,
 				"An invalid regex pattern must not cause val to be rejected (defect is in the constraint, not val).");
 			Assert.IsTrue(_captured.Count > 0,
-				"A Warning event must fire to surface the invalid regex pattern.");
-			Assert.AreEqual(SdcValidationSeverity.Warning, _captured[0].Severity,
-				"The notification for an invalid pattern must be Warning, not Error.");
+				"Setter-level validation must raise an event so malformed regex constraints are visible immediately.");
+			Assert.AreEqual(SdcValidationSeverity.Error, _captured[0].Severity,
+				"Setter-level pattern validation now reports malformed regex constraints as Error severity.");
 		}
 
 		// ─── CheckConstraintCoherence: Constraint vs Constraint ──────────────────
