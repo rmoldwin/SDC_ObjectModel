@@ -25,7 +25,7 @@ namespace SDC.Schema
 	/// </summary>
 	public class SdcValidationEventArgs : EventArgs
 	{
-		/// <summary><see cref="BaseType.ID"/> of the node being validated, or null if unknown.</summary>
+		/// <summary><see cref="IdentifiedExtensionType.ID"/> of the node being validated, or null if unknown.</summary>
 		public string? NodeID { get; init; }
 
 		/// <summary>Name of the property that triggered the validation issue.</summary>
@@ -93,7 +93,7 @@ namespace SDC.Schema
 		/// Convenience overload: raise a simple error with a message and optional node/property context.
 		/// </summary>
 		/// <param name="message">Human-readable description of the issue.</param>
-		/// <param name="nodeID">Optional: <see cref="BaseType.ID"/> of the affected node.</param>
+		/// <param name="nodeID">Optional: <see cref="IdentifiedExtensionType.ID"/> of the affected node.</param>
 		/// <param name="propertyName">Optional: name of the failing property.</param>
 		/// <param name="attemptedValue">Optional: the value that was rejected.</param>
 		/// <param name="severity">Severity level (defaults to <see cref="SdcValidationSeverity.Error"/>).</param>

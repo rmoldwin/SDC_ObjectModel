@@ -60,7 +60,7 @@ namespace SDC.Schema.Tests.OM
 			q.AddQuestionResponseField(out DataTypes_DEType deType, ItemChoiceType.anyURI);
 			var rf = q.ResponseField_Item!;
 
-			IDataHelpers.AddDataTypesDE(rf, ItemChoiceType.anyURI, value: value);
+			SdcDataTypeBuilder.AddDataTypesDE(rf, ItemChoiceType.anyURI, value: value);
 			return (anyURI_DEtype)rf.Response.DataTypeDE_Item!;
 		}
 

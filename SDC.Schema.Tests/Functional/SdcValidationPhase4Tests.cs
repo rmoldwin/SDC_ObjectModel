@@ -75,7 +75,7 @@ namespace SDC.Schema.Tests.Functional
 			var de = new DataElementType(null);
 			var q  = new QuestionItemType(de, $"q_ph4_{kind}");
 			q.AddQuestionResponseField(out DataTypes_DEType deType, kind);
-			IDataHelpers.AddDataTypesDE(q.ResponseField_Item!, kind, value: value);
+			SdcDataTypeBuilder.AddDataTypesDE(q.ResponseField_Item!, kind, value: value);
 			return (deType, deType.Item!);
 		}
 

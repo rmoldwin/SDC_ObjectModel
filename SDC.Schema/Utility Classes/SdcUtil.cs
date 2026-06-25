@@ -3414,7 +3414,7 @@ namespace SDC.Schema
 		/// In addition, if a name collision occurs in the hashtable <see cref="_ITopNode._UniqueBaseNames"/>, sGuid characters will be added <br/>
 		/// until there is no longer a collision, and thus the returned BaseName string may be longer than  <paramref name="minNameBaseLength"/></param>
 		/// <returns>The method tries to find an sGuid-derived string of length <paramref name="minNameBaseLength" />, more or less, that does not contain unusual characters.<br/>
-		/// May rarely return an empty string or a string shorter or longer than <paramref name="minNameBaseLength" /> if a name collision occurs in the hashtable <see cref="UniqueBaseNames"/>.</returns>
+		/// May rarely return an empty string or a string shorter or longer than <paramref name="minNameBaseLength" /> if a name collision occurs in the hashtable <see cref="_ITopNode._UniqueBaseNames"/>.</returns>
 		/// <exception cref="ArgumentException"></exception>
 		public static string CreateBaseNameFromsGuid(BaseType node, int minNameBaseLength = 6)
 		{ //TODO: change to private after all testing complete

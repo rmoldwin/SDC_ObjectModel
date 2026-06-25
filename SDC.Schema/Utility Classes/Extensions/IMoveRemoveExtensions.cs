@@ -1073,7 +1073,7 @@ namespace SDC.Schema.Extensions
 		/// <summary>
 		/// TS-7 helper: find the nearest IET predecessor of <paramref name="iet"/> using only
 		/// the _ChildNodes and _ParentNodes dictionaries (no reflection sort).
-		/// The sibling lists in _ChildNodes are maintained sorted by <see cref="treeOrderComparer"/>
+		/// The sibling lists in _ChildNodes are maintained sorted by <c>treeOrderComparer</c>
 		/// or <see cref="treeSibComparer"/> depending on the registration path, so walking backwards
 		/// from <paramref name="iet"/>'s position gives the correct in-tree predecessor.
 		/// </summary>

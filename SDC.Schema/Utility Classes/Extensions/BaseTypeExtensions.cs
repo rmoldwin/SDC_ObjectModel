@@ -429,7 +429,7 @@ namespace SDC.Schema.Extensions
 		}
 		/// <summary>
 		/// Assigns a name to the SDC node.<br/>
-		/// <inheritdoc cref="SdcUtil.CreateSimpleName(BaseType)"/>
+		/// <inheritdoc cref="SdcUtil.CreateSimpleName(BaseType, string, NameChangeEnum, string)"/>
 		/// </summary>
 		/// <param name="bt"></param>
 		/// <returns>The name assigned to the node</returns>
