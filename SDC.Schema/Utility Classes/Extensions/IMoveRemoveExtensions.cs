@@ -939,7 +939,7 @@ namespace SDC.Schema.Extensions
         private static void RegisterIn_Nodes(this BaseType node)
 		{
 			_ITopNode _topNode = ((_ITopNode)node.TopNode!);
-			_topNode._Nodes.Add(node.ObjectGUID, node);
+			_topNode._Nodes.TryAdd(node.ObjectGUID, node);
 
 			if (node is _ITopNode _meTopNode && _meTopNode != _topNode) //if we did not already do this... 
 			{   //also register this ITopNode object in its own dictionaries.
@@ -973,18 +973,12 @@ namespace SDC.Schema.Extensions
 
 			static void RegisterParentNode(BaseType btSource, BaseType inParentNode, _ITopNode tn, bool childNodesSort)
 			{
-				tn._ParentNodes.Add(btSource.ObjectGUID, inParentNode);
+				tn._ParentNodes.TryAdd(btSource.ObjectGUID, inParentNode);
 
-				List<BaseType>? kids;
-				tn._ChildNodes.TryGetValue(inParentNode.ObjectGUID, out kids);
-				if (kids is null)
-				{
-					kids = new List<BaseType>();
-					tn._ChildNodes.Add(inParentNode.ObjectGUID, kids);
-					kids.Add(btSource); //no need to sort with only one item in the list
-				}
-				else
-				{
+					// GetOrAdd atomically returns the canonical list for inParentNode, creating it only if
+					// the key is absent. This prevents the orphan-list race that would occur with a separate
+					// TryGetValue + TryAdd pattern under concurrent node registration.
+					List<BaseType> kids = tn._ChildNodes.GetOrAdd(inParentNode.ObjectGUID, _ => new List<BaseType>());
 					//if btSource should live inside an inParentNode List<> object, but has not yet been added to that list,
 					//then we can't sort the _ChildNodes dictionary List<> yet, because we can't reflect the order of the new node,
 					//and also, we don't have its intended List position available here
@@ -993,48 +987,47 @@ namespace SDC.Schema.Extensions
 					//We may need to add a new Interface: IHasListParent for all nodes that are attached to an Items object,
 					//so that these nodes can be easily identified.
 					kids.Add(btSource);
-						if (kids.Count > 1 && childNodesSort)
+					if (kids.Count > 1 && childNodesSort)
+					{
+						try { kids.Sort(treeSibComparer); } //sort by reflecting the object tree
+						catch (InvalidOperationException)
 						{
-							try { kids.Sort(treeSibComparer); } //sort by reflecting the object tree
-							catch (InvalidOperationException)
+							// Node may not yet be fully wired into parent properties (e.g., during concurrent construction).
+							// Skip sort here; correct order will be applied by AssignOrder or ReflectRefreshTree.
+						}
+					}
+					else if (kids.Count > 1) // childNodesSort:false path (construction/bulk-add)
+					{
+						// TS-7: Binary-search insert using treeSibComparer — O(log k · reflection) per insert
+						// vs O(k log k · reflection) for a full re-sort = O(N log² N) total for N inserts.
+						// Uses TreeComparer.SibComparer(inParentNode, ...) directly to avoid the
+						// ParentNode-equality guard in TreeSibComparer.Compare (which would throw if a node's
+						// _ParentNodes entry hasn't been updated yet during re-registration paths).
+						// After insertion, mark the parent sorted so FindPrevIETInDictionaries (and
+						// GetPrevSibElement on Move paths) skip a redundant re-sort.
+						kids.RemoveAt(kids.Count - 1); // remove just-appended node; binary search for correct slot
+						int lo = 0, hi = kids.Count;
+						while (lo < hi)
+						{
+							int mid = (lo + hi) >> 1;
+							try
 							{
-								// Node may not yet be fully wired into parent properties (e.g., during concurrent construction).
-								// Skip sort here; correct order will be applied by AssignOrder or ReflectRefreshTree.
+								if (TreeComparer.SibComparer(inParentNode, kids[mid], btSource, out _) <= 0)
+									lo = mid + 1;
+								else
+									hi = mid;
+							}
+							catch
+							{
+								// Comparison failed (node not yet wired into parent property).
+								// Append at end; ReflectRefreshTree will correct order on next full refresh.
+								lo = kids.Count;
+								break;
 							}
 						}
-						else if (kids.Count > 1) // childNodesSort:false path (construction/bulk-add)
-						{
-							// TS-7: Binary-search insert using treeSibComparer — O(log k · reflection) per insert
-							// vs O(k log k · reflection) for a full re-sort = O(N log² N) total for N inserts.
-							// Uses TreeComparer.SibComparer(inParentNode, ...) directly to avoid the
-							// ParentNode-equality guard in TreeSibComparer.Compare (which would throw if a node's
-							// _ParentNodes entry hasn't been updated yet during re-registration paths).
-							// After insertion, mark the parent sorted so FindPrevIETInDictionaries (and
-							// GetPrevSibElement on Move paths) skip a redundant re-sort.
-							kids.RemoveAt(kids.Count - 1); // remove just-appended node; binary search for correct slot
-							int lo = 0, hi = kids.Count;
-							while (lo < hi)
-							{
-								int mid = (lo + hi) >> 1;
-								try
-								{
-									if (TreeComparer.SibComparer(inParentNode, kids[mid], btSource, out _) <= 0)
-										lo = mid + 1;
-									else
-										hi = mid;
-								}
-								catch
-								{
-									// Comparison failed (node not yet wired into parent property).
-									// Append at end; ReflectRefreshTree will correct order on next full refresh.
-									lo = kids.Count;
-									break;
-								}
-							}
-							kids.Insert(lo, btSource);
-							SdcUtil.TreeSort_MarkSorted(inParentNode);
-						}
-						}
+						kids.Insert(lo, btSource);
+						SdcUtil.TreeSort_MarkSorted(inParentNode);
+					}
 			}
 		}
 		private static void RegisterSubtreeIn_IETnodes(this IdentifiedExtensionType iet, bool addIETnodesRecursively = false)
@@ -1201,7 +1194,7 @@ namespace SDC.Schema.Extensions
 			void UnRegisterParentNode(_ITopNode tn)
 			{
 				if (tn?._ParentNodes.ContainsKey(node.ObjectGUID) ?? false)
-					success = tn._ParentNodes.Remove(node.ObjectGUID);
+					success = tn._ParentNodes.TryRemove(node.ObjectGUID, out _);
 				// if (!success) throw new Exception($"Could not remove object from ParentNodes dictionary: name: {this.name ?? "(none)"} , ObjectGUID: {this.ObjectGUID}");
 
 				if (par is not null && (tn?._ChildNodes.ContainsKey(par.ObjectGUID) ?? false))
@@ -1210,7 +1203,7 @@ namespace SDC.Schema.Extensions
 					success = childList.Remove(node); //Returns a List<BaseType> and removes "item" from that list
 					if (!success)
 						throw new InvalidOperationException($"Could not remove list node from {nameof(tn._ChildNodes)} dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
-					if (childList.Count == 0) success = tn._ChildNodes.Remove(par.ObjectGUID); //remove the entire entry from _ChildNodes
+					if (childList.Count == 0) success = tn._ChildNodes.TryRemove(par.ObjectGUID, out _); //remove the entire entry from _ChildNodes
 					if (!success)
 						throw new InvalidOperationException($"Could not remove parent entry from {nameof(tn._ChildNodes)} dictionary: name: {par.name ?? "(none)"}, ObjectGUID: {par.ObjectGUID}");
 				}
@@ -1254,7 +1247,7 @@ namespace SDC.Schema.Extensions
 				{
 
 					//Unregister _Nodes
-					bool success = tn._Nodes.Remove(node.ObjectGUID);
+					bool success = tn._Nodes.TryRemove(node.ObjectGUID, out _);
 					if (!success)
 						throw new Exception($"Could not remove object from {nameof(tn._Nodes)} dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
 

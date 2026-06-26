@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Xml.Serialization;
@@ -142,16 +143,16 @@ namespace SDC.Schema
         /// <summary>
         /// Internal Dictionary.  Given an Node ObjectGUID, returns the node's object reference.
         /// </summary>
-        Dictionary<Guid, BaseType> _Nodes { get; }
+        ConcurrentDictionary<Guid, BaseType> _Nodes { get; }
 
         /// <summary>
         /// Internal Dictionary.  Given a Node ObjectGUID, return the *parent* node's object reference
         /// </summary>
-        Dictionary<Guid, BaseType> _ParentNodes { get;}
+        ConcurrentDictionary<Guid, BaseType> _ParentNodes { get;}
         /// <summary>
         /// Internal Dictionary.  Given a NodeID ObjectGUID, return a list of the child nodes object reference
         /// </summary>
-        Dictionary<Guid, List<BaseType>> _ChildNodes { get;}
+        ConcurrentDictionary<Guid, List<BaseType>> _ChildNodes { get;}
 
         /// <summary>
         /// This internal HashSet contains the ObjectID of each parent node that has had its child nodes sorted by ITreeSibComparer. <br/>
