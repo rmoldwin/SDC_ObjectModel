@@ -63,6 +63,8 @@
 @page "/"
 @using SDC.Schema
 @using SDC.ScriptEngine
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
 
 <PageTitle>SDC ScriptEngine — BlazorTest</PageTitle>
 
@@ -174,44 +176,104 @@ else
     }
 </section>
 
-@* ── Panel 3: Live compile + run (Phase 2 placeholder) ──────────────────── *@
+@* ── Panel 3: Live compile + run (Phase 2) ───────────────────────────────── *@
 <section style="@SectionStyle">
-    <h3>Panel 2 — Live Compile + Run (Phase 2 — Not Yet Implemented)</h3>
+    <h3>Panel 2 — Live Compile + Run (Phase 2 — In-Browser Roslyn)</h3>
     <p style="font-size:.85em; color:#555; margin-bottom:10px;">
-        In Phase 2 this panel will compile the script in-browser using Roslyn
-        with a custom <code>ISdcScriptReferenceProvider</code> that fetches DLL
-        bytes from <code>_framework/</code> via <code>HttpClient</code>.
+        Compiles the script body in-browser using Roslyn with
+        <code>WasmReferenceProvider</code>, which fetches DLL bytes from
+        <code>_framework/</code> via <code>HttpClient</code>.
+        References must be loaded before compiling.
     </p>
 
-    <textarea style="width:100%; height:80px; font-family:monospace; font-size:.85em;
-                     padding:6px; border:1px solid #ccc; border-radius:3px; resize:vertical;"
-              readonly="@true">@ScriptBody</textarea>
+    @* ── Step 1: Load references ─────────────────────────────── *@
+    @if (!_p2RefsLoaded && !_p2Loading)
+    {
+        <button style="@ButtonStyle("primary")" @onclick="LoadWasmReferences">
+            📦 Load WASM References
+        </button>
+    }
 
+    @if (_p2Loading)
+    {
+        <div style="background:#e2e3e5; border-radius:4px; padding:8px 12px; margin-top:8px;">
+            ⏳ Loading assemblies…
+            @if (_p2TotalCount > 0)
+            {
+                <span> @_p2LoadedCount / @_p2TotalCount</span>
+                <div style="background:#ccc; border-radius:2px; height:8px; margin-top:4px;">
+                    <div style="background:#0d6efd; height:8px; border-radius:2px;
+                                width:@((_p2TotalCount > 0 ? (_p2LoadedCount * 100 / _p2TotalCount) : 0))%;
+                                transition:width .2s;"></div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (_p2RefsLoaded)
+    {
+        <div style="background:#d1e7dd; border:1px solid #a3cfbb; border-radius:4px;
+                    padding:6px 12px; margin-bottom:10px; font-size:.88em; color:#0a3622;">
+            ✅ @_p2LoadedCount references loaded in @_p2RefLoadMs ms
+        </div>
+    }
+
+    @* ── Step 2: Script editor ───────────────────────────────── *@
+    <textarea style="width:100%; height:80px; font-family:monospace; font-size:.85em;
+                     padding:6px; border:1px solid #ccc; border-radius:3px; resize:vertical;
+                     margin-top:8px;"
+              @bind="_p2Script" @bind:event="oninput"
+              disabled="@(!_p2RefsLoaded)">@_p2Script</textarea>
+
+    @* ── Step 3: Compile + Run button ───────────────────────── *@
     <div style="margin-top:10px;">
-        <button style="@ButtonStyle("secondary")" @onclick="ShowPhase2Message">
-            🔬 Compile + Run (in-browser Roslyn)
+        <button style="@ButtonStyle("primary")"
+                @onclick="CompileAndRunPhase2"
+                disabled="@(!_p2RefsLoaded || _p2Compiling)">
+            @(_p2Compiling ? "⏳ Compiling…" : "🔬 Compile + Run (in-browser Roslyn)")
         </button>
     </div>
 
-    @if (_showPhase2Message)
+    @* ── Compile errors ──────────────────────────────────────── *@
+    @if (_p2CompileErrors is { Count: > 0 })
     {
-        <div style="margin-top:12px; background:#cfe2ff; border:1px solid #9ec5fe;
-                    border-radius:4px; padding:10px 14px; font-size:.88em;">
-            <strong>Phase 2 Feature — Not Yet Implemented</strong><br />
-            In-browser Roslyn compilation requires a custom
-            <code>ISdcScriptReferenceProvider</code> that fetches DLL bytes from
-            the WASM <code>_framework/</code> bundle via <code>HttpClient</code>.
-            <br /><br />
-            <strong>Why deferred?</strong>
-            <ul style="margin:6px 0; padding-left:20px;">
-                <li>Roslyn DLLs add ~15 MB to the WASM download.</li>
-                <li>Compilation in interpreter mode takes seconds per script.</li>
-                <li>The primary use case (form designer) runs on desktop, where
-                    <code>AppDomainReferenceProvider</code> gives instant results.</li>
-            </ul>
-            <strong>Use the desktop WPF test app</strong>
-            (<code>SDC.ScriptEngine.WpfTest</code>) for full compile + run testing.
+        <div style="margin-top:12px;">
+            <strong style="color:#842029;">Compile Errors:</strong>
+            <pre style="@ErrorStyle">@string.Join("\n", _p2CompileErrors.Select(d => $"Line {d.Line}, Col {d.Column}: {d.Message}"))</pre>
         </div>
+    }
+
+    @* ── Results ─────────────────────────────────────────────── *@
+    @if (_p2RunResult != null || _p2CompileResult != null)
+    {
+        <table style="@TableStyle; margin-top:14px;">
+            <tbody>
+                @if (_p2CompileResult != null)
+                {
+                    <tr><th style="@ThStyle">Compile status</th>
+                        <td>@(_p2CompileResult.Success ? "✅ Success" : "❌ Failed")</td></tr>
+                    <tr><th style="@ThStyle">Compile time</th>
+                        <td>@_p2CompileMs ms</td></tr>
+                }
+                @if (_p2RunResult != null)
+                {
+                    <tr><th style="@ThStyle">Run status</th>
+                        <td>@(_p2RunResult.Success ? "✅ Success" : "❌ Failed")</td></tr>
+                    <tr><th style="@ThStyle">Run time</th>
+                        <td>@_p2RunMs ms</td></tr>
+                    <tr><th style="@ThStyle">node.name before</th>
+                        <td><code>@_p2NameBefore</code></td></tr>
+                    <tr><th style="@ThStyle">node.name after</th>
+                        <td><code>@_p2NameAfter</code></td></tr>
+                    <tr><th style="@ThStyle">Mutation visible</th>
+                        <td>@(_p2MutationVisible ? "✅ Yes" : "❌ No")</td></tr>
+                }
+            </tbody>
+        </table>
+        @if (!string.IsNullOrEmpty(_p2Error))
+        {
+            <pre style="@ErrorStyle; margin-top:8px;">@_p2Error</pre>
+        }
     }
 </section>
 
@@ -349,8 +411,27 @@ else
     private bool _initSuccess;
     private bool _precompiledRunning;
     private RunResult? _precompiledResult;
-    private bool _showPhase2Message;
     private readonly List<string> _logLines = new();
+
+    // ── Phase 2 state ───────────────────────────────────────────────────────
+    private WasmReferenceProvider? _p2Provider;
+    private SdcScriptEngine?       _p2Engine;
+    private bool                   _p2Loading;
+    private bool                   _p2RefsLoaded;
+    private int                    _p2LoadedCount;
+    private int                    _p2TotalCount;
+    private long                   _p2RefLoadMs;
+    private long                   _p2CompileMs;
+    private long                   _p2RunMs;
+    private string                 _p2Script = ScriptBody;
+    private bool                   _p2Compiling;
+    private SdcScriptCompileResult?            _p2CompileResult;
+    private SdcScriptRunResult?               _p2RunResult;
+    private IReadOnlyList<SdcScriptDiagnostic>? _p2CompileErrors;
+    private string?                _p2NameBefore;
+    private string?                _p2NameAfter;
+    private bool                   _p2MutationVisible;
+    private string?                _p2Error;
 
     // The name used for the test node before mutation
     private const string _nodeNameBefore = "Q1";
@@ -565,9 +646,140 @@ else
         StateHasChanged();
     }
 
-    private void ShowPhase2Message()
+    // =========================================================================
+    // PHASE 2 METHODS — WasmReferenceProvider + live in-browser compilation
+    // =========================================================================
+
+    /// <summary>
+    /// Loads all WASM assembly references via <see cref="WasmReferenceProvider"/>.
+    /// Shows incremental progress as each DLL is fetched from <c>_framework/</c>.
+    /// On completion wraps the result in a <see cref="PreloadedReferenceProvider"/>
+    /// and creates a <see cref="SdcScriptEngine"/> for Phase 2 compilation.
+    /// </summary>
+    private async Task LoadWasmReferences()
     {
-        _showPhase2Message = !_showPhase2Message;
+        _p2Loading     = true;
+        _p2LoadedCount = 0;
+        _p2TotalCount  = 0;
+        _p2RefsLoaded  = false;
+        _p2Engine      = null;
+        _p2Error       = null;
+        StateHasChanged();
+
+        try
+        {
+            _p2Provider = new WasmReferenceProvider(Http, JSRuntime);
+
+            // Subscribe to progress events before loading so we capture all updates.
+            _p2Provider.LoadingProgress += (loaded, total) =>
+            {
+                _p2LoadedCount = loaded;
+                _p2TotalCount  = total;
+                // Direct StateHasChanged() is safe in WASM (single-threaded).
+                StateHasChanged();
+            };
+
+            var sw   = Stopwatch.StartNew();
+            var refs = await _p2Provider.GetReferencesAsync().ConfigureAwait(false);
+            sw.Stop();
+
+            _p2RefLoadMs  = sw.ElapsedMilliseconds;
+            _p2LoadedCount = refs.Count;
+
+            // Wrap the pre-loaded list in the synchronous adapter so SdcScriptEngine
+            // can call GetReferences() without any further I/O.
+            var preloaded = new PreloadedReferenceProvider(refs);
+            _p2Engine     = new SdcScriptEngine(preloaded);
+            _p2RefsLoaded = true;
+
+            Log($"✅ Phase 2: {refs.Count} references loaded in {_p2RefLoadMs} ms.");
+        }
+        catch (Exception ex)
+        {
+            _p2Error = $"{ex.GetType().Name}: {ex.Message}";
+            Log($"❌ Phase 2 reference load failed: {_p2Error}");
+        }
+        finally
+        {
+            _p2Loading = false;
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// Compiles <see cref="_p2Script"/> in-browser using Roslyn with the
+    /// already-loaded WASM references, then runs the compiled script against
+    /// a fresh test <see cref="QuestionItemType"/> node.
+    /// </summary>
+    private async Task CompileAndRunPhase2()
+    {
+        if (_p2Engine == null) return;
+
+        _p2Compiling     = true;
+        _p2CompileResult = null;
+        _p2RunResult     = null;
+        _p2CompileErrors = null;
+        _p2Error         = null;
+        _p2NameBefore    = null;
+        _p2NameAfter     = null;
+        _p2MutationVisible = false;
+        StateHasChanged();
+
+        try
+        {
+            // ── Compile ───────────────────────────────────────────────────
+            var csw = Stopwatch.StartNew();
+            _p2CompileResult = await _p2Engine.CompileAsync(_p2Script).ConfigureAwait(false);
+            csw.Stop();
+            _p2CompileMs = csw.ElapsedMilliseconds;
+
+            if (!_p2CompileResult.Success)
+            {
+                _p2CompileErrors = _p2CompileResult.Diagnostics
+                    .Where(d => d.Severity == SdcDiagnosticSeverity.Error)
+                    .ToList().AsReadOnly();
+                Log($"❌ Phase 2 compile failed: {_p2CompileErrors.Count} error(s) in {_p2CompileMs} ms.");
+                return;
+            }
+
+            Log($"✅ Phase 2 compile succeeded. IL={_p2CompileResult.CompiledIL!.Length} bytes, {_p2CompileMs} ms.");
+
+            // ── Run ───────────────────────────────────────────────────────
+            var fd = new FormDesignType(null, "FD_P2");
+            var q  = new QuestionItemType(fd, _nodeNameBefore);
+            _p2NameBefore = q.name ?? "(null)";
+
+            var rsw = Stopwatch.StartNew();
+            _p2RunResult = await _p2Engine.RunAsync(
+                _p2CompileResult.CompiledIL!,
+                _p2CompileResult.CanonicalHash,
+                q).ConfigureAwait(false);
+            rsw.Stop();
+            _p2RunMs = rsw.ElapsedMilliseconds;
+
+            if (_p2RunResult.Success)
+            {
+                _p2NameAfter       = q.name ?? "(null)";
+                _p2MutationVisible = _p2NameAfter != _p2NameBefore;
+                Log($"✅ Phase 2 run succeeded. name after='{_p2NameAfter}', {_p2RunMs} ms.");
+            }
+            else
+            {
+                _p2NameAfter = q.name ?? "(unchanged)";
+                _p2Error     = _p2RunResult.ErrorMessage ?? "(unknown run error)";
+                Log($"❌ Phase 2 run failed: {_p2Error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _p2Error = $"{ex.GetType().Name}: {ex.Message}";
+            Log($"❌ Phase 2 exception: {_p2Error}");
+        }
+        finally
+        {
+            _p2Compiling = false;
+            StateHasChanged();
+        }
     }
 
     private void Log(string message)
