@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!--
+      CRITICAL: Disable Webcil wrapping so that _framework/*.dll files are raw PE/COFF DLLs.
+      .NET 8+ defaults to Webcil (.wasm-wrapped PE) for WASM deployments.
+      MetadataReference.CreateFromImage() cannot parse Webcil bytes — it expects a raw PE header.
+      Without this, the Roslyn reference provider silently produces unusable references.
+    -->
+    <WasmEnableWebcil>false</WasmEnableWebcil>
+
+    <!--
+      Keep the interpreter enabled and AOT off so that dynamically-loaded assemblies
+      (from Assembly.Load(byte[])) can actually execute at runtime in the browser.
+      AOT-only mode would JIT-compile the static app code but refuse to run
+      dynamically-loaded IL that was never ahead-of-time compiled.
+    -->
+    <WasmEnableInterpreter>true</WasmEnableInterpreter>
+    <RunAOTCompilation>false</RunAOTCompilation>
+
+    <!--
+      Trimming must be off for this spike.
+      Trimming removes types/members that the static analysis cannot see as "used".
+      Because Roslyn scripts invoke types via reflection at runtime, many SDC OM
+      members would be trimmed away, causing MissingMethodException or similar at runtime.
+    -->
+    <PublishTrimmed>false</PublishTrimmed>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.8" PrivateAssets="all" />
+
+    <!--
+      Roslyn C# compiler as a library. Provides CSharpCompilation, SyntaxTree,
+      MetadataReference, and Emit() — everything needed to compile C# source to IL at runtime.
+      Version 4.x targets netstandard2.0 and is compatible with net10.0 WASM.
+    -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Reference the SDC Object Model so that:
+      (a) SDC.Schema.dll is deployed into _framework/ for runtime use, and
+      (b) the spike page can construct QuestionItemType / BaseType instances to pass to the script.
+    -->
+    <ProjectReference Include="..\SDC.Schema\SDC.Schema.csproj" />
+  </ItemGroup>
+
+</Project>
