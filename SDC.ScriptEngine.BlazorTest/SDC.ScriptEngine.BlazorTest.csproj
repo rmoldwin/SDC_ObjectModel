@@ -1,0 +1,87 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>13.0</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+
+    <!--
+      WASM PACKAGING: Webcil disabled
+      =================================
+      .NET 8+ defaults to "Webcil" format — a PE/COFF DLL re-wrapped inside a
+      WebAssembly module so browsers don't block .dll downloads via MIME-type
+      restrictions.  However, Assembly.Load(byte[]) requires a raw PE/COFF byte
+      stream (MZ header at offset 0).  If Webcil wrapping is left enabled, any
+      dynamically-loaded assembly (including pre-compiled scripts loaded at
+      runtime) would fail to load because the bytes start with a WASM module
+      header, not a PE header.
+
+      Setting WasmEnableWebcil=false causes the SDK to deploy raw .dll files into
+      _framework/, which are directly usable by Assembly.Load(byte[]) and by
+      Roslyn's MetadataReference.CreateFromImage().
+    -->
+    <WasmEnableWebcil>false</WasmEnableWebcil>
+
+    <!--
+      WASM EXECUTION: Interpreter required for dynamic IL
+      =====================================================
+      The mono/wasm runtime supports two execution modes:
+        (a) AOT (Ahead-of-Time): the SDK pre-compiles IL to native WASM binary
+            code at publish time.  Dynamically-loaded assemblies (from
+            Assembly.Load(byte[])) are NOT pre-compiled and CANNOT be JIT-compiled
+            in the browser — they would throw at runtime because no WASM body
+            exists for the IL methods.
+        (b) Interpreter: IL is interpreted at runtime via the mono interpreter.
+            Dynamically-loaded assemblies work because all IL is executed
+            interpretively, whether it was shipped with the app or loaded later.
+
+      Phase 1 REQUIRES WasmEnableInterpreter=true and RunAOTCompilation=false so
+      that scripts loaded from pre-compiled IL Base64 strings can execute in the
+      browser.  AOT could be re-enabled for Phase 3+ if all scripts are shipped
+      as WASM-compiled modules (out of scope).
+    -->
+    <WasmEnableInterpreter>true</WasmEnableInterpreter>
+    <RunAOTCompilation>false</RunAOTCompilation>
+
+    <!--
+      TRIMMING: Disabled to preserve SDC OM reflection targets
+      ==========================================================
+      .NET's IL Linker (trimmer) performs static reachability analysis and removes
+      types/methods that are "never called."  Because:
+        (a) scripts invoke SDC OM types via reflection (MethodInfo.Invoke, cast),
+        (b) the linker cannot see inside pre-compiled IL Base64 strings,
+        (c) SDC.Schema has 150+ classes that may be cast/called at script runtime,
+      trimming would silently remove large portions of the SDC OM, causing
+      MissingMethodException or InvalidCastException at runtime.
+
+      Phase 2 note: enabling trimming would require [DynamicDependency] attributes
+      or a TrimmerRootDescriptor file listing every type that scripts can access.
+      That is deferred.
+    -->
+    <PublishTrimmed>false</PublishTrimmed>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Blazor WASM host packages.
+      These are NOT included implicitly by the BlazorWebAssembly SDK — they
+      must be listed explicitly even though the SDK sets up the build targets.
+      DevServer provides 'dotnet watch' / 'dotnet run' hot-reload for development.
+    -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.8" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      SDC.ScriptEngine is the core engine library (compilation, caching, ALC).
+      It transitively brings in Microsoft.CodeAnalysis.CSharp (Roslyn) and
+      SDC.Schema.  We do NOT add a direct Roslyn reference here — Phase 1 does
+      not use any Roslyn types directly in the Blazor project code.  The engine
+      uses Roslyn internally; this project only calls engine APIs.
+    -->
+    <ProjectReference Include="..\SDC.ScriptEngine\SDC.ScriptEngine.csproj" />
+  </ItemGroup>
+
+</Project>
