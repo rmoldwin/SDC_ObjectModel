@@ -1,3 +1,23 @@
 @* App.razor — SDC.ScriptEngine.BlazorAsyncTests.Phase2
-   Root component. Delegates all routing to Routes.razor. *@
-<Routes />
+   Root component. Wraps Routes in an ErrorBoundary so startup exceptions
+   display their actual message rather than the generic Blazor error overlay. *@
+
+<ErrorBoundary>
+    <ChildContent>
+        <Routes />
+    </ChildContent>
+    <ErrorContent Context="ex">
+        <div style="color:red; background:#fff0f0; border:2px solid #cf222e; border-radius:6px; padding:20px; margin:20px; font-family:monospace;">
+            <b>Startup error — unhandled C# exception:</b><br /><br />
+            <b>@ex.GetType().FullName</b><br />
+            <pre style="white-space:pre-wrap; font-size:.9em;">@ex.Message</pre>
+            @if (ex.StackTrace is not null)
+            {
+                <details>
+                    <summary style="cursor:pointer; font-size:.85em; color:#666;">Stack trace</summary>
+                    <pre style="font-size:.75em; white-space:pre-wrap; color:#444;">@ex.StackTrace</pre>
+                </details>
+            }
+        </div>
+    </ErrorContent>
+</ErrorBoundary>
