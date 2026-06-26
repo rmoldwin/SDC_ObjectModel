@@ -1,0 +1,257 @@
+@page "/compare-trees-tests"
+
+<PageTitle>Category 3: CompareTrees Correctness</PageTitle>
+
+<h1>Category 3: CompareTrees Correctness</h1>
+<p style="color:#555; font-size:.9em;">
+    Validates CompareTrees results against the serial desktop baseline.
+    Embedded XML resources (BreastStagingTest2v1.xml vs v5, CompareTreesTestV1/V2) are loaded synchronously.
+</p>
+
+<div style="margin-bottom:16px;">
+    <button class="run-btn" @onclick="RunAllAsync" disabled="@IsRunning">▶ Run All</button>
+    @if (IsRunning) { <span style="color:#0969da; font-size:.9em;">Running…</span> }
+</div>
+
+<table class="test-table">
+    <thead><tr><th style="width:40%">Test</th><th>Status</th><th>Duration (ms)</th><th>Message</th></tr></thead>
+    <tbody>
+    @foreach (var result in _results)
+    {
+        <tr>
+            <td>@result.Name</td>
+            <td class="@CssClass(result.Status)">@result.Status</td>
+            <td>@result.Duration.TotalMilliseconds.ToString("F1")</td>
+            <td style="font-size:.8em; white-space:pre-wrap; max-width:400px; overflow:hidden; text-overflow:ellipsis;">@Truncate(result.Message)</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    // ── Serial desktop baseline constants ────────────────────────────────────
+    // Established by running ChangeSummaryTest() in SDC.Schema.Tests
+    // (SDC.Schema.Tests/UtilityClasses/AttrMetadata/CompareTreesTests.cs)
+    // on branch Features/NET10/ILandWASM/Main with dotnet test --filter.
+    // Output captured: IETattDiffs.Count=907, IETnodesAddedInNew.Count=3, IETnodesRemovedInNew.Count=0
+    private const int Baseline_V1vsV5_IETattDiffsCount      = 907;
+    private const int Baseline_V1vsV5_IETnodesAddedInNew    = 3;
+    private const int Baseline_V1vsV5_IETnodesRemovedInNew  = 0;
+
+    private bool IsRunning;
+    private readonly List<WasmTestResult> _results = new();
+
+    // Cached XML strings (loaded once per page visit)
+    private string? _xmlV1;
+    private string? _xmlV5;
+    private string? _xmlCTV1;
+    private string? _xmlCTV2;
+
+    private async Task RunAllAsync()
+    {
+        IsRunning = true;
+        _results.Clear();
+        StateHasChanged();
+
+        // Load XML strings once (synchronous embedded resource read)
+        _xmlV1   = SdcTreeBuilder.LoadEmbeddedXml("BreastStagingTest2v1.xml");
+        _xmlV5   = SdcTreeBuilder.LoadEmbeddedXml("BreastStagingTest2v5.xml");
+        _xmlCTV1 = SdcTreeBuilder.LoadEmbeddedXml("CompareTreesTestV1.xml");
+        _xmlCTV2 = SdcTreeBuilder.LoadEmbeddedXml("CompareTreesTestV2.xml");
+
+        var runner = new WasmTestRunner();
+        runner.TestCompleted += result =>
+        {
+            _results.Add(result);
+            InvokeAsync(StateHasChanged);
+        };
+        await runner.RunAllAsync(BuildTests());
+
+        IsRunning = false;
+        StateHasChanged();
+    }
+
+    private IReadOnlyList<WasmTestCase> BuildTests() => new[]
+    {
+        // ── Test 1: V1 vs V5 diff counts match serial baseline ────────────
+        new WasmTestCase(
+            "CompareTrees_EmbeddedXml_V1vsVMax_DiffCount_MatchesSerialBaseline",
+            "Category3",
+            () =>
+            {
+                // Load XML async BEFORE building tree (pattern required by Critical Rule #4)
+                BaseType.ResetLastTopNode();
+                var tV1 = SdcTreeBuilder.BuildFromXmlString(_xmlV1!);
+                BaseType.ResetLastTopNode();
+                var tV5 = SdcTreeBuilder.BuildFromXmlString(_xmlV5!);
+
+                var comparer = new CompareTrees<FormDesignType>(tV1, tV5);
+
+                var attDiffs  = comparer.GetIETattDiffs?.Count ?? 0;
+                var added     = comparer.GetIETnodesAddedInNew.Count;
+                var removed   = comparer.GetIETnodesRemovedInNew.Count;
+
+                if (attDiffs != Baseline_V1vsV5_IETattDiffsCount)
+                    throw new InvalidOperationException(
+                        $"IETattDiffs: expected {Baseline_V1vsV5_IETattDiffsCount}, got {attDiffs}");
+                if (added != Baseline_V1vsV5_IETnodesAddedInNew)
+                    throw new InvalidOperationException(
+                        $"IETnodesAddedInNew: expected {Baseline_V1vsV5_IETnodesAddedInNew}, got {added}");
+                if (removed != Baseline_V1vsV5_IETnodesRemovedInNew)
+                    throw new InvalidOperationException(
+                        $"IETnodesRemovedInNew: expected {Baseline_V1vsV5_IETnodesRemovedInNew}, got {removed}");
+
+                return Task.CompletedTask;
+            }),
+
+        // ── Test 2: 5 runs produce identical results ──────────────────────
+        new WasmTestCase(
+            "CompareTrees_V1vsVMax_Deterministic_5Runs",
+            "Category3",
+            () =>
+            {
+                var counts = Enumerable.Range(0, 5).Select(_ =>
+                {
+                    BaseType.ResetLastTopNode();
+                    var t1 = SdcTreeBuilder.BuildFromXmlString(_xmlV1!);
+                    BaseType.ResetLastTopNode();
+                    var t5 = SdcTreeBuilder.BuildFromXmlString(_xmlV5!);
+                    var c = new CompareTrees<FormDesignType>(t1, t5);
+                    return (c.GetIETattDiffs?.Count ?? 0,
+                            c.GetIETnodesAddedInNew.Count,
+                            c.GetIETnodesRemovedInNew.Count);
+                }).ToList();
+
+                if (counts.Distinct().Count() != 1)
+                    throw new InvalidOperationException(
+                        $"CompareTrees not deterministic across 5 runs: {string.Join(", ", counts)}");
+                return Task.CompletedTask;
+            }),
+
+        // ── Test 3: AsParallel.ForAll completes without exception ─────────
+        // WASM Phase 1: validates sequential fallback correctness only. Real race coverage requires
+        // WasmEnableThreads=true (Phase 2).
+        new WasmTestCase(
+            "CompareTrees_AsParallelForAll_CompletesWithoutException",
+            "Category3",
+            () =>
+            {
+                // WASM Phase 1: validates sequential fallback correctness only.
+                // Real race coverage requires WasmEnableThreads=true (Phase 2).
+                BaseType.ResetLastTopNode();
+                var tV1 = SdcTreeBuilder.BuildFromXmlString(_xmlV1!);
+                BaseType.ResetLastTopNode();
+                var tV5 = SdcTreeBuilder.BuildFromXmlString(_xmlV5!);
+
+                // This exercises the AsParallel().ForAll() inside CompareTrees.CompareVersionAttributes().
+                // In single-threaded WASM it serializes to the JS event loop thread.
+                var comparer = new CompareTrees<FormDesignType>(tV1, tV5);
+                var diffs = comparer.GetIETattDiffs;
+
+                if (diffs is null)
+                    throw new InvalidOperationException("GetIETattDiffs is null after comparison");
+                return Task.CompletedTask;
+            }),
+
+        // ── Test 4: Error paths (Debugger.Break lines) not reached ────────
+        // Two Debugger.Break() calls exist in CompareTrees.cs at lines ~451 and ~641.
+        // In WASM without DevTools attached they are no-ops. If those paths are reached,
+        // the diff result would be incomplete and this assertion would catch it.
+        new WasmTestCase(
+            "CompareTrees_ErrorPaths_NotReached",
+            "Category3",
+            () =>
+            {
+                // Two Debugger.Break() calls in production code at CompareTrees.cs lines ~451 and ~641.
+                // If those error paths were reached, the comparison result would be incomplete
+                // (fewer diffs than the serial baseline), causing the assertions below to fail.
+                BaseType.ResetLastTopNode();
+                var tV1 = SdcTreeBuilder.BuildFromXmlString(_xmlV1!);
+                BaseType.ResetLastTopNode();
+                var tV5 = SdcTreeBuilder.BuildFromXmlString(_xmlV5!);
+
+                var comparer = new CompareTrees<FormDesignType>(tV1, tV5);
+                var diffs = comparer.GetIETattDiffs;
+
+                if (diffs is null || diffs.Count == 0)
+                    throw new InvalidOperationException(
+                        "GetIETattDiffs is null or empty — error path may have been reached in CompareTrees.cs");
+                if (diffs.Count < Baseline_V1vsV5_IETattDiffsCount)
+                    throw new InvalidOperationException(
+                        $"Diff count {diffs.Count} < baseline {Baseline_V1vsV5_IETattDiffsCount}. " +
+                        "Possible error path reached in CompareTrees.cs (Debugger.Break at ~L451 or ~L641).");
+                return Task.CompletedTask;
+            }),
+
+        // ── Test 5: 3 sequential instances return same results ────────────
+        // WASM Phase 1: validates sequential fallback correctness only. Real race coverage requires
+        // WasmEnableThreads=true (Phase 2).
+        new WasmTestCase(
+            "CompareTrees_SequentialInstances_SameResults",
+            "Category3",
+            async () =>
+            {
+                // WASM Phase 1: validates sequential fallback correctness only.
+                // Real race coverage requires WasmEnableThreads=true (Phase 2).
+                var results = new List<(int attDiffs, int added, int removed)>();
+
+                var tasks = Enumerable.Range(0, 3).Select(_ => Task.Run(() =>
+                {
+                    BaseType.ResetLastTopNode();
+                    var t1 = SdcTreeBuilder.BuildFromXmlString(_xmlV1!);
+                    BaseType.ResetLastTopNode();
+                    var t5 = SdcTreeBuilder.BuildFromXmlString(_xmlV5!);
+                    var c = new CompareTrees<FormDesignType>(t1, t5);
+                    return (c.GetIETattDiffs?.Count ?? 0,
+                            c.GetIETnodesAddedInNew.Count,
+                            c.GetIETnodesRemovedInNew.Count);
+                })).ToList();
+
+                // Sequential execution in WASM single-threaded mode
+                foreach (var task in tasks)
+                    results.Add(await task);
+
+                if (results.Distinct().Count() != 1)
+                    throw new InvalidOperationException(
+                        $"Sequential CompareTrees instances returned different results: " +
+                        string.Join(", ", results));
+            }),
+
+        // ── Test 6: V1 equals V1 clone → 0 diffs ─────────────────────────
+        new WasmTestCase(
+            "CompareTrees_V1EqualsV1_NoDiffs",
+            "Category3",
+            () =>
+            {
+                BaseType.ResetLastTopNode();
+                var tV1a = SdcTreeBuilder.BuildFromXmlString(_xmlV1!);
+
+                // Build barrier: CloneViaXml calls ResetLastTopNode internally
+                var tV1b = SdcTreeBuilder.CloneViaXml(tV1a);
+
+                var comparer = new CompareTrees<FormDesignType>(tV1a, tV1b);
+                int newCount     = comparer.GetIETnodesAddedInNew.Count;
+                int removedCount = comparer.GetIETnodesRemovedInNew.Count;
+                var diffs = comparer.GetIETattDiffs;
+                int changedCount = diffs?.Values.Count(d => d.isAttListChanged || d.isMoved || d.isParChanged) ?? 0;
+
+                if (newCount != 0 || removedCount != 0 || changedCount != 0)
+                    throw new InvalidOperationException(
+                        $"Comparing identical trees should yield 0 diffs. " +
+                        $"isNew={newCount}, isRemoved={removedCount}, isChanged={changedCount}");
+                return Task.CompletedTask;
+            }),
+    };
+
+    private static string CssClass(TestStatus s) => s switch
+    {
+        TestStatus.Passed  => "test-result-passed",
+        TestStatus.Failed  => "test-result-failed",
+        TestStatus.Running => "test-result-running",
+        TestStatus.Skipped => "test-result-skipped",
+        _ => "test-result-notrun"
+    };
+
+    private static string Truncate(string s, int max = 200)
+        => s.Length > max ? s[..max] + "…" : s;
+}

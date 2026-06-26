@@ -1,0 +1,88 @@
+@page "/"
+@using SDC.ScriptEngine.BlazorAsyncTests.TestPages
+
+<PageTitle>SDC BlazorAsyncTests — Dashboard</PageTitle>
+
+<h1>SDC OM Async/Parallel Correctness — Phase 1 Dashboard</h1>
+
+@* ── Threading Mode Banner ──────────────────────────────────────────────── *@
+@if (IsBrowser && !ThreadsEnabled)
+{
+    <div class="wasm-banner-single">
+        ⚠ <strong>Single-threaded WASM mode (Phase 1).</strong>
+        <code>WasmEnableThreads</code> is NOT set. <code>Parallel.For</code>,
+        <code>AsParallel().ForAll()</code>, and <code>Task.WhenAll</code> all serialize
+        onto the single JS event loop. No true concurrency is exercised — only sequential
+        fallback correctness is validated here.
+        Phase 2 requires <code>WasmEnableThreads=true</code>.
+    </div>
+}
+else if (IsBrowser && ThreadsEnabled)
+{
+    <div class="wasm-banner-threaded">
+        ✅ <strong>Multi-threaded WASM mode (Phase 2 compatible).</strong>
+        <code>Environment.ProcessorCount = @ProcessorCount</code>. Real concurrency is active.
+    </div>
+}
+else
+{
+    <div style="background:#e8f4fd; border:1px solid #2196f3; border-radius:4px; padding:10px 14px; margin-bottom:16px; font-size:.9em;">
+        ℹ Running in desktop .NET (not WASM). All tests are valid for structural correctness verification.
+    </div>
+}
+
+@* ── Environment Info ────────────────────────────────────────────────────── *@
+<table class="test-table" style="max-width:600px; margin-bottom:24px;">
+    <tbody>
+        <tr><th>OperatingSystem.IsBrowser()</th><td>@IsBrowser</td></tr>
+        <tr><th>Environment.ProcessorCount</th><td>@ProcessorCount</td></tr>
+        <tr><th>RuntimeInformation.OSDescription</th><td>@OSDescription</td></tr>
+        <tr><th>WasmEnableThreads (Phase 2)</th><td>@ThreadsEnabled</td></tr>
+    </tbody>
+</table>
+
+@* ── Aggregate Test Summary ──────────────────────────────────────────────── *@
+<h2>Test Summary (all categories)</h2>
+@if (!SummaryRows.Any())
+{
+    <p style="color:#888;">No tests have been run yet. Visit a test page to run tests.</p>
+}
+else
+{
+    <table class="test-table" style="max-width:700px;">
+        <thead><tr><th>Category</th><th>Total</th><th>Passed</th><th>Failed</th><th>Skipped</th></tr></thead>
+        <tbody>
+        @foreach (var row in SummaryRows)
+        {
+            <tr>
+                <td>@row.Category</td>
+                <td>@row.Total</td>
+                <td class="test-result-passed">@row.Passed</td>
+                <td class="test-result-failed">@row.Failed</td>
+                <td class="test-result-skipped">@row.Skipped</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@* ── Navigation Links ────────────────────────────────────────────────────── *@
+<h2>Test Pages</h2>
+<ul style="line-height:2; font-size:1.05em;">
+    <li><a href="/concurrency-tests">Category 2: Async Fallback Correctness</a> — Task.WhenAll, sequential validation</li>
+    <li><a href="/compare-trees-tests">Category 3: CompareTrees Correctness</a> — Embedded XML files, serial baseline</li>
+    <li><a href="/complex-mutation-tests">Category 4+5: Complex Mutations &amp; WASM Risk Points</a> — Programmatic trees, GC, cancellation</li>
+</ul>
+
+@code {
+    private bool IsBrowser => OperatingSystem.IsBrowser();
+    private int ProcessorCount => Environment.ProcessorCount;
+    private bool ThreadsEnabled => ProcessorCount > 1;
+    private string OSDescription => RuntimeInformation.OSDescription;
+
+    private record SummaryRow(string Category, int Total, int Passed, int Failed, int Skipped);
+
+    // In a real multi-page app this would read from shared state; for Phase 1 it is empty
+    // until the user navigates to a test page and runs tests.
+    private List<SummaryRow> SummaryRows { get; } = new();
+}

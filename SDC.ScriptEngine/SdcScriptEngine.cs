@@ -588,15 +588,20 @@ public class SdcScriptEngine
                 _                          => SdcDiagnosticSeverity.Info,
             };
 
-            // GetLineSpan() returns positions relative to the #line directive,
-            // so Line and Column are relative to the USER's script body
-            // (line 1 = user's first line) rather than the wrapper source.
+            // GetMappedLineSpan() honours the #line 1 "script" directive emitted
+            // by SdcScriptTemplate, so Line/Column are relative to the USER's
+            // script body (line 1 = user's first line) rather than the wrapper.
+            // GetLineSpan() (the raw alternative) would return wrapper-absolute
+            // positions (~10 lines higher) — do NOT use it here.
             // StartLinePosition is 0-based; we convert to 1-based here.
-            var span = d.Location.GetLineSpan();
+            var span   = d.Location.GetMappedLineSpan();
             var line   = span.StartLinePosition.Line + 1;
             var column = span.StartLinePosition.Character + 1;
+            // span.Path is "script" (from the #line directive) when the error
+            // is in user code, or empty/assembly-name for wrapper-generated code.
+            var fileName = span.Path ?? string.Empty;
 
-            result.Add(new SdcScriptDiagnostic(severity, d.GetMessage(), line, column));
+            result.Add(new SdcScriptDiagnostic(severity, d.GetMessage(), line, column, fileName));
         }
 
         return result;

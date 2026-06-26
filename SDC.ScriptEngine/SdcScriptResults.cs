@@ -23,10 +23,12 @@
 // LINE NUMBER REPORTING
 // ----------------------
 // Because SdcScriptTemplate inserts `#line 1 "script"` immediately before the
-// user's code, Roslyn's DiagnosticLocation.GetLineSpan() returns line numbers
-// relative to the user's first line of code, not the wrapper's first line.
-// ConvertDiagnostic() in SdcScriptEngine uses this directly; no offset math
-// is required here.
+// user's code, Roslyn's DiagnosticLocation.GetMappedLineSpan() returns line
+// numbers relative to the user's first line of code (line 1 = user's first
+// line), not the wrapper's first line (~10 lines higher).
+// ConvertDiagnostics() in SdcScriptEngine calls GetMappedLineSpan(); no offset
+// math is required here.  The mapped span also provides a FileName of "script"
+// (from the #line directive) rather than an internal assembly name.
 
 namespace SDC.ScriptEngine;
 
@@ -64,11 +66,17 @@ public enum SdcDiagnosticSeverity
 /// <param name="Column">
 /// 1-based column number within the user's line.
 /// </param>
+/// <param name="FileName">
+/// The virtual file name from the <c>#line</c> directive — typically
+/// <c>"script"</c> for errors in user code, or an empty string for
+/// diagnostics that originate in wrapper-generated code.
+/// </param>
 public record SdcScriptDiagnostic(
     SdcDiagnosticSeverity Severity,
     string Message,
     int Line,
-    int Column);
+    int Column,
+    string FileName = "");
 
 // ── Compile result ────────────────────────────────────────────────────────────
 
