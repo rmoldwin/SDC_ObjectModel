@@ -1,0 +1,494 @@
+@page "/spike"
+@using System.Diagnostics
+@using System.Reflection
+@using System.Text
+@using System.Text.Json
+@using Microsoft.CodeAnalysis
+@using Microsoft.CodeAnalysis.CSharp
+@using Microsoft.CodeAnalysis.Emit
+@using Microsoft.JSInterop
+@using SDC.Schema
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<PageTitle>IL Load Spike</PageTitle>
+
+<h1>Wasm Spike — Roslyn IL Load Proof</h1>
+<p>
+    This page proves that C# compiled to IL at runtime by Roslyn, loaded via
+    <code>Assembly.Load(byte[])</code> in a custom <code>AssemblyLoadContext</code>,
+    can receive a live SDC OM node, cast it to its concrete type, mutate a property,
+    and have that mutation visible on the calling side.
+</p>
+
+<button class="btn btn-primary" @onclick="RunSpike" disabled="@_running">
+    @(_running ? "Running…" : "Run Spike")
+</button>
+
+@if (_result is not null)
+{
+    <div class="mt-3">
+        <h3>
+            @if (_result.Pass)
+            {
+                <span class="text-success">✅ PASS</span>
+            }
+            else
+            {
+                <span class="text-danger">❌ FAIL</span>
+            }
+        </h3>
+
+        <table class="table table-bordered table-sm" style="max-width:700px">
+            <tbody>
+                <tr><th>node.name before</th><td><code>@_result.NameBefore</code></td></tr>
+                <tr><th>node.name after</th><td><code>@_result.NameAfter</code></td></tr>
+                <tr><th>Mutation visible on caller</th><td>@(_result.MutationVisible ? "Yes ✅" : "No ❌")</td></tr>
+                <tr><th>Compilation succeeded</th><td>@(_result.CompilationSucceeded ? "Yes ✅" : "No ❌")</td></tr>
+                <tr><th>Assembly loaded</th><td>@(_result.AssemblyLoaded ? "Yes ✅" : "No ❌")</td></tr>
+                <tr><th>ALC type identity check</th><td>@(_result.TypeIdentityMatch ? "Same type ✅" : "Type mismatch ❌")</td></tr>
+                <tr><th>Compile time</th><td>@_result.CompileMs ms</td></tr>
+                <tr><th>Run time</th><td>@_result.RunMs ms</td></tr>
+                <tr><th>References loaded</th><td>@_result.RefsLoaded</td></tr>
+            </tbody>
+        </table>
+
+        @if (!string.IsNullOrEmpty(_result.TypeIdentityDetail))
+        {
+            <h5>ALC Type Identity Detail</h5>
+            <pre class="bg-light p-2" style="font-size:.8em">@_result.TypeIdentityDetail</pre>
+        }
+
+        @if (_result.Diagnostics.Count > 0)
+        {
+            <h5>Compilation Diagnostics</h5>
+            <pre class="bg-light p-2 text-danger" style="font-size:.8em">@string.Join("\n", _result.Diagnostics)</pre>
+        }
+
+        @if (!string.IsNullOrEmpty(_result.Error))
+        {
+            <h5>Error</h5>
+            <pre class="bg-light p-2 text-danger" style="font-size:.8em">@_result.Error</pre>
+        }
+
+        @if (!string.IsNullOrEmpty(_result.BootJsonDiag))
+        {
+            <h5>blazor.boot.json Diagnostics</h5>
+            <pre class="bg-light p-2" style="font-size:.75em; max-height:300px; overflow:auto">@_result.BootJsonDiag</pre>
+        }
+    </div>
+}
+
+@code {
+    // ────────────────────────────────────────────────────────────────────────
+    //  Result model — all data collected during a single spike run.
+    // ────────────────────────────────────────────────────────────────────────
+    private sealed class SpikeResult
+    {
+        public bool Pass { get; set; }
+        public string NameBefore { get; set; } = "";
+        public string NameAfter { get; set; } = "";
+        public bool MutationVisible { get; set; }
+        public bool CompilationSucceeded { get; set; }
+        public bool AssemblyLoaded { get; set; }
+        public bool TypeIdentityMatch { get; set; }
+        public string TypeIdentityDetail { get; set; } = "";
+        public long CompileMs { get; set; }
+        public long RunMs { get; set; }
+        public int RefsLoaded { get; set; }
+        public List<string> Diagnostics { get; set; } = new();
+        public string Error { get; set; } = "";
+        public string BootJsonDiag { get; set; } = "";
+    }
+
+    private bool _running;
+    private SpikeResult? _result;
+
+    // ────────────────────────────────────────────────────────────────────────
+    //  The C# source that will be compiled to IL at runtime.
+    //  It receives a BaseType, casts to QuestionItemType, and mutates .name.
+    //
+    //  Why a static class with a static method?
+    //    Roslyn Emit produces a standard .NET assembly. We need a concrete
+    //    entry point we can find via reflection (Type.GetMethod). A static
+    //    method avoids having to instantiate the class.
+    //
+    //  Why accept BaseType (not QuestionItemType) as the parameter?
+    //    This tests the cross-ALC cast: the host passes a Default-ALC
+    //    QuestionItemType as a BaseType, the script casts it. If ALC type
+    //    identity is broken the cast throws InvalidCastException here.
+    // ────────────────────────────────────────────────────────────────────────
+    private const string ScriptSource = """
+        using System;
+        using SDC.Schema;
+
+        public static class SpikeScript
+        {
+            public static void Execute(BaseType sdc)
+            {
+                // Cast tests cross-ALC type identity: if SDC.Schema were loaded
+                // into both the child ALC and the Default ALC, this cast would fail
+                // because the two BaseType instances would be different CLR types.
+                var q = (QuestionItemType)sdc;
+                q.name = "MUTATED_BY_SCRIPT";
+            }
+        }
+        """;
+
+    // Second script used to verify type identity: returns the AssemblyQualifiedName
+    // of BaseType as seen from within the script. We compare it against the host's
+    // typeof(BaseType).AssemblyQualifiedName. They must match.
+    private const string TypeCheckScriptSource = """
+        using System;
+        using SDC.Schema;
+
+        public static class TypeCheckScript
+        {
+            public static string GetBaseTypeAQN()
+                => typeof(BaseType).AssemblyQualifiedName ?? "(null)";
+        }
+        """;
+
+    // ────────────────────────────────────────────────────────────────────────
+    //  Main spike entry point — wired to the button click.
+    // ────────────────────────────────────────────────────────────────────────
+    private async Task RunSpike()
+    {
+        _running = true;
+        _result = null;
+        StateHasChanged();
+
+        var res = new SpikeResult();
+
+        try
+        {
+            // ── Step 1: Collect MetadataReferences from the WASM bundle ──────
+            //
+            // In a standard desktop app, you'd point Roslyn at .dll files on disk.
+            // In WASM there's no disk — assemblies live in the browser's HTTP cache
+            // after being fetched from _framework/. We re-fetch each DLL as bytes
+            // and hand them to MetadataReference.CreateFromImage().
+            //
+            // The assembly inventory comes from blazor.boot.json (the manifest the
+            // Blazor runtime uses to decide what to download). We parse its
+            // "resources" → "assembly" section to get the filename list.
+            //
+            // NOTE: The blazor.boot.json schema changed between .NET versions.
+            // .NET 6-7: resources.assembly  → object whose keys are filenames
+            // .NET 8+:  resources may use fingerprinted paths under different keys.
+            // We log the raw structure for diagnostics.
+
+            var refs = await LoadMetadataReferencesAsync(res);
+            res.RefsLoaded = refs.Count;
+
+            if (refs.Count == 0)
+            {
+                res.Error = "No MetadataReferences loaded — cannot compile. Check BootJsonDiag for details.";
+                _result = res;
+                _running = false;
+                return;
+            }
+
+            // ── Step 2: Compile the mutation script ──────────────────────────
+            var swCompile = Stopwatch.StartNew();
+            byte[]? scriptIL = Compile(ScriptSource, "SpikeScriptAssembly", refs, res.Diagnostics, out bool compiledOk);
+            swCompile.Stop();
+            res.CompileMs = swCompile.ElapsedMilliseconds;
+            res.CompilationSucceeded = compiledOk;
+
+            if (!compiledOk || scriptIL is null)
+            {
+                res.Error = "Compilation failed — see Diagnostics above.";
+                _result = res;
+                _running = false;
+                return;
+            }
+
+            // ── Step 3: Compile the type-identity check script ───────────────
+            byte[]? typeCheckIL = Compile(TypeCheckScriptSource, "TypeCheckScriptAssembly", refs, new List<string>(), out _);
+
+            // ── Step 4: Load both assemblies into separate, collectible ALCs ──
+            //
+            // Each script gets its own ALC so they can be independently unloaded
+            // (collectible: true). Both ALCs return null from Load(), meaning all
+            // type resolution goes to the Default ALC, preserving type identity.
+
+            Assembly? scriptAssembly = null;
+            Assembly? typeCheckAssembly = null;
+
+            try
+            {
+                var scriptALC = new SpikeScriptLoadContext();
+                scriptAssembly = scriptALC.LoadScript(scriptIL);
+                res.AssemblyLoaded = true;
+
+                if (typeCheckIL is not null)
+                {
+                    var typeCheckALC = new SpikeScriptLoadContext();
+                    typeCheckAssembly = typeCheckALC.LoadScript(typeCheckIL);
+                }
+            }
+            catch (Exception ex)
+            {
+                res.Error = $"Assembly.Load failed: {ex.Message}";
+                _result = res;
+                _running = false;
+                return;
+            }
+
+            // ── Step 5: Verify ALC type identity ─────────────────────────────
+            //
+            // Ask the type-check script for typeof(BaseType).AssemblyQualifiedName
+            // and compare it against the host's view of the same type.
+            // They MUST be identical strings — if they differ, a cross-ALC cast
+            // would fail with InvalidCastException.
+
+            string hostAQN = typeof(BaseType).AssemblyQualifiedName ?? "(null)";
+            if (typeCheckAssembly is not null)
+            {
+                try
+                {
+                    var tcType = typeCheckAssembly.GetType("TypeCheckScript")!;
+                    var tcMethod = tcType.GetMethod("GetBaseTypeAQN",
+                        BindingFlags.Public | BindingFlags.Static)!;
+                    string scriptAQN = (string)tcMethod.Invoke(null, null)!;
+                    res.TypeIdentityMatch = scriptAQN == hostAQN;
+                    res.TypeIdentityDetail =
+                        $"Host AQN:   {hostAQN}\n" +
+                        $"Script AQN: {scriptAQN}\n" +
+                        $"Match:      {res.TypeIdentityMatch}";
+                }
+                catch (Exception ex)
+                {
+                    res.TypeIdentityDetail = $"Type identity check failed: {ex.Message}";
+                }
+            }
+
+            // ── Step 6: Construct SDC OM node using constructor-with-parent ──
+            //
+            // SDC OM uses a parent-first construction pattern that registers each
+            // node in the parent's child dictionary. DataElementType(null) creates
+            // a standalone root for the spike. QuestionItemType(de) registers
+            // itself under 'de'.
+
+            var de = new DataElementType(null);
+            var q  = new QuestionItemType(de, "q-spike");
+            q.name = "ORIGINAL";
+
+            res.NameBefore = q.name ?? "(null)";
+
+            // ── Step 7: Invoke the script ─────────────────────────────────────
+            var executeMethod = scriptAssembly
+                .GetType("SpikeScript")!
+                .GetMethod("Execute", BindingFlags.Public | BindingFlags.Static)!;
+
+            var swRun = Stopwatch.StartNew();
+            try
+            {
+                // Pass the QuestionItemType instance as a BaseType parameter.
+                // The script will cast it back to QuestionItemType — this cast
+                // is the core test of cross-ALC type identity.
+                executeMethod.Invoke(null, new object[] { q });
+            }
+            catch (TargetInvocationException tie) when (tie.InnerException is not null)
+            {
+                // Unwrap so we see the actual script exception (e.g. InvalidCastException)
+                // rather than the reflection wrapper.
+                throw tie.InnerException;
+            }
+            swRun.Stop();
+            res.RunMs = swRun.ElapsedMilliseconds;
+
+            // ── Step 8: Check the mutation was visible on the calling side ────
+            res.NameAfter = q.name ?? "(null)";
+            res.MutationVisible = res.NameAfter == "MUTATED_BY_SCRIPT";
+            res.Pass = res.MutationVisible && res.CompilationSucceeded &&
+                       res.AssemblyLoaded && res.TypeIdentityMatch;
+        }
+        catch (Exception ex)
+        {
+            res.Error = $"{ex.GetType().Name}: {ex.Message}\n\n{ex.StackTrace}";
+            res.Pass = false;
+        }
+
+        _result = res;
+        _running = false;
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    //  Load MetadataReferences from the WASM bundle.
+    //
+    //  .NET 6/7 approach (no longer applicable in .NET 10):
+    //    Fetch blazor.boot.json → parse resources.assembly → fetch each DLL.
+    //
+    //  .NET 10 approach used here:
+    //    The Blazor .NET 10 runtime no longer deploys a blazor.boot.json.
+    //    Instead, the full asset manifest is embedded as JSON inside dotnet.js
+    //    between the markers:  /*json-start*/ { ... } /*json-end*/
+    //
+    //    At startup the browser has already fetched the correct fingerprinted
+    //    dotnet.js URL.  The generated HTML has a <link rel="preload"> for that URL.
+    //    We call a JavaScript helper (spike-helpers.js → getSpikeBootConfig()) to:
+    //      1. Find the preload <link> element for dotnet.js in the DOM.
+    //      2. Re-fetch the same dotnet.js URL as text.
+    //      3. Slice out the JSON between the markers and return it.
+    //
+    //    We then parse the JSON to enumerate:
+    //      resources.assembly        - application/library assemblies
+    //      resources.coreAssembly    - BCL / framework assemblies (System.Runtime etc.)
+    //    Each entry has:  { "virtualPath": "Foo.dll", "name": "Foo.<fingerprint>.dll", ... }
+    //    We fetch  _framework/<name>  to get the raw bytes.
+    //
+    //  Why does WasmEnableWebcil=false matter here?
+    //    With Webcil enabled (the default), each .dll in _framework/ is actually a
+    //    .wasm-wrapped PE file. MetadataReference.CreateFromImage() validates the PE
+    //    header at offset 0 and throws on Webcil magic bytes. Setting
+    //    WasmEnableWebcil=false makes the server deliver genuine PE/COFF DLLs.
+    // ────────────────────────────────────────────────────────────────────────
+    private async Task<List<MetadataReference>> LoadMetadataReferencesAsync(SpikeResult res)
+    {
+        var refs = new List<MetadataReference>();
+        var diagSb = new StringBuilder();
+
+        try
+        {
+            // ── 1. Get the boot config JSON via JS interop ────────────────────
+            //
+            // spike-helpers.js exposes window.getSpikeBootConfig() which:
+            //   a) finds the dotnet.js <link rel="preload"> in the DOM,
+            //   b) re-fetches that URL, and
+            //   c) slices the JSON between /*json-start*/ and /*json-end*/.
+
+            string? bootConfigJson = await JS.InvokeAsync<string?>("getSpikeBootConfig");
+
+            if (string.IsNullOrWhiteSpace(bootConfigJson))
+            {
+                res.Error = "getSpikeBootConfig() returned null — JS helper could not locate the dotnet.js preload link.";
+                res.BootJsonDiag = diagSb.ToString();
+                return refs;
+            }
+
+            // Log the first 2000 chars for diagnostics.
+            diagSb.AppendLine("=== dotnet.js embedded config (first 2000 chars) ===");
+            diagSb.AppendLine(bootConfigJson.Length > 2000
+                ? bootConfigJson[..2000] + "\n…(truncated)"
+                : bootConfigJson);
+            diagSb.AppendLine();
+
+            // ── 2. Parse the config JSON ──────────────────────────────────────
+            var configDoc = JsonDocument.Parse(bootConfigJson);
+            var resourcesEl = configDoc.RootElement.GetProperty("resources");
+
+            // Collect (virtualPath, fingerprintedName) pairs for all managed DLLs.
+            // Both "assembly" and "coreAssembly" sections contain managed assemblies
+            // needed for compilation.  "coreAssembly" has System.Runtime etc.
+            var assemblyEntries = new List<(string Virtual, string Name)>();
+
+            foreach (string section in new[] { "assembly", "coreAssembly" })
+            {
+                if (!resourcesEl.TryGetProperty(section, out var arrEl)) continue;
+
+                foreach (var entry in arrEl.EnumerateArray())
+                {
+                    // Each entry: { "virtualPath": "Foo.dll", "name": "Foo.<fp>.dll", ... }
+                    if (!entry.TryGetProperty("name", out var nameEl)) continue;
+                    string name = nameEl.GetString() ?? "";
+                    if (!name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) continue;
+
+                    string virtualPath = entry.TryGetProperty("virtualPath", out var vp)
+                        ? (vp.GetString() ?? name) : name;
+                    assemblyEntries.Add((virtualPath, name));
+                }
+
+                diagSb.AppendLine($"Found {assemblyEntries.Count} entries under resources.{section} (cumulative)");
+            }
+
+            diagSb.AppendLine();
+            diagSb.AppendLine("Assemblies to fetch:");
+            foreach (var (vp, n) in assemblyEntries)
+                diagSb.AppendLine($"  {vp}  →  {n}");
+
+            res.BootJsonDiag = diagSb.ToString();
+
+            // ── 3. Fetch each DLL and create MetadataReference ────────────────
+            foreach (var (virtualPath, name) in assemblyEntries)
+            {
+                try
+                {
+                    byte[] dllBytes = await Http.GetByteArrayAsync($"_framework/{name}");
+
+                    // CreateFromImage reads the PE header from the byte array.
+                    // With WasmEnableWebcil=false the bytes are genuine PE/COFF,
+                    // so this succeeds.  With Webcil bytes this would throw
+                    // BadImageFormatException or produce an unusable reference.
+                    refs.Add(MetadataReference.CreateFromImage(dllBytes));
+                }
+                catch (Exception ex)
+                {
+                    // Log but continue — a single missing reference should not
+                    // abort the whole compilation attempt.
+                    diagSb.AppendLine($"  WARN: could not load {name}: {ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            res.Error = $"Failed to load boot config: {ex.GetType().Name}: {ex.Message}";
+            res.BootJsonDiag = diagSb.ToString();
+        }
+
+        return refs;
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    //  Compile a C# source string to IL bytes using Roslyn.
+    //
+    //  Returns the emitted assembly bytes, or null on failure.
+    //  Errors / warnings are appended to 'diagnosticsOut'.
+    // ────────────────────────────────────────────────────────────────────────
+    private static byte[]? Compile(
+        string source,
+        string assemblyName,
+        IEnumerable<MetadataReference> refs,
+        List<string> diagnosticsOut,
+        out bool succeeded)
+    {
+        // Parse the C# source into a syntax tree.
+        var syntaxTree = CSharpSyntaxTree.ParseText(source);
+
+        // Create the compilation unit.
+        // CSharpCompilationOptions.Default uses Release mode — fine for a spike.
+        // OutputKind.DynamicallyLinkedLibrary produces a DLL (no entry point).
+        var compilation = CSharpCompilation.Create(
+            assemblyName: assemblyName,
+            syntaxTrees: new[] { syntaxTree },
+            references: refs,
+            options: new CSharpCompilationOptions(
+                outputKind: OutputKind.DynamicallyLinkedLibrary,
+                // Optimize: None keeps it simple and debuggable; Release would inline
+                // more aggressively. For a spike, None is fine.
+                optimizationLevel: OptimizationLevel.Release,
+                allowUnsafe: true
+            )
+        );
+
+        // Emit the compiled assembly to a MemoryStream.
+        using var ms = new MemoryStream();
+        var emitResult = compilation.Emit(ms);
+
+        // Collect all diagnostics (errors and warnings).
+        foreach (var diag in emitResult.Diagnostics)
+        {
+            if (diag.Severity == DiagnosticSeverity.Error ||
+                diag.Severity == DiagnosticSeverity.Warning)
+            {
+                diagnosticsOut.Add($"[{diag.Severity}] {diag.Id}: {diag.GetMessage()}");
+            }
+        }
+
+        succeeded = emitResult.Success;
+        if (!succeeded) return null;
+
+        return ms.ToArray();
+    }
+}
