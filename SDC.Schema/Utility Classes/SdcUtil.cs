@@ -8,6 +8,7 @@ using System.Buffers;
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -338,11 +339,11 @@ namespace SDC.Schema
 		}
 		#endregion
 
-		internal static Dictionary<Guid, BaseType> Get_Nodes(BaseType n)
+		internal static ConcurrentDictionary<Guid, BaseType> Get_Nodes(BaseType n)
 		{ return Get_ITopNode(n)._Nodes; }
-		internal static Dictionary<Guid, List<BaseType>> Get_ChildNodes(BaseType n)
+		internal static ConcurrentDictionary<Guid, List<BaseType>> Get_ChildNodes(BaseType n)
 		{ return Get_ITopNode(n)._ChildNodes; }
-		internal static Dictionary<Guid, BaseType> Get_ParentNodes(BaseType n)
+		internal static ConcurrentDictionary<Guid, BaseType> Get_ParentNodes(BaseType n)
 		{ return Get_ITopNode(n)._ParentNodes; }
 		internal static ObservableCollection<IdentifiedExtensionType> Get_IETnodes(BaseType n)
 		{ return Get_ITopNode(n)._IETnodes; }
@@ -710,7 +711,7 @@ namespace SDC.Schema
 					btProp.RegisterAll(parentNode, childNodesSort: false); //we are adding nodes in reflection-sorted order
 																		   //Debug.Print(btProp.sGuid + "; Obj ID: " + btProp.ObjectID);
 
-																		   //Adding is not thread-safe - need ConcurrentDictionary
+																		   //TS-3 fix applied: dictionaries are now ConcurrentDictionary (see PartialClasses.cs and ITopNode.cs)
 																		   //Mark parentNode as having its child nodes already sorted
 					TreeSort_Add(parentNode);  //Change ObjectID to ObjectGUID?  //Probably thread-safe, as it's a hashtable, but may need Concurrent Hashtable?
 					AssignSdcProperties(parentNode, piChildProperty, btProp, current_ITopNode, ref order, orderGap, print, sbTreeText, createNodeName);
