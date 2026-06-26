@@ -75,11 +75,20 @@
 
   <ItemGroup>
     <!--
+      Phase 2 (in-browser Roslyn compilation): WasmReferenceProvider uses
+      MetadataReference.CreateFromImage() directly, so we need an explicit
+      reference to Microsoft.CodeAnalysis.CSharp here.  The version is kept in
+      sync with SDC.ScriptEngine.csproj (wildcard resolves to the same package).
+    -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
       SDC.ScriptEngine is the core engine library (compilation, caching, ALC).
       It transitively brings in Microsoft.CodeAnalysis.CSharp (Roslyn) and
-      SDC.Schema.  We do NOT add a direct Roslyn reference here — Phase 1 does
-      not use any Roslyn types directly in the Blazor project code.  The engine
-      uses Roslyn internally; this project only calls engine APIs.
+      SDC.Schema.  Phase 2 adds an explicit Roslyn reference above because
+      WasmReferenceProvider uses MetadataReference types directly in this project.
     -->
     <ProjectReference Include="..\SDC.ScriptEngine\SDC.ScriptEngine.csproj" />
   </ItemGroup>
