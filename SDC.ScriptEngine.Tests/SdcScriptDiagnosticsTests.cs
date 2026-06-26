@@ -107,37 +107,42 @@ public class SdcScriptDiagnosticsTests
             $"Both undefined identifiers must produce errors. Got {errorCount} error diagnostics.");
     }
 
-    // ── 4. Diagnostic line numbers use wrapper-absolute numbering ─────────────
+    // ── 4. Diagnostic line numbers are user-relative (not wrapper-absolute) ────
 
     [TestMethod]
     public async Task DiagnosticLineNumbers_RelativeToUserBody()
     {
-        // NOTE: The engine uses GetLineSpan() (not GetMappedLineSpan()), so
-        // line numbers in diagnostics are wrapper-absolute, not user-relative.
-        // This test documents the ACTUAL behavior as a regression baseline.
+        // Before the fix (Phase 1), the engine called GetLineSpan() which ignores
+        // #line directives and returns wrapper-absolute positions.  An error on
+        // the user's line 2 would have been reported as wrapper line ~12 (the
+        // wrapper adds ~10 header lines before the user's code).
         //
-        // The wrapper adds ~10 lines before the user code.  The user's
-        // undefined identifier on line 2 will be reported as wrapper line 12.
-        // This behavior is a known limitation (Phase 2 fix: use GetMappedLineSpan).
+        // After the fix (this commit), ConvertDiagnostics() calls
+        // GetMappedLineSpan(), which honours the `#line 1 "script"` directive
+        // emitted by SdcScriptTemplate.  An error on the user's first line must
+        // now be reported as line 1, not the wrapper offset.
         var engine = ScriptEngineTestHelper.CreateEngine();
 
-        const string multiLineScript =
-            "var ok = 1;\n" +             // user line 1 → wrapper line ~11
-            "var bad = undefined_here;";  // user line 2 → wrapper line ~12
+        // A single-line script with an error on line 1 of the user's body.
+        const string scriptLine1Error = "var bad = undefined_here;";
 
-        var result = await engine.CompileAsync(multiLineScript);
+        var result = await engine.CompileAsync(scriptLine1Error);
 
-        Assert.IsFalse(result.Success, "Script with an error on user line 2 must fail.");
+        Assert.IsFalse(result.Success, "Script with an error on user line 1 must fail.");
 
         var firstError = result.Diagnostics.First(d => d.Severity == SdcDiagnosticSeverity.Error);
 
-        // The reported line must be > 0 and must reference the undefined identifier.
-        Assert.IsTrue(firstError.Line > 0,
-            $"Diagnostic must have a positive line number. Got {firstError.Line}.");
+        // The reported line must be 1 — the user's first line.
+        // A wrapper-absolute value would be ~10 or higher (regression check).
+        Assert.AreEqual(1, firstError.Line,
+            $"GetMappedLineSpan() must report user line 1, not wrapper-absolute offset. Got line {firstError.Line}.");
 
-        // Confirm the diagnostic is about the correct identifier,
-        // regardless of line number offset.
+        // The error must identify the undefined symbol.
         Assert.IsTrue(firstError.Message.Contains("undefined_here"),
-            $"Error message must identify the symbol. Got: {firstError.Message}");
+            $"Error message must name the offending symbol. Got: {firstError.Message}");
+
+        // FileName comes from the #line directive and must be "script".
+        Assert.AreEqual("script", firstError.FileName,
+            $"GetMappedLineSpan().Path must be \"script\" (from the #line directive). Got: \"{firstError.FileName}\".");
     }
 }
