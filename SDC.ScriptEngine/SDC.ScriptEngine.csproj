@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Description>Platform-agnostic Roslyn-based C# script engine for SDC Object Model nodes.</Description>
+    <!-- AssemblyLoadContext is available on net6.0+; net10.0 is fine for desktop, Blazor WASM, and MSTest. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Roslyn compiler API — used directly (no Scripting API) so Reflection.Emit is NOT required.
+         This keeps the library Blazor WASM-compatible (WASM does not support Reflection.Emit). -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="*" />
+
+    <!-- DO NOT add Microsoft.CodeAnalysis.CSharp.Scripting — it uses Reflection.Emit internally
+         and will fail at runtime inside a Blazor WASM browser context. -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Reference SDC.Schema so we can use BaseType and other OM types in the engine API. -->
+    <ProjectReference Include="..\SDC.Schema\SDC.Schema.csproj" />
+  </ItemGroup>
+
+</Project>
