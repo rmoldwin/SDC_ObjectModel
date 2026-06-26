@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <WasmEnableWebcil>false</WasmEnableWebcil>
     <WasmEnableThreads>true</WasmEnableThreads>
+    <WasmEnableInterpreter>true</WasmEnableInterpreter>
     <WasmPThreadPoolSize>16</WasmPThreadPoolSize>
     <RunAOTCompilation>false</RunAOTCompilation>
     <PublishTrimmed>false</PublishTrimmed>

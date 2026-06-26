@@ -23,6 +23,22 @@
         <span class="dismiss">&#x2715;</span>
     </div>
     <script>
+        // Boot-level error display: catches JS/WASM errors before Blazor starts.
+        // Shows errors directly on the page so DevTools aren't needed.
+        window.addEventListener('error', function (e) {
+            var d = document.createElement('div');
+            d.style.cssText = 'position:fixed;top:0;left:0;right:0;background:red;color:#fff;padding:12px;z-index:9999;font-family:monospace;font-size:12px;white-space:pre-wrap;';
+            d.textContent = 'JS ERROR: ' + (e.message || '') + '\n' + (e.filename || '') + ':' + e.lineno + '\n' + (e.error && e.error.stack ? e.error.stack : '');
+            document.body.appendChild(d);
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+            var d = document.createElement('div');
+            d.style.cssText = 'position:fixed;top:80px;left:0;right:0;background:darkred;color:#fff;padding:12px;z-index:9999;font-family:monospace;font-size:12px;white-space:pre-wrap;';
+            d.textContent = 'UNHANDLED PROMISE: ' + (e.reason ? (e.reason.message || e.reason) : 'unknown') + '\n' + (e.reason && e.reason.stack ? e.reason.stack : '');
+            document.body.appendChild(d);
+        });
+    </script>
+    <script>
         // Pre-boot guard: WasmEnableThreads=true requires SharedArrayBuffer, which is only
         // available when COOP/COEP headers are present. If missing, the .NET runtime fails
         // to load before any C# code runs. Show a readable error here instead.
