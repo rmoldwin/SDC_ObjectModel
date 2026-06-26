@@ -6,12 +6,23 @@
 
 ## How to Run
 
+> **IMPORTANT**: `dotnet run` does NOT work for this project.
+> In dev mode, the Mono native WASM binary does not have pthread support compiled in.
+> `WasmEnableThreads=true` only takes effect in the published output, which uses
+> the `wasm-tools` workload's thread-enabled native binaries (`dotnet.native.worker.*.mjs`).
+
 ```
-dotnet run --project SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server
+cd <repo-root>
+dotnet publish SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server -c Release -o publish_out
+cd publish_out
+dotnet SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server.dll
 ```
 
-Then open `http://localhost:5000` in a browser. Do NOT use the Blazor DevServer — it cannot
+Then open `http://localhost:5000` in Chrome. Do NOT use the Blazor DevServer — it cannot
 add the COOP/COEP headers required for multi-threaded WASM.
+
+**Required workload:** `wasm-tools` (10.0.108 or later). Verify with `dotnet workload list`.
+If missing: `dotnet workload install wasm-tools` or update VS to include it.
 
 ## Expected Pre-flight Checks (Cat 1 Dashboard)
 
