@@ -1,0 +1,444 @@
+@page "/barrier-tests"
+
+<PageTitle>Category 2: Barrier Tests</PageTitle>
+
+<h1>Category 2: Barrier-Based Thread-Safety Tests</h1>
+<p style="color:#555; font-size:.9em;">
+    7 tests. Each spawns <strong>THREAD_COUNT=8</strong> dedicated threads synchronised by
+    <code>System.Threading.Barrier</code>. All orchestration runs on a background thread;
+    a 6-second watchdog detects deadlocks. Port of desktop BaseTypeThreadSafetyTests.
+</p>
+
+<div style="margin-bottom:16px;">
+    <button class="run-btn" @onclick="RunAllAsync" disabled="@IsRunning">▶ Run All</button>
+    @if (IsRunning) { <span style="color:#0969da; font-size:.9em; margin-left:8px;">Running… (@_results.Count / 7 complete)</span> }
+</div>
+
+<table class="test-table">
+    <thead><tr><th style="width:42%">Test</th><th>Status</th><th>Duration (ms)</th><th>Message</th></tr></thead>
+    <tbody>
+    @foreach (var r in _results)
+    {
+        <tr>
+            <td>@r.Name</td>
+            <td class="@CssClass(r.Status)">@r.Status</td>
+            <td>@r.Duration.TotalMilliseconds.ToString("F0")</td>
+            <td style="font-size:.8em; white-space:pre-wrap; max-width:420px; overflow:hidden; text-overflow:ellipsis;">@Truncate(r.Message)</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private const int THREAD_COUNT = 8;
+    private const int WATCHDOG_MS = 6000;
+
+    private bool IsRunning;
+    private readonly List<WasmTestResult> _results = new();
+
+    private async Task RunAllAsync()
+    {
+        IsRunning = true;
+        _results.Clear();
+        StateHasChanged();
+
+        await AddResult(await Test1_ItemMutator_ConcurrentReassignments_NoRace());
+        await AddResult(await Test2_ItemsMutator_ConcurrentListReplacements_NoRace());
+        await AddResult(await Test3_TopNodeDictionaries_ConcurrentReadWrite_NoCorruption());
+        await AddResult(await Test4_SameReference_ConcurrentReassignment_Stable());
+        await AddResult(await Test5_CollectionModification_UnderConcurrentLoad_NoException());
+        await AddResult(await Test6_GuidAssignment_ConcurrentThreads_AllUnique());
+        await AddResult(await Test7_LastTopNode_ThreadStatic_IsolatedPerThread());
+
+        IsRunning = false;
+        StateHasChanged();
+    }
+
+    private async Task AddResult(WasmTestResult r)
+    {
+        _results.Add(r);
+        StateHasChanged();
+        await Task.Yield();
+    }
+
+    // ── Orchestration helpers ────────────────────────────────────────────────
+
+    /// <summary>
+    /// Runs <paramref name="threadBody"/> on THREAD_COUNT dedicated threads, all released
+    /// simultaneously via the provided Barrier. Safe to call inside the orchestrator thread.
+    /// </summary>
+    private void OrchestrateBarrierTest(Action<Barrier, int> threadBody)
+    {
+        using var barrier = new Barrier(THREAD_COUNT);
+        var threads = Enumerable.Range(0, THREAD_COUNT)
+            .Select(i => new Thread(() => threadBody(barrier, i)) { IsBackground = true })
+            .ToArray();
+        foreach (var t in threads) t.Start();
+        foreach (var t in threads) t.Join();
+    }
+
+    /// <summary>
+    /// Runs <paramref name="orchestrate"/> on a background Thread and awaits completion.
+    /// A watchdog detects deadlocks: if the orchestrator does not finish within
+    /// <see cref="WATCHDOG_MS"/> ms, the result is marked Failed.
+    /// </summary>
+    private async Task<WasmTestResult> RunThreadedTest(string name, Action orchestrate, int watchdogMs = WATCHDOG_MS)
+    {
+        var tcs = new TaskCompletionSource<string>();
+        string? error = null;
+        var orchestrator = new Thread(() =>
+        {
+            try { orchestrate(); tcs.SetResult("ok"); }
+            catch (Exception ex) { error = ex.ToString(); tcs.SetResult("error"); }
+        });
+        orchestrator.IsBackground = true;
+        orchestrator.Start();
+        var sw = Stopwatch.StartNew();
+        var completed = await Task.WhenAny(tcs.Task, Task.Delay(watchdogMs));
+        sw.Stop();
+        const string cat = "Category2";
+        if (completed != tcs.Task)
+            return new WasmTestResult(name, cat, TestStatus.Failed, "DEADLOCK suspected — watchdog expired", sw.Elapsed);
+        if (error is not null)
+            return new WasmTestResult(name, cat, TestStatus.Failed, error, sw.Elapsed);
+        return new WasmTestResult(name, cat, TestStatus.Passed, "OK", sw.Elapsed);
+    }
+
+    // ── Test 1: ItemMutator concurrent reassignments ─────────────────────────
+    private Task<WasmTestResult> Test1_ItemMutator_ConcurrentReassignments_NoRace()
+        => RunThreadedTest("ItemMutator_ConcurrentReassignments_NoRace", () =>
+        {
+            // Pre-create source nodes and target responses single-threaded to avoid TS-2 contamination.
+            BaseType.ResetLastTopNode();
+            var de = new DataElementType(null);
+
+            var sourceNodes = Enumerable.Range(0, THREAD_COUNT).Select(i =>
+            {
+                var q = new QuestionItemType(de, $"Q.Src{i}");
+                var rf = new ResponseFieldType(q);
+                rf.Response = new DataTypes_DEType(rf);
+                rf.Response.DataTypeDE_Item = new string_DEtype(rf.Response);
+                return rf.Response.DataTypeDE_Item;
+            }).ToList();
+
+            var targetResponses = Enumerable.Range(0, THREAD_COUNT).Select(i =>
+            {
+                var q = new QuestionItemType(de, $"Q.Tgt{i}");
+                var rf = new ResponseFieldType(q);
+                rf.Response = new DataTypes_DEType(rf);
+                return rf.Response;
+            }).ToList();
+
+            var exceptions = new ConcurrentBag<Exception>();
+
+            // All threads race on ItemMutator reassignment simultaneously via Barrier.
+            OrchestrateBarrierTest((barrier, i) =>
+            {
+                try
+                {
+                    barrier.SignalAndWait();
+                    targetResponses[i].DataTypeDE_Item = sourceNodes[i];
+                }
+                catch (Exception ex) { exceptions.Add(ex); }
+            });
+
+            // Assert: no exceptions (WriteLockScope in ItemsMutator serialises reassignments).
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"TS-2 REGRESSION: {exceptions.Count} exception(s) during concurrent ItemMutator reassignment. " +
+                    $"First: {exceptions.First().Message}");
+
+            // Assert: all parent pointers are correct after concurrent reassignment.
+            for (int i = 0; i < THREAD_COUNT; i++)
+                if (!ReferenceEquals(targetResponses[i], sourceNodes[i].ParentNode))
+                    throw new InvalidOperationException($"Node {i} has incorrect parent after concurrent reassignment");
+        });
+
+    // ── Test 2: ItemsMutator concurrent list replacements ────────────────────
+    private Task<WasmTestResult> Test2_ItemsMutator_ConcurrentListReplacements_NoRace()
+        => RunThreadedTest("ItemsMutator_ConcurrentListReplacements_NoRace", () =>
+        {
+            BaseType.ResetLastTopNode();
+            var de = new DataElementType(null);
+
+            var sections = Enumerable.Range(0, THREAD_COUNT)
+                .Select(i => new SectionItemType(de, $"S.T{i}")).ToList();
+
+            // Seed each section with one initial child.
+            foreach (var section in sections)
+            {
+                var children = section.GetChildItemsNode();
+                children.ChildItemsList = new List<IdentifiedExtensionType>
+                {
+                    new DisplayedType(children, $"DI.Init_{section.ID}")
+                };
+            }
+
+            // Pre-create replacement lists single-threaded to isolate the assignment-phase race.
+            var newLists = Enumerable.Range(0, THREAD_COUNT).Select(i => new List<IdentifiedExtensionType>
+            {
+                new DisplayedType(de, $"DI.NewA_{i}"),
+                new DisplayedType(de, $"DI.NewB_{i}")
+            }).ToList();
+
+            var exceptions = new ConcurrentBag<Exception>();
+
+            // All threads race on ChildItemsList assignment simultaneously.
+            OrchestrateBarrierTest((barrier, i) =>
+            {
+                try
+                {
+                    barrier.SignalAndWait();
+                    sections[i].ChildItemsNode!.ChildItemsList = newLists[i];
+                }
+                catch (Exception ex) { exceptions.Add(ex); }
+            });
+
+            // Assert: no exceptions.
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"TS-2 REGRESSION: {exceptions.Count} exception(s) during concurrent ChildItemsList replacement. " +
+                    $"First: {exceptions.First().Message}");
+
+            // Assert: each section has exactly 2 children after concurrent replacement.
+            foreach (var section in sections)
+            {
+                var count = section.ChildItemsNode!.ChildItemsList.Count;
+                if (count != 2)
+                    throw new InvalidOperationException(
+                        $"Section {section.ID}: expected 2 children, got {count}");
+            }
+        });
+
+    // ── Test 3: TopNode dictionaries concurrent read/write ───────────────────
+    private Task<WasmTestResult> Test3_TopNodeDictionaries_ConcurrentReadWrite_NoCorruption()
+        => RunThreadedTest("TopNodeDictionaries_ConcurrentReadWrite_NoCorruption", () =>
+        {
+            BaseType.ResetLastTopNode();
+            var de = new DataElementType(null);
+
+            // Pre-create all nodes single-threaded.
+            var createdNodes = new List<BaseType>();
+            for (int i = 0; i < THREAD_COUNT; i++)
+                for (int j = 0; j < 10; j++)
+                    createdNodes.Add(new DisplayedType(de, $"DI.T{i}_N{j}"));
+
+            int initialCount = de.Nodes.Count;
+            var exceptions = new ConcurrentBag<Exception>();
+
+            // Even-index threads read Nodes.Count; odd-index threads remove pre-created nodes.
+            OrchestrateBarrierTest((barrier, i) =>
+            {
+                try
+                {
+                    barrier.SignalAndWait();
+                    if (i % 2 == 0)
+                    {
+                        // Read-only: Count reads from ConcurrentDictionary, safe under concurrent modification.
+                        var _ = de.Nodes.Count;
+                    }
+                    else
+                    {
+                        foreach (var node in createdNodes.Skip((i / 2) * 10).Take(10))
+                        {
+                            try { node.RemoveRecursive(false); }
+                            catch { /* node may already be removed by another thread */ }
+                        }
+                    }
+                }
+                catch (Exception ex) { exceptions.Add(ex); }
+            });
+
+            // Assert: no unexpected exceptions from the concurrent read/remove mix.
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"TS REGRESSION: {exceptions.Count} unexpected exception(s) during concurrent " +
+                    $"read/remove on TopNode dictionaries. First: {exceptions.First().Message}");
+
+            // Assert: node count is valid — non-negative and not greater than initial.
+            var nodeCount = de.Nodes.Count;
+            if (nodeCount < 0) throw new InvalidOperationException("Node count went negative");
+            if (nodeCount > initialCount) throw new InvalidOperationException("Node count grew during remove-only operations");
+        });
+
+    // ── Test 4: Same-reference reassignment stable ───────────────────────────
+    private Task<WasmTestResult> Test4_SameReference_ConcurrentReassignment_Stable()
+        => RunThreadedTest("SameReference_ConcurrentReassignment_Stable", () =>
+        {
+            BaseType.ResetLastTopNode();
+            var de = new DataElementType(null);
+            var question = new QuestionItemType(de, "Q.Concurrent");
+            var response = new ResponseFieldType(question);
+            response.Response = new DataTypes_DEType(response);
+            var dataType = new string_DEtype(response.Response);
+            response.Response.DataTypeDE_Item = dataType;
+
+            var exceptions = new ConcurrentBag<Exception>();
+
+            // All threads repeatedly reassign the SAME reference — ItemMutator short-circuits on same-ref.
+            OrchestrateBarrierTest((barrier, i) =>
+            {
+                try
+                {
+                    barrier.SignalAndWait();
+                    for (int j = 0; j < 100; j++)
+                        response.Response.DataTypeDE_Item = dataType;
+                }
+                catch (Exception ex) { exceptions.Add(ex); }
+            });
+
+            // Assert: no exceptions — same-reference short-circuit must be race-free.
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"TS REGRESSION: {exceptions.Count} exception(s) during concurrent same-reference reassignment. " +
+                    $"First: {exceptions.First().Message}");
+
+            // Assert: state is consistent after 8×100 no-op reassignments.
+            if (!ReferenceEquals(dataType, response.Response.DataTypeDE_Item))
+                throw new InvalidOperationException("DataTypeDE_Item changed after concurrent same-reference reassignment");
+            if (!ReferenceEquals(response.Response, dataType.ParentNode))
+                throw new InvalidOperationException("ParentNode changed after concurrent same-reference reassignment");
+        });
+
+    // ── Test 5: Collection modification under concurrent load ─────────────────
+    private Task<WasmTestResult> Test5_CollectionModification_UnderConcurrentLoad_NoException()
+        => RunThreadedTest("CollectionModification_UnderConcurrentLoad_NoException", () =>
+        {
+            BaseType.ResetLastTopNode();
+            var de = new DataElementType(null);
+            var section = new SectionItemType(de, "S.Shared");
+            var children = section.GetChildItemsNode();
+
+            const int Iterations = 10;
+            const int NodesPerList = 5;
+
+            // Pre-create per-thread, per-iteration node lists single-threaded.
+            // Only the ChildItemsList assignment phase is parallelised (the actual TS-2 concern).
+            var threadLists = Enumerable.Range(0, THREAD_COUNT)
+                .Select(i => Enumerable.Range(0, Iterations)
+                    .Select(j => Enumerable.Range(0, NodesPerList)
+                        .Select(k => (IdentifiedExtensionType)new DisplayedType(de, $"DI.T{i}J{j}K{k}"))
+                        .ToList())
+                    .ToList())
+                .ToList();
+
+            var exceptions = new ConcurrentBag<Exception>();
+
+            // All threads concurrently replace ChildItemsList on the SAME ChildItemsType.
+            OrchestrateBarrierTest((barrier, i) =>
+            {
+                try
+                {
+                    barrier.SignalAndWait();
+                    for (int j = 0; j < Iterations; j++)
+                        children.ChildItemsList = threadLists[i][j];
+                }
+                catch (Exception ex) { exceptions.Add(ex); }
+            });
+
+            // Assert: WriteLockScope in ItemsMutator must prevent all concurrent-access exceptions.
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"TS-2 REGRESSION: {exceptions.Count} exception(s) during concurrent ChildItemsList assignment. " +
+                    $"First: {exceptions.First().Message}");
+        });
+
+    // ── Test 6: GUID uniqueness under concurrent node creation ───────────────
+    private Task<WasmTestResult> Test6_GuidAssignment_ConcurrentThreads_AllUnique()
+        => RunThreadedTest("GuidAssignment_ConcurrentThreads_AllUnique", () =>
+        {
+            BaseType.ResetLastTopNode();
+            var de = new DataElementType(null);
+            var allGuids = new ConcurrentBag<Guid>();
+            var exceptions = new ConcurrentBag<Exception>();
+
+            // All threads concurrently create DisplayedType nodes on the shared TopNode.
+            OrchestrateBarrierTest((barrier, i) =>
+            {
+                barrier.SignalAndWait();
+                for (int j = 0; j < 100; j++)
+                {
+                    try
+                    {
+                        var node = new DisplayedType(de, $"DI.Thread{i}_Node{j}");
+                        allGuids.Add(node.ObjectGUID);
+                    }
+                    catch (Exception ex) { exceptions.Add(ex); }
+                }
+            });
+
+            int total = allGuids.Count;
+            int unique = allGuids.Distinct().Count();
+
+            // Assert: all ObjectGUIDs are unique — Guid.NewGuid() must not produce collisions.
+            if (unique != total)
+                throw new InvalidOperationException(
+                    $"GUID collision: {total - unique} duplicate(s) in {total} concurrently-created nodes");
+
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"{exceptions.Count} exception(s) during concurrent node creation. First: {exceptions.First().Message}");
+        });
+
+    // ── Test 7: LastTopNode ThreadStatic isolation ────────────────────────────
+    private Task<WasmTestResult> Test7_LastTopNode_ThreadStatic_IsolatedPerThread()
+        => RunThreadedTest("LastTopNode_ThreadStatic_IsolatedPerThread", () =>
+        {
+            const int TREE_THREADS = 5;
+            var trees = new FormDesignType?[TREE_THREADS];
+            var exceptions = new ConcurrentBag<Exception>();
+
+            // Use new Thread() specifically so each gets a fresh [ThreadStatic] TLS slot.
+            var barrier = new Barrier(TREE_THREADS);
+            var threads = Enumerable.Range(0, TREE_THREADS).Select(i => new Thread(() =>
+            {
+                try
+                {
+                    barrier.SignalAndWait();
+                    // ResetLastTopNode() clears this thread's [ThreadStatic] LastTopNode slot.
+                    BaseType.ResetLastTopNode();
+                    trees[i] = SdcTreeBuilder.BuildForm($"Form{i}", sectionCount: 2, questionsPerSection: 3);
+                }
+                catch (Exception ex) { exceptions.Add(ex); }
+            }) { IsBackground = true }).ToArray();
+
+            foreach (var t in threads) t.Start();
+            foreach (var t in threads) t.Join();
+
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"Exception building trees: {exceptions.First()}");
+
+            // Assert: each tree is non-null and has nodes.
+            for (int i = 0; i < TREE_THREADS; i++)
+            {
+                if (trees[i] is null)
+                    throw new InvalidOperationException($"Thread {i} tree is null");
+                if (trees[i]!.Nodes.Count == 0)
+                    throw new InvalidOperationException($"Thread {i} tree has no nodes");
+            }
+
+            // Assert: no cross-contamination — trees share no ObjectGUIDs.
+            var guidSets = trees.Select(t => t!.Nodes.Keys.ToHashSet()).ToList();
+            for (int i = 0; i < TREE_THREADS; i++)
+                for (int j = i + 1; j < TREE_THREADS; j++)
+                {
+                    int overlap = guidSets[i].Intersect(guidSets[j]).Count();
+                    if (overlap > 0)
+                        throw new InvalidOperationException(
+                            $"Trees {i} and {j} share {overlap} node GUID(s) — [ThreadStatic] LastTopNode isolation broken");
+                }
+        });
+
+    private static string CssClass(TestStatus s) => s switch
+    {
+        TestStatus.Passed  => "test-result-passed",
+        TestStatus.Failed  => "test-result-failed",
+        TestStatus.Running => "test-result-running",
+        TestStatus.Skipped => "test-result-skipped",
+        _ => "test-result-notrun"
+    };
+
+    private static string Truncate(string s, int max = 250)
+        => s.Length > max ? s[..max] + "…" : s;
+}

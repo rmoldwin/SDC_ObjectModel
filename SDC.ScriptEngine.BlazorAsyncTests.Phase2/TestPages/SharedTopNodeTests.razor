@@ -1,0 +1,278 @@
+@page "/shared-topnode-tests"
+
+<PageTitle>Category 5: Shared TopNode Tests</PageTitle>
+
+<h1>Category 5: Single Shared TopNode Race</h1>
+<p style="color:#555; font-size:.9em;">
+    3 tests. These were previously RED (TS-3 ConcurrentDictionary not applied).
+    <strong>Sprint A (branch ILandWASM/Main, tip 69f375d) fixed TS-3</strong> — all 3 should now be GREEN.
+    <br/>Note: <code>topNode.Nodes.Count</code> is called fresh each time (not cached) — Sprint A
+    removed the <code>p_NodesRO</code> caching so each call returns a fresh ReadOnlyDictionary wrapper.
+</p>
+
+<div style="margin-bottom:16px;">
+    <button class="run-btn" @onclick="RunAllAsync" disabled="@IsRunning">▶ Run All</button>
+    @if (IsRunning) { <span style="color:#0969da; font-size:.9em; margin-left:8px;">Running… (@_results.Count / 3 complete)</span> }
+</div>
+
+<table class="test-table">
+    <thead><tr><th style="width:42%">Test</th><th>Status</th><th>Duration (ms)</th><th>Message</th></tr></thead>
+    <tbody>
+    @foreach (var r in _results)
+    {
+        <tr>
+            <td>@r.Name</td>
+            <td class="@CssClass(r.Status)">@r.Status</td>
+            <td>@r.Duration.TotalMilliseconds.ToString("F0")</td>
+            <td style="font-size:.8em; white-space:pre-wrap; max-width:420px; overflow:hidden; text-overflow:ellipsis;">@Truncate(r.Message)</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private const int WATCHDOG_MS_DEFAULT = 15_000; // 15s for 500-node test
+    private const int WATCHDOG_MS_STRESS  = 10_000;
+
+    private bool IsRunning;
+    private readonly List<WasmTestResult> _results = new();
+
+    private async Task RunAllAsync()
+    {
+        IsRunning = true;
+        _results.Clear();
+        StateHasChanged();
+
+        await AddResult(await Test1_ConcurrentNodeConstruction_SingleTopNode_NoIdDuplication());
+        await AddResult(await Test2_ConcurrentNodeConstruction_SingleTopNode_LazyInitRace());
+        await AddResult(await Test3_ConcurrentReadWrite_SingleTopNode_StressReaders());
+
+        IsRunning = false;
+        StateHasChanged();
+    }
+
+    private async Task AddResult(WasmTestResult r)
+    {
+        _results.Add(r);
+        StateHasChanged();
+        await Task.Yield();
+    }
+
+    private async Task<WasmTestResult> RunThreadedTest(string name, string category, Action orchestrate, int watchdogMs = WATCHDOG_MS_DEFAULT)
+    {
+        var tcs = new TaskCompletionSource<string>();
+        string? error = null;
+        var orchestrator = new Thread(() =>
+        {
+            try { orchestrate(); tcs.SetResult("ok"); }
+            catch (Exception ex) { error = ex.ToString(); tcs.SetResult("error"); }
+        });
+        orchestrator.IsBackground = true;
+        orchestrator.Start();
+        var sw = Stopwatch.StartNew();
+        var completed = await Task.WhenAny(tcs.Task, Task.Delay(watchdogMs));
+        sw.Stop();
+        if (completed != tcs.Task)
+            return new WasmTestResult(name, category, TestStatus.Failed, "DEADLOCK suspected — watchdog expired", sw.Elapsed);
+        if (error is not null)
+            return new WasmTestResult(name, category, TestStatus.Failed, error, sw.Elapsed);
+        return new WasmTestResult(name, category, TestStatus.Passed, "OK", sw.Elapsed);
+    }
+
+    // ── Test 1: 10 threads × 50 nodes on one shared FormDesignType ───────────
+    private Task<WasmTestResult> Test1_ConcurrentNodeConstruction_SingleTopNode_NoIdDuplication()
+        => RunThreadedTest("ConcurrentNodeConstruction_SingleTopNode_NoIdDuplication", "Category5", () =>
+        {
+            const int THREAD_COUNT = 10;
+            const int NODES_PER_THREAD = 50;
+            const int TOTAL_NODES = THREAD_COUNT * NODES_PER_THREAD; // 500
+
+            // One shared FormDesignType TopNode; all threads attach children to it.
+            BaseType.ResetLastTopNode();
+            var fd = new FormDesignType(null, "SharedTopNode");
+
+            var allObjectIds   = new ConcurrentBag<int>();
+            var allObjectGuids = new ConcurrentBag<Guid>();
+            var exceptions     = new ConcurrentBag<Exception>();
+
+            using var barrier = new Barrier(THREAD_COUNT);
+            var threads = Enumerable.Range(0, THREAD_COUNT).Select(threadIdx => new Thread(() =>
+            {
+                try
+                {
+                    barrier.SignalAndWait(); // all threads start simultaneously
+                    for (int i = 0; i < NODES_PER_THREAD; i++)
+                    {
+                        // Constructor registers itself in fd's _Nodes via ConcurrentDictionary.TryAdd.
+                        var section = new SectionItemType(fd, $"S{threadIdx}_{i}");
+                        allObjectIds.Add(section.ObjectID);
+                        allObjectGuids.Add(section.ObjectGUID);
+                    }
+                }
+                catch (Exception ex) { exceptions.Add(ex); }
+            }) { IsBackground = true }).ToArray();
+
+            foreach (var t in threads) t.Start();
+            foreach (var t in threads) t.Join();
+
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"{exceptions.Count} exception(s) during concurrent node construction. First: {exceptions.First().Message}");
+
+            // Assert: all 500 ObjectIDs are unique (TS-3 Interlocked.Increment).
+            int totalIds  = allObjectIds.Count;
+            int uniqueIds = allObjectIds.Distinct().Count();
+            if (uniqueIds != TOTAL_NODES || totalIds != TOTAL_NODES)
+                throw new InvalidOperationException(
+                    $"ObjectID: expected {TOTAL_NODES} unique, got {totalIds} total, {uniqueIds} unique. " +
+                    $"TS-3 REGRESSION: duplicate IDs from non-atomic counter.");
+
+            // Assert: all 500 ObjectGUIDs are unique (Guid.NewGuid() must be race-free).
+            int totalGuids  = allObjectGuids.Count;
+            int uniqueGuids = allObjectGuids.Distinct().Count();
+            if (uniqueGuids != TOTAL_NODES || totalGuids != TOTAL_NODES)
+                throw new InvalidOperationException(
+                    $"ObjectGUID: expected {TOTAL_NODES} unique, got {totalGuids} total, {uniqueGuids} unique.");
+
+            // Assert: topNode.Nodes.Count reflects all registered nodes (TS-3 ConcurrentDictionary).
+            // Each call returns a fresh ReadOnlyDictionary wrapper (Sprint A removed caching).
+            // fd itself is also registered, so expected count = TOTAL_NODES + 1.
+            int nodesCount = fd.Nodes.Count;
+            if (nodesCount < TOTAL_NODES)
+                throw new InvalidOperationException(
+                    $"topNode.Nodes.Count = {nodesCount}, expected >= {TOTAL_NODES}. " +
+                    $"TS-3 REGRESSION: ConcurrentDictionary.TryAdd lost {TOTAL_NODES - nodesCount} registrations.");
+        }, watchdogMs: WATCHDOG_MS_DEFAULT);
+
+    // ── Test 2: Lazy-init race on _Nodes via Interlocked.CompareExchange ─────
+    private Task<WasmTestResult> Test2_ConcurrentNodeConstruction_SingleTopNode_LazyInitRace()
+        => RunThreadedTest("ConcurrentNodeConstruction_SingleTopNode_LazyInitRace", "Category5", () =>
+        {
+            const int THREAD_COUNT = 10;
+
+            // Create a fresh TopNode and have all threads race to access _Nodes simultaneously.
+            // This validates the Interlocked.CompareExchange lazy-init fix in Sprint A.
+            BaseType.ResetLastTopNode();
+            var fd = new FormDesignType(null, "LazyInitTopNode");
+
+            var results = new System.Collections.ObjectModel.ReadOnlyDictionary<Guid, BaseType>?[THREAD_COUNT];
+            var exceptions = new ConcurrentBag<Exception>();
+
+            using var barrier = new Barrier(THREAD_COUNT);
+            var threads = Enumerable.Range(0, THREAD_COUNT).Select(i => new Thread(() =>
+            {
+                try
+                {
+                    barrier.SignalAndWait(); // trigger first-access to _Nodes simultaneously
+                    results[i] = fd.Nodes; // this exercises the lazy-init path
+                }
+                catch (Exception ex) { exceptions.Add(ex); }
+            }) { IsBackground = true }).ToArray();
+
+            foreach (var t in threads) t.Start();
+            foreach (var t in threads) t.Join();
+
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"{exceptions.Count} exception(s) during concurrent Nodes first-access. First: {exceptions.First().Message}");
+
+            // Assert: all threads got a non-null Nodes reference.
+            for (int i = 0; i < THREAD_COUNT; i++)
+            {
+                if (results[i] is null)
+                    throw new InvalidOperationException(
+                        $"Thread {i}: topNode.Nodes returned null. Interlocked.CompareExchange lazy-init broken.");
+            }
+
+            // Assert: fd.Nodes is consistently non-null after concurrent first-access.
+            if (fd.Nodes is null || fd.Nodes.Count < 1) // at least fd itself
+                throw new InvalidOperationException("fd.Nodes is null or empty after concurrent lazy-init access.");
+        }, watchdogMs: WATCHDOG_MS_DEFAULT);
+
+    // ── Test 3: Stress — 7 readers + 1 writer on one TopNode for 3s ──────────
+    private Task<WasmTestResult> Test3_ConcurrentReadWrite_SingleTopNode_StressReaders()
+        => RunThreadedTest("ConcurrentReadWrite_SingleTopNode_StressReaders", "Category5", () =>
+        {
+            // Build a 50-node tree single-threaded first.
+            BaseType.ResetLastTopNode();
+            var fd = new FormDesignType(null, "StressTopNode");
+            fd.AddBody();
+            for (int i = 0; i < 50; i++)
+                fd.Body.AddChildSection($"S_Init{i}", $"InitSection_{i}");
+
+            int initialCount = fd.Nodes.Count;
+
+            var exceptions = new ConcurrentBag<Exception>();
+            const int READERS = 7;
+            const int WRITERS = 1;
+            const int DURATION_MS = 3000;
+
+            using var barrier = new Barrier(READERS + WRITERS);
+            var cts = new CancellationTokenSource(DURATION_MS);
+            var threads = new List<Thread>();
+
+            // 7 reader threads continuously enumerate Nodes.Keys for 3 seconds.
+            for (int i = 0; i < READERS; i++)
+            {
+                threads.Add(new Thread(() =>
+                {
+                    try
+                    {
+                        barrier.SignalAndWait();
+                        while (!cts.IsCancellationRequested)
+                        {
+                            var keys = fd.Nodes.Keys; // fresh ReadOnlyDictionary per call (Sprint A)
+                            _ = keys.Count;
+                        }
+                    }
+                    catch (OperationCanceledException) { /* expected */ }
+                    catch (Exception ex) { exceptions.Add(ex); }
+                }) { IsBackground = true });
+            }
+
+            // 1 writer thread adds 50 more sections over 3 seconds.
+            threads.Add(new Thread(() =>
+            {
+                try
+                {
+                    barrier.SignalAndWait();
+                    for (int k = 0; k < 50 && !cts.IsCancellationRequested; k++)
+                    {
+                        fd.Body.AddChildSection($"S_Writer{k}", $"WriterSection_{k}");
+                        Thread.Sleep(50);
+                    }
+                }
+                catch (OperationCanceledException) { /* expected */ }
+                catch (Exception ex) { exceptions.Add(ex); }
+            }) { IsBackground = true });
+
+            foreach (var t in threads) t.Start();
+            foreach (var t in threads) t.Join();
+
+            // Assert: no exceptions from the concurrent read/write.
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"{exceptions.Count} exception(s) during 3s concurrent stress. First: {exceptions.First().Message}");
+
+            // Assert: final node count is at least the initial count (writer may have added more).
+            int finalCount = fd.Nodes.Count;
+            if (finalCount < initialCount)
+                throw new InvalidOperationException(
+                    $"Node count decreased from {initialCount} to {finalCount} during concurrent read/write — corruption.");
+            if (finalCount < 100)
+                throw new InvalidOperationException(
+                    $"Expected at least 100 nodes after writer added to 50-node tree, got {finalCount}");
+        }, watchdogMs: WATCHDOG_MS_STRESS);
+
+    private static string CssClass(TestStatus s) => s switch
+    {
+        TestStatus.Passed  => "test-result-passed",
+        TestStatus.Failed  => "test-result-failed",
+        TestStatus.Running => "test-result-running",
+        TestStatus.Skipped => "test-result-skipped",
+        _ => "test-result-notrun"
+    };
+
+    private static string Truncate(string s, int max = 250)
+        => s.Length > max ? s[..max] + "…" : s;
+}

@@ -1,0 +1,335 @@
+@page "/ts-repro-tests"
+
+<PageTitle>Category 3: ThreadSafetyRepro Tests</PageTitle>
+
+<h1>Category 3: ThreadSafetyRepro Patterns</h1>
+<p style="color:#555; font-size:.9em;">
+    4 tests. Port of desktop <code>ThreadSafetyReproTests</code> harness.
+    Each uses <strong>THREAD_COUNT=8</strong> threads with Barrier synchronisation.
+    6-second watchdog. TS3 is NOW GREEN (Sprint A ConcurrentDictionary fix).
+</p>
+
+<div style="margin-bottom:16px;">
+    <button class="run-btn" @onclick="RunAllAsync" disabled="@IsRunning">▶ Run All</button>
+    @if (IsRunning) { <span style="color:#0969da; font-size:.9em; margin-left:8px;">Running… (@_results.Count / 4 complete)</span> }
+</div>
+
+<table class="test-table">
+    <thead><tr><th style="width:42%">Test</th><th>Status</th><th>Duration (ms)</th><th>Message</th></tr></thead>
+    <tbody>
+    @foreach (var r in _results)
+    {
+        <tr>
+            <td>@r.Name</td>
+            <td class="@CssClass(r.Status)">@r.Status</td>
+            <td>@r.Duration.TotalMilliseconds.ToString("F0")</td>
+            <td style="font-size:.8em; white-space:pre-wrap; max-width:420px; overflow:hidden; text-overflow:ellipsis;">@Truncate(r.Message)</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private const int THREAD_COUNT = 8;
+    private const int WATCHDOG_MS = 6000;
+
+    // Baseline for CompareTrees V1 vs V5 (established in desktop tests and Phase 1).
+    private const int Baseline_IETattDiffs = 907;
+
+    private bool IsRunning;
+    private readonly List<WasmTestResult> _results = new();
+
+    private async Task RunAllAsync()
+    {
+        IsRunning = true;
+        _results.Clear();
+        StateHasChanged();
+
+        await AddResult(await TS1_LastTopNode_ThreadStatic_Isolated());
+        await AddResult(await TS2_AtomicObjectId_ConcurrentGeneration_AllUnique());
+        await AddResult(await TS3_NodeDictionary_ConcurrentAddRemove_NoCorruption());
+        await AddResult(await TS4_ReadLockScope_WriteLockScope_UnderContention());
+
+        IsRunning = false;
+        StateHasChanged();
+    }
+
+    private async Task AddResult(WasmTestResult r)
+    {
+        _results.Add(r);
+        StateHasChanged();
+        await Task.Yield();
+    }
+
+    // ── Orchestration helpers (same pattern as BarrierTests) ─────────────────
+
+    private void OrchestrateBarrierTest(Action<Barrier, int> threadBody)
+    {
+        using var barrier = new Barrier(THREAD_COUNT);
+        var threads = Enumerable.Range(0, THREAD_COUNT)
+            .Select(i => new Thread(() => threadBody(barrier, i)) { IsBackground = true })
+            .ToArray();
+        foreach (var t in threads) t.Start();
+        foreach (var t in threads) t.Join();
+    }
+
+    private async Task<WasmTestResult> RunThreadedTest(string name, string category, Action orchestrate, int watchdogMs = WATCHDOG_MS)
+    {
+        var tcs = new TaskCompletionSource<string>();
+        string? error = null;
+        var orchestrator = new Thread(() =>
+        {
+            try { orchestrate(); tcs.SetResult("ok"); }
+            catch (Exception ex) { error = ex.ToString(); tcs.SetResult("error"); }
+        });
+        orchestrator.IsBackground = true;
+        orchestrator.Start();
+        var sw = Stopwatch.StartNew();
+        var completed = await Task.WhenAny(tcs.Task, Task.Delay(watchdogMs));
+        sw.Stop();
+        if (completed != tcs.Task)
+            return new WasmTestResult(name, category, TestStatus.Failed, "DEADLOCK suspected — watchdog expired", sw.Elapsed);
+        if (error is not null)
+            return new WasmTestResult(name, category, TestStatus.Failed, error, sw.Elapsed);
+        return new WasmTestResult(name, category, TestStatus.Passed, "OK", sw.Elapsed);
+    }
+
+    // ── TS1: LastTopNode [ThreadStatic] isolation ────────────────────────────
+    private Task<WasmTestResult> TS1_LastTopNode_ThreadStatic_Isolated()
+        => RunThreadedTest("TS1_LastTopNode_ThreadStatic_IsolatedPerThread", "Category3", () =>
+        {
+            // 8 threads each build an independent tree using new Thread() (not Task.Run/ThreadPool)
+            // to guarantee each gets a fresh [ThreadStatic] TLS slot for LastTopNode.
+            var trees = new FormDesignType?[THREAD_COUNT];
+            var exceptions = new ConcurrentBag<Exception>();
+
+            using var barrier = new Barrier(THREAD_COUNT);
+            var threads = Enumerable.Range(0, THREAD_COUNT).Select(i => new Thread(() =>
+            {
+                try
+                {
+                    barrier.SignalAndWait();
+                    BaseType.ResetLastTopNode(); // clears this thread's [ThreadStatic] slot
+                    trees[i] = SdcTreeBuilder.BuildForm($"TS1_Form{i}", sectionCount: 2, questionsPerSection: 3);
+                }
+                catch (Exception ex) { exceptions.Add(ex); }
+            }) { IsBackground = true }).ToArray();
+
+            foreach (var t in threads) t.Start();
+            foreach (var t in threads) t.Join();
+
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException($"Exception building trees: {exceptions.First()}");
+
+            for (int i = 0; i < THREAD_COUNT; i++)
+            {
+                if (trees[i] is null)
+                    throw new InvalidOperationException($"Thread {i} tree is null");
+                if (trees[i]!.Nodes.Count == 0)
+                    throw new InvalidOperationException($"Thread {i} tree has no nodes");
+            }
+
+            // Assert: no thread captured another thread's tree — all trees have disjoint node GUIDs.
+            var guidSets = trees.Select(t => t!.Nodes.Keys.ToHashSet()).ToList();
+            for (int i = 0; i < THREAD_COUNT; i++)
+                for (int j = i + 1; j < THREAD_COUNT; j++)
+                {
+                    int overlap = guidSets[i].Intersect(guidSets[j]).Count();
+                    if (overlap > 0)
+                        throw new InvalidOperationException(
+                            $"[ThreadStatic] BROKEN: Trees {i} and {j} share {overlap} node GUID(s). " +
+                            "Thread {i} captured Thread {j}'s LastTopNode.");
+                }
+        });
+
+    // ── TS2: Atomic ObjectID generation — no duplicates under contention ─────
+    private Task<WasmTestResult> TS2_AtomicObjectId_ConcurrentGeneration_AllUnique()
+        => RunThreadedTest("TS2_AtomicObjectId_ConcurrentGeneration_AllUnique", "Category3", () =>
+        {
+            // Each of the 8 threads creates 25 nodes on its OWN independent tree,
+            // so they contend on the global Interlocked.Increment counter without
+            // sharing a tree's _ChildNodes list (isolating the TS-3 counter race).
+            var allObjectIds = new ConcurrentBag<int>();
+            var exceptions = new ConcurrentBag<Exception>();
+
+            OrchestrateBarrierTest((barrier, i) =>
+            {
+                // Each thread builds its own TopNode so _ChildNodes list contention is absent.
+                BaseType.ResetLastTopNode();
+                var de = new DataElementType(null);
+
+                barrier.SignalAndWait(); // align starts to maximise contention on ObjectID counter
+                for (int j = 0; j < 25; j++)
+                {
+                    try
+                    {
+                        var node = new DisplayedType(de, $"DI.t{i}_n{j}");
+                        allObjectIds.Add(node.ObjectID); // ObjectID is int; from Interlocked.Increment
+                    }
+                    catch (Exception ex) { exceptions.Add(ex); }
+                }
+            });
+
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"{exceptions.Count} exception(s) during concurrent node creation. First: {exceptions.First().Message}");
+
+            int total = allObjectIds.Count;
+            int unique = allObjectIds.Distinct().Count();
+            int expected = THREAD_COUNT * 25; // 200
+
+            // Assert: exactly 200 nodes were created (no exceptions ate any).
+            if (total != expected)
+                throw new InvalidOperationException(
+                    $"Expected {expected} ObjectIDs, got {total}. Some node construction may have thrown.");
+
+            // Assert: all 200 ObjectIDs are unique (proves Interlocked.Increment is race-free).
+            if (unique != total)
+                throw new InvalidOperationException(
+                    $"TS-3 REGRESSION: {total - unique} duplicate ObjectID(s) across {total} nodes. " +
+                    "Interlocked.Increment must be used for _MaxObjectID.");
+        });
+
+    // ── TS3: ConcurrentDictionary — no corruption under concurrent add/remove ─
+    private Task<WasmTestResult> TS3_NodeDictionary_ConcurrentAddRemove_NoCorruption()
+        => RunThreadedTest("TS3_NodeDictionary_ConcurrentAddRemove_NoCorruption", "Category3", () =>
+        {
+            // Part A: 8 threads each create 25 nodes on SEPARATE TopNodes.
+            // Assert each thread's topNode.Nodes.Count == 25 (+ 1 for the DataElementType itself).
+            var perThreadTrees = new DataElementType[THREAD_COUNT];
+            var exceptions = new ConcurrentBag<Exception>();
+
+            OrchestrateBarrierTest((barrier, i) =>
+            {
+                BaseType.ResetLastTopNode();
+                perThreadTrees[i] = new DataElementType(null);
+                var de = perThreadTrees[i];
+
+                barrier.SignalAndWait();
+                for (int j = 0; j < 25; j++)
+                {
+                    try { new DisplayedType(de, $"DI.t{i}_n{j}"); }
+                    catch (Exception ex) { exceptions.Add(ex); }
+                }
+            });
+
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"Part A: {exceptions.Count} exception(s). First: {exceptions.First().Message}");
+
+            // Each thread should have 25 DisplayedType nodes + 1 DataElementType = 26 total.
+            for (int i = 0; i < THREAD_COUNT; i++)
+            {
+                var count = perThreadTrees[i].Nodes.Count;
+                if (count != 26) // 25 DisplayedType + 1 DataElementType
+                    throw new InvalidOperationException(
+                        $"Thread {i}: expected 26 nodes (25 + topNode), got {count}");
+            }
+
+            // Part B: 4 reader threads + 1 writer on a SINGLE shared TopNode. Assert no exception.
+            BaseType.ResetLastTopNode();
+            var sharedDe = new DataElementType(null);
+            // Pre-seed with 10 nodes.
+            for (int k = 0; k < 10; k++) new DisplayedType(sharedDe, $"DI.Seed{k}");
+
+            var exceptions2 = new ConcurrentBag<Exception>();
+            const int READERS = 4;
+            const int WRITERS = 1;
+            using var barrier2 = new Barrier(READERS + WRITERS);
+            var threads2 = new List<Thread>();
+
+            for (int i = 0; i < READERS; i++)
+            {
+                threads2.Add(new Thread(() =>
+                {
+                    try
+                    {
+                        barrier2.SignalAndWait();
+                        for (int k = 0; k < 50; k++) { var _ = sharedDe.Nodes.Count; }
+                    }
+                    catch (Exception ex) { exceptions2.Add(ex); }
+                }) { IsBackground = true });
+            }
+            for (int i = 0; i < WRITERS; i++)
+            {
+                int idx = i;
+                threads2.Add(new Thread(() =>
+                {
+                    try
+                    {
+                        barrier2.SignalAndWait();
+                        for (int k = 0; k < 20; k++)
+                            new DisplayedType(sharedDe, $"DI.Writer{idx}_k{k}");
+                    }
+                    catch (Exception ex) { exceptions2.Add(ex); }
+                }) { IsBackground = true });
+            }
+
+            foreach (var t in threads2) t.Start();
+            foreach (var t in threads2) t.Join();
+
+            // Assert: no exception during concurrent read + write on shared TopNode.
+            if (exceptions2.Count > 0)
+                throw new InvalidOperationException(
+                    $"Part B: {exceptions2.Count} exception(s) during concurrent read/write on shared TopNode. " +
+                    $"First: {exceptions2.First().Message}");
+        });
+
+    // ── TS4: CompareTrees under concurrent reader contention ─────────────────
+    private Task<WasmTestResult> TS4_ReadLockScope_WriteLockScope_UnderContention()
+        => RunThreadedTest("TS4_ReadLockScope_WriteLockScope_UnderContention", "Category3", () =>
+        {
+            // Build the V1 and V5 trees once, single-threaded.
+            BaseType.ResetLastTopNode();
+            var xmlV1 = SdcTreeBuilder.LoadEmbeddedXml("BreastStagingTest2v1.xml");
+            BaseType.ResetLastTopNode();
+            var xmlV5 = SdcTreeBuilder.LoadEmbeddedXml("BreastStagingTest2v5.xml");
+
+            BaseType.ResetLastTopNode();
+            var tV1 = SdcTreeBuilder.BuildFromXmlString(xmlV1);
+            BaseType.ResetLastTopNode();
+            var tV5 = SdcTreeBuilder.BuildFromXmlString(xmlV5);
+
+            // 8 reader threads each call CompareTrees simultaneously on the SAME pair of trees.
+            // CompareTrees uses ReaderWriterLockSlim internally; verify no deadlock and correct results.
+            var results = new int[THREAD_COUNT];
+            var exceptions = new ConcurrentBag<Exception>();
+
+            OrchestrateBarrierTest((barrier, i) =>
+            {
+                try
+                {
+                    barrier.SignalAndWait(); // all readers start simultaneously
+                    // Each CompareTrees instance is independent; results must all equal the baseline.
+                    var comparer = new CompareTrees<FormDesignType>(tV1, tV5);
+                    results[i] = comparer.GetIETattDiffs?.Count ?? -1;
+                }
+                catch (Exception ex) { exceptions.Add(ex); }
+            });
+
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"Exception during concurrent CompareTrees: {exceptions.First().Message}");
+
+            // Assert: all threads got the correct baseline diff count.
+            for (int i = 0; i < THREAD_COUNT; i++)
+            {
+                if (results[i] != Baseline_IETattDiffs)
+                    throw new InvalidOperationException(
+                        $"Thread {i}: IETattDiffs={results[i]}, expected {Baseline_IETattDiffs}. " +
+                        "Concurrent CompareTrees returned inconsistent result.");
+            }
+        }, watchdogMs: 60_000); // allow 60s for 8 concurrent heavy comparisons
+
+    private static string CssClass(TestStatus s) => s switch
+    {
+        TestStatus.Passed  => "test-result-passed",
+        TestStatus.Failed  => "test-result-failed",
+        TestStatus.Running => "test-result-running",
+        TestStatus.Skipped => "test-result-skipped",
+        _ => "test-result-notrun"
+    };
+
+    private static string Truncate(string s, int max = 250)
+        => s.Length > max ? s[..max] + "…" : s;
+}
