@@ -8,7 +8,7 @@
     <link rel="preload" id="webassembly" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
-    <link href="SDC.ScriptEngine.BlazorAsyncTests.Phase2.styles.css" rel="stylesheet" />
+    <!-- No scoped .razor.css files — styles bundle omitted to avoid 404 -->
     <script type="importmap"></script>
 </head>
 <body>
@@ -36,6 +36,8 @@
                 'Do NOT use the Blazor DevServer for this project.</div>';
             throw new Error('crossOriginIsolated is false — aborting Blazor boot');
         }
+        // Named helper so C# JSInterop doesn't need eval (avoids CSP warnings).
+        window.sdcGetCrossOriginIsolated = function () { return self.crossOriginIsolated === true; };
     </script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>

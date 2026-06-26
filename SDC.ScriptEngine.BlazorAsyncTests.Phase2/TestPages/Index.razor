@@ -31,6 +31,12 @@ else
 }
 
 @* ── Category 1: Environment Info ────────────────────────────────────────── *@
+@if (_jsError is not null)
+{
+    <div style="background:#ffeef0; border:1px solid #cf222e; border-radius:4px; padding:8px 14px; margin-bottom:12px; font-size:.85em;">
+        ⚠ JS helper error (non-fatal): <code>@_jsError</code>
+    </div>
+}
 <h2>Category 1: Threading Verification</h2>
 <table class="test-table" style="max-width:650px; margin-bottom:24px;">
     <tbody>
@@ -65,6 +71,7 @@ else
     private string OSDescription => RuntimeInformation.OSDescription;
 
     private bool? _crossOriginIsolated;
+    private string? _jsError;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -72,12 +79,13 @@ else
         {
             try
             {
-                // Secondary JS confirmation; the pre-boot guard in index.html is the primary check.
-                _crossOriginIsolated = await JS.InvokeAsync<bool>("eval", "self.crossOriginIsolated");
+                // Use named window function (defined in index.html) — avoids eval and CSP warnings.
+                _crossOriginIsolated = await JS.InvokeAsync<bool>("sdcGetCrossOriginIsolated");
             }
-            catch
+            catch (Exception ex)
             {
                 _crossOriginIsolated = null;
+                _jsError = ex.Message;
             }
             StateHasChanged();
         }
