@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <!-- Suppress nullable warnings from generated WPF code (InitializeComponent, etc.) -->
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- SDC.ScriptEngine contains SdcScriptEngine, AppDomainReferenceProvider, SdcScriptNode,
+         SdcScriptHashInspector, and all result/options types used by this test app. -->
+    <ProjectReference Include="..\SDC.ScriptEngine\SDC.ScriptEngine.csproj" />
+    <!-- SDC.Schema provides DataElementType, QuestionItemType, BaseType, and the rest of
+         the SDC Object Model that scripts operate on. -->
+    <ProjectReference Include="..\SDC.Schema\SDC.Schema.csproj" />
+  </ItemGroup>
+
+</Project>
