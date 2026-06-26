@@ -4,6 +4,7 @@
 //   dotnet run --project SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseStaticWebAssets(); // required in dev (dotnet run) to discover WASM client wwwroot
 var app = builder.Build();
 
 // CRITICAL: must be before UseBlazorFrameworkFiles/UseStaticFiles.
