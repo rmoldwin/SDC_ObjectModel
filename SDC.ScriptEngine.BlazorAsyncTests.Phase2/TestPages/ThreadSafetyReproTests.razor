@@ -5,7 +5,7 @@
 <h1>Category 3: ThreadSafetyRepro Patterns</h1>
 <p style="color:#555; font-size:.9em;">
     4 tests. Port of desktop <code>ThreadSafetyReproTests</code> harness.
-    Each uses <strong>THREAD_COUNT=8</strong> threads with Barrier synchronisation.
+    Each uses <strong>THREAD_COUNT=4</strong> threads with Barrier synchronisation.
     6-second watchdog. TS3 is NOW GREEN (Sprint A ConcurrentDictionary fix).
 </p>
 
@@ -30,7 +30,7 @@
 </table>
 
 @code {
-    private const int THREAD_COUNT = 8;
+    private const int THREAD_COUNT = 4;
     private const int WATCHDOG_MS = 6000;
 
     // Baseline for CompareTrees V1 vs V5 (established in desktop tests and Phase 1).
@@ -176,7 +176,7 @@
 
             int total = allObjectIds.Count;
             int unique = allObjectIds.Distinct().Count();
-            int expected = THREAD_COUNT * 25; // 200
+            int expected = THREAD_COUNT * 25; // 100
 
             // Assert: exactly 200 nodes were created (no exceptions ate any).
             if (total != expected)

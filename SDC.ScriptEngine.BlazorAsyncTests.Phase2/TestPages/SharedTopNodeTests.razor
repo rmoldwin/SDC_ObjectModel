@@ -83,9 +83,9 @@
     private Task<WasmTestResult> Test1_ConcurrentNodeConstruction_SingleTopNode_NoIdDuplication()
         => RunThreadedTest("ConcurrentNodeConstruction_SingleTopNode_NoIdDuplication", "Category5", () =>
         {
-            const int THREAD_COUNT = 10;
+            const int THREAD_COUNT = 4;
             const int NODES_PER_THREAD = 50;
-            const int TOTAL_NODES = THREAD_COUNT * NODES_PER_THREAD; // 500
+            const int TOTAL_NODES = THREAD_COUNT * NODES_PER_THREAD; // 200
 
             // One shared FormDesignType TopNode; all threads attach children to it.
             BaseType.ResetLastTopNode();
@@ -148,7 +148,7 @@
     private Task<WasmTestResult> Test2_ConcurrentNodeConstruction_SingleTopNode_LazyInitRace()
         => RunThreadedTest("ConcurrentNodeConstruction_SingleTopNode_LazyInitRace", "Category5", () =>
         {
-            const int THREAD_COUNT = 10;
+            const int THREAD_COUNT = 4;
 
             // Create a fresh TopNode and have all threads race to access _Nodes simultaneously.
             // This validates the Interlocked.CompareExchange lazy-init fix in Sprint A.

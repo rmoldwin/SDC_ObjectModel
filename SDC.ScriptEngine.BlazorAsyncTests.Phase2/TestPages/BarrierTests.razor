@@ -4,7 +4,7 @@
 
 <h1>Category 2: Barrier-Based Thread-Safety Tests</h1>
 <p style="color:#555; font-size:.9em;">
-    7 tests. Each spawns <strong>THREAD_COUNT=8</strong> dedicated threads synchronised by
+    7 tests. Each spawns <strong>THREAD_COUNT=4</strong> dedicated threads synchronised by
     <code>System.Threading.Barrier</code>. All orchestration runs on a background thread;
     a 6-second watchdog detects deadlocks. Port of desktop BaseTypeThreadSafetyTests.
 </p>
@@ -30,7 +30,7 @@
 </table>
 
 @code {
-    private const int THREAD_COUNT = 8;
+    private const int THREAD_COUNT = 4;
     private const int WATCHDOG_MS = 6000;
 
     private bool IsRunning;

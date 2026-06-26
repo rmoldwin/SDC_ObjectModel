@@ -2,7 +2,7 @@
 
 **Branch:** `Features/NET10/ILandWASM/BlazorAsyncTests/Phase2`  
 **Base:** `Features/NET10/ILandWASM/Main` (tip: 69f375d, Sprint A TS-3 ConcurrentDictionary fix)  
-**Config:** `WasmEnableThreads=true`, `WasmPThreadPoolSize=16`, interpreter mode (not AOT)
+**Config:** `WasmEnableThreads=true`, `WasmPThreadPoolSize=4`, interpreter mode (not AOT)
 
 ## How to Run
 
@@ -20,7 +20,7 @@ add the COOP/COEP headers required for multi-threaded WASM.
 | OperatingSystem.IsBrowser() | true |
 | Environment.ProcessorCount | > 1 (e.g. 8 or 16) |
 | crossOriginIsolated (JS) | true |
-| WasmPThreadPoolSize | 16 (configured) |
+| WasmPThreadPoolSize | 4 (configured; reduced from 16 — Mono pthread attach assertion limit) |
 
 ## Category 2: Barrier Tests (7 tests) — Expected: All PASS
 
@@ -48,7 +48,7 @@ add the COOP/COEP headers required for multi-threaded WASM.
 | Test | Status | Duration (s) | Notes |
 |------|--------|-------------|-------|
 | CompareTrees_V1vsV5_ParallelTiming_Informational | TBD | TBD | Serial baseline; compare to Phase 1 ~8–12s |
-| CompareTrees_ConcurrentInstances_8Threads_SameResults | TBD | TBD | 8 independent instances |
+| CompareTrees_ConcurrentInstances_8Threads_SameResults | TBD | TBD | 4 independent instances (THREAD_COUNT=4) |
 | CompareTrees_LockContention_NoDeadlock | TBD | TBD | V1 vs V2 under contention |
 
 ### Baseline Assertions (V1 vs V5)
@@ -60,17 +60,19 @@ add the COOP/COEP headers required for multi-threaded WASM.
 
 | Test | Status | Duration (ms) | Notes |
 |------|--------|--------------|-------|
-| ConcurrentNodeConstruction_SingleTopNode_NoIdDuplication | TBD | TBD | 10 threads × 50 nodes |
+| ConcurrentNodeConstruction_SingleTopNode_NoIdDuplication | TBD | TBD | 4 threads × 50 nodes |
 | ConcurrentNodeConstruction_SingleTopNode_LazyInitRace | TBD | TBD | Interlocked.CompareExchange lazy-init |
 | ConcurrentReadWrite_SingleTopNode_StressReaders | TBD | TBD | 7 readers + 1 writer × 3s |
 
 ## Known Limitations / Notes
 
 - `lock(locker)` at CompareTrees.cs:352 serialises `GetNodePreviousSib()` — Cat 4 concurrent timing
-  will NOT show linear speedup even with 8 threads.
+  will NOT show linear speedup even with 4 threads.
 - The result dict (`_dDifNodeIET`) IS `ConcurrentDictionary` already — partial parallelism is present.
-- Cat 4 Test 2 and 3 have 5-minute watchdogs due to 8 simultaneous heavy CompareTrees calls.
-- Cat 3 TS4 has a 60-second watchdog (8 readers on the same heavy comparison).
+- Cat 4 Test 2 and 3 have 5-minute watchdogs due to 4 simultaneous heavy CompareTrees calls.
+- Cat 3 TS4 has a 60-second watchdog (4 readers on the same heavy comparison).
+- `WasmPThreadPoolSize` reduced from 16 to 4: Mono WASM raises a pthread-attach assertion failure
+  (`mono-threads-wasm.c:201`) when too many workers attach simultaneously at boot.
 
 ## Run Date / Environment
 

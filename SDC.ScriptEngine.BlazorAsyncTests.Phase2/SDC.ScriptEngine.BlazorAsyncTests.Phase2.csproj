@@ -6,7 +6,7 @@
     <WasmEnableWebcil>false</WasmEnableWebcil>
     <WasmEnableThreads>true</WasmEnableThreads>
     <WasmEnableInterpreter>true</WasmEnableInterpreter>
-    <WasmPThreadPoolSize>16</WasmPThreadPoolSize>
+    <WasmPThreadPoolSize>4</WasmPThreadPoolSize>
     <RunAOTCompilation>false</RunAOTCompilation>
     <PublishTrimmed>false</PublishTrimmed>
     <!-- No DevServer package — Phase2.Server hosts this project with COOP/COEP headers -->
