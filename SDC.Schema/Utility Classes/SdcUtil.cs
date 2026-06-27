@@ -641,19 +641,13 @@ namespace SDC.Schema
 
 				while (s.Count > 0)
 				{
-					IEnumerable<PropertyInfo>? props;
 					Type sPop = s.Pop();
-
-					if (!dListPropInfoElements.TryGetValue(sPop, out props))
-					{
-						props = sPop.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-						.Where(p => p.IsDefined(typeof(XmlElementAttribute))).ToList();
+					var props = dListPropInfoElements.GetOrAdd(sPop, static type =>
+						type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+							.Where(p => p.IsDefined(typeof(XmlElementAttribute))).ToList()
 						//.OrderBy(p => p.GetCustomAttributes<XmlElementAttribute>()  //ordering is not currently needed to retrieve
 						//.First().Order)											  //properties in XML Element order, but this could change
-						;
-
-						dListPropInfoElements.TryAdd(sPop, props);
-					}
+					);
 
 					foreach (var p in props)
 					{
@@ -2122,12 +2116,9 @@ namespace SDC.Schema
 					continue;
 				}
 
-				if (!dListPropInfoAttributes.TryGetValue(t, out piIE))  //look in cache to bypass slow PropertyInfo lookup
-				{
-					piIE = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-							.Where(pi => pi.GetCustomAttributes<XmlAttributeAttribute>().Any());
-					dListPropInfoAttributes.TryAdd(t, piIE); //cache for next time
-				}
+				piIE = dListPropInfoAttributes.GetOrAdd(t, static type =>
+					type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+						.Where(pi => pi.GetCustomAttributes<XmlAttributeAttribute>().Any()));  //look in cache to bypass slow PropertyInfo lookup
 				if (piIE is null) continue;
 
 				var anyAttrProps = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
@@ -2686,6 +2677,7 @@ namespace SDC.Schema
 			if (parentTarget.IsDescendantOf(newNode)) return false; //can't attach a node to itself or one of its descendants.
 
 			Type newNodeType = newNode.GetType();
+			var allProps = parentTarget.GetType().GetProperties().ToList();
 
 			//+Try to match newNode to a parentTarget property, based on newNode's Type
 			if (newNodeElementName.IsNullOrWhitespace())
@@ -2693,7 +2685,7 @@ namespace SDC.Schema
 				//This will be slower than using the elementName parameter, and will fail for some types
 				//(e.g., CallFuncBase, EventType...) where the elementName is critical.
 
-				var parentTargetProps = parentTarget.GetType().GetProperties().Where(n => n.GetCustomAttributes<XmlElementAttribute>().Any()).ToList();
+				var parentTargetProps = allProps.Where(n => n.GetCustomAttributes<XmlElementAttribute>().Any()).ToList();
 
 				piTargetProperty = parentTargetProps?.Where
 					(n =>
@@ -2736,8 +2728,7 @@ namespace SDC.Schema
 			}
 			else //this is the preferred approach, as we don't have to infer the caller's desired SDC node type
 			{//+Try to match newNode to a parent property, based on newNode's SDC XML elementName
-				piTargetProperty = parentTarget.GetType()
-					.GetProperties()
+				piTargetProperty = allProps
 					.Where(pi =>
 						pi.Name == newNodeElementName ||
 						pi.GetCustomAttributes<XmlElementAttribute>()
@@ -2757,10 +2748,6 @@ namespace SDC.Schema
 
 			//Try to find Item(s)ChoiceType object for piTarget, if it exists
 			//piChoiceEnum will tell us if Item(s)ChoiceType is defined as a property. choiceEnum will be non-null if Item(s)ChoiceType has been instantiated
-			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, parentTarget, out piChoiceEnum);
-
-			//+Try to find Item(s)ChoiceType object for piTarget, if it exists
-			//piChoiceEnum will tell us if Item(s)ChoiceType is defined as a property.  choiceEnum will be non-null if Item(s)ChoiceType has been instantiated
 			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, parentTarget, out piChoiceEnum);
 
 			return true;
