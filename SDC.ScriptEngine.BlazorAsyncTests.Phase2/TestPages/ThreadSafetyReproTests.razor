@@ -6,7 +6,9 @@
 <p style="color:#555; font-size:.9em;">
     4 tests. Port of desktop <code>ThreadSafetyReproTests</code> harness.
     Each uses <strong>THREAD_COUNT=4</strong> threads with Barrier synchronisation.
-    6-second watchdog. TS3 is NOW GREEN (Sprint A ConcurrentDictionary fix).
+    6-second watchdog. TS3 ✅ Sprint A fix. TS4 ✅ Sprint C fix.
+    TS2 fixed: was incorrectly using separate TopNodes per thread (each has its own counter);
+    now correctly uses ONE shared TopNode so all threads contend on the same <code>_MaxObjectID</code>.
 </p>
 
 <div style="margin-bottom:16px;">
@@ -146,25 +148,27 @@
     private Task<WasmTestResult> TS2_AtomicObjectId_ConcurrentGeneration_AllUnique()
         => RunThreadedTest("TS2_AtomicObjectId_ConcurrentGeneration_AllUnique", "Category3", () =>
         {
-            // Each of the 8 threads creates 25 nodes on its OWN independent tree,
-            // so they contend on the global Interlocked.Increment counter without
-            // sharing a tree's _ChildNodes list (isolating the TS-3 counter race).
+            // All THREAD_COUNT threads share ONE DataElementType (one tree, one _MaxObjectID counter).
+            // _MaxObjectID is a per-tree instance field — each tree has its own counter. Creating a
+            // separate tree per thread means each thread's counter runs 1..25 independently and
+            // duplicates are guaranteed by design, not a bug. Correct test: all threads contend on
+            // the SAME tree's counter. AtomicNextObjectID uses Interlocked.Increment, so all
+            // 100 resulting ObjectIDs must be unique even under maximum contention.
             var allObjectIds = new ConcurrentBag<int>();
             var exceptions = new ConcurrentBag<Exception>();
 
+            BaseType.ResetLastTopNode();
+            var sharedDe = new DataElementType(null); // one tree shared by all threads
+
             OrchestrateBarrierTest((barrier, i) =>
             {
-                // Each thread builds its own TopNode so _ChildNodes list contention is absent.
-                BaseType.ResetLastTopNode();
-                var de = new DataElementType(null);
-
-                barrier.SignalAndWait(); // align starts to maximise contention on ObjectID counter
+                barrier.SignalAndWait(); // all threads start simultaneously — max contention on shared counter
                 for (int j = 0; j < 25; j++)
                 {
                     try
                     {
-                        var node = new DisplayedType(de, $"DI.t{i}_n{j}");
-                        allObjectIds.Add(node.ObjectID); // ObjectID is int; from Interlocked.Increment
+                        var node = new DisplayedType(sharedDe, $"DI.t{i}_n{j}");
+                        allObjectIds.Add(node.ObjectID); // ObjectID comes from Interlocked.Increment on sharedDe
                     }
                     catch (Exception ex) { exceptions.Add(ex); }
                 }
@@ -178,16 +182,16 @@
             int unique = allObjectIds.Distinct().Count();
             int expected = THREAD_COUNT * 25; // 100
 
-            // Assert: exactly 200 nodes were created (no exceptions ate any).
+            // Assert: exactly 100 nodes were created (no exceptions swallowed any).
             if (total != expected)
                 throw new InvalidOperationException(
                     $"Expected {expected} ObjectIDs, got {total}. Some node construction may have thrown.");
 
-            // Assert: all 200 ObjectIDs are unique (proves Interlocked.Increment is race-free).
+            // Assert: all 100 ObjectIDs are unique (proves AtomicNextObjectID is race-free on a shared tree).
             if (unique != total)
                 throw new InvalidOperationException(
-                    $"TS-3 REGRESSION: {total - unique} duplicate ObjectID(s) across {total} nodes. " +
-                    "Interlocked.Increment must be used for _MaxObjectID.");
+                    $"TS-2 FAIL: {total - unique} duplicate ObjectID(s) across {total} nodes. " +
+                    "AtomicNextObjectID (Interlocked.Increment) is not correctly applied for _MaxObjectID.");
         });
 
     // ── TS3: ConcurrentDictionary — no corruption under concurrent add/remove ─
