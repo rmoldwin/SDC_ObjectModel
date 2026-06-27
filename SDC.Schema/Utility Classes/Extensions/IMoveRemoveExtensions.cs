@@ -859,7 +859,7 @@ namespace SDC.Schema.Extensions
 				}
 				if (node.TopNode is null)
 					throw new NullReferenceException($"Node {node.name} has a null TopNode");
-				node.ObjectID = ((_ITopNode)node.TopNode)._MaxObjectID++;
+				node.ObjectID = ((_ITopNode)node.TopNode).AtomicNextObjectID();
 				return true;
 			};
 
@@ -904,7 +904,7 @@ namespace SDC.Schema.Extensions
 			if (node.TopNode is not null)
 			{
 				//if ObjectID was not set previously (usually because the node was created without a TopNode or parent node), we can set it here
-				if (node.ObjectID == -1) node.ObjectID = ((_ITopNode)node.TopNode)._MaxObjectID++;
+				if (node.ObjectID == -1) node.ObjectID = ((_ITopNode)node.TopNode).AtomicNextObjectID();
 
 				parentNode ??= node.ParentNode;
 				_ITopNode? _topNode = (_ITopNode)node.TopNode;
