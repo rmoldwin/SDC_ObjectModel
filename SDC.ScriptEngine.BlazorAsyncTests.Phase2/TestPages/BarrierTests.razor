@@ -344,6 +344,12 @@
         });
 
     // ── Test 6: GUID uniqueness under concurrent node creation ───────────────
+    // NOTE: OrchestrateBarrierTest cannot be used here — Barrier(N) requires the
+    // pool to have at least N+1 available threads for its internal signaling. With
+    // WasmPThreadPoolSize=4 and THREAD_COUNT=4, all pool slots are occupied by the
+    // 4 participants and Barrier.SignalAndWait() deadlocks waiting for its completion
+    // callback. Fix: use new Thread() + CountdownEvent, which does not consume pool
+    // threads and gives the same "all start together" guarantee.
     private Task<WasmTestResult> Test6_GuidAssignment_ConcurrentThreads_AllUnique()
         => RunThreadedTest("GuidAssignment_ConcurrentThreads_AllUnique", () =>
         {
@@ -352,20 +358,27 @@
             var allGuids = new ConcurrentBag<Guid>();
             var exceptions = new ConcurrentBag<Exception>();
 
-            // All threads concurrently create DisplayedType nodes on the shared TopNode.
-            OrchestrateBarrierTest((barrier, i) =>
+            // CountdownEvent replaces Barrier — same "all start together" guarantee
+            // without consuming additional pool threads for signaling callbacks.
+            using var startGate = new CountdownEvent(THREAD_COUNT);
+
+            var threads = Enumerable.Range(0, THREAD_COUNT).Select(i => new Thread(() =>
             {
-                barrier.SignalAndWait();
-                for (int j = 0; j < 100; j++)
+                try
                 {
-                    try
+                    startGate.Signal();      // mark this thread as ready
+                    startGate.Wait();        // block until all threads are ready
+                    for (int j = 0; j < 100; j++)
                     {
                         var node = new DisplayedType(de, $"DI.Thread{i}_Node{j}");
                         allGuids.Add(node.ObjectGUID);
                     }
-                    catch (Exception ex) { exceptions.Add(ex); }
                 }
-            });
+                catch (Exception ex) { exceptions.Add(ex); }
+            }) { IsBackground = true }).ToArray();
+
+            foreach (var t in threads) t.Start();
+            foreach (var t in threads) t.Join();
 
             int total = allGuids.Count;
             int unique = allGuids.Distinct().Count();

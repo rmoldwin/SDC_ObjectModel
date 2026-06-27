@@ -46,10 +46,11 @@ If missing: `dotnet workload install wasm-tools` or update VS to include it.
 | GuidAssignment_ConcurrentThreads_AllUnique | ❌ FAIL | 6010 | DEADLOCK — watchdog expired |
 | LastTopNode_ThreadStatic_IsolatedPerThread | ✅ PASS | 846 | |
 
-### Cat 2 Failure: GuidAssignment_ConcurrentThreads_AllUnique — DEADLOCK
+### Cat 2 Failure: GuidAssignment_ConcurrentThreads_AllUnique — TEST DESIGN BUG (fixed)
 **Error:** Watchdog expired at 6010 ms.  
-**Root cause:** `OrchestrateBarrierTest` uses `new Thread()` for THREAD_COUNT=4 dedicated threads, but this test creates 4 threads × 100 `DisplayedType` nodes (400 total) on a single shared `DataElementType` TopNode — each constructor call registers into `_Nodes` via `ConcurrentDictionary.TryAdd` and also calls into the parent-binding code path. Under `WasmEnableThreads=true` with pool size 4, all 4 pthread workers are consumed by the orchestrated threads; the internal Barrier `SignalAndWait` has no spare thread to execute its post-phase action, causing a deadlock. The GUID uniqueness assertion itself is sound — `Guid.NewGuid()` is threadsafe. The deadlock is in the Barrier/thread pool interaction.  
-**GitHub Issue:** TS-5 (#22)
+**Root cause:** `Barrier(N)` requires N+1 available thread-pool threads: N participants call `SignalAndWait()` and the post-phase callback needs one additional pool slot. With `WasmPThreadPoolSize=4` and `THREAD_COUNT=4`, all pool threads are occupied — the callback deadlocks. **This is NOT an SDC OM bug.** `Guid.NewGuid()` is thread-safe.  
+**Fix:** Replaced `OrchestrateBarrierTest` with `new Thread()` + `CountdownEvent` — same "all start together" guarantee without pool-thread consumption.  
+**GitHub Issue:** TS-5 (#22) — updated as test design bug, fix committed.
 
 ## Category 3: ThreadSafetyRepro Tests (4 tests) — 2/4 PASS
 
@@ -117,7 +118,7 @@ If missing: `dotnet workload install wasm-tools` or update VS to include it.
 
 | Issue | ID | GitHub | Location | Fix |
 |-------|----|--------|----------|-----|
-| Cat2/Test6 Deadlock under Barrier+4 threads | TS-5 | #22 | BarrierTests.razor: `OrchestrateBarrierTest` with large node count | Reduce nodes per thread or use ThreadPool instead of fixed threads |
+| Cat2/Test6 Deadlock — test design bug (Barrier+pool=4) | TS-5 | #22 | BarrierTests.razor Test6 | Fixed: replaced Barrier+OrchestrateBarrierTest with new Thread()+CountdownEvent |
 | TS2: `_MaxObjectID` non-atomic increment | TS-6 | #19 | `PartialClasses.cs` node constructors | `Interlocked.Increment(ref _MaxObjectID)` |
 | TS4: `PredActionType` duplicate key under lock | TS-7 | #20 | `CompareTrees.cs` or lock target mismatch | Investigate lock scope vs. constructor sequence |
 | Cat4/Test3: Array race in CompareTrees V1 vs V2 | TS-8 | #21 | `CompareTrees.cs` shared array not under lock | Identify and protect the unguarded array |
