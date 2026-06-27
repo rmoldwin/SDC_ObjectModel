@@ -112,8 +112,6 @@ namespace SDC.Schema
 			_prevVersion = prevVersion;
 			_newVersion = newVersion;
 
-			// Acquire read locks on both trees for comparison
-			// Lock in GUID order to prevent deadlock
 			var prevTopNode = (object)_prevVersion as _ITopNode;
 			var newTopNode = (object)_newVersion as _ITopNode;
 
@@ -123,8 +121,6 @@ namespace SDC.Schema
 			// Check if comparing same tree to itself (avoid double-locking)
 			if (ReferenceEquals(_prevVersion, _newVersion))
 			{
-				// TS-2: ReadLockScope replaces TreeLock.Wait/Release for read-only tree comparisons.
-				using var _readLock = new ReadLockScope(prevTopNode.TreeRwLock);
 				_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
 				_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
 
@@ -133,14 +129,6 @@ namespace SDC.Schema
 			}
 			else
 			{
-				// Lock both trees in GUID order to prevent deadlock.
-				// TS-2: ReadLockScope wraps each tree; SupportsRecursion allows nesting.
-				var locks = (prevTopNode.ObjectGUID < newTopNode.ObjectGUID) 
-					? (prevTopNode, newTopNode) 
-					: (newTopNode, prevTopNode);
-
-				using var _readLock1 = new ReadLockScope(locks.Item1.TreeRwLock);
-				using var _readLock2 = new ReadLockScope(locks.Item2.TreeRwLock);
 				_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
 				_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
 
@@ -186,21 +174,12 @@ namespace SDC.Schema
 			// Check if comparing same tree to itself
 			if (ReferenceEquals(_prevVersion, _newVersion))
 			{
-				// TS-2: ReadLockScope replaces TreeLock.Wait/Release
-				using var _readLock = new ReadLockScope(prevTopNode.TreeRwLock);
 				_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
 				ComputeAddedRemovedNodes();
 				CompareVersionAttributes();
 			}
 			else
 			{
-				// Lock both trees in GUID order
-				var locks = (prevTopNode.ObjectGUID < newTopNode.ObjectGUID) 
-					? (prevTopNode, newTopNode) 
-					: (newTopNode, prevTopNode);
-
-				using var _readLock1 = new ReadLockScope(locks.Item1.TreeRwLock);
-				using var _readLock2 = new ReadLockScope(locks.Item2.TreeRwLock);
 				_slAttPrev = FindSerializedXmlAttributesFromTree(_prevVersion);
 				ComputeAddedRemovedNodes();
 				CompareVersionAttributes();
@@ -225,21 +204,12 @@ namespace SDC.Schema
 			// Check if comparing same tree to itself
 			if (ReferenceEquals(_prevVersion, _newVersion))
 			{
-				// TS-2: ReadLockScope replaces TreeLock.Wait/Release
-				using var _readLock = new ReadLockScope(newTopNode.TreeRwLock);
 				_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
 				ComputeAddedRemovedNodes();
 				CompareVersionAttributes();
 			}
 			else
 			{
-				// Lock both trees in GUID order
-				var locks = (prevTopNode.ObjectGUID < newTopNode.ObjectGUID) 
-					? (prevTopNode, newTopNode) 
-					: (newTopNode, prevTopNode);
-
-				using var _readLock1 = new ReadLockScope(locks.Item1.TreeRwLock);
-				using var _readLock2 = new ReadLockScope(locks.Item2.TreeRwLock);
 				_slAttNew = FindSerializedXmlAttributesFromTree(_newVersion);
 				ComputeAddedRemovedNodes();
 				CompareVersionAttributes();
@@ -730,8 +700,15 @@ namespace SDC.Schema
 		public Dictionary<string, List<AttributeInfo>> FindSerializedXmlAttributesIET(IdentifiedExtensionType iet)
 		{
 			Dictionary<string, List<AttributeInfo>> dlai = new();
-
-			List<BaseType> sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1, 0, false);
+			List<BaseType> sublist;
+			if (iet.TopNode is _ITopNode topNode)
+			{
+				// WriteLock required: GetSortedNonIETsubtreeList writes .order to shared tree nodes
+				using var _writeLock = new WriteLockScope(topNode.TreeRwLock);
+				sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1, 0, false);
+			}
+			else
+				sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1, 0, false);
 			foreach (var subNode in sublist)
 			{
                 //if getAllXmlAttributes is false, then only attributes that will be serialized to XML are returned
@@ -768,7 +745,8 @@ namespace SDC.Schema
 				var newTopNode = (_newVersion as _ITopNode) ?? ietNew.TopNode as _ITopNode;
 				if (newTopNode is not null)
 				{
-					using var _readLock = new ReadLockScope(newTopNode.TreeRwLock);
+					// WriteLock required: GetSortedNonIETsubtreeList writes .order to shared tree nodes
+					using var _writeLock = new WriteLockScope(newTopNode.TreeRwLock);
 					ietNewSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietNew, -1, 0, false);
 				}
 				else
@@ -814,7 +792,8 @@ namespace SDC.Schema
 					var prevTopNode = (_prevVersion as _ITopNode) ?? ietPrev.TopNode as _ITopNode;
 					if (prevTopNode is not null)
 					{
-						using var _readLock = new ReadLockScope(prevTopNode.TreeRwLock);
+						// WriteLock required: GetSortedNonIETsubtreeList writes .order to shared tree nodes
+						using var _writeLock = new WriteLockScope(prevTopNode.TreeRwLock);
 						ietPrevSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietPrev, -1, 0, false);
 					}
 					else
