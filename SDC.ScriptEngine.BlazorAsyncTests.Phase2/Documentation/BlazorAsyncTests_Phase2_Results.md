@@ -38,64 +38,69 @@ If missing: `dotnet workload install wasm-tools` or update VS to include it.
 
 | Test | Status | Duration (ms) | Notes |
 |------|--------|--------------|-------|
-| ItemMutator_ConcurrentReassignments_NoRace | ✅ PASS | TBD | |
-| ItemsMutator_ConcurrentListReplacements_NoRace | ✅ PASS | TBD | |
-| TopNodeDictionaries_ConcurrentReadWrite_NoCorruption | ✅ PASS | TBD | |
-| SameReference_ConcurrentReassignment_Stable | ✅ PASS | TBD | |
-| CollectionModification_UnderConcurrentLoad_NoException | ✅ PASS | TBD | |
-| GuidAssignment_ConcurrentThreads_AllUnique | ❌ FAIL | ~6010 | DEADLOCK — watchdog expired |
-| LastTopNode_ThreadStatic_IsolatedPerThread | ✅ PASS | TBD | |
+| ItemMutator_ConcurrentReassignments_NoRace | ✅ PASS | 233 | |
+| ItemsMutator_ConcurrentListReplacements_NoRace | ✅ PASS | 235 | |
+| TopNodeDictionaries_ConcurrentReadWrite_NoCorruption | ✅ PASS | 230 | |
+| SameReference_ConcurrentReassignment_Stable | ✅ PASS | 11 | |
+| CollectionModification_UnderConcurrentLoad_NoException | ✅ PASS | 4233 | |
+| GuidAssignment_ConcurrentThreads_AllUnique | ❌ FAIL | 6010 | DEADLOCK — watchdog expired |
+| LastTopNode_ThreadStatic_IsolatedPerThread | ✅ PASS | 846 | |
 
 ### Cat 2 Failure: GuidAssignment_ConcurrentThreads_AllUnique — DEADLOCK
 **Error:** Watchdog expired at 6010 ms.  
 **Root cause:** `OrchestrateBarrierTest` uses `new Thread()` for THREAD_COUNT=4 dedicated threads, but this test creates 4 threads × 100 `DisplayedType` nodes (400 total) on a single shared `DataElementType` TopNode — each constructor call registers into `_Nodes` via `ConcurrentDictionary.TryAdd` and also calls into the parent-binding code path. Under `WasmEnableThreads=true` with pool size 4, all 4 pthread workers are consumed by the orchestrated threads; the internal Barrier `SignalAndWait` has no spare thread to execute its post-phase action, causing a deadlock. The GUID uniqueness assertion itself is sound — `Guid.NewGuid()` is threadsafe. The deadlock is in the Barrier/thread pool interaction.  
-**GitHub Issue:** TS-5 (see issues below)
+**GitHub Issue:** TS-5 (#22)
 
 ## Category 3: ThreadSafetyRepro Tests (4 tests) — 2/4 PASS
 
 | Test | Status | Duration (ms) | Notes |
 |------|--------|--------------|-------|
-| TS1_LastTopNode_ThreadStatic_IsolatedPerThread | ✅ PASS | TBD | |
-| TS2_AtomicObjectId_ConcurrentGeneration_AllUnique | ❌ FAIL | TBD | 75 duplicate ObjectIDs in 4×25=100 nodes |
-| TS3_NodeDictionary_ConcurrentAddRemove_NoCorruption | ✅ PASS | TBD | Sprint A fix confirmed green |
-| TS4_ReadLockScope_WriteLockScope_UnderContention | ❌ FAIL | TBD | Duplicate key on PredActionType under lock |
+| TS1_LastTopNode_ThreadStatic_IsolatedPerThread | ✅ PASS | 343 | |
+| TS2_AtomicObjectId_ConcurrentGeneration_AllUnique | ❌ FAIL | 286 | 75 duplicate ObjectIDs in 4×25=100 nodes |
+| TS3_NodeDictionary_ConcurrentAddRemove_NoCorruption | ✅ PASS | 264 | Sprint A fix confirmed green |
+| TS4_ReadLockScope_WriteLockScope_UnderContention | ❌ FAIL | 12247 | Argument_AddingDuplicateWithKey, SDC.Schema.PredActionType |
 
 ### Cat 3 Failure: TS2_AtomicObjectId_ConcurrentGeneration_AllUnique
-**Error:** 75 duplicate `ObjectID` values in 100 concurrently-created nodes (4 threads × 25 nodes each).  
+**Error:** `System.InvalidOperationException: TS-3 REGRESSION: 75 duplicate ObjectID(s) across 100 nodes. Interlocked.Increment must be used for _MaxObjectID.`  
 **Root cause:** `_MaxObjectID` per-tree counter is incremented with non-atomic `++` (i.e., `_MaxObjectID++` without `Interlocked.Increment`). Under real WASM threading contention, multiple threads read the same counter value before any writes back, producing duplicate integer IDs. Sprint A addressed `_Nodes` dictionary via `ConcurrentDictionary` but left `_MaxObjectID` unprotected.  
 **Fix needed:** Replace `_MaxObjectID++` assignment in node constructors with `Interlocked.Increment(ref _MaxObjectID)`.  
-**GitHub Issue:** TS-6
+**GitHub Issue:** TS-6 (#19)
 
 ### Cat 3 Failure: TS4_ReadLockScope_WriteLockScope_UnderContention
-**Error:** Duplicate key exception on `PredActionType` even when all readers hold `ReadLockScope` and writer holds `WriteLockScope`.  
-**Root cause:** `PredActionType` node construction or registration into a shared collection is not fully protected by the same lock object that `ReadLockScope`/`WriteLockScope` use, allowing a reader to observe a partially-constructed state or two writers to insert the same key. The lock mechanism may not cover the full construction + registration sequence.  
-**GitHub Issue:** TS-7
+**Error:** `System.InvalidOperationException: Exception during concurrent CompareTrees: Argument_AddingDuplicateWithKey, SDC.Schema.PredActionType`  
+**Root cause:** `PredActionType` node construction or registration into a shared collection is not fully protected by the same lock object that `ReadLockScope`/`WriteLockScope` use. Sprint C fix: add `ReadLock` around `GetSortedNonIETsubtreeList` in CompareTrees.  
+**GitHub Issue:** TS-7 (#20)
 
 ## Category 4: CompareTrees Parallel (3 tests) — 2/3 PASS
 
 | Test | Status | Duration (s) | Notes |
 |------|--------|-------------|-------|
-| CompareTrees_V1vsV5_ParallelTiming_Informational | ✅ PASS | TBD | IETattDiffs=907, added=3, removed=0 confirmed |
-| CompareTrees_ConcurrentInstances_8Threads_SameResults | ✅ PASS | TBD | 4 independent instances all return 907 |
-| CompareTrees_LockContention_NoDeadlock | ❌ FAIL | TBD | Arg_LongerThanDestArray array race |
+| CompareTrees_V1vsV5_ParallelTiming_Informational | ✅ PASS | 5549 ms | IETattDiffs=907, added=3, removed=0 confirmed |
+| CompareTrees_ConcurrentInstances_8Threads_SameResults | ✅ PASS | 5660 ms | 4 independent instances all return 907 |
+| CompareTrees_LockContention_NoDeadlock | ❌ FAIL | 121 ms | Arg_LongerThanDestArray array race (V1 vs V2) |
+
+### Baseline Assertions (V1 vs V5) — CONFIRMED ✅
+- IETattDiffs.Count == 907 ✅
+- IETnodesAddedInNew.Count == 3 ✅
+- IETnodesRemovedInNew.Count == 0 ✅
 
 ### Cat 4 Failure: CompareTrees_LockContention_NoDeadlock
-**Error:** `Arg_LongerThanDestArray` — destination array is shorter than source during an array copy operation inside `CompareTrees`.  
-**Root cause:** An internal array (likely a `List<T>` backing store or array used for intermediate results) is being resized by one thread while another thread is iterating or copying it. Despite the `lock(locker)` at CompareTrees.cs:352 protecting `GetNodePreviousSib()`, there is at least one other shared mutable array inside `CompareTrees` that is not protected under the same lock. The V1 vs V2 XML files (smaller than V1 vs V5) produce faster iterations, increasing contention frequency.  
-**GitHub Issue:** TS-8
+**Error:** `System.InvalidOperationException: 1 exception(s) during concurrent CompareTrees (V1 vs V2). First: Arg_LongerThanDestArray Arg_ParamName_Name, destinationArray`  
+**Root cause:** `GetSortedNonIETsubtreeList` (called inside `CompareTrees`) is not under a ReadLock — a shared mutable list is resized by one thread while another copies it. Sprint C fix: wrap `GetSortedNonIETsubtreeList` in a ReadLock.  
+**GitHub Issue:** TS-8 (#21)
 
 ## Category 5: Shared TopNode Tests (3 tests) — 2/3 PASS
 
 | Test | Status | Duration (ms) | Notes |
 |------|--------|--------------|-------|
-| ConcurrentNodeConstruction_SingleTopNode_NoIdDuplication | ❌ FAIL | TBD | Parent-binding cache race |
-| ConcurrentNodeConstruction_SingleTopNode_LazyInitRace | ✅ PASS | TBD | Interlocked.CompareExchange lazy-init confirmed |
-| ConcurrentReadWrite_SingleTopNode_StressReaders | ✅ PASS | TBD | 7 readers + 1 writer × 3s, no exception |
+| ConcurrentNodeConstruction_SingleTopNode_NoIdDuplication | ❌ FAIL | 146 | Parent-binding cache race in SdcUtil |
+| ConcurrentNodeConstruction_SingleTopNode_LazyInitRace | ✅ PASS | 14 | Interlocked.CompareExchange lazy-init confirmed |
+| ConcurrentReadWrite_SingleTopNode_StressReaders | ✅ PASS | 3343 | 7 readers + 1 writer × 3s, no exception |
 
 ### Cat 5 Failure: ConcurrentNodeConstruction_SingleTopNode_NoIdDuplication
-**Error:** `"SectionItemType cannot be attached to FormDesignType, Could not find a property in parentTarget to bind to"`  
+**Error:** `System.InvalidOperationException: 4 exception(s) during concurrent node construction. First: This object type (SectionItemType) cannot be attached to the provided parentNode type (FormDesignType). Could not find a property in parentTarget to bind to…`  
 **Root cause:** `SdcUtil.cs` maintains two static `Dictionary<Type, IEnumerable<PropertyInfo>?>` caches (`dListPropInfoElements`, `dListPropInfoAttributes`) used to speed up reflection-based parent-child property binding. These are plain `Dictionary<Type,…>` (not `ConcurrentDictionary`), populated lazily on first access per type. When multiple threads simultaneously attempt first-access for the same type, concurrent writes into a non-thread-safe `Dictionary` can corrupt the internal state, causing a key not to be found on subsequent reads — making the binding appear to fail. Fix: convert both caches to `ConcurrentDictionary<Type, IEnumerable<PropertyInfo>?>`.  
-**GitHub Issue:** TS-9
+**GitHub Issue:** TS-9 (#23)
 
 ## Summary: 13/18 Pass — 5 Concurrency Bugs Found
 
