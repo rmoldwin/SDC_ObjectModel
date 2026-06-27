@@ -391,11 +391,11 @@ namespace SDC.Schema
         /// <summary>
         /// Dictionary to cache PropertyInfo objects to speed reflection of SDC Element nodes
         /// </summary>
-        private static readonly Dictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfoElements = new();
+        private static readonly ConcurrentDictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfoElements = new();
 		/// <summary>
 		/// Dictionary to cache PropertyInfo objects to speed reflection of SDC Attribute nodes
 		/// </summary>
-		private static readonly Dictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfoAttributes = new();
+		private static readonly ConcurrentDictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfoAttributes = new();
 
 
 
@@ -409,23 +409,23 @@ namespace SDC.Schema
 		/// <summary>
 		/// Cache XmlRootAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<XmlRootAttribute>?> dXmlRootAtts = new();
+		private static readonly ConcurrentDictionary<Type, List<XmlRootAttribute>?> dXmlRootAtts = new();
 		/// <summary>
 		/// Cache XmlElementAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<XmlElementAttribute>?> dXmlElementAtts = new();
+		private static readonly ConcurrentDictionary<Type, List<XmlElementAttribute>?> dXmlElementAtts = new();
 		/// <summary>
 		/// Cache XmlChoiceIdentifierAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<XmlChoiceIdentifierAttribute>?> dXmlChoiceIdentifierAtts = new();
+		private static readonly ConcurrentDictionary<Type, List<XmlChoiceIdentifierAttribute>?> dXmlChoiceIdentifierAtts = new();
 		/// <summary>
 		/// Cache XmlAttributeAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<XmlAttributeAttribute>?> dXmlAttAtts = new();
+		private static readonly ConcurrentDictionary<Type, List<XmlAttributeAttribute>?> dXmlAttAtts = new();
 		/// <summary>
 		/// Cache XmlAttributeAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<AttributeInfo>?> dListAttInfo = new();
+		private static readonly ConcurrentDictionary<Type, List<AttributeInfo>?> dListAttInfo = new();
 
 
 
@@ -652,7 +652,7 @@ namespace SDC.Schema
 						//.First().Order)											  //properties in XML Element order, but this could change
 						;
 
-						dListPropInfoElements.Add(sPop, props);
+						dListPropInfoElements.TryAdd(sPop, props);
 					}
 
 					foreach (var p in props)
@@ -1198,7 +1198,7 @@ namespace SDC.Schema
                         n.ObjectID = 0;
                     }
                     else
-                        n.ObjectID = ((_ITopNode)currentTopNode)._MaxObjectID++;
+                        n.ObjectID = ((_ITopNode)currentTopNode).AtomicNextObjectID();
 
 
                     if (refreshMode != RefreshMode.NoChange)
@@ -2126,7 +2126,7 @@ namespace SDC.Schema
 				{
 					piIE = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
 							.Where(pi => pi.GetCustomAttributes<XmlAttributeAttribute>().Any());
-					dListPropInfoAttributes.Add(t, piIE); //cache for next time
+					dListPropInfoAttributes.TryAdd(t, piIE); //cache for next time
 				}
 				if (piIE is null) continue;
 
@@ -3556,7 +3556,7 @@ namespace SDC.Schema
 
 			//regenerate ObjectID
 			if (bt.ObjectID == -1 && bt.TopNode is not null && bt is not ITopNode) 
-				bt.ObjectID = ((_ITopNode)bt.TopNode)._MaxObjectID++;
+				bt.ObjectID = ((_ITopNode)bt.TopNode).AtomicNextObjectID();
 
 			if (! forceNewGuid && ShortGuid.TryParse(bt.sGuid, out Guid guid)) //reuse existing sGuid, if possible; then generate baseName
 			{

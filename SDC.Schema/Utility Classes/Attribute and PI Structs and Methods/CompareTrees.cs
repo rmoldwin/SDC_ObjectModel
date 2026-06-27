@@ -764,7 +764,15 @@ namespace SDC.Schema
 				&& btNew is IdentifiedExtensionType ietNew)
 			{
 				var addedSubNodes = new List<BaseType>();
-				var ietNewSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietNew, -1, 0, false);
+				List<BaseType> ietNewSubNodes;
+				var newTopNode = (_newVersion as _ITopNode) ?? ietNew.TopNode as _ITopNode;
+				if (newTopNode is not null)
+				{
+					using var _readLock = new ReadLockScope(newTopNode.TreeRwLock);
+					ietNewSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietNew, -1, 0, false);
+				}
+				else
+					ietNewSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietNew, -1, 0, false);
 				for (int i = 1; i < ietNewSubNodes.Count; i++)//skip the first node, which is the IET node
 				{
 					var newSubNode = ietNewSubNodes[i];
@@ -802,7 +810,15 @@ namespace SDC.Schema
 				&& btPrev is IdentifiedExtensionType ietPrev )
 				{
 					var removedSubNodes = new List<BaseType>();
-					var ietPrevSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietPrev, -1, 0, false);
+					List<BaseType> ietPrevSubNodes;
+					var prevTopNode = (_prevVersion as _ITopNode) ?? ietPrev.TopNode as _ITopNode;
+					if (prevTopNode is not null)
+					{
+						using var _readLock = new ReadLockScope(prevTopNode.TreeRwLock);
+						ietPrevSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietPrev, -1, 0, false);
+					}
+					else
+						ietPrevSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietPrev, -1, 0, false);
 				for (int i = 1; i < ietPrevSubNodes.Count; i++) //skip the first node, which is the IET node
 					{
 					BaseType? prevSubNode = ietPrevSubNodes[i];
