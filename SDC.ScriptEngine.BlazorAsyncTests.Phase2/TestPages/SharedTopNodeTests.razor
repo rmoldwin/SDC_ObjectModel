@@ -88,11 +88,13 @@
             const int TOTAL_NODES = THREAD_COUNT * NODES_PER_THREAD; // 200
 
             // One shared FormDesignType TopNode; all threads attach SectionItemType children to it.
-            // FormDesignType allows only Body/Header/Footer as direct children; SectionItemType
-            // belongs under fd.Body (BodyType). Create Body single-threaded before the barrier.
+            // FormDesignType.Body is itself a SectionItemType (Body/Header/Footer are the 3 direct
+            // children). SectionItemType attaches to a ChildItemsType container, obtained via
+            // fd.Body.GetChildItemsNode(). Create both Body and its child-items node single-threaded.
             BaseType.ResetLastTopNode();
             var fd = new FormDesignType(null, "SharedTopNode");
-            fd.AddBody(); // SectionItemType parent must be BodyType, not FormDesignType
+            fd.AddBody(); // creates fd.Body (SectionItemType) attached to fd
+            var childItems = fd.Body.GetChildItemsNode(); // ChildItemsType that holds sections
 
             var allObjectIds   = new ConcurrentBag<int>();
             var allObjectGuids = new ConcurrentBag<Guid>();
@@ -106,9 +108,9 @@
                     barrier.SignalAndWait(); // all threads start simultaneously
                     for (int i = 0; i < NODES_PER_THREAD; i++)
                     {
-                        // SectionItemType attaches to fd.Body (BodyType), not fd (FormDesignType).
+                        // SectionItemType attaches to ChildItemsType (fd.Body.GetChildItemsNode()).
                         // Constructor registers itself in fd's _Nodes via ConcurrentDictionary.TryAdd.
-                        var section = new SectionItemType(fd.Body, $"S{threadIdx}_{i}");
+                        var section = new SectionItemType(childItems, $"S{threadIdx}_{i}");
                         allObjectIds.Add(section.ObjectID);
                         allObjectGuids.Add(section.ObjectGUID);
                     }
