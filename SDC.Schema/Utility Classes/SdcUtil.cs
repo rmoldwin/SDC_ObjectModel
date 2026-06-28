@@ -3612,12 +3612,17 @@ namespace SDC.Schema
 						}
 					}
 				}
-				else // no TopNode yet (orphan node during construction); sort without lock
+				else // Sprint E Fix C: orphan node (TopNode not yet set, e.g. during deserialization).
+				     // Use lock(kids) as a per-list fallback so concurrent deserialization workers cannot
+				     // run kids.Sort() simultaneously on the same list (which threw Arg_LongerThanDestArray).
 				{
-					if (!TreeSort_IsSorted(parentItem) || forceSort)
+					lock (kids)
 					{
-						kids.Sort(new TreeSibComparer());
-						TreeSort_Add(parentItem);
+						if (!TreeSort_IsSorted(parentItem) || forceSort)
+						{
+							kids.Sort(new TreeSibComparer());
+							TreeSort_Add(parentItem);
+						}
 					}
 				}
 			}

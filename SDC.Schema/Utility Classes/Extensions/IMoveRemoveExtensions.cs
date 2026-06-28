@@ -23,6 +23,10 @@ namespace SDC.Schema.Extensions
 	public static class IMoveRemoveExtensions
 	{
 		private static TreeSibComparer treeSibComparer = new();
+		// Reflection-free, @order-based comparer used by RegisterParentNode on the childNodesSort:false
+		// bulk path (construction / deserialization / refresh) to keep _ChildNodes physically sorted
+		// without the per-insert reflection that caused the .NET 10 WASM watchdog timeouts.
+		private static TreeOrderComparer treeOrderComparer = new();
 
 		/// <summary>
 		/// Holds write locks on one or two <see cref="ReaderWriterLockSlim"/> tree locks acquired
@@ -986,50 +990,69 @@ namespace SDC.Schema.Extensions
 					//Also need to check rules, Events, Actions, and Admin objects, as well as things in other ITopNode trees
 					//We may need to add a new Interface: IHasListParent for all nodes that are attached to an Items object,
 					//so that these nodes can be easily identified.
-					// Sprint D Fix2: per-tree lock serialises all child-list mutations.
-					// lock(tn._ChildNodesMutationLock) instead of lock(kids): Monitor is reentrant per-thread,
-					// so recursive re-entry from Compare→SortElementKids is safe. Avoids AB-BA deadlock
-					// that lock(kids) caused when Sort called Compare which locked a different list.
-					lock (tn._ChildNodesMutationLock)
-					{
-						kids.Add(btSource);
-						if (kids.Count > 1 && childNodesSort)
+					// Sprint E Fix A (thread-safety + WASM perf): keep the _ChildNodes list physically sorted
+						// — so every direct consumer (ElementIndex, AutoName's IndexOf path, TryGetChildElements,
+						// FindPrevIETInDictionaries, etc.) keeps working unchanged — but eliminate the per-insert
+						// REFLECTION that caused the .NET 10 multi-threaded WASM watchdog timeouts (Cat2 Test5/Test6).
+						//
+						// Previously BOTH the childNodesSort:true full re-sort AND the childNodesSort:false
+						// binary-search used the reflection-based TreeComparer.SibComparer, which reflects every
+						// XmlElement property of inParentNode on each comparison. In interpreted WASM each such
+						// call is ~0.5ms, so registering N≈400 siblings cost O(N·log N) reflection ON the locked
+						// critical path and blew past the 6s/12s watchdogs.
+						//
+						// The childNodesSort:false path (BaseType ctor, deserialization, ReflectRefreshTree bulk
+						// rebuild) always supplies nodes whose @order already reflects document order — the
+						// BaseType constructor sets `this.order = this.ObjectID` before RegisterAll, and the
+						// refresh/deserialize paths walk the tree in document order. So we can insert using
+						// TreeOrderComparer, a pure decimal @order comparison with NO reflection (this is the
+						// "cheap O(1) insertion hint" the PartialClasses BaseType ctor comment refers to). The
+						// childNodesSort:true path (MoveNode / AddChild) is a single-/few-node edit where @order
+						// may not yet be set, so it keeps the robust SibComparer reflection sort — bounded cost,
+						// off the WASM bulk-construction hot path.
+						//
+						// The whole append/insert stays inside lock(tn._ChildNodesMutationLock) so it is atomic
+						// against a concurrent SortElementKids (which mutates the same list under the same lock).
+						// Monitor is reentrant per-thread; TreeOrderComparer/SibComparer take no locks, so there
+						// is no AB-BA risk.
+						lock (tn._ChildNodesMutationLock)
 						{
-							try { kids.Sort(treeSibComparer); } //sort by reflecting the object tree
-							catch (InvalidOperationException)
+							if (kids.Count == 0)
 							{
-								// Node may not yet be fully wired into parent properties (e.g., during concurrent construction).
-								// Skip sort here; correct order will be applied by AssignOrder or ReflectRefreshTree.
+								kids.Add(btSource);
+							}
+							else if (!childNodesSort)
+							{
+								// Reflection-free, @order-based insert. Fast-path the common in-document-order
+								// append first; only binary-search when the node sorts before the current last.
+								if (treeOrderComparer.Compare(kids[kids.Count - 1], btSource) <= 0)
+									kids.Add(btSource);
+								else
+								{
+									int idx = kids.BinarySearch(btSource, treeOrderComparer);
+									if (idx < 0) idx = ~idx;
+									kids.Insert(idx, btSource);
+								}
+								// The list is now in @order (== document order on this path), matching the old
+								// binary-search branch which flagged the parent sorted so SortElementKids skips a
+								// redundant reflection re-sort.
+								SdcUtil.TreeSort_MarkSorted(inParentNode);
+							}
+							else
+							{
+								// childNodesSort:true — reflect the object tree to place the node correctly.
+								kids.Add(btSource);
+								if (kids.Count > 1)
+								{
+									try { kids.Sort(treeSibComparer); } //sort by reflecting the object tree
+									catch (InvalidOperationException)
+									{
+										// Node not yet fully wired into parent properties (e.g., during concurrent
+										// construction). Skip sort here; AssignOrder/ReflectRefreshTree corrects later.
+									}
+								}
 							}
 						}
-						else if (kids.Count > 1) // childNodesSort:false path (construction/bulk-add)
-						{
-							// TS-7: Binary-search insert using treeSibComparer — O(log k · reflection) per insert
-							// vs O(k log k · reflection) for a full re-sort = O(N log² N) total for N inserts.
-							kids.RemoveAt(kids.Count - 1); // remove just-appended node; binary search for correct slot
-							int lo = 0, hi = kids.Count;
-							while (lo < hi)
-							{
-								int mid = (lo + hi) >> 1;
-								try
-								{
-									if (TreeComparer.SibComparer(inParentNode, kids[mid], btSource, out _) <= 0)
-										lo = mid + 1;
-									else
-										hi = mid;
-								}
-								catch
-								{
-									// Comparison failed (node not yet wired into parent property).
-									// Append at end; ReflectRefreshTree will correct order on next full refresh.
-									lo = kids.Count;
-									break;
-								}
-							}
-							kids.Insert(lo, btSource);
-							SdcUtil.TreeSort_MarkSorted(inParentNode);
-						}
-					}
 			}
 		}
 		private static void RegisterSubtreeIn_IETnodes(this IdentifiedExtensionType iet, bool addIETnodesRecursively = false)
@@ -1202,12 +1225,33 @@ namespace SDC.Schema.Extensions
 				if (par is not null && (tn?._ChildNodes.ContainsKey(par.ObjectGUID) ?? false))
 				{
 					var childList = tn._ChildNodes[par.ObjectGUID];
-					success = childList.Remove(node); //Returns a List<BaseType> and removes "item" from that list
-					if (!success)
-						throw new InvalidOperationException($"Could not remove list node from {nameof(tn._ChildNodes)} dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
-					if (childList.Count == 0) success = tn._ChildNodes.TryRemove(par.ObjectGUID, out _); //remove the entire entry from _ChildNodes
-					if (!success)
-						throw new InvalidOperationException($"Could not remove parent entry from {nameof(tn._ChildNodes)} dictionary: name: {par.name ?? "(none)"}, ObjectGUID: {par.ObjectGUID}");
+					// Sprint E Fix B (thread-safety): serialise this list mutation against concurrent
+					// SortElementKids (which calls kids.Sort under the same per-tree lock). Without this,
+					// a PLINQ CompareTrees worker sorting childList while UnRegisterParentNode removes from
+					// it raced and threw Arg_LongerThanDestArray (Cat4 Test3). If _mutLock is null the
+					// TopNode is not yet established (no concurrency possible), so proceed without locking.
+					object? _mutLock = tn?._ChildNodesMutationLock;
+					if (_mutLock is not null)
+					{
+						lock (_mutLock)
+						{
+							success = childList.Remove(node); //Returns a List<BaseType> and removes "item" from that list
+							if (!success)
+								throw new InvalidOperationException($"Could not remove list node from {nameof(tn._ChildNodes)} dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
+							if (childList.Count == 0) success = tn._ChildNodes.TryRemove(par.ObjectGUID, out _); //remove the entire entry from _ChildNodes
+							if (!success)
+								throw new InvalidOperationException($"Could not remove parent entry from {nameof(tn._ChildNodes)} dictionary: name: {par.name ?? "(none)"}, ObjectGUID: {par.ObjectGUID}");
+						}
+					}
+					else
+					{
+						success = childList.Remove(node); //Returns a List<BaseType> and removes "item" from that list
+						if (!success)
+							throw new InvalidOperationException($"Could not remove list node from {nameof(tn._ChildNodes)} dictionary: name: {node.name ?? "(none)"}, ObjectGUID: {node.ObjectGUID}");
+						if (childList.Count == 0) success = tn._ChildNodes.TryRemove(par.ObjectGUID, out _); //remove the entire entry from _ChildNodes
+						if (!success)
+							throw new InvalidOperationException($"Could not remove parent entry from {nameof(tn._ChildNodes)} dictionary: name: {par.name ?? "(none)"}, ObjectGUID: {par.ObjectGUID}");
+					}
 				}
 				else {} //no _ChildNodes entries are present for this node
 			}
