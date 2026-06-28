@@ -986,30 +986,30 @@ namespace SDC.Schema.Extensions
 					//Also need to check rules, Events, Actions, and Admin objects, as well as things in other ITopNode trees
 					//We may need to add a new Interface: IHasListParent for all nodes that are attached to an Items object,
 					//so that these nodes can be easily identified.
-					// Sprint F (replaces Sprint E Fix A): deferred sort.
-						// The childNodesSort:false path (BaseType ctor, deserialization, ReflectRefreshTree
-						// bulk rebuild) ALWAYS registers children in document order — the BaseType ctor
-						// appends to the parent property list (TryAttachNewNode, default insertPosition=-1)
-						// and ReflectRefreshTree.DoTree walks child properties in schema order. So a plain
-						// O(1) append keeps _ChildNodes in document order with NO per-insert reflection,
-						// eliminating the .NET 10 multi-threaded WASM watchdog timeouts (Cat2 Test5/Test6).
+					// Sprint F (replaces Sprint E Fix A): smart, document-order insert.
+						// _ChildNodes MUST stay in document (sibling) order: FindPrevIETInDictionaries walks
+						// these lists assuming document order to find the IET predecessor during construction,
+						// so a node inserted at an explicit position (e.g. AddQuestion/AddListItem at index 0)
+						// lands in the correct _IETnodes slot. A plain append would corrupt that order and
+						// break IET indexing (regression seen in QuestionItemTypeTests.AddListItemToPosition0).
+						//
+						// But the Sprint D full per-insert reflection binary search was O(log k) reflection
+						// compares on every insert → O(k log k) for k siblings → .NET 10 multi-threaded WASM
+						// watchdog timeouts when building many siblings under one parent (Cat2 Test5/Test6).
+						//
+						// SmartInsertInDocumentOrder splits the difference: the childNodesSort:false callers
+						// (BaseType ctor, deserialization, ReflectRefreshTree bulk rebuild) almost always
+						// register children IN document order, so the new node belongs at the END — an O(1)
+						// append after a SINGLE reflection compare against the current last sibling. Only a
+						// genuinely out-of-document-order construction takes the (rare, bounded) reflection
+						// binary-search insert path. Net: ~1 reflection compare per node instead of O(log k).
 						//
 						// We deliberately do NOT use @order here (Sprint E Fix A's TreeOrderComparer):
-						//   1) ReflectRefreshTree.DoTree calls RegisterAll(childNodesSort:false) BEFORE it
-						//      reassigns @order, so on the refresh/deserialize path @order is stale/uniform
-						//      (0). TreeOrderComparer is non-antisymmetric for equal @order, so it could
-						//      SCRAMBLE _ChildNodes on that path.
-						//   2) A node constructed with an explicit out-of-document-order insertPosition gets
-						//      the HIGHEST @order (newest ObjectID) yet a non-last document position, so an
-						//      @order insert would misplace it.
-						// Instead we append and invalidate the parent's sort flag, so the next SortElementKids
-						// consumer (GetChildElements, TryGetChildElements, navigation, AutoName, etc.) does a
-						// single lazy reflection sort to recover true document order if it was ever perturbed.
-						// This is perf-safe: nothing on the construction hot path (CreateSimpleName,
-						// FindPrevIETInDictionaries) calls SortElementKids, so no per-insert reflection occurs.
+						// ReflectRefreshTree.DoTree calls RegisterAll(childNodesSort:false) BEFORE it reassigns
+						// @order, so on the refresh/deserialize path @order is stale/uniform (0), and
+						// TreeOrderComparer is non-antisymmetric for equal @order — it could SCRAMBLE the list.
 						//
-						// childNodesSort:true (MoveNode / AddChild edits) keeps the robust reflection sort —
-						// bounded cost, off the WASM bulk-construction hot path.
+						// childNodesSort:true (MoveNode / AddChild edits) keeps the robust full reflection sort.
 						//
 						// All list + sort-flag mutations stay inside lock(tn._ChildNodesMutationLock): the
 						// _ChildNodes list is non-thread-safe and _TreeSort_NodeIds is a plain HashSet<int>;
@@ -1017,26 +1017,66 @@ namespace SDC.Schema.Extensions
 						// take no locks, so there is no AB-BA risk.
 						lock (tn._ChildNodesMutationLock)
 						{
-							kids.Add(btSource);
 							if (!childNodesSort)
 							{
-								// Defer sorting: mark the parent's kids list as needing a (lazy) reflection
-								// re-sort on first read. For document-order registration (the only
-								// childNodesSort:false callers) the append already yields correct order, and
-								// the invalidate is a cheap safety valve for the rare out-of-order ctor case.
-								SdcUtil.TreeSort_Invalidate(inParentNode);
+								SmartInsertInDocumentOrder(kids, btSource, inParentNode);
 							}
-							else if (kids.Count > 1)
+							else
 							{
 								// childNodesSort:true — reflect the object tree to place the node correctly.
-								try { kids.Sort(treeSibComparer); } //sort by reflecting the object tree
-								catch (InvalidOperationException)
+								kids.Add(btSource);
+								if (kids.Count > 1)
 								{
-									// Node not yet fully wired into parent properties (e.g., during concurrent
-									// construction). Skip sort here; AssignOrder/ReflectRefreshTree corrects later.
+									try { kids.Sort(treeSibComparer); } //sort by reflecting the object tree
+									catch (InvalidOperationException)
+									{
+										// Node not yet fully wired into parent properties (e.g., during concurrent
+										// construction). Skip sort here; AssignOrder/ReflectRefreshTree corrects later.
+									}
 								}
 							}
 						}
+			}
+
+			// Sprint F: insert btSource into kids preserving document (sibling) order, using at most one
+			// reflection comparison for the common in-order-append case and a reflection binary search only
+			// for the rare out-of-document-order insert. Must be called under lock(tn._ChildNodesMutationLock).
+			static void SmartInsertInDocumentOrder(List<BaseType> kids, BaseType btSource, BaseType inParentNode)
+			{
+				if (kids.Count == 0)
+				{
+					kids.Add(btSource);
+					return;
+				}
+				try
+				{
+					// Fast path: if btSource sorts at/after the current last sibling, append O(1).
+					if (treeSibComparer.Compare(btSource, kids[kids.Count - 1]) >= 0)
+					{
+						kids.Add(btSource);
+						return;
+					}
+					// Out-of-order insert: reflection binary search for the correct document-order slot.
+					int lo = 0, hi = kids.Count;
+					while (lo < hi)
+					{
+						int mid = (lo + hi) >> 1;
+						if (treeSibComparer.Compare(btSource, kids[mid]) < 0) hi = mid;
+						else lo = mid + 1;
+					}
+					kids.Insert(lo, btSource);
+				}
+				catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
+				{
+					// The reflection compare cannot determine sibling order — either btSource (or a sibling)
+					// is not yet fully wired into parent properties during concurrent construction
+					// (InvalidOperationException), or its ParentNode is transiently null during a
+					// ReflectRefreshTree rebuild (ArgumentException). In BOTH cases the caller is walking
+					// children in document order, so a plain append already yields the correct order; we
+					// invalidate the sort flag so any later lazy SortElementKids consumer can re-verify it.
+					kids.Add(btSource);
+					SdcUtil.TreeSort_Invalidate(inParentNode);
+				}
 			}
 		}
 		private static void RegisterSubtreeIn_IETnodes(this IdentifiedExtensionType iet, bool addIETnodesRecursively = false)
@@ -1048,7 +1088,8 @@ namespace SDC.Schema.Extensions
 			{
 				var inb = itn._IETnodes;
 				// TS-7 / Sprint F: find the IET insertion position using _ChildNodes (kept in document
-				// order by RegisterParentNode's append on the childNodesSort:false path) rather than
+				// order by RegisterParentNode's SmartInsertInDocumentOrder on the childNodesSort:false
+				// path, or treeSibComparer sort on the childNodesSort:true path) rather than
 				// calling GetNodePreviousIET() → GetPrevSibElement() → SortElementKids (reflection sort).
 				//
 				// Walk backwards through the document-order siblings of iet (from _ChildNodes) to
