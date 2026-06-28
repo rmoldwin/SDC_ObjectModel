@@ -986,10 +986,11 @@ namespace SDC.Schema.Extensions
 					//Also need to check rules, Events, Actions, and Admin objects, as well as things in other ITopNode trees
 					//We may need to add a new Interface: IHasListParent for all nodes that are attached to an Items object,
 					//so that these nodes can be easily identified.
-					// Sprint D: lock(kids) prevents concurrent List.Add/Sort/Insert corruption when
-					// multiple threads register children of the same parent simultaneously.
-					// lock(kids) is fine-grained (per parent node's list) — different parents contend independently.
-					lock (kids)
+					// Sprint D Fix2: per-tree lock serialises all child-list mutations.
+					// lock(tn._ChildNodesMutationLock) instead of lock(kids): Monitor is reentrant per-thread,
+					// so recursive re-entry from Compare→SortElementKids is safe. Avoids AB-BA deadlock
+					// that lock(kids) caused when Sort called Compare which locked a different list.
+					lock (tn._ChildNodesMutationLock)
 					{
 						kids.Add(btSource);
 						if (kids.Count > 1 && childNodesSort)
