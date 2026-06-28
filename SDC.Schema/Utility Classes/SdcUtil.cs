@@ -3600,10 +3600,13 @@ namespace SDC.Schema
 
 			if (kids is not null)
 			{
-				if (!TreeSort_IsSorted(parentItem) || forceSort)
+				lock (kids) // Sprint D: prevent concurrent Sort from concurrent PLINQ tasks on shared child lists
 				{
-					kids.Sort(new TreeSibComparer());
-					TreeSort_Add(parentItem);
+					if (!TreeSort_IsSorted(parentItem) || forceSort)
+					{
+						kids.Sort(new TreeSibComparer());
+						TreeSort_Add(parentItem);
+					}
 				}
 			}
 			return kids;

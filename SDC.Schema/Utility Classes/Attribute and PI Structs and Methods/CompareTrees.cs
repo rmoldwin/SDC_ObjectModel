@@ -700,15 +700,7 @@ namespace SDC.Schema
 		public Dictionary<string, List<AttributeInfo>> FindSerializedXmlAttributesIET(IdentifiedExtensionType iet)
 		{
 			Dictionary<string, List<AttributeInfo>> dlai = new();
-			List<BaseType> sublist;
-			if (iet.TopNode is _ITopNode topNode)
-			{
-				// WriteLock required: GetSortedNonIETsubtreeList writes .order to shared tree nodes
-				using var _writeLock = new WriteLockScope(topNode.TreeRwLock);
-				sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1, 0, false);
-			}
-			else
-				sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1, 0, false);
+			List<BaseType> sublist = SdcUtil.GetSortedNonIETsubtreeList(iet, -1, 0, false);
 			foreach (var subNode in sublist)
 			{
                 //if getAllXmlAttributes is false, then only attributes that will be serialized to XML are returned
@@ -741,16 +733,7 @@ namespace SDC.Schema
 				&& btNew is IdentifiedExtensionType ietNew)
 			{
 				var addedSubNodes = new List<BaseType>();
-				List<BaseType> ietNewSubNodes;
-				var newTopNode = (_newVersion as _ITopNode) ?? ietNew.TopNode as _ITopNode;
-				if (newTopNode is not null)
-				{
-					// WriteLock required: GetSortedNonIETsubtreeList writes .order to shared tree nodes
-					using var _writeLock = new WriteLockScope(newTopNode.TreeRwLock);
-					ietNewSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietNew, -1, 0, false);
-				}
-				else
-					ietNewSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietNew, -1, 0, false);
+				List<BaseType> ietNewSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietNew, -1, 0, false);
 				for (int i = 1; i < ietNewSubNodes.Count; i++)//skip the first node, which is the IET node
 				{
 					var newSubNode = ietNewSubNodes[i];
@@ -788,16 +771,7 @@ namespace SDC.Schema
 				&& btPrev is IdentifiedExtensionType ietPrev )
 				{
 					var removedSubNodes = new List<BaseType>();
-					List<BaseType> ietPrevSubNodes;
-					var prevTopNode = (_prevVersion as _ITopNode) ?? ietPrev.TopNode as _ITopNode;
-					if (prevTopNode is not null)
-					{
-						// WriteLock required: GetSortedNonIETsubtreeList writes .order to shared tree nodes
-						using var _writeLock = new WriteLockScope(prevTopNode.TreeRwLock);
-						ietPrevSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietPrev, -1, 0, false);
-					}
-					else
-						ietPrevSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietPrev, -1, 0, false);
+					List<BaseType> ietPrevSubNodes = SdcUtil.GetSortedNonIETsubtreeList(ietPrev, -1, 0, false);
 				for (int i = 1; i < ietPrevSubNodes.Count; i++) //skip the first node, which is the IET node
 					{
 					BaseType? prevSubNode = ietPrevSubNodes[i];
