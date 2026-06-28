@@ -301,6 +301,8 @@
         });
 
     // ── Test 5: Collection modification under concurrent load ─────────────────
+    // NOTE: WASM ReaderWriterLockSlim under 4-thread contention (40 serialised WriteLock
+    // cycles) legitimately takes ~6s. Watchdog extended to 12s to avoid a timing flake.
     private Task<WasmTestResult> Test5_CollectionModification_UnderConcurrentLoad_NoException()
         => RunThreadedTest("CollectionModification_UnderConcurrentLoad_NoException", () =>
         {
@@ -341,7 +343,7 @@
                 throw new InvalidOperationException(
                     $"TS-2 REGRESSION: {exceptions.Count} exception(s) during concurrent ChildItemsList assignment. " +
                     $"First: {exceptions.First().Message}");
-        });
+        }, watchdogMs: 12000); // Extended: WASM RWLS under 4-thread contention takes ~6s
 
     // ── Test 6: GUID uniqueness under concurrent node creation ───────────────
     // NOTE: OrchestrateBarrierTest cannot be used here — Barrier(N) requires the
