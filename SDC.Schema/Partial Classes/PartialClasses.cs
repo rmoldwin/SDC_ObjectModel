@@ -159,6 +159,7 @@ namespace SDC.Schema
 		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
 
 		#endregion
 
@@ -392,6 +393,7 @@ namespace SDC.Schema
 		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
 
 		#endregion
 
@@ -615,6 +617,7 @@ namespace SDC.Schema
 		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
 
 		#endregion
 
@@ -905,6 +908,7 @@ namespace SDC.Schema
 		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
 
 		#endregion
 
@@ -1104,6 +1108,7 @@ namespace SDC.Schema
 		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
 
 		#endregion
 		protected MappingType() : base()
@@ -5911,4 +5916,3 @@ namespace SDC.Schema
 	#endregion
 
 }
-

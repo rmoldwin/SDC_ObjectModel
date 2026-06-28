@@ -3600,7 +3600,19 @@ namespace SDC.Schema
 
 			if (kids is not null)
 			{
-				lock (kids) // Sprint D: prevent concurrent Sort from concurrent PLINQ tasks on shared child lists
+				var _mutLock = (Get_ITopNode(parentItem) as _ITopNode)?._ChildNodesMutationLock;
+				if (_mutLock is not null)
+				{
+					lock (_mutLock) // Sprint D Fix2: per-tree lock, reentrant-safe
+					{
+						if (!TreeSort_IsSorted(parentItem) || forceSort)
+						{
+							kids.Sort(new TreeSibComparer());
+							TreeSort_Add(parentItem);
+						}
+					}
+				}
+				else // no TopNode yet (orphan node during construction); sort without lock
 				{
 					if (!TreeSort_IsSorted(parentItem) || forceSort)
 					{
