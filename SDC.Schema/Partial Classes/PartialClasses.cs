@@ -83,16 +83,7 @@ namespace SDC.Schema
         [XmlIgnore]
 		[JsonIgnore]
         public uint RepeatCounter { get; set; } = 0;
-        HashSet<string> _IUniqueIDs._UniqueIDs
-		{
-			get
-			{
-				if (p_UniqueIDs is null) p_UniqueIDs = new();
-				return p_UniqueIDs;
-
-            }
-		}
-		HashSet<string>? p_UniqueIDs;
+        ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
         #region ITopNode 
 
@@ -383,7 +374,7 @@ namespace SDC.Schema
 				Items = ItemsMutator(() => Items, value);
 			}
 		}
-		HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
+		ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
 		#region Thread Safety Infrastructure
 
@@ -598,16 +589,7 @@ namespace SDC.Schema
 			this.ComplianceRule = new();
 			this.SDCPackage = new();
 		}
-		HashSet<string> _IUniqueIDs._UniqueIDs
-		{
-			get
-			{
-				if (p_UniqueIDs is null) p_UniqueIDs = new();
-				return p_UniqueIDs;
-
-			}
-		}
-		HashSet<string>? p_UniqueIDs;
+		ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
 		#region Thread Safety Infrastructure
 
@@ -851,16 +833,7 @@ namespace SDC.Schema
 			ElementName = "XMLPackage";
 			ElementPrefix = "xmlPkg";
 		}
-        HashSet<string> _IUniqueIDs._UniqueIDs
-        {
-            get
-            {
-                if (p_UniqueIDs is null) p_UniqueIDs = new();
-                return p_UniqueIDs;
-
-            }
-        }
-        HashSet<string>? p_UniqueIDs;
+        ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
     }
     public partial class PackageItemType : ExtensionBaseType
 	{
@@ -889,16 +862,7 @@ namespace SDC.Schema
 			ElementName = "SDCPackageList";
 			ElementPrefix = "PL";
 		}
-		HashSet<string> _IUniqueIDs._UniqueIDs
-		{
-			get
-			{
-				if (p_UniqueIDs is null) p_UniqueIDs = new();
-				return p_UniqueIDs;
-
-			}
-		}
-		HashSet<string>? p_UniqueIDs;
+		ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
 		#region Thread Safety Infrastructure
 
