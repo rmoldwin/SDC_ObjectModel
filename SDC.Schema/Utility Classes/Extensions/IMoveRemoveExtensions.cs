@@ -986,47 +986,48 @@ namespace SDC.Schema.Extensions
 					//Also need to check rules, Events, Actions, and Admin objects, as well as things in other ITopNode trees
 					//We may need to add a new Interface: IHasListParent for all nodes that are attached to an Items object,
 					//so that these nodes can be easily identified.
-					kids.Add(btSource);
-					if (kids.Count > 1 && childNodesSort)
+					// Sprint D: lock(kids) prevents concurrent List.Add/Sort/Insert corruption when
+					// multiple threads register children of the same parent simultaneously.
+					// lock(kids) is fine-grained (per parent node's list) — different parents contend independently.
+					lock (kids)
 					{
-						try { kids.Sort(treeSibComparer); } //sort by reflecting the object tree
-						catch (InvalidOperationException)
+						kids.Add(btSource);
+						if (kids.Count > 1 && childNodesSort)
 						{
-							// Node may not yet be fully wired into parent properties (e.g., during concurrent construction).
-							// Skip sort here; correct order will be applied by AssignOrder or ReflectRefreshTree.
-						}
-					}
-					else if (kids.Count > 1) // childNodesSort:false path (construction/bulk-add)
-					{
-						// TS-7: Binary-search insert using treeSibComparer — O(log k · reflection) per insert
-						// vs O(k log k · reflection) for a full re-sort = O(N log² N) total for N inserts.
-						// Uses TreeComparer.SibComparer(inParentNode, ...) directly to avoid the
-						// ParentNode-equality guard in TreeSibComparer.Compare (which would throw if a node's
-						// _ParentNodes entry hasn't been updated yet during re-registration paths).
-						// After insertion, mark the parent sorted so FindPrevIETInDictionaries (and
-						// GetPrevSibElement on Move paths) skip a redundant re-sort.
-						kids.RemoveAt(kids.Count - 1); // remove just-appended node; binary search for correct slot
-						int lo = 0, hi = kids.Count;
-						while (lo < hi)
-						{
-							int mid = (lo + hi) >> 1;
-							try
+							try { kids.Sort(treeSibComparer); } //sort by reflecting the object tree
+							catch (InvalidOperationException)
 							{
-								if (TreeComparer.SibComparer(inParentNode, kids[mid], btSource, out _) <= 0)
-									lo = mid + 1;
-								else
-									hi = mid;
-							}
-							catch
-							{
-								// Comparison failed (node not yet wired into parent property).
-								// Append at end; ReflectRefreshTree will correct order on next full refresh.
-								lo = kids.Count;
-								break;
+								// Node may not yet be fully wired into parent properties (e.g., during concurrent construction).
+								// Skip sort here; correct order will be applied by AssignOrder or ReflectRefreshTree.
 							}
 						}
-						kids.Insert(lo, btSource);
-						SdcUtil.TreeSort_MarkSorted(inParentNode);
+						else if (kids.Count > 1) // childNodesSort:false path (construction/bulk-add)
+						{
+							// TS-7: Binary-search insert using treeSibComparer — O(log k · reflection) per insert
+							// vs O(k log k · reflection) for a full re-sort = O(N log² N) total for N inserts.
+							kids.RemoveAt(kids.Count - 1); // remove just-appended node; binary search for correct slot
+							int lo = 0, hi = kids.Count;
+							while (lo < hi)
+							{
+								int mid = (lo + hi) >> 1;
+								try
+								{
+									if (TreeComparer.SibComparer(inParentNode, kids[mid], btSource, out _) <= 0)
+										lo = mid + 1;
+									else
+										hi = mid;
+								}
+								catch
+								{
+									// Comparison failed (node not yet wired into parent property).
+									// Append at end; ReflectRefreshTree will correct order on next full refresh.
+									lo = kids.Count;
+									break;
+								}
+							}
+							kids.Insert(lo, btSource);
+							SdcUtil.TreeSort_MarkSorted(inParentNode);
+						}
 					}
 			}
 		}
