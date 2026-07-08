@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "SDC.ScriptEngine.BlazorTest": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:59081;http://localhost:59082"
+    }
+  }
+}
