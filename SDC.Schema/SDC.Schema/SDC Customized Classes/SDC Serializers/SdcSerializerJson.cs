@@ -22,8 +22,7 @@ namespace SDC.Schema
 	using System.Runtime.CompilerServices;
 
 	public static partial class SdcSerializerJson<T> where T : ITopNode
-
-	{
+    {
 
 		#region Serialize/Deserialize
 		/// <summary>
