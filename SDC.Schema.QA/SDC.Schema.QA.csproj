@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\SDC.Schema\SDC.Schema.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>13.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Description>QA/QC tooling for the SDC Object Model best-practices guide. Consumes SDC.Schema as a public API consumer only (no internal/friend access) so its checks reflect what an external developer can actually do.</Description>
+  </PropertyGroup>
+
+</Project>
