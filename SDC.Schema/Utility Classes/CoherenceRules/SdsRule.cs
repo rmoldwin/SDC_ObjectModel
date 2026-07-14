@@ -10,7 +10,9 @@ namespace SDC.Schema
 		{
 			foreach (var triggeringListItem in SdcCoherenceRuleHelpers.GetSelectedListItems(topNode, li => li.selectionDeselectsSiblings))
 			{
-				foreach (var sibling in SdcCoherenceRuleHelpers.GetSiblingListItems(triggeringListItem))
+				// Only currently-selected siblings are actually auto-deselected by the SDS action;
+				// an unselected sibling is unaffected, so checking it would be a false-positive risk.
+				foreach (var sibling in SdcCoherenceRuleHelpers.GetSiblingListItems(triggeringListItem).Where(s => s.selected))
 				{
 					var siblingNodes = new[] { sibling }.Concat(SdcCoherenceRuleHelpers.GetDescendants(sibling));
 					var affectedNodes = SdcCoherenceRuleHelpers.GetNodesWithUserEnteredData(siblingNodes);
