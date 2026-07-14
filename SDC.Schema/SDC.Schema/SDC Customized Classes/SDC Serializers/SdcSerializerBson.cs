@@ -59,6 +59,10 @@ namespace SDC.Schema
                     // Normalise decimal scale so that whole-number decimals (e.g. 2M) are written
                     // without a trailing fractional zero, matching the XML attribute representation.
                     _serializerBsonWrite.Converters.Add(SdcJsonDecimalConverter.Instance);
+                    // XmlAttributeListJsonConverter: see issue #27 — replaces Newtonsoft's built-in
+                    // XmlNodeConverter for ExtensionType.AnyAttr (List<XmlAttribute>), whose ReadJson
+                    // rejects XmlAttribute even though WriteJson supports it.
+                    _serializerBsonWrite.Converters.Add(new XmlAttributeListJsonConverter());
                 }
                 return _serializerBsonWrite;
             }
@@ -88,6 +92,9 @@ namespace SDC.Schema
                     // Normalise decimal scale on read-back so "2.0" is stored as 2M (scale 0),
                     // matching the value originally loaded from XML.
                     _serializerBsonRead.Converters.Add(SdcJsonDecimalConverter.Instance);
+                    // XmlAttributeListJsonConverter: see issue #27 — must be registered on the read
+                    // side too, symmetric with SerializerBsonWrite above.
+                    _serializerBsonRead.Converters.Add(new XmlAttributeListJsonConverter());
                 }
                 return _serializerBsonRead;
             }
