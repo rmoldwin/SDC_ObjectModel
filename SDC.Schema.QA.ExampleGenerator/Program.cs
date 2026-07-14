@@ -125,13 +125,6 @@ Console.WriteLine("Done.");
     string reportsDir = Path.Combine(outputRoot, "..", "reports");
     Directory.CreateDirectory(reportsDir);
 
-    var rules = new List<SDC.Schema.QA.Rules.IQaRule>
-    {
-        new SDC.Schema.QA.Rules.Construction.TreeIntegrityRule(),
-        new SDC.Schema.QA.Rules.AdHocAttributes.EmptyExtensionRule(),
-        new SDC.Schema.QA.Rules.Serialization.NoInternalStateInJsonRule(),
-    };
-
     // Healthy tree: built purely through the public Add* builder API, no
     // deliberate defects.
     BaseType.ResetLastTopNode();
@@ -144,7 +137,7 @@ Console.WriteLine("Done.");
     var hDoc = new XmlDocument();
     hExt.AddOrUpdateAdHocAttribute(hDoc, "qa", "reviewStatus", "urn:example:qa", "approved");
 
-    var engine = new SDC.Schema.QA.Rules.QaEngine(rules);
+    var engine = new SDC.Schema.QA.Rules.QaEngine();
     var healthyReport = engine.Run(healthy, "FD.QaReportSample.Healthy (expected: BP-SER-001 only — see guide/03)");
 
     // Defective tree: deliberately includes an empty/inert <Extension> element

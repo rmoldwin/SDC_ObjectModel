@@ -1,4 +1,9 @@
 using SDC.Schema.QA.Reporting;
+using SDC.Schema.QA.Rules.AdHocAttributes;
+using SDC.Schema.QA.Rules.Construction;
+using SDC.Schema.QA.Rules.Mutation;
+using SDC.Schema.QA.Rules.Serialization;
+using SDC.Schema.QA.Rules.Validation;
 
 namespace SDC.Schema.QA.Rules;
 
@@ -11,12 +16,27 @@ public sealed class QaEngine
 {
     private readonly List<IQaRule> _rules;
 
+    public QaEngine()
+        : this(CreateDefaultRules())
+    {
+    }
+
     public QaEngine(IEnumerable<IQaRule> rules)
     {
         _rules = rules.ToList();
     }
 
     public IReadOnlyList<IQaRule> Rules => _rules;
+
+    public static IReadOnlyList<IQaRule> CreateDefaultRules() =>
+    [
+        new TreeIntegrityRule(),
+        new DuplicateIdRule(),
+        new UnresolvedRejectedValuesRule(),
+        new CoherenceValidationBridgeRule(),
+        new EmptyExtensionRule(),
+        new NoInternalStateInJsonRule()
+    ];
 
     /// <summary>Runs every registered rule against the tree and returns all findings.</summary>
     public QaReport Run(ITopNode topNode, string? subjectDescription = null)

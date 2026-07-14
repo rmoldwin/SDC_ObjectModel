@@ -43,6 +43,9 @@ namespace SDC.Schema
 		/// <summary>The value that was rejected (may be null for non-setter events).</summary>
 		public object? AttemptedValue { get; init; }
 
+		/// <summary>Optional rule identifier for non-DataAnnotations findings (for example <c>SDAC</c> or <c>SDS</c>).</summary>
+		public string? RuleCode { get; init; }
+
 		/// <summary>Human-readable description of the validation issue.</summary>
 		public string Message { get; init; } = string.Empty;
 
@@ -102,7 +105,8 @@ namespace SDC.Schema
 			string? nodeID = null,
 			string? propertyName = null,
 			object? attemptedValue = null,
-			SdcValidationSeverity severity = SdcValidationSeverity.Error)
+			SdcValidationSeverity severity = SdcValidationSeverity.Error,
+			string? ruleCode = null)
 		{
 			Raise(new SdcValidationEventArgs
 			{
@@ -110,7 +114,8 @@ namespace SDC.Schema
 				NodeID        = nodeID,
 				PropertyName  = propertyName,
 				AttemptedValue = attemptedValue,
-				Severity      = severity
+				Severity      = severity,
+				RuleCode      = ruleCode
 			});
 		}
 	}

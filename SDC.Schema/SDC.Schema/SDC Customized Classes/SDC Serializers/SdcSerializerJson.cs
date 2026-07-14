@@ -51,7 +51,11 @@ namespace SDC.Schema
 					// Normalise decimal scale so that whole-number decimals (e.g. 2M) are written as
 					// the integer JSON token "2" rather than "2.0". This preserves round-trip fidelity
 					// with values originally loaded from XML integer/decimal attributes.
-					Converters = { SdcJsonDecimalConverter.Instance }
+					// XmlAttributeListJsonConverter: replaces Newtonsoft's built-in XmlNodeConverter for
+					// ExtensionType.AnyAttr (List<XmlAttribute>) — see issue #27; XmlNodeConverter's
+					// WriteJson supports XmlAttribute but its ReadJson does not, so it must be overridden
+					// for both write and read to keep the two paths symmetric.
+					Converters = { SdcJsonDecimalConverter.Instance, new XmlAttributeListJsonConverter() }
 				};
 
 				return JsonConvert.SerializeObject(obj, settings);
@@ -108,7 +112,9 @@ namespace SDC.Schema
 				DateTimeZoneHandling   = DateTimeZoneHandling.Utc,
 				// Normalise decimal scale on read-back so "2.0" is stored as 2M (scale 0),
 				// matching the value originally loaded from XML.
-				Converters = { SdcJsonDecimalConverter.Instance }
+				// XmlAttributeListJsonConverter: see issue #27 / SerializeJson above — must be
+				// registered on the read side too so AnyAttr deserializes symmetrically.
+				Converters = { SdcJsonDecimalConverter.Instance, new XmlAttributeListJsonConverter() }
 			};
 			try
 			{
@@ -193,7 +199,8 @@ namespace SDC.Schema
 				ConstructorHandling  = ConstructorHandling.AllowNonPublicDefaultConstructor,
 				FloatFormatHandling  = FloatFormatHandling.String,
 				DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-				Converters           = { SdcJsonDecimalConverter.Instance }
+				// XmlAttributeListJsonConverter: see issue #27 — see SerializeJson/DeserializeJson above.
+				Converters           = { SdcJsonDecimalConverter.Instance, new XmlAttributeListJsonConverter() }
 			};
 			SdcUtil.IsDeserializing.Value    = true;
 			SdcUtil.SuppressValidation.Value = false;   // enable setter validation during load
