@@ -290,6 +290,25 @@ namespace SDC.Schema
 				if (recurseSubTrees && node is ITopNode subTopNode && !ReferenceEquals(subTopNode, topNode))
 					ValidateTreeInto(subTopNode, report, recurseSubTrees: true, visited);
 			}
+
+			foreach (var rule in SdcCoherenceRuleRegistry.ActiveRules)
+			{
+				var issues = rule.Evaluate(topNode) ?? Enumerable.Empty<SdcNodeValidationIssue>();
+				foreach (var issue in issues)
+				{
+					report.Add(issue);
+					SdcValidationEvents.Raise(new SdcValidationEventArgs
+					{
+						NodeID         = issue.NodeID,
+						PropertyName   = issue.PropertyName,
+						AttemptedValue = issue.AttemptedValue,
+						RuleCode       = issue.RuleCode,
+						Message        = issue.Message,
+						Severity       = issue.Severity,
+						Results        = issue.Results
+					});
+				}
+			}
 		}
 
 		/// <summary>

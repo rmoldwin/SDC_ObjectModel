@@ -13,12 +13,24 @@ namespace SDC.Schema.Tests.UtilityClasses.AnyAttr
     /// unverified. XmlAnyAttribute-based storage is a classically JSON-unfriendly pattern
     /// (no native "arbitrary namespaced attribute bag" concept in JSON), so this deserved
     /// explicit verification rather than an assumption either way.
+    ///
+    /// GitHub issue #27 tracked a confirmed bug here: GetJson()/GetBson() succeeded, but
+    /// DeserializeFromJson()/DeserializeFromBson() always threw
+    /// Newtonsoft.Json.JsonSerializationException ("XmlNodeConverter only supports
+    /// deserializing XmlDocument, XmlElement or XmlNode") whenever ExtensionType.AnyAttr
+    /// (List&lt;XmlAttribute&gt;) was populated. Root cause: Newtonsoft's built-in
+    /// XmlNodeConverter activates automatically for any XmlNode-derived type; its WriteJson
+    /// supports XmlAttribute but its ReadJson explicitly does not. Fixed by registering
+    /// XmlAttributeListJsonConverter (SDC.Schema/SDC Customized Classes/SDC Serializers/) in
+    /// SdcSerializerJson/SdcSerializerBson, which fully replaces XmlNodeConverter's handling
+    /// of List&lt;XmlAttribute&gt; for both read and write. These tests now assert the fixed,
+    /// successful round-trip.
     /// </summary>
     [TestClass]
     public class AnyAttrJsonRoundTripTests
     {
         [TestMethod]
-        public void AnyAttr_MixedNamespaces_JsonRoundTrip_CurrentlyThrows_KnownBug()
+        public void AnyAttr_MixedNamespaces_JsonRoundTrip_Succeeds()
         {
             // Build a tree the same way as the best-practices guide's Example 03
             // (SDC.Schema.QA.ExampleGenerator/Program.cs): an ExtensionType hosting two
@@ -27,8 +39,7 @@ namespace SDC.Schema.Tests.UtilityClasses.AnyAttr
             BaseType.ResetLastTopNode();
             var fd = new FormDesignType(null, "FD.AnyAttrJsonRoundTrip");
             fd.AddBody();
-            var di = fd.Body.AddChildDisplayedItem("DI.WithAdHocAttrs", "Display item carrying custom ad-hoc attributes");
-            var ext = di.AddExtension();
+            var ext = fd.Body.AddExtension();
 
             var doc = new XmlDocument();
             ext.AddOrUpdateAdHocAttribute(doc, "qa", "reviewStatus", "urn:example:qa", "approved");
@@ -36,44 +47,57 @@ namespace SDC.Schema.Tests.UtilityClasses.AnyAttr
 
             string json = fd.GetJson();
 
-            // Rationale: this is a CONFIRMED, REAL bug (not merely a theoretical risk),
-            // found while writing this test. GetJson() succeeds (ad-hoc attributes ARE
-            // present in the serialized JSON text), but DeserializeFromJson() throws
-            // Newtonsoft.Json.JsonSerializationException: "XmlNodeConverter only supports
-            // deserializing XmlDocument, XmlElement or XmlNode" when it hits the
-            // ExtensionType.AnyAttr (List<XmlAttribute>) collection. This test intentionally
-            // asserts today's (broken) behavior so the suite stays green while the gap is
-            // tracked; see guide/07-known-gaps-and-future-work.md item 2, now upgraded from
-            // "unverified" to "confirmed bug." If/when SdcSerializerJson's XmlNodeConverter
-            // usage is fixed to handle XmlAttribute (e.g. via a small custom
-            // JsonConverter), THIS TEST SHOULD BE REWRITTEN to assert successful round-trip
-            // instead (see the sibling AnyAttrJsonRoundTripTests-style assertions removed
-            // from this method for the expected-once-fixed shape).
-            var ex = Assert.ThrowsExactly<Newtonsoft.Json.JsonSerializationException>(
-                () => FormDesignType.DeserializeFromJson(json));
-            StringAssert.Contains(ex.InnerException?.Message ?? ex.Message, "XmlNodeConverter");
+            // Rationale: prior to the issue #27 fix, this threw JsonSerializationException.
+            // With XmlAttributeListJsonConverter registered, deserialization now succeeds and
+            // both ad-hoc attributes (including mixed namespaces and escaped/illegal XML
+            // content) must survive the round-trip intact.
+            var rehydrated = FormDesignType.DeserializeFromJson(json);
+            var rehydratedExt = rehydrated.Body!.Extension!.First();
+
+            Assert.IsNotNull(rehydratedExt.AnyAttr);
+            Assert.AreEqual(2, rehydratedExt.AnyAttr.Count);
+
+            var reviewStatus = rehydratedExt.AnyAttr.First(a => a.LocalName == "reviewStatus");
+            Assert.AreEqual("qa", reviewStatus.Prefix);
+            Assert.AreEqual("urn:example:qa", reviewStatus.NamespaceURI);
+            Assert.AreEqual("approved", reviewStatus.Value);
+
+            // Rationale: this attribute's value contains "&", "<", and escaped quotes — exactly
+            // the kind of content that would reveal any escaping bug introduced by a hand-rolled
+            // JSON converter. Asserting the value round-trips byte-for-byte confirms the
+            // converter handles illegal/special XML content correctly, not just the happy path.
+            var protocolRef = rehydratedExt.AnyAttr.First(a => a.LocalName == "protocolRef");
+            Assert.AreEqual("cap", protocolRef.Prefix);
+            Assert.AreEqual("urn:example:cap", protocolRef.NamespaceURI);
+            Assert.AreEqual("A & B <legal \"escaped\" content>", protocolRef.Value);
         }
 
         [TestMethod]
-        public void AnyAttr_MixedNamespaces_BsonRoundTrip_CurrentlyThrows_KnownBug()
+        public void AnyAttr_MixedNamespaces_BsonRoundTrip_Succeeds()
         {
-            // Same underlying bug as the JSON test above (SdcSerializerBson shares the same
-            // Newtonsoft.Json XmlNodeConverter-based approach for List<XmlAttribute>/
-            // List<XmlElement>), reached through the BSON serializer instead.
+            // Same underlying fix as the JSON test above (SdcSerializerBson registers the same
+            // XmlAttributeListJsonConverter for List<XmlAttribute>), reached through the BSON
+            // serializer instead.
             BaseType.ResetLastTopNode();
             var fd = new FormDesignType(null, "FD.AnyAttrBsonRoundTrip");
             fd.AddBody();
-            var di = fd.Body.AddChildDisplayedItem("DI.WithAdHocAttrs", "Display item carrying custom ad-hoc attributes");
-            var ext = di.AddExtension();
+            var ext = fd.Body.AddExtension();
 
             var doc = new XmlDocument();
             ext.AddOrUpdateAdHocAttribute(doc, "qa", "reviewStatus", "urn:example:qa", "approved");
 
             string bson = fd.GetBson();
 
-            var ex = Assert.ThrowsExactly<Newtonsoft.Json.JsonSerializationException>(
-                () => FormDesignType.DeserializeFromBson(bson));
-            StringAssert.Contains(ex.Message, "XmlNodeConverter");
+            var rehydrated = FormDesignType.DeserializeFromBson(bson);
+            var rehydratedExt = rehydrated.Body!.Extension!.First();
+
+            Assert.IsNotNull(rehydratedExt.AnyAttr);
+            Assert.AreEqual(1, rehydratedExt.AnyAttr.Count);
+
+            var reviewStatus = rehydratedExt.AnyAttr.First(a => a.LocalName == "reviewStatus");
+            Assert.AreEqual("qa", reviewStatus.Prefix);
+            Assert.AreEqual("urn:example:qa", reviewStatus.NamespaceURI);
+            Assert.AreEqual("approved", reviewStatus.Value);
         }
     }
 }
