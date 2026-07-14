@@ -28,6 +28,9 @@ namespace SDC.Schema
 		/// <summary>The value that was rejected (may be null for non-setter events).</summary>
 		public object? AttemptedValue { get; init; }
 
+		/// <summary>Optional rule identifier for non-DataAnnotations findings (for example <c>SDAC</c> or <c>SDS</c>).</summary>
+		public string? RuleCode { get; init; }
+
 		/// <summary>
 		/// Human-readable description of the issue; combines all
 		/// <see cref="ValidationResult.ErrorMessage"/> values when multiple constraints fail.
@@ -44,8 +47,11 @@ namespace SDC.Schema
 		/// </summary>
 		public IReadOnlyList<ValidationResult> Results { get; init; } = System.Array.Empty<ValidationResult>();
 
-		public override string ToString() =>
-			$"[{Severity}] {NodeType}/{NodeID} .{PropertyName} = {AttemptedValue ?? "null"} — {Message}";
+		public override string ToString()
+		{
+			var rulePrefix = string.IsNullOrWhiteSpace(RuleCode) ? string.Empty : $"{RuleCode} ";
+			return $"[{Severity}] {rulePrefix}{NodeType}/{NodeID} .{PropertyName} = {AttemptedValue ?? "null"} — {Message}";
+		}
 	}
 
 	/// <summary>
