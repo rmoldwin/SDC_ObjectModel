@@ -20,27 +20,27 @@
     <Compile Remove="Modified SDC Classes\ItemsNodeAnnotated\**" />
     <Compile Remove="Need Base Class in Schema\**" />
     <Compile Remove="SDC MsgPack Generator\**" />
-    <Compile Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
-    <Compile Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
-    <Compile Remove="SDC.Schema\SDC Schema Files\Xsd2CodeV7Classes\**" />
+    <Compile Remove="Schema Classes\SDC Schema Files\Excluded SDC Schema Classes\**" />
+    <Compile Remove="Schema Classes\SDC Schema Files\Excluded SDC Schema Classes\**" />
+    <Compile Remove="Schema Classes\SDC Schema Files\Xsd2CodeV7Classes\**" />
     <Compile Remove="SDC.Type\**" />
     <Compile Remove="Utility Classes\Junk\**" />
     <EmbeddedResource Remove="Modified SDC Classes\ConstuctorCommentedOut\**" />
     <EmbeddedResource Remove="Modified SDC Classes\ItemsNodeAnnotated\**" />
     <EmbeddedResource Remove="Need Base Class in Schema\**" />
     <EmbeddedResource Remove="SDC MsgPack Generator\**" />
-    <EmbeddedResource Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
-    <EmbeddedResource Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
-    <EmbeddedResource Remove="SDC.Schema\SDC Schema Files\Xsd2CodeV7Classes\**" />
+    <EmbeddedResource Remove="Schema Classes\SDC Schema Files\Excluded SDC Schema Classes\**" />
+    <EmbeddedResource Remove="Schema Classes\SDC Schema Files\Excluded SDC Schema Classes\**" />
+    <EmbeddedResource Remove="Schema Classes\SDC Schema Files\Xsd2CodeV7Classes\**" />
     <EmbeddedResource Remove="SDC.Type\**" />
     <EmbeddedResource Remove="Utility Classes\Junk\**" />
     <None Remove="Modified SDC Classes\ConstuctorCommentedOut\**" />
     <None Remove="Modified SDC Classes\ItemsNodeAnnotated\**" />
     <None Remove="Need Base Class in Schema\**" />
     <None Remove="SDC MsgPack Generator\**" />
-    <None Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
-    <None Remove="SDC.Schema\SDC Schema Files\Excluded SDC Schema Classes\**" />
-    <None Remove="SDC.Schema\SDC Schema Files\Xsd2CodeV7Classes\**" />
+    <None Remove="Schema Classes\SDC Schema Files\Excluded SDC Schema Classes\**" />
+    <None Remove="Schema Classes\SDC Schema Files\Excluded SDC Schema Classes\**" />
+    <None Remove="Schema Classes\SDC Schema Files\Xsd2CodeV7Classes\**" />
     <None Remove="SDC.Type\**" />
     <None Remove="Utility Classes\Junk\**" />
   </ItemGroup>
@@ -49,79 +49,79 @@
     <Compile Remove="Partial Classes\CC.cs" />
     <!-- Phase 4: Exclude originals replaced by AddedValidationLogic copies (Group A - val setters) -->
     <!-- Constructor Commented Out Only: numeric Stype originals -->
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\decimal_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\float_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\double_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\byte_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\short_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\int_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\long_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedByte_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedShort_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedInt_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedLong_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\decimal_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\float_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\double_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\byte_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\short_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\int_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\long_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\unsignedByte_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\unsignedShort_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\unsignedInt_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\unsignedLong_Stype.cs" />
     <!-- SDC Unmodified Classes: string/binary Stype originals -->
-    <Compile Remove="SDC.Schema\SDC Unmodified Classes\string_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Unmodified Classes\anyURI_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Unmodified Classes\boolean_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Unmodified Classes\base64Binary_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Unmodified Classes\hexBinary_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Unmodified Classes\string_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Unmodified Classes\anyURI_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Unmodified Classes\boolean_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Unmodified Classes\base64Binary_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Unmodified Classes\hexBinary_Stype.cs" />
     <!-- DateTimeOffset Datatypes: date/time Stype originals -->
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\date_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\time_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\dateTime_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\date_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\time_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\dateTime_Stype.cs" />
     <!-- Phase 4: Exclude originals replaced by AddedValidationLogic copies (Group B - constraint setters) -->
     <!-- Constructor Commented Out Only: DEtype constraint-setter originals -->
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\decimal_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\float_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\double_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\byte_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\short_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedByte_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedShort_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedInt_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\unsignedLong_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\decimal_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\float_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\double_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\byte_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\short_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\unsignedByte_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\unsignedShort_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\unsignedInt_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\unsignedLong_DEtype.cs" />
     <!-- Phase 6: Exclude integer-family originals replaced by AddedValidationLogic copies -->
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\integer_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\long_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\int_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\negativeInteger_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\nonNegativeInteger_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\nonPositiveInteger_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\positiveInteger_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\integer_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\long_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\int_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\negativeInteger_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\nonNegativeInteger_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\nonPositiveInteger_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\positiveInteger_DEtype.cs" />
-    <Compile Include="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\integer_DEtype.cs" />
-    <Compile Include="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\long_DEtype.cs" />
-    <Compile Include="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\int_DEtype.cs" />
-    <Compile Include="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\negativeInteger_DEtype.cs" />
-    <Compile Include="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\nonNegativeInteger_DEtype.cs" />
-    <Compile Include="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\nonPositiveInteger_DEtype.cs" />
-    <Compile Include="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\positiveInteger_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\integer_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\long_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\int_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\negativeInteger_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\nonNegativeInteger_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\nonPositiveInteger_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\positiveInteger_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\integer_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\long_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\int_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\negativeInteger_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\nonNegativeInteger_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\nonPositiveInteger_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\positiveInteger_DEtype.cs" />
+    <Compile Include="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\integer_DEtype.cs" />
+    <Compile Include="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\long_DEtype.cs" />
+    <Compile Include="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\int_DEtype.cs" />
+    <Compile Include="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\negativeInteger_DEtype.cs" />
+    <Compile Include="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\nonNegativeInteger_DEtype.cs" />
+    <Compile Include="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\nonPositiveInteger_DEtype.cs" />
+    <Compile Include="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\AddedValidationLogic\positiveInteger_DEtype.cs" />
     <!-- SDC Unmodified Classes: DEtype constraint-setter originals -->
-    <Compile Remove="SDC.Schema\SDC Unmodified Classes\string_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Unmodified Classes\anyURI_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Unmodified Classes\string_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Unmodified Classes\anyURI_DEtype.cs" />
     <!-- DateTimeOffset Datatypes: DEtype constraint-setter originals -->
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\date_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\time_DEtype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\dateTime_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\date_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\time_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\DateTimeOffset Datatypes and Constructor\dateTime_DEtype.cs" />
     <!-- SDC TimeSpan string Datatypes: DEtype constraint-setter originals -->
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\SDC TimeSpan string Datatypes\duration_DEtype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\SDC TimeSpan string Datatypes\duration_DEtype.cs" />
     <!-- Phase 10: Exclude integer-family Stype originals replaced by AddedValidationLogic copies -->
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\integer_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\negativeInteger_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\nonNegativeInteger_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\nonPositiveInteger_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\Constructor Commented Out Only\positiveInteger_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\integer_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\negativeInteger_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\nonNegativeInteger_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\nonPositiveInteger_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\Constructor Commented Out Only\positiveInteger_Stype.cs" />
     <!-- Phase 10: Exclude duration-family Stype originals replaced by AddedValidationLogic copies -->
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\SDC TimeSpan string Datatypes\duration_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\SDC TimeSpan string Datatypes\dayTimeDuration_Stype.cs" />
-    <Compile Remove="SDC.Schema\SDC Constructor Removed\SDC TimeSpan string Datatypes\yearMonthDuration_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\SDC TimeSpan string Datatypes\duration_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\SDC TimeSpan string Datatypes\dayTimeDuration_Stype.cs" />
+    <Compile Remove="Schema Classes\SDC Constructor Removed\SDC TimeSpan string Datatypes\yearMonthDuration_Stype.cs" />
 
     <Compile Remove="Utility Classes\Attribute and PI Structs and Methods\CompareTreesTests.cs" />
     <Compile Remove="Utility Classes\Extensions\Unimplemented Extensions.cs" />
@@ -167,52 +167,52 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="SDC.Schema\SDC Schema Files\SDCBase.xsd">
+    <None Update="Schema Classes\SDC Schema Files\SDCBase.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SDC.Schema\SDC Schema Files\SDCDataTypes.xsd">
+    <None Update="Schema Classes\SDC Schema Files\SDCDataTypes.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SDC.Schema\SDC Schema Files\SDCExpressions.xsd">
+    <None Update="Schema Classes\SDC Schema Files\SDCExpressions.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SDC.Schema\SDC Schema Files\SDCFormDesign.xsd">
+    <None Update="Schema Classes\SDC Schema Files\SDCFormDesign.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SDC.Schema\SDC Schema Files\SDCMapping.xsd">
+    <None Update="Schema Classes\SDC Schema Files\SDCMapping.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SDC.Schema\SDC Schema Files\SDCOverrides.xsd">
+    <None Update="Schema Classes\SDC Schema Files\SDCOverrides.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SDC.Schema\SDC Schema Files\SDCResources.xsd">
+    <None Update="Schema Classes\SDC Schema Files\SDCResources.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SDC.Schema\SDC Schema Files\SDCRetrieveForm.xsd">
+    <None Update="Schema Classes\SDC Schema Files\SDCRetrieveForm.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SDC.Schema\SDC Schema Files\SDCSubmitForm.xsd">
+    <None Update="Schema Classes\SDC Schema Files\SDCSubmitForm.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SDC.Schema\SDC Schema Files\sdctemplate.css">
+    <None Update="Schema Classes\SDC Schema Files\sdctemplate.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SDC.Schema\SDC Schema Files\sdctemplate.xslt">
+    <None Update="Schema Classes\SDC Schema Files\sdctemplate.xslt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SDC.Schema\SDC Schema Files\SDCTemplateAdmin.xsd">
+    <None Update="Schema Classes\SDC Schema Files\SDCTemplateAdmin.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SDC.Schema\SDC Schema Files\xhtml.xsd">
+    <None Update="Schema Classes\SDC Schema Files\xhtml.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SDC.Schema\SDC Schema Files\xml.xsd">
+    <None Update="Schema Classes\SDC Schema Files\xml.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="SDC.Schema\SDC Schema Files\Schema Classes\" />
+    <Folder Include="Schema Classes\SDC Schema Files\Schema Classes\" />
   </ItemGroup>
 
 </Project>
