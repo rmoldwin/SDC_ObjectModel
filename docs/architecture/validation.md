@@ -161,3 +161,49 @@ All three run through both surfaces (`ValidateTree()` and, once the
 `BP-VAL-002` bridge lands, the `QaEngine` report) to confirm the two tracks
 stay in sync.
 
+## Validation pipeline unification (completed)
+
+> Consolidated from `ValidationUnificationPlan.md` and `ValidationScenarios.md` (originally in
+> `SDC.Schema.Tests/Documentation`, now archived — see [../changes/](../changes/)).
+
+Prior to this work, user-supplied values could reach the SDC OM through several different entry
+points that did **not** all go through the same validation pipeline — direct setter mutation,
+extension-method-based construction, the internal `SdcDataTypeBuilder` (formerly the public
+`IDataHelpers`), lexical string assignment (`SetLexicalValue`), and all four (de)serializers. A
+10-phase unification project (tracked under `Features/NET10/IDataHelpers*` and
+`Features/NET10/CoherenceValidator` branches, merged to `Net10Main`) closed every gap so that
+**every** write path now routes through the same `SdcUtil.ValidateAndRaise()` /
+`ValidateLexicalAndRaise()` central soft-reject logic, firing the same
+`SdcValidationEvents.ValidationOccurred` event and populating the same
+`SdcUtil.ValidationCollector`. Key outcomes:
+
+- **`SdcDataTypeBuilder`** (an `internal static class`, replacing the old public `IDataHelpers`
+  interface, which remains as an `[Obsolete]` shim) now calls `ValidateAndRaise`/
+  `ValidateLexicalAndRaise` on every parse path instead of a private `StoreError()` silo that
+  bypassed the rejected-value store and validation collector.
+- **Every `*_Stype.val` setter and `*_DEtype` constraint setter** (including ones in
+  auto-generated folders, copied into a parallel `AddedValidationLogic` subfolder per the
+  project's generated-file-editing policy — original logic preserved, commented out alongside the
+  replacement) now routes through the same soft-reject pipeline. See the top of each
+  auto-generated source folder for its `AddedValidationLogic` sibling.
+- **Cross-property coherence checking** (`SdcValidate.CheckValAgainstConstraints` /
+  `CheckConstraintCoherence`) was added so that, for example, `val=50` with `minInclusive=100` is
+  now flagged (previously silently accepted) — 9 coherence rules total, covering `val` vs.
+  `min`/`maxInclusive`/`min`/`maxExclusive`/`pattern`/`minLength`/`maxLength`/`fractionDigits`/
+  `totalDigits`, plus `minInclusive` vs. `maxInclusive` self-coherence.
+- Result: the project's test suite grew from a 568-test baseline to 671 passing, 0 failing, with
+  every new validation path covered by dedicated tests
+  (`SdcCoherenceValidationTests.cs` and others).
+
+### Using validation day-to-day
+
+- **Direct assignment** — the simplest entry point; the generated setter calls
+  `SdcUtil.ValidateAndRaise` internally. An invalid assignment is never stored; the prior value is
+  retained, and the rejection is recorded in `node.RejectedValues[propertyName]` (check
+  `ContainsKey` or read the `SdcRejectedValue.Message`).
+- **`WouldBeValid(expression, candidate[, out string? msg])`** — a pure predicate with **zero**
+  side effects (no event fired, no collector write, no rejected-value store write). Safe to call
+  speculatively in tight loops or UI live-preview code before committing a real assignment.
+- **`TryAssignValue`** — a try-style assignment through the real setter, returning success/failure
+  without the caller needing to catch exceptions or inspect `RejectedValues` manually.
+
