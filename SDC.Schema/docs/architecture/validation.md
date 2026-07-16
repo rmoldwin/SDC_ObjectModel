@@ -53,11 +53,11 @@ var engine = new QaEngine(new IQaRule[]
 {
     new DuplicateIdRule(),                 // BP-MUT-001
     new UnresolvedRejectedValuesRule(),    // BP-VAL-001
-    new SdacSdsCoherenceRule(),            // BP-VAL-002 (bridges the registry above)
+    new CoherenceValidationBridgeRule(),    // BP-VAL-002 (bridges ValidateTree() RuleCode findings)
     // ...plus any of your own IQaRule implementations
 });
 
-QaReport qaReport = engine.Evaluate(topNode);
+QaReport qaReport = engine.Run(topNode);
 foreach (var finding in qaReport.Findings)
     Console.WriteLine($"[{finding.RuleId}] {finding.Message}");
 ```
