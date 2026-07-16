@@ -13,9 +13,11 @@ This chapter will cover the SDC.Schema serializer architecture across all suppor
 - **BSON (Binary JSON)** — `SdcSerializerBson<T>`, using `Newtonsoft.Json.Bson`'s
   `BsonDataWriter`/`BsonDataReader` with a `Newtonsoft.Json.JsonSerializer` (settings align with JSON).
   BSON bytes are stored as Base64 strings.
-- **MessagePack** — `SdcSerializerMsgPack<T>`, using `MsgPack.Cli`'s
-  `MessagePackSerializer<T>.Pack`/`Unpack`, following the same generated-code template as
-  JSON/BSON (`SaveToFile`, `LoadFromFile`, `Serialize`, `Deserialize`).
+- **MessagePack** — `SdcSerializerMsgPack<T>`, using `Newtonsoft.Msgpack`'s
+  `MessagePackWriter`/`MessagePackReader` (subclasses of `JsonWriter`/`JsonReader`) with
+  `Newtonsoft.Json.JsonSerializer`, following the same pattern and settings as BSON. Returns
+  `byte[]` (not Base64). Public APIs: `SerializeMsgPack`, `DeserializeMsgPack`,
+  `SaveToFileMsgPack`, `LoadFromFileMsgPack`.
 - Ad hoc/"any" attribute and namespace round-tripping across all of the above formats, including
   multiple mixed namespaces and inherited/default namespace usage (see
   [qa-best-practices.md](qa-best-practices.md) for the relevant numbered example and QA rules).
