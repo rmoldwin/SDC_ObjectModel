@@ -28,11 +28,11 @@ own file. See [glossary.md](glossary.md) for every initialism used below.
    thread-pool/concurrency caveats specific to WASM.
 7. **Modeling Best Practices** — `architecture/modeling-best-practices.md`
    Guidance for authoring SDC forms/Form Design Files (FDFs) against this object model.
-8. **OM Tree Stability & Thread Safety** — `architecture/tree-stability.md`,
-   `architecture/thread-safety.md`
+8. **OM Tree Stability & Thread Safety** — [architecture/tree-stability.md](architecture/tree-stability.md),
+   [architecture/thread-safety.md](architecture/thread-safety.md)
    Consolidated findings from the tree-stability and thread-safety investigation work
    (migrated from `SDC.Schema.Tests/Documentation`).
-9. **Type Fidelity: XSD vs .NET** — `architecture/xsd-dotnet-type-mapping.md`
+9. **Type Fidelity: XSD vs .NET** — [architecture/xsd-dotnet-type-mapping.md](architecture/xsd-dotnet-type-mapping.md)
    Consolidated divergence notes for `anyURI`, `dateTime`, and numeric range types between XML
    Schema Definition (XSD) and .NET (migrated from `SDC.Schema.Tests/Documentation`).
 

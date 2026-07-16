@@ -15,25 +15,28 @@ delete it" assertion, which is **false**: `TreeLock` is LIVE in `CompareTrees.cs
 
 ### Canonical thread-safety documents — use these instead
 
-| File (parent folder) | Role |
-|------|------|
-| `ThreadSafety_SessionSummary_AND_Kickstart.md` | Restart entry point + kickstart prompt (START HERE) |
-| `ThreadSafety_RemediationPlan_OptionC.md` | Locked Option C implementation spec (TS-1…TS-7 edit map) |
-| `ThreadSafety_RootCauseDiagnosis.md` | Evidence record (TS-1…TS-7, reader/writer map, repro results) |
-| `ThreadSafety_SessionHandoff.md` | Supporting resume/handoff reference |
-| `ThreadSafety_StrategyDecision.md` | Origin of the Option C (`ReaderWriterLockSlim`) decision — still cited as accurate |
-| `ThreadSafety_LockingStrategy_Analysis.md` | Locking deep-dive — kept active as a helpful overview for future work |
+Thread-safety content now lives at **[../../../docs/architecture/thread-safety.md](../../../docs/architecture/thread-safety.md)**,
+which synthesizes the final implemented state (not a concatenation of the drafts below).
 
 ### Archived in this folder (thread-safety, superseded)
 
 | File | Why archived |
 |------|--------------|
-| `ThreadSafetyAnalysis.md` | Early broad analysis; superseded by `ThreadSafety_RootCauseDiagnosis.md`. |
-| `ThreadSafety_ArchitecturalAnalysis.md` | Early architectural pass; folded into the diagnosis + Option C plan. |
-| `ThreadSafety_AuditChecklist.md` | Early API audit checklist; superseded by the §4f lock table in the Option C plan. |
-| `ThreadSafety_Phase1_ActionPlan.md` | Early phased plan; superseded by the Option C plan §6 sequencing. |
+| `ThreadSafetyAnalysis.md` | Early broad analysis; superseded by the consolidated chapter. |
+| `ThreadSafety_ArchitecturalAnalysis.md` | Early architectural pass; folded into the consolidated chapter. |
+| `ThreadSafety_AuditChecklist.md` | Early API audit checklist; superseded by the consolidated chapter. |
+| `ThreadSafety_Phase1_ActionPlan.md` | Early phased plan; superseded by the consolidated chapter. |
 | `ThreadSafety_Phase1_BLOCKED_STATUS.md` | Point-in-time "blocked by file lock" status; the `TreeLock` "public" blocker is resolved. |
-| `ThreadSafety_Phase1_Task1.1_Summary.md` | Early task summary; superseded by the locked plan. |
+| `ThreadSafety_Phase1_Task1.1_Summary.md` | Early task summary; superseded by the consolidated chapter. |
+| `ThreadSafety_RootCauseDiagnosis.md` | Root-cause evidence record (TS-1…TS-7); content merged into the consolidated chapter. |
+| `ThreadSafety_RemediationPlan_OptionC.md` | Locked Option C implementation spec; content merged into the consolidated chapter. |
+| `ThreadSafety_StrategyDecision.md` | Origin of the Option C decision; content merged into the consolidated chapter. |
+| `ThreadSafety_LockingStrategy_Analysis.md` | **Recommended `SemaphoreSlim`, not the strategy actually implemented** (the project shipped `ReaderWriterLockSlim`, "Option C"). Previously mislabeled "kept active" in this README — that was wrong; this document's core recommendation was never adopted. Archived as a rejected alternative, not as guidance. |
+
+Session handoff/kickstart documents for thread-safety work (`ThreadSafety_SessionHandoff.md`,
+`ThreadSafety_SessionSummary_AND_Kickstart.md`, `ThreadSafety_TS6_Complete_Handoff.md`) were **not**
+archived — they were moved to the top-level [`sessions/`](../../../sessions/) folder instead, since
+they describe *how and when* the work was done rather than durable architecture.
 
 > **Note on `RC-#` labels:** The archived documents use `RC-1`…`RC-7` (intended as "Root Cause").
 > In this project **RC means "Release Candidate"**, so that label was incorrect. The canonical IDs
@@ -46,16 +49,11 @@ delete it" assertion, which is **false**: `TreeLock` is LIVE in `CompareTrees.cs
 
 These documents describe the **pre-refactor architecture** where `IDataHelpers.AddDataTypesDE`
 held the parsing and validation logic directly. That logic has since been extracted to the
-`SdcDataTypeBuilder` internal static class (Phases 1–5). `IDataHelpers` is now a thin
-`[Obsolete]` shim that delegates to `SdcDataTypeBuilder`.
-
-### Canonical IDataHelpers/SdcDataTypeBuilder documents — use these instead
-
-| File (parent folder) | Role |
-|------|------|
-| `Session_Handoff_TestAudit_SerializerFixes_RepoHygiene.md` | Current overall session state and next steps |
-| `NumericRange_XSD_vs_NET.md` | XSD vs .NET numeric range reference (still current) |
-| `DateTimeValidation_XSD_vs_NET.md` | XSD vs .NET date/time reference (still current) |
+`SdcDataTypeBuilder` internal static class. `IDataHelpers` is now a thin `[Obsolete]` shim that
+delegates to `SdcDataTypeBuilder`. This content, and the completed 10-phase validation-pipeline
+unification it planned, is now consolidated in
+**[../../../docs/architecture/validation.md](../../../docs/architecture/validation.md)**
+(see "Validation pipeline unification").
 
 ### Archived in this folder (IDataHelpers, superseded)
 
@@ -64,3 +62,23 @@ held the parsing and validation logic directly. That logic has since been extrac
 | `DateTimeValidation_Plan.md` | Phase 1–3 plan to fix `IDataHelpers.AddDataTypesDE`; all bugs fixed, logic moved to `SdcDataTypeBuilder`. |
 | `Kickstart_DateTimeValidation.md` | Old session kickstart for date/time validation work; work completed and merged. |
 | `Session_Handoff_ValidationPlan.md` | Phase 1 handoff describing `IDataHelpers` bugs and fix plan; all phases now complete. |
+| `ValidationUnificationPlan.md` | The full 10-phase unification plan; all phases complete — summarized in `validation.md`. |
+| `ValidationScenarios.md` | End-to-end validation entry-point guide; content merged into `validation.md`. |
+
+---
+
+## Section 3 — Type Fidelity & Tree Stability (superseded by consolidated architecture chapters)
+
+| File | Why archived | Canonical replacement |
+|------|--------------|------------------------|
+| `AnyURI_XSD_vs_NET.md` | `anyURI` vs. `Uri` divergence notes; merged. | [`docs/architecture/xsd-dotnet-type-mapping.md`](../../../docs/architecture/xsd-dotnet-type-mapping.md) |
+| `NumericRange_XSD_vs_NET.md` | Numeric range divergence notes; merged. | same |
+| `DateTimeValidation_XSD_vs_NET.md` | Date/time-part divergence notes; merged. | same |
+| `BsonJsonSerializationBugReport.md` | BSON/JSON/MsgPack bug history + Xsd2Code++ serializer architecture notes; merged. | [`docs/architecture/serialization.md`](../../../docs/architecture/serialization.md) |
+| `OM_TreeStability_CurrentState.md` | Superseded snapshot (27/27 tests); final state is 38/38. | [`docs/architecture/tree-stability.md`](../../../docs/architecture/tree-stability.md) |
+| `OM_TreeStability_Implementation_Progress.md` | In-progress snapshot; superseded by the final consolidated chapter. | same |
+
+Related session-completion documents (`Session_OMTreeStability_Implementation_Complete.md`,
+`Session_MoveReparent_BugFix_Complete.md`) were moved to top-level [`sessions/`](../../../sessions/)
+rather than archived here, since they document *when/how* the work was completed, not the
+resulting architecture.

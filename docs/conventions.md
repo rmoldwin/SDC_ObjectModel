@@ -26,3 +26,22 @@ Cryptic internal jargon (rule IDs, ticket numbers, ad hoc abbreviations) is fine
 identifier* for cross-referencing, but it must never be the only label attached to something.
 Anyone reading a commit title, an issue, or a doc page for the first time should be able to
 understand what it's about without having to go spelunking through the codebase.
+
+---
+
+# Multi-PR Work Stage Naming Convention
+
+**Rule:** When a piece of work is planned as a sequence of staged GitHub pull requests, refer to
+each stage as **"Stage 1", "Stage 2", ...** — never "PR1", "PR2", etc. GitHub assigns its own
+pull request/issue numbers automatically (a single global counter across the whole repository,
+shared with issues), so a plan's "Stage N" almost never lines up with the actual GitHub `#number`
+that stage ends up as. Calling a stage "PR2" when it might become GitHub PR #33 (or get folded
+into another PR, or split across two) creates confusion between the plan's internal sequencing
+and GitHub's real numbering.
+
+- Always write **"Stage 1"**, **"Stage 2"**, etc. when discussing the plan itself.
+- Always write **"PR #<actual number>"** (with the `#`) when referring to a real, opened GitHub
+  pull request — never abbreviate or predict its number in advance.
+- If a stage's work later gets folded into a different PR than originally planned (as happened
+  during this docs-restructuring project, where Stage 3 landed inside PR #34 instead of its own
+  PR), say so explicitly rather than letting the stage label imply a 1:1 mapping.
