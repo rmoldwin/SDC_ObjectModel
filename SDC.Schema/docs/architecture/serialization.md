@@ -10,9 +10,9 @@ This chapter will cover the SDC.Schema serializer architecture across all suppor
   `TypeNameHandling.All` and `ConstructorHandling.AllowNonPublicDefaultConstructor` for
   polymorphic round-trips (diverging from stock generated JSON serializers, which use an empty
   `new JsonSerializerSettings()`).
-- **BSON (Binary JSON)** — `SdcSerializerBson<T>`, using `Newtonsoft.Json.JsonSerializer` with
-  `BsonDataWriter`/`BsonDataReader` (subclasses of `JsonWriter`/`JsonReader`), same core settings
-  as JSON but with `DefaultSerialiser = BSonSerializer`. BSON bytes are stored as Base64 strings.
+- **BSON (Binary JSON)** — `SdcSerializerBson<T>`, using `Newtonsoft.Json.Bson`'s
+  `BsonDataWriter`/`BsonDataReader` with a `Newtonsoft.Json.JsonSerializer` (settings align with JSON).
+  BSON bytes are stored as Base64 strings.
 - **MessagePack** — `SdcSerializerMsgPack<T>`, using `MsgPack.Cli`'s
   `MessagePackSerializer<T>.Pack`/`Unpack`, following the same generated-code template as
   JSON/BSON (`SaveToFile`, `LoadFromFile`, `Serialize`, `Deserialize`).
