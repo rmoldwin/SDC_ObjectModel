@@ -69,11 +69,10 @@ working plug-in point today. A client app that only needs **on-demand**
 
 ### (De)serialization-time validation
 
-`ValidateTree()` (and therefore SDAC/SDS + any registered
-`ISdcCoherenceRule`) already runs automatically as part of the existing
-deserialization validation sweep — no extra step is required to get
-SDAC/SDS coverage on every deserialize. This is separate from, and in
-addition to, the pre-existing per-property `RejectedValues`
+`ValidateTree()` (and therefore SDAC/SDS + any registered `ISdcCoherenceRule`) does **not** run automatically on every deserialize today.
+After deserializing, call `topNode.ValidateTree()` explicitly to run the sweep, or use the `Deserialize*Validating(...)` overloads
+(e.g. `DeserializeXmlValidating`) to validate during load and collect an `SdcValidationReport`.
+This is separate from, and in addition to, the pre-existing per-property `RejectedValues`
 (`SdcRejectedValue`) mechanism, which records values a setter refused to
 store (a different, narrower concept than a coherence-rule finding — nothing
 is "rejected" in an SDAC/SDS finding; the selection *is* applied, it's just
