@@ -127,11 +127,11 @@ flagged as data-at-risk).
 - **`QaEngine`** — constructed with an explicit `IEnumerable<IQaRule>`; this
   is already inherently pluggable, since any consumer can pass in custom
   `IQaRule` implementations with zero core-library changes.
-- **`BP-VAL-002` (`SdacSdsCoherenceRule` or similarly named)** — the bridge
-  rule. Internally, it either (a) calls `topNode.ValidateTree()` and filters
-  for `RuleCode is "SDAC" or "SDS"`-tagged issues, or (b) calls
-  `SdcCoherenceRuleRegistry`'s rules directly and maps
-  `SdcNodeValidationIssue` → `QaFinding`. Either approach means a rule author
+- **`BP-VAL-002` (`CoherenceValidationBridgeRule`)** — the bridge rule.
+  Internally, it calls `topNode.ValidateTree()` and maps each issue with a non-empty `RuleCode`
+  into a `QaFinding` so SDAC/SDS warnings and any custom coherence rules surface in `QaReport`.
+  This avoids duplicating detection logic in `SDC.Schema.QA` while still reporting it there.
+  Either way, a rule author
   only ever writes **one** `ISdcCoherenceRule` implementation to have it show
   up in both the real-time event stream/`SdcValidationReport` **and** the QA
   Markdown/HTML report — avoiding duplicate implementations of the same
