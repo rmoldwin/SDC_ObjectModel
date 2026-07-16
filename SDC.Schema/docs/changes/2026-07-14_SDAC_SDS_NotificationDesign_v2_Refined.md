@@ -29,7 +29,7 @@ is now about flagging *at-risk user data*, not "illegal simultaneous states"):
   `selected`, for each sibling LI that would be auto-deselected as a result, walk *that
   sibling's* descendants and look for existing user-entered data (same `@val`/response/`selected`
   check as SDAC). Same reasoning as SDAC: this is a `Warning` because the user may want to
-  undo the SDS selection before sibling data is discarted, and undo should still be possible
+  undo the SDS selection before sibling data is discarded, and undo should still be possible
   in the client UI.
 - **Key structural difference between the two** (do not conflate them): SDAC operates on
   **all descendants of the SDAC LI itself**; SDS operates on **the sibling LIs that get
