@@ -1,5 +1,22 @@
 # Thread Safety
 
+> **⚠️ Important scope caveat:** This chapter documents the **desktop, single-process** thread-safety
+> investigation only (TS-1 through TS-7 below, all fixed). A **separate, still-open** investigation
+> into thread safety under **real WebAssembly (WASM) multi-threading** (`WasmEnableThreads`,
+> `WasmPThreadPoolSize`, branch `Features/NET10/ILandWASM/BlazorAsyncTests/Phase2`) has found
+> additional, unresolved bugs — duplicate-key exceptions and deadlocks — and, confusingly, **reuses
+> some of the same `TS-#` numbers** (TS-4, TS-5, TS-7, TS-8, TS-9) for different defects than the
+> ones described here. Do **not** read "TS-7 fixed" below as meaning the WASM TS-7 is also fixed —
+> it is a different bug with a colliding label. See open GitHub issues
+> [#20](https://github.com/rmoldwin/SDC_ObjectModel/issues/20),
+> [#21](https://github.com/rmoldwin/SDC_ObjectModel/issues/21),
+> [#22](https://github.com/rmoldwin/SDC_ObjectModel/issues/22),
+> [#23](https://github.com/rmoldwin/SDC_ObjectModel/issues/23),
+> [#24](https://github.com/rmoldwin/SDC_ObjectModel/issues/24),
+> [#25](https://github.com/rmoldwin/SDC_ObjectModel/issues/25), and
+> [#28](https://github.com/rmoldwin/SDC_ObjectModel/issues/28) for the current, unresolved WASM
+> thread-safety backlog, tracked separately in [../roadmap.md](../roadmap.md).
+
 > **Status:** Living document — describes the **final, implemented** state, with a short history
 > of the investigation that led there. Consolidated from `ThreadSafety_RootCauseDiagnosis.md`,
 > `ThreadSafety_RemediationPlan_OptionC.md`, and `ThreadSafety_TS6_Complete_Handoff.md`
@@ -13,9 +30,11 @@
 
 All seven identified thread-safety defects (numbered **TS-1** through **TS-7**, using "TS" as
 the canonical prefix — not "RC", which means Release Candidate elsewhere in this project) are
-fixed and verified: 12/12 dedicated thread-safety tests pass, and the full test suite passes
-except for pre-existing serializer/MessagePack (MsgPack) issues unrelated to threading (see
-[serialization.md](serialization.md)).
+fixed and verified **in the desktop/single-process investigation described in this chapter**:
+12/12 dedicated thread-safety tests pass, and the full test suite passes except for pre-existing
+serializer/MessagePack (MsgPack) issues unrelated to threading (see [serialization.md](serialization.md)).
+This does **not** cover the separate, still-open WebAssembly (WASM) multi-threading investigation
+described in the caveat above.
 
 | ID | Description | Fix |
 |----|---|---|
