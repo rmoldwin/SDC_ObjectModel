@@ -3,6 +3,8 @@
 > **Status:** `SDC.ScriptEngine` already supports browser-hosted execution of pre-compiled Intermediate Language (IL) bytes, and this repository contains two browser-side compile/run prototypes. Production WebAssembly hosting is still incomplete.
 >
 > **Unmerged hardening work:** A read-only `git log --oneline Features/NET10/Net10Main..Features/NET10/ILandWASM/Main` check from this worktree shows substantial WebAssembly-specific hardening ahead of `Features/NET10/Net10Main`, including Sprint C through Sprint F commits for concurrent-dictionary migration, read/write lock coverage, per-tree child-node mutation locking, deferred child sorting, thread-safe unique-ID handling, and consolidated threading notes. That work lives on `Features/NET10/ILandWASM/Main` and related sprint branches and is **not yet merged** into `Features/NET10/Net10Main`.
+>
+> **Phase2 update:** the in-browser multi-threaded Blazor test harness (`SDC.ScriptEngine.BlazorAsyncTests.Phase2`, previously on its own unmerged `BlazorAsyncTests/Phase2` branch) was merged into `Features/NET10/ILandWASM/Main` via PR #43. It is documented in the new section below. It is still only on `ILandWASM/Main`, not yet on `Net10Main`.
 
 This chapter is about the script-hosting story around `SDC.ScriptEngine`, not the general browser rendering story for the Structured Data Capture (SDC) Object Model (OM).
 
@@ -108,6 +110,83 @@ For WebAssembly hosting, the practical guidance is:
 - the desktop fixes documented in [thread-safety.md](thread-safety.md) are real, but scoped,
 - the browser-side multi-threading backlog remains open,
 - the main body of that work currently lives on unmerged `Features/NET10/ILandWASM/*` branches rather than on `Net10Main`.
+
+## How Blazor WebAssembly starts up, and how its multi-threading works
+
+This section explains the underlying browser/runtime mechanics behind the `SDC.ScriptEngine.BlazorAsyncTests.Phase2`
+project (merged via PR #43), since this is new, low-level material that the rest of this repo's docs don't otherwise
+cover. It is deliberately written with external reference links, because these are browser/runtime behaviors defined
+outside this codebase, not SDC-specific concepts.
+
+### Startup sequence (single-threaded, the default for every browser host in this repo)
+
+1. The browser loads `wwwroot/index.html`, which references `_framework/blazor.webassembly.js`.
+2. That script fetches `_framework/blazor.boot.json` — a manifest listing the .NET runtime files
+   (e.g. `dotnet.native.wasm`) and every application/framework assembly (`.dll`) the app needs, each with an
+   integrity hash.
+3. The browser downloads those files and instantiates the WebAssembly (WASM) module containing the Mono
+   runtime — the open-source .NET runtime implementation used to execute .NET Intermediate Language (IL) inside
+   the browser's WASM sandbox.
+4. Mono loads the application assemblies and invokes the app's `Program.Main` entry point (in this repo:
+   `SDC.ScriptEngine.BlazorAsyncTests.Phase2/Program.cs`, which calls
+   `WebAssemblyHostBuilder.CreateDefault(args)`), which then renders the root Razor component.
+
+Official reference: [ASP.NET Core Blazor startup](https://learn.microsoft.com/en-us/aspnet/core/blazor/fundamentals/startup)
+and [Blazor hosting models — WebAssembly](https://learn.microsoft.com/en-us/aspnet/core/blazor/hosting-models#blazor-webassembly).
+
+### Why WebAssembly is single-threaded by default, and what multi-threading requires
+
+Browsers run JavaScript/WASM on a single main thread by default. Real multi-threading inside the browser is done with
+**Web Workers** (separate JS execution contexts) sharing memory through a **SharedArrayBuffer** — a JavaScript memory
+buffer multiple workers can read/write directly. Because `SharedArrayBuffer`'s high-resolution timing can be abused
+for Spectre-style side-channel attacks, browsers only expose it on pages that are **cross-origin isolated**, which
+requires the server to send two HTTP response headers on every response:
+
+- **`Cross-Origin-Opener-Policy: same-origin`** (COOP) — isolates the browser window from other origins.
+- **`Cross-Origin-Embedder-Policy: require-corp`** (COEP) — requires every embedded resource to be same-origin or
+  explicitly opt in via CORS/`Cross-Origin-Resource-Policy`.
+
+References: [MDN: SharedArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer),
+[MDN: Cross-Origin-Opener-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy),
+[MDN: Cross-Origin-Embedder-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy).
+
+Mono's WebAssembly runtime builds .NET multi-threading on top of this: it emulates the standard POSIX thread
+(**pthread**) API using a fixed-size pool of Web Workers, so each .NET `Thread` maps to one browser worker. The pool
+size is controlled by the `WasmPThreadPoolSize` MSBuild property. Enabling this whole feature is a single MSBuild
+property, `WasmEnableThreads=true`, which requires the `wasm-tools` SDK workload (installed via
+`dotnet workload install wasm-tools`; verify with `dotnet workload list`) — that workload is what produces the
+thread-enabled native WASM runtime binaries (`dotnet.native.worker.*.mjs`) actually used at run time.
+
+Official reference: [ASP.NET Core Blazor with .NET on Web Workers](https://learn.microsoft.com/en-us/aspnet/core/blazor/blazor-with-dotnet-on-web-workers).
+
+### How this shows up concretely in `SDC.ScriptEngine.BlazorAsyncTests.Phase2`
+
+- The client project (`SDC.ScriptEngine.BlazorAsyncTests.Phase2.csproj`) sets `WasmEnableThreads=true`,
+  `WasmPThreadPoolSize=4`, `WasmEnableInterpreter=true` (interpreter mode, not AOT — see the glossary entry for
+  **AOT**), and `WasmEnableWebcil=false`.
+- A separate **`SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server`** ASP.NET Core host project exists purely to inject
+  the COOP/COEP headers on every response — the built-in Blazor **DevServer** used by `dotnet run` does not send
+  them, so multi-threaded WASM only works against a real published build served by this host:
+  `dotnet publish` the client, then `cd publish_out && dotnet SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server.dll`.
+  In dev mode (`dotnet run`), the Mono native WASM binary does not even have pthread support compiled in, so
+  `WasmEnableThreads=true` silently has no effect until you publish.
+- The pool size was deliberately reduced from an initial `16` to `4` because Mono's WASM runtime raised a
+  pthread-attach assertion failure (`mono-threads-wasm.c:201`) when too many workers tried to attach at boot —
+  a Mono/browser worker-pool limit, not an SDC OM bug.
+- That same pool-size limit caused a real test-design bug (Cat2/Test6, tracked as TS-5, issue
+  [#22](https://github.com/rmoldwin/SDC_ObjectModel/issues/22)): `System.Threading.Barrier(N)` needs `N+1` free
+  pool threads (N participants plus one for the post-phase callback), so with `WasmPThreadPoolSize=4` and
+  `THREAD_COUNT=4` every pool slot was already occupied and the callback deadlocked. The fix replaced `Barrier`
+  with a plain `new Thread()` + `CountdownEvent`, which gives the same "all start together" guarantee without
+  consuming a pool slot.
+
+### Where this fits in the bigger thread-safety picture
+
+This is a separate, lower layer than the OM-level concurrency work in [thread-safety.md](thread-safety.md): that
+chapter is about locking inside `SDC.Schema` types (`BaseType`, dictionaries, etc.); this section is about the
+browser/runtime machinery (Web Workers, `SharedArrayBuffer`, Mono's pthread emulation) that those OM-level fixes
+run on top of once hosted in a multi-threaded WASM context. Bugs can originate in either layer, and the `TS-#`
+label numbering is shared across both — see the scope warning at the top of that chapter.
 
 ## Status
 
