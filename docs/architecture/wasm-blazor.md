@@ -4,7 +4,7 @@
 >
 > **Unmerged hardening work:** A read-only `git log --oneline Features/NET10/Net10Main..Features/NET10/ILandWASM/Main` check from this worktree shows substantial WebAssembly-specific hardening ahead of `Features/NET10/Net10Main`, including Sprint C through Sprint F commits for concurrent-dictionary migration, read/write lock coverage, per-tree child-node mutation locking, deferred child sorting, thread-safe unique-ID handling, and consolidated threading notes. That work lives on `Features/NET10/ILandWASM/Main` and related sprint branches and is **not yet merged** into `Features/NET10/Net10Main`.
 >
-> **Phase2 update:** the in-browser multi-threaded Blazor test harness (`SDC.ScriptEngine.BlazorAsyncTests.Phase2`, previously on its own unmerged `BlazorAsyncTests/Phase2` branch) was merged into `Features/NET10/ILandWASM/Main` via PR #43. It is documented in the new section below. It is still only on `ILandWASM/Main`, not yet on `Net10Main`.
+> **Phase2 update:** the in-browser multi-threaded Blazor test harness (`SDC.ScriptEngine.BlazorAsyncTests.Phase2`, previously on its own unmerged `Features/NET10/ILandWASM/BlazorAsyncTests/Phase2` branch) was merged into `Features/NET10/ILandWASM/Main` via PR #43. It is documented in the new section below. It is still only on `ILandWASM/Main`, not yet on `Net10Main`.
 
 This chapter is about the script-hosting story around `SDC.ScriptEngine`, not the general browser rendering story for the Structured Data Capture (SDC) Object Model (OM).
 
@@ -127,7 +127,7 @@ outside this codebase, not SDC-specific concepts.
 3. The browser downloads those files and instantiates the WebAssembly (WASM) module containing the Mono
    runtime — the open-source .NET runtime implementation used to execute .NET Intermediate Language (IL) inside
    the browser's WASM sandbox.
-4. Mono loads the application assemblies and invokes the app's `Program.Main` entry point (in this repo:
+4. Mono loads the application assemblies and invokes the app's `Program.Main` entry point (on `Features/NET10/ILandWASM/Main`:
    `SDC.ScriptEngine.BlazorAsyncTests.Phase2/Program.cs`, which calls
    `WebAssemblyHostBuilder.CreateDefault(args)`), which then renders the root Razor component.
 

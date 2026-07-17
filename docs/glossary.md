@@ -13,7 +13,7 @@ anywhere in this project must be added here before (or at the same time as) its 
 | BP-* (e.g. BP-VAL-002) | Best Practice rule ID | Stable ID for a QA rule in `SDC.Schema.QA`, formatted `BP-<category>-<number>`. See [QA Rule ID Catalog](architecture/qa-best-practices.md) for the full list and category codes (VAL = Validation, SER = Serialization, MUT = Mutation, ADH = Ad-hoc attributes, GEN = General). |
 | BSON | Binary JSON | A binary-encoded version of JSON used for compact/fast data storage. |
 | CAP | College of American Pathologists | The organization whose cancer-reporting protocols/templates many SDC forms implement; some QA rules are flagged as CAP-specific rather than generic SDC best practices. |
-| Cat#/Test# (e.g. Cat5/Test1) | Category number / Test number | Internal shorthand for a specific test page/case in the Phase2 in-browser WASM test dashboard (`SDC.ScriptEngine.BlazorAsyncTests.Phase2`), e.g. "Category 5: Shared TopNode Tests, Test 1." Used in commit messages and bug tables; not a public/standard term. See [WASM/Blazor](architecture/wasm-blazor.md). |
+| Cat#/Test# (e.g. Cat5/Test1, also written Cat5-Test1) | Category number / Test number | Internal shorthand for a specific test page/case in the Phase2 in-browser WASM test dashboard (`SDC.ScriptEngine.BlazorAsyncTests.Phase2`), e.g. "Category 5: Shared TopNode Tests, Test 1." Used in commit messages and bug tables; not a public/standard term. See [WASM/Blazor](architecture/wasm-blazor.md). |
 | CCYY | Century-Century-Year-Year | 4-digit year format (e.g. 2026) used in date/time string patterns. |
 | CI | Continuous Integration | Automated building/testing of code on every change. |
 | CLR | Common Language Runtime | The .NET execution engine that runs compiled code. |
