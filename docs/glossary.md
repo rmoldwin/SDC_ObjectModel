@@ -17,11 +17,14 @@ anywhere in this project must be added here before (or at the same time as) its 
 | CLR | Common Language Runtime | The .NET execution engine that runs compiled code. |
 | DE | Data Element | An SDC schema building block representing one piece of data. |
 | FDF | Form Design File | The SDC file format that defines a form's structure and rules. |
+| FIXME | "Fix me" marker | A source-code comment tag used to mark a known problem that still needs correction. |
 | GC | Garbage Collector | The .NET subsystem that automatically frees unused memory. |
 | GUID | Globally Unique Identifier | A 128-bit value used to uniquely identify objects. |
+| HTML | HyperText Markup Language | The standard markup language for web pages and self-contained browser-rendered reports. |
 | ID | Identifier | A value used to name/reference a specific object. |
 | IEEE | Institute of Electrical and Electronics Engineers | Standards body (referenced for floating-point/number formats). |
 | IET | IdentifiedExtensionType | An SDC OM node type that carries a unique ID (e.g. `BP-MUT-001` requires every IdentifiedExtensionType node's ID to be unique within its tree). |
+| IL | Intermediate Language | The .NET bytecode emitted by the compiler and loaded/executed by the runtime. |
 | IRI | Internationalized Resource Identifier | Like a URI/URL but supports non-ASCII characters. |
 | ISO 8601 | International Organization for Standardization, standard 8601 | The international standard for representing dates and times as text. |
 | JSON | JavaScript Object Notation | A lightweight text format for representing structured data. |
@@ -42,6 +45,7 @@ anywhere in this project must be added here before (or at the same time as) its 
 | SDS | SDC Structured Data Specification rules | Another built-in SDC QA rule category (schema-level rules). |
 | SWMR | Single-Writer, Multiple-Reader | A concurrency pattern allowing one writer or many concurrent readers. |
 | TFM | Target Framework Moniker | The string identifying which .NET version a project targets (e.g. `net10.0`). |
+| TODO | "To do" marker | A source-code comment tag used to mark missing follow-up work or an unfinished task. |
 | TRG | (SDC) Technical Reference Guide | The official SDC standard's technical documentation. |
 | TS-# (e.g. TS-6) | Thread-Safety test number | Internal numbering scheme for thread-safety investigation test cases; not a public/standard term. |
 | UI | User Interface | The visual/interactive part of an application. |
