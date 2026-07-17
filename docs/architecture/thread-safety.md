@@ -3,7 +3,7 @@
 > **⚠️ Important scope caveat:** This chapter documents the **desktop, single-process** thread-safety
 > investigation only (TS-1 through TS-7 below, all fixed). A **separate, still-open** investigation
 > into thread safety under **real WebAssembly (WASM) multi-threading** (`WasmEnableThreads`,
-> `WasmPThreadPoolSize`, branch `Features/NET10/ILandWASM/BlazorAsyncTests/Phase2`) has found
+> `WasmPThreadPoolSize`, exercised by the `SDC.ScriptEngine.BlazorAsyncTests.Phase2` test project) has found
 > additional, unresolved bugs — duplicate-key exceptions and deadlocks — and, confusingly, **reuses
 > some of the same `TS-#` numbers** (TS-4, TS-5, TS-7, TS-8, TS-9) for different defects than the
 > ones described here. Do **not** read "TS-7 fixed" below as meaning the WASM TS-7 is also fixed —
