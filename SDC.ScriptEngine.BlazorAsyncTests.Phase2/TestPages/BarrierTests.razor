@@ -404,7 +404,7 @@
             var exceptions = new ConcurrentBag<Exception>();
 
             // Use new Thread() specifically so each gets a fresh [ThreadStatic] TLS slot.
-            var barrier = new Barrier(TREE_THREADS);
+            using var barrier = new Barrier(TREE_THREADS);
             var threads = Enumerable.Range(0, TREE_THREADS).Select(i => new Thread(() =>
             {
                 try
