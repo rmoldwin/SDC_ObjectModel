@@ -18,6 +18,7 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
         #region Test 1: Concurrent ItemMutator assignments
 
         [TestMethod()]
+        [TestCategory("ThreadRequired")]
         public void ItemMutator_ConcurrentSameTreeReassignments_DetectsRaceConditions()
         {
             // Rationale: Attempts to trigger race conditions in ItemMutator by having multiple threads
@@ -84,6 +85,7 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
         #region Test 2: Concurrent ItemsMutator list replacements
 
         [TestMethod()]
+        [TestCategory("ThreadRequired")]
         public void ItemsMutator_ConcurrentListReplacements_DetectsRaceConditions()
         {
             // Rationale: Stress-tests ItemsMutator by having multiple threads simultaneously
@@ -151,6 +153,7 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
         #region Test 3: Concurrent read/write on TopNode dictionaries
 
         [TestMethod()]
+        [TestCategory("WasmPortable")]
         public void TopNodeDictionaries_ConcurrentReadWrite_DetectsRaceConditions()
         {
             // Rationale: Tests whether concurrent node creation/removal causes TopNode dictionary corruption.
@@ -208,6 +211,7 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
         #region Test 4: Same-reference reassignment under load
 
         [TestMethod()]
+        [TestCategory("ThreadRequired")]
         public void ItemMutator_ConcurrentSameReferenceReassignments_DetectsRaceConditions()
         {
             // Rationale: Tests the short-circuit path (item == valueNew) under concurrent load.
@@ -256,6 +260,7 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
         #region Test 5: Collection modification during enumeration (stress test)
 
         [TestMethod()]
+        [TestCategory("WasmPortable")]
         public void ItemsMutator_StressTestCollectionModificationDuringEnumeration()
         {
             // TS-2 fix verification: ItemsMutator acquires WriteLockScope(TreeRwLock) before any
@@ -321,6 +326,7 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
         #region Test 6: ObjectGUID uniqueness under concurrent node creation
 
         [TestMethod()]
+        [TestCategory("WasmPortable")]
         public void NodeCreation_ConcurrentGuidAssignment_ValidatesUniqueness()
         {
             // Rationale: Tests whether concurrent node creation could result in duplicate ObjectGUIDs
@@ -355,6 +361,7 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
         #region Helper: Detect thread-safety issues in test output
 
         [TestMethod()]
+        [TestCategory("WasmPortable")]
         public void RunAllThreadSafetyTests_AndReportResults()
         {
             // Rationale: Meta-test that runs all thread-safety tests and provides a summary report.

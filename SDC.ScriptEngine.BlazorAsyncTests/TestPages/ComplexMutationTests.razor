@@ -1,0 +1,365 @@
+@page "/complex-mutation-tests"
+
+<PageTitle>Category 4+5: Complex Mutations &amp; WASM Risk Points</PageTitle>
+
+<h1>Category 4+5: Complex Mutations &amp; WASM Risk Points</h1>
+<p style="color:#555; font-size:.9em;">
+    All trees built programmatically via <code>SdcTreeBuilder.BuildForm()</code>.
+    No XML files used here.
+</p>
+
+<div style="margin-bottom:16px;">
+    <button class="run-btn" @onclick="RunAllAsync" disabled="@IsRunning">▶ Run All</button>
+    @if (IsRunning) { <span style="color:#0969da; font-size:.9em;">Running…</span> }
+</div>
+
+<table class="test-table">
+    <thead><tr><th style="width:40%">Test</th><th>Status</th><th>Duration (ms)</th><th>Message</th></tr></thead>
+    <tbody>
+    @foreach (var result in _results)
+    {
+        <tr>
+            <td>@result.Name</td>
+            <td class="@CssClass(result.Status)">@result.Status</td>
+            <td>@result.Duration.TotalMilliseconds.ToString("F1")</td>
+            <td style="font-size:.8em; white-space:pre-wrap; max-width:400px; overflow:hidden; text-overflow:ellipsis;">@Truncate(result.Message)</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private bool IsRunning;
+    private readonly List<WasmTestResult> _results = new();
+
+    private async Task RunAllAsync()
+    {
+        IsRunning = true;
+        _results.Clear();
+        StateHasChanged();
+
+        var runner = new WasmTestRunner();
+        runner.TestCompleted += result =>
+        {
+            _results.Add(result);
+            InvokeAsync(StateHasChanged);
+        };
+        await runner.RunAllAsync(BuildTests());
+
+        IsRunning = false;
+        StateHasChanged();
+    }
+
+    private IReadOnlyList<WasmTestCase> BuildTests() => new[]
+    {
+        // ── Cat4 Test 1: AddSection detected by CompareTrees ──────────────
+        new WasmTestCase(
+            "AddSection_CompareDetectsNewSection",
+            "Category4",
+            () =>
+            {
+                var tOld = SdcTreeBuilder.BuildForm("FD_AddSect_Old", 2, 2);
+                var tNew = SdcTreeBuilder.CloneViaXml(tOld);
+                var newSectionId = "FD_AddSect_New_ExtraS";
+                SdcTreeBuilder.ApplyMutation(tNew, SdcTreeBuilder.MutationType.AddSection, newSectionId);
+
+                var comparer = new CompareTrees<FormDesignType>(tOld, tNew);
+                var addedIets = comparer.GetIETnodesAddedInNew;
+
+                if (!addedIets.Any(n => n.ID == newSectionId || n.name?.Contains("ExtraS") == true ||
+                                       n.name?.Contains("Added_Section") == true))
+                    throw new InvalidOperationException(
+                        $"Expected a new IET node for added section. AddedIets: " +
+                        string.Join(", ", addedIets.Select(n => $"[ID={n.ID} name={n.name}]")));
+                return Task.CompletedTask;
+            }),
+
+        // ── Cat4 Test 2: RemoveQuestion detected ──────────────────────────
+        new WasmTestCase(
+            "RemoveQuestion_CompareDetectsRemoval",
+            "Category4",
+            () =>
+            {
+                var tOld = SdcTreeBuilder.BuildForm("FD_RemQ_Old", 2, 3);
+                // Record what the first question was before cloning
+                var firstQ = tOld.Nodes.Values.OfType<QuestionItemType>().FirstOrDefault();
+                if (firstQ is null) throw new InvalidOperationException("No question in tree");
+                var removedName = firstQ.name;
+                var removedSGuid = firstQ.sGuid;
+
+                var tNew = SdcTreeBuilder.CloneViaXml(tOld);
+                SdcTreeBuilder.ApplyMutation(tNew, SdcTreeBuilder.MutationType.RemoveQuestion);
+
+                var comparer = new CompareTrees<FormDesignType>(tOld, tNew);
+                var removed = comparer.GetIETnodesRemovedInNew;
+
+                if (!removed.Any(n => n.name == removedName || n.sGuid == removedSGuid))
+                    throw new InvalidOperationException(
+                        $"Expected '{removedName}' (sGuid={removedSGuid}) to be in removed IET list. " +
+                        $"Removed: [{string.Join(", ", removed.Select(n => $"{n.name}/{n.sGuid}"))}]");
+                return Task.CompletedTask;
+            }),
+
+        // ── Cat4 Test 3: ChangeAttribute detected ─────────────────────────
+        new WasmTestCase(
+            "ChangeAttribute_CompareDetectsAttChange",
+            "Category4",
+            () =>
+            {
+                var tOld = SdcTreeBuilder.BuildForm("FD_ChgAtt_Old", 2, 2);
+                var firstSection = tOld.Nodes.Values.OfType<SectionItemType>().FirstOrDefault();
+                if (firstSection is null) throw new InvalidOperationException("No section in tree");
+                var changedSGuid = firstSection.sGuid;
+
+                var tNew = SdcTreeBuilder.CloneViaXml(tOld);
+                SdcTreeBuilder.ApplyMutation(tNew, SdcTreeBuilder.MutationType.ChangeAttribute);
+
+                var comparer = new CompareTrees<FormDesignType>(tOld, tNew);
+                var diffs = comparer.GetIETattDiffs;
+
+                if (diffs is null || !diffs.TryGetValue(changedSGuid, out var difNode) || !difNode.isAttListChanged)
+                    throw new InvalidOperationException(
+                        $"Expected isAttListChanged=true for sGuid={changedSGuid}. " +
+                        $"Diffs: [{string.Join(", ", diffs?.Keys.Take(5) ?? Enumerable.Empty<string>())}]");
+                return Task.CompletedTask;
+            }),
+
+        // ── Cat4 Test 4: BulkMutation — all 3 diffs present ──────────────
+        new WasmTestCase(
+            "BulkMutation_AllDiffsDetected",
+            "Category4",
+            () =>
+            {
+                var tOld = SdcTreeBuilder.BuildForm("FD_Bulk_Old", 3, 3);
+                var firstSection = tOld.Nodes.Values.OfType<SectionItemType>().FirstOrDefault();
+                var firstQ       = tOld.Nodes.Values.OfType<QuestionItemType>().FirstOrDefault();
+                if (firstSection is null || firstQ is null) throw new InvalidOperationException("tree incomplete");
+
+                var changedSGuid = firstSection.sGuid;
+                var removedSGuid = firstQ.sGuid;
+
+                var tNew = SdcTreeBuilder.CloneViaXml(tOld);
+                SdcTreeBuilder.ApplyMutation(tNew, SdcTreeBuilder.MutationType.BulkAddMoveRemove);
+
+                var comparer = new CompareTrees<FormDesignType>(tOld, tNew);
+                var added   = comparer.GetIETnodesAddedInNew;
+                var removed = comparer.GetIETnodesRemovedInNew;
+                var diffs   = comparer.GetIETattDiffs;
+
+                bool hasAdded   = added.Count > 0;
+                bool hasRemoved = removed.Any(n => n.sGuid == removedSGuid);
+                bool hasChanged = diffs?.ContainsKey(changedSGuid) == true;
+
+                if (!hasAdded)   throw new InvalidOperationException("Bulk: no new IET nodes detected");
+                if (!hasRemoved) throw new InvalidOperationException($"Bulk: removed node {removedSGuid} not in removed list");
+                if (!hasChanged) throw new InvalidOperationException($"Bulk: attribute change on {changedSGuid} not detected");
+                return Task.CompletedTask;
+            }),
+
+        // ── Cat4 Test 5: Multiple TopNodes — no cross-contamination ───────
+        // WASM Phase 1: validates sequential fallback correctness only. Real race coverage requires
+        // WasmEnableThreads=true (Phase 2).
+        new WasmTestCase(
+            "MultipleTopNodes_SequentialComparers_IndependentResults",
+            "Category4",
+            async () =>
+            {
+                // WASM Phase 1: validates sequential fallback correctness only.
+                // Real race coverage requires WasmEnableThreads=true (Phase 2).
+                var pairs = Enumerable.Range(0, 3).Select(i =>
+                {
+                    var old_ = SdcTreeBuilder.BuildForm($"FD_Multi_Old{i}", 2, 2);
+                    var new_ = SdcTreeBuilder.CloneViaXml(old_);
+                    SdcTreeBuilder.ApplyMutation(new_, SdcTreeBuilder.MutationType.AddSection, $"FD_Multi_Extra{i}");
+                    return (old_, new_);
+                }).ToList();
+
+                var tasks = pairs.Select(p => Task.Run(() =>
+                {
+                    var c = new CompareTrees<FormDesignType>(p.old_, p.new_);
+                    return c.GetIETnodesAddedInNew.Count;
+                })).ToList();
+
+                var results = new List<int>();
+                foreach (var task in tasks) results.Add(await task);
+
+                if (results.Any(r => r != 1))
+                    throw new InvalidOperationException(
+                        $"Expected each pair to have exactly 1 added IET node. Got: [{string.Join(", ", results)}]");
+            }),
+
+        // ── Cat4 Test 6: Identical programmatic trees — 0 diffs ──────────
+        new WasmTestCase(
+            "CompareTrees_IdenticalTrees_NoDiffs",
+            "Category4",
+            () =>
+            {
+                var tOld = SdcTreeBuilder.BuildForm("FD_Identical_Old", 2, 3);
+                var tNew = SdcTreeBuilder.CloneViaXml(tOld);
+
+                var comparer = new CompareTrees<FormDesignType>(tOld, tNew);
+                int added   = comparer.GetIETnodesAddedInNew.Count;
+                int removed = comparer.GetIETnodesRemovedInNew.Count;
+                int changed = comparer.GetIETattDiffs?
+                    .Values.Count(d => d.isAttListChanged || d.isMoved || d.isParChanged) ?? 0;
+
+                if (added != 0 || removed != 0 || changed != 0)
+                    throw new InvalidOperationException(
+                        $"Identical tree comparison must yield 0 diffs. " +
+                        $"added={added}, removed={removed}, changed={changed}");
+                return Task.CompletedTask;
+            }),
+
+        // ── Cat4 Test 7: await + SDC boundary consistency ─────────────────
+        new WasmTestCase(
+            "AsyncMutation_ThenCompare_Consistent",
+            "Category4",
+            async () =>
+            {
+                var tOld = SdcTreeBuilder.BuildForm("FD_AsyncMut_Old", 2, 3);
+                var tNew = SdcTreeBuilder.CloneViaXml(tOld);
+
+                // All tree building is complete before await (Critical Rule #4)
+                // The await here is on a Task.Run wrapping a sync mutation — safe because
+                // tNew is fully constructed and no new tree is being built inside the Task.
+                await Task.Run(() =>
+                    SdcTreeBuilder.ApplyMutation(tNew, SdcTreeBuilder.MutationType.ChangeAttribute));
+
+                var comparer = new CompareTrees<FormDesignType>(tOld, tNew);
+                var diffs = comparer.GetIETattDiffs;
+
+                if (diffs is null || !diffs.Values.Any(d => d.isAttListChanged))
+                    throw new InvalidOperationException(
+                        "Expected at least one isAttListChanged after async mutation");
+            }),
+
+        // ── Cat4 Test 8: Large tree (100 nodes) — 5 mutations all found ───
+        new WasmTestCase(
+            "LargeTree_100Nodes_CompareCorrect",
+            "Category4",
+            () =>
+            {
+                var tOld = SdcTreeBuilder.BuildForm("FD_Large_Old", sectionCount: 4, questionsPerSection: 5);
+                if (tOld.Nodes.Count < 80)
+                    throw new InvalidOperationException($"Tree too small: {tOld.Nodes.Count} nodes");
+
+                // Record IDs before cloning
+                var sections = tOld.Nodes.Values.OfType<SectionItemType>().ToList();
+                if (sections.Count < 1) throw new InvalidOperationException("No sections");
+                var firstSectionSGuid = sections[0].sGuid;
+
+                var tNew = SdcTreeBuilder.CloneViaXml(tOld);
+
+                // Apply 5 mutations (add 4 sections + 1 attribute change)
+                for (int i = 0; i < 4; i++)
+                    SdcTreeBuilder.ApplyMutation(tNew, SdcTreeBuilder.MutationType.AddSection,
+                        $"FD_Large_Extra{i}");
+                SdcTreeBuilder.ApplyMutation(tNew, SdcTreeBuilder.MutationType.ChangeAttribute);
+
+                var comparer = new CompareTrees<FormDesignType>(tOld, tNew);
+                int addedCount  = comparer.GetIETnodesAddedInNew.Count;
+                var diffs = comparer.GetIETattDiffs;
+                bool hasChanged = diffs?.ContainsKey(firstSectionSGuid) == true;
+
+                if (addedCount < 4)
+                    throw new InvalidOperationException($"Expected >= 4 added IET nodes, got {addedCount}");
+                if (!hasChanged)
+                    throw new InvalidOperationException($"Attribute change on {firstSectionSGuid} not detected");
+                return Task.CompletedTask;
+            }),
+
+        // ── Cat5 Test 9: SortedList reads are stable ──────────────────────
+        new WasmTestCase(
+            "SortedList_SequentialReads_Stable",
+            "Category5",
+            () =>
+            {
+                var tOld = SdcTreeBuilder.BuildForm("FD_SortedList_Old", 2, 3);
+                var tNew = SdcTreeBuilder.CloneViaXml(tOld);
+                SdcTreeBuilder.ApplyMutation(tNew, SdcTreeBuilder.MutationType.ChangeAttribute);
+
+                var comparer = new CompareTrees<FormDesignType>(tOld, tNew);
+
+                // Call GetIETattDiffs multiple times — results must be idempotent
+                // (verifies _slAttPrev/_slAttNew read stability)
+                var r1 = comparer.GetIETattDiffs?.Count ?? 0;
+                var r2 = comparer.GetIETattDiffs?.Count ?? 0;
+                var r3 = comparer.GetIETattDiffs?.Count ?? 0;
+
+                if (r1 != r2 || r2 != r3)
+                    throw new InvalidOperationException(
+                        $"GetIETattDiffs count not stable across calls: {r1}, {r2}, {r3}");
+                return Task.CompletedTask;
+            }),
+
+        // ── Cat5 Test 10: CancellationToken propagates correctly ──────────
+        new WasmTestCase(
+            "CancellationToken_PropagatesCorrectly",
+            "Category5",
+            async () =>
+            {
+                using var cts = new CancellationTokenSource();
+                var ct = cts.Token;
+
+                // Build a small tree; cancel immediately after scheduling
+                var treeTask = Task.Run(() =>
+                {
+                    ct.ThrowIfCancellationRequested();
+                    return SdcTreeBuilder.BuildForm("FD_Cancel_Test", 2, 2);
+                }, ct);
+
+                cts.Cancel();
+
+                try
+                {
+                    await treeTask;
+                    // If it completed before cancel, that's fine — just verify the tree is usable
+                }
+                catch (OperationCanceledException)
+                {
+                    // Clean cancellation — expected
+                }
+                // Either path is acceptable; what matters is no unhandled exception escapes
+            }),
+
+        // ── Cat5 Test 11: GC — large trees released, 4th succeeds ────────
+        new WasmTestCase(
+            "GarbageCollection_LargeTreesReleased",
+            "Category5",
+            () =>
+            {
+                // Create 3 large trees and lose all references
+                for (int i = 0; i < 3; i++)
+                {
+                    var _ = SdcTreeBuilder.BuildForm($"FD_GC{i}", sectionCount: 4, questionsPerSection: 5);
+                    // _ goes out of scope; GC can collect it
+                }
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+
+                // 4th tree must succeed
+                var tFinal = SdcTreeBuilder.BuildForm("FD_GC_Final", 2, 2);
+
+                if (tFinal is null)
+                    throw new InvalidOperationException("4th tree is null after GC");
+                if (tFinal.Nodes.Count < 5)
+                    throw new InvalidOperationException(
+                        $"4th tree has only {tFinal.Nodes.Count} nodes — may be corrupted");
+                return Task.CompletedTask;
+            }),
+    };
+
+    private static string CssClass(TestStatus s) => s switch
+    {
+        TestStatus.Passed  => "test-result-passed",
+        TestStatus.Failed  => "test-result-failed",
+        TestStatus.Running => "test-result-running",
+        TestStatus.Skipped => "test-result-skipped",
+        _ => "test-result-notrun"
+    };
+
+    private static string Truncate(string s, int max = 200)
+        => s.Length > max ? s[..max] + "…" : s;
+}

@@ -13,6 +13,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Text.RegularExpressions;
 using CSharpVitamins;
@@ -82,16 +83,7 @@ namespace SDC.Schema
         [XmlIgnore]
 		[JsonIgnore]
         public uint RepeatCounter { get; set; } = 0;
-        HashSet<string> _IUniqueIDs._UniqueIDs
-		{
-			get
-			{
-				if (p_UniqueIDs is null) p_UniqueIDs = new();
-				return p_UniqueIDs;
-
-            }
-		}
-		HashSet<string>? p_UniqueIDs;
+        ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
         #region ITopNode 
 
@@ -102,12 +94,9 @@ namespace SDC.Schema
         {
             get
             {
-                if (p_NodesRO is null)
-                    p_NodesRO = new(((_ITopNode)this)._Nodes);
-                return p_NodesRO;
+                return new(((_ITopNode)this)._Nodes);
             }
         }
-        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
 
         /// <inheritdoc/>
         [XmlIgnore]
@@ -161,6 +150,7 @@ namespace SDC.Schema
 		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
 
 		#endregion
 
@@ -173,36 +163,36 @@ namespace SDC.Schema
 		int _ITopNode._MaxObjectID { get => _maxObjectID_FD; set => _maxObjectID_FD = value; }
 		int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_FD);
 
-		Dictionary<Guid, BaseType> _ITopNode._Nodes
+		ConcurrentDictionary<Guid, BaseType> _ITopNode._Nodes
 		{
 			get
 			{
 				// Bug fix: lazy-init guard was accidentally removed during TS-3 refactor.
-				if (p_Nodes is null) p_Nodes = new();
+				Interlocked.CompareExchange(ref p_Nodes, new ConcurrentDictionary<Guid, BaseType>(), null);
 				return p_Nodes;
 			}
 		}
-		Dictionary<Guid, BaseType>? p_Nodes;
+		ConcurrentDictionary<Guid, BaseType>? p_Nodes;
 
-        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
+        ConcurrentDictionary<Guid, BaseType> _ITopNode._ParentNodes
         {
             get
             {
-                if (p_ParentNodes is null) p_ParentNodes = new();
+                Interlocked.CompareExchange(ref p_ParentNodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_ParentNodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_ParentNodes;
+        ConcurrentDictionary<Guid, BaseType>? p_ParentNodes;
 
-        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        ConcurrentDictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
         {
             get
             {
-                if (p_ChildNodes is null) p_ChildNodes = new();
+                Interlocked.CompareExchange(ref p_ChildNodes, new ConcurrentDictionary<Guid, List<BaseType>>(), null);
                 return p_ChildNodes;
             }
         }
-        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
+        ConcurrentDictionary<Guid, List<BaseType>>? p_ChildNodes;
 
         HashSet<int> _ITopNode._TreeSort_NodeIds
         {
@@ -252,7 +242,6 @@ namespace SDC.Schema
 			topNode._ChildNodes.Clear();
 			topNode._IETnodes.Clear();
 			p_IETnodesRO = null;
-			p_NodesRO = null;
 			topNode._IETnodes.Clear();
 		}
 
@@ -385,7 +374,7 @@ namespace SDC.Schema
 				Items = ItemsMutator(() => Items, value);
 			}
 		}
-		HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
+		ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
 		#region Thread Safety Infrastructure
 
@@ -395,6 +384,7 @@ namespace SDC.Schema
 		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
 
 		#endregion
 
@@ -407,12 +397,9 @@ namespace SDC.Schema
 		{
 			get
 			{
-				if (p_NodesRO is null)
-					p_NodesRO = new(((_ITopNode)this)._Nodes);
-				return p_NodesRO;
+				return new(((_ITopNode)this)._Nodes);
 			}
 		}
-		private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
 
 		/// <inheritdoc/>
 		[XmlIgnore]
@@ -460,35 +447,35 @@ namespace SDC.Schema
         int _ITopNode._MaxObjectID { get => _maxObjectID_DE; set => _maxObjectID_DE = value; }
         int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_DE);
 
-        Dictionary<Guid, BaseType> _ITopNode._Nodes
+        ConcurrentDictionary<Guid, BaseType> _ITopNode._Nodes
         {
             get
             {
-                if (p_Nodes is null) p_Nodes = new();
+                Interlocked.CompareExchange(ref p_Nodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_Nodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_Nodes;
+        ConcurrentDictionary<Guid, BaseType>? p_Nodes;
 
-        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
+        ConcurrentDictionary<Guid, BaseType> _ITopNode._ParentNodes
         {
             get
             {
-                if (p_ParentNodes is null) p_ParentNodes = new();
+                Interlocked.CompareExchange(ref p_ParentNodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_ParentNodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_ParentNodes;
+        ConcurrentDictionary<Guid, BaseType>? p_ParentNodes;
 
-        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        ConcurrentDictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
         {
             get
             {
-                if (p_ChildNodes is null) p_ChildNodes = new();
+                Interlocked.CompareExchange(ref p_ChildNodes, new ConcurrentDictionary<Guid, List<BaseType>>(), null);
                 return p_ChildNodes;
             }
         }
-        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
+        ConcurrentDictionary<Guid, List<BaseType>>? p_ChildNodes;
 
         HashSet<int> _ITopNode._TreeSort_NodeIds
         {
@@ -540,7 +527,6 @@ namespace SDC.Schema
             topNode._ChildNodes.Clear();
             topNode._IETnodes.Clear();
             p_IETnodesRO = null;
-            p_NodesRO = null;
             topNode._IETnodes.Clear();
         }
 
@@ -603,16 +589,7 @@ namespace SDC.Schema
 			this.ComplianceRule = new();
 			this.SDCPackage = new();
 		}
-		HashSet<string> _IUniqueIDs._UniqueIDs
-		{
-			get
-			{
-				if (p_UniqueIDs is null) p_UniqueIDs = new();
-				return p_UniqueIDs;
-
-			}
-		}
-		HashSet<string>? p_UniqueIDs;
+		ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
 		#region Thread Safety Infrastructure
 
@@ -622,6 +599,7 @@ namespace SDC.Schema
 		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
 
 		#endregion
 
@@ -634,12 +612,9 @@ namespace SDC.Schema
 		{
 			get
 			{
-				if (p_NodesRO is null)
-					p_NodesRO = new(((_ITopNode)this)._Nodes);
-				return p_NodesRO;
+				return new(((_ITopNode)this)._Nodes);
 			}
 		}
-		private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
 
 		/// <inheritdoc/>
 		[XmlIgnore]
@@ -691,35 +666,35 @@ namespace SDC.Schema
 			int _ITopNode._MaxObjectID { get => _maxObjectID_RFP; set => _maxObjectID_RFP = value; }
 			int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_RFP);
 
-			Dictionary<Guid, BaseType> _ITopNode._Nodes
+			ConcurrentDictionary<Guid, BaseType> _ITopNode._Nodes
         {
             get
             {
-                if (p_Nodes is null) p_Nodes = new();
+                Interlocked.CompareExchange(ref p_Nodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_Nodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_Nodes;
+        ConcurrentDictionary<Guid, BaseType>? p_Nodes;
 
-        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
+        ConcurrentDictionary<Guid, BaseType> _ITopNode._ParentNodes
         {
             get
             {
-                if (p_ParentNodes is null) p_ParentNodes = new();
+                Interlocked.CompareExchange(ref p_ParentNodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_ParentNodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_ParentNodes;
+        ConcurrentDictionary<Guid, BaseType>? p_ParentNodes;
 
-        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        ConcurrentDictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
         {
             get
             {
-                if (p_ChildNodes is null) p_ChildNodes = new();
+                Interlocked.CompareExchange(ref p_ChildNodes, new ConcurrentDictionary<Guid, List<BaseType>>(), null);
                 return p_ChildNodes;
             }
         }
-        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
+        ConcurrentDictionary<Guid, List<BaseType>>? p_ChildNodes;
 
         HashSet<int> _ITopNode._TreeSort_NodeIds
         {
@@ -771,7 +746,6 @@ namespace SDC.Schema
             topNode._ChildNodes.Clear();
             topNode._IETnodes.Clear();
             p_IETnodesRO = null;
-            p_NodesRO = null;
             topNode._IETnodes.Clear();
         }
 
@@ -859,16 +833,7 @@ namespace SDC.Schema
 			ElementName = "XMLPackage";
 			ElementPrefix = "xmlPkg";
 		}
-        HashSet<string> _IUniqueIDs._UniqueIDs
-        {
-            get
-            {
-                if (p_UniqueIDs is null) p_UniqueIDs = new();
-                return p_UniqueIDs;
-
-            }
-        }
-        HashSet<string>? p_UniqueIDs;
+        ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
     }
     public partial class PackageItemType : ExtensionBaseType
 	{
@@ -897,16 +862,7 @@ namespace SDC.Schema
 			ElementName = "SDCPackageList";
 			ElementPrefix = "PL";
 		}
-		HashSet<string> _IUniqueIDs._UniqueIDs
-		{
-			get
-			{
-				if (p_UniqueIDs is null) p_UniqueIDs = new();
-				return p_UniqueIDs;
-
-			}
-		}
-		HashSet<string>? p_UniqueIDs;
+		ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
 		#region Thread Safety Infrastructure
 
@@ -916,6 +872,7 @@ namespace SDC.Schema
 		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
 
 		#endregion
 
@@ -928,12 +885,9 @@ namespace SDC.Schema
 		{
 			get
 			{
-				if (p_NodesRO is null)
-					p_NodesRO = new(((_ITopNode)this)._Nodes);
-				return p_NodesRO;
+				return new(((_ITopNode)this)._Nodes);
 			}
 		}
-		private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
 
 		/// <inheritdoc/>
 		[XmlIgnore]
@@ -981,35 +935,35 @@ namespace SDC.Schema
 			int _ITopNode._MaxObjectID { get => _maxObjectID_PL; set => _maxObjectID_PL = value; }
 			int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_PL);
 
-			Dictionary<Guid, BaseType> _ITopNode._Nodes
+			ConcurrentDictionary<Guid, BaseType> _ITopNode._Nodes
         {
             get
             {
-                if (p_Nodes is null) p_Nodes = new();
+                Interlocked.CompareExchange(ref p_Nodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_Nodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_Nodes;
+        ConcurrentDictionary<Guid, BaseType>? p_Nodes;
 
-        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
+        ConcurrentDictionary<Guid, BaseType> _ITopNode._ParentNodes
         {
             get
             {
-                if (p_ParentNodes is null) p_ParentNodes = new();
+                Interlocked.CompareExchange(ref p_ParentNodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_ParentNodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_ParentNodes;
+        ConcurrentDictionary<Guid, BaseType>? p_ParentNodes;
 
-        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        ConcurrentDictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
         {
             get
             {
-                if (p_ChildNodes is null) p_ChildNodes = new();
+                Interlocked.CompareExchange(ref p_ChildNodes, new ConcurrentDictionary<Guid, List<BaseType>>(), null);
                 return p_ChildNodes;
             }
         }
-        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
+        ConcurrentDictionary<Guid, List<BaseType>>? p_ChildNodes;
 
         HashSet<int> _ITopNode._TreeSort_NodeIds
         {
@@ -1061,7 +1015,6 @@ namespace SDC.Schema
             topNode._ChildNodes.Clear();
             topNode._IETnodes.Clear();
             p_IETnodesRO = null;
-            p_NodesRO = null;
             topNode._IETnodes.Clear();
         }
 
@@ -1119,6 +1072,7 @@ namespace SDC.Schema
 		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
 		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
 		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
 
 		#endregion
 		protected MappingType() : base()
@@ -1152,12 +1106,9 @@ namespace SDC.Schema
         {
             get
             {
-                if (p_NodesRO is null)
-                    p_NodesRO = new(((_ITopNode)this)._Nodes);
-                return p_NodesRO;
+                return new(((_ITopNode)this)._Nodes);
             }
         }
-        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
 
         /// <inheritdoc/>
         [XmlIgnore]
@@ -1204,35 +1155,35 @@ namespace SDC.Schema
 			int _ITopNode._MaxObjectID { get => _maxObjectID_MT; set => _maxObjectID_MT = value; }
 			int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_MT);
 
-			Dictionary<Guid, BaseType> _ITopNode._Nodes
+			ConcurrentDictionary<Guid, BaseType> _ITopNode._Nodes
         {
             get
             {
-                if (p_Nodes is null) p_Nodes = new();
+                Interlocked.CompareExchange(ref p_Nodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_Nodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_Nodes;
+        ConcurrentDictionary<Guid, BaseType>? p_Nodes;
 
-        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
+        ConcurrentDictionary<Guid, BaseType> _ITopNode._ParentNodes
         {
             get
             {
-                if (p_ParentNodes is null) p_ParentNodes = new();
+                Interlocked.CompareExchange(ref p_ParentNodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_ParentNodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_ParentNodes;
+        ConcurrentDictionary<Guid, BaseType>? p_ParentNodes;
 
-        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        ConcurrentDictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
         {
             get
             {
-                if (p_ChildNodes is null) p_ChildNodes = new();
+                Interlocked.CompareExchange(ref p_ChildNodes, new ConcurrentDictionary<Guid, List<BaseType>>(), null);
                 return p_ChildNodes;
             }
         }
-        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
+        ConcurrentDictionary<Guid, List<BaseType>>? p_ChildNodes;
 
         HashSet<int> _ITopNode._TreeSort_NodeIds
         {
@@ -1284,7 +1235,6 @@ namespace SDC.Schema
             topNode._ChildNodes.Clear();
             topNode._IETnodes.Clear();
             p_IETnodesRO = null;
-            p_NodesRO = null;
             topNode._IETnodes.Clear();
         }
 
@@ -5930,4 +5880,3 @@ namespace SDC.Schema
 	#endregion
 
 }
-

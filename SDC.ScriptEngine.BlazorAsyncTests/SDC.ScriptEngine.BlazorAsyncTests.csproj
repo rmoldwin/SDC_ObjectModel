@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <WasmEnableWebcil>false</WasmEnableWebcil>
+    <WasmEnableInterpreter>true</WasmEnableInterpreter>
+    <RunAOTCompilation>false</RunAOTCompilation>
+    <PublishTrimmed>false</PublishTrimmed>
+    <!-- WasmEnableThreads intentionally NOT set: Phase 1 = single-threaded mode -->
+    <!-- PublishTrimmed=false acceptable for test tool; see Issue #18 for production approach -->
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.8" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SDC.Schema\SDC.Schema.csproj" />
+    <ProjectReference Include="..\SDC.ScriptEngine.BlazorAsyncTests.Shared\SDC.ScriptEngine.BlazorAsyncTests.Shared.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- These files were moved to SDC.ScriptEngine.BlazorAsyncTests.Shared; exclude from this project -->
+    <Compile Remove="TestEngine\WasmTestCase.cs" />
+    <Compile Remove="TestEngine\WasmTestRunner.cs" />
+    <Compile Remove="TestEngine\SdcTreeBuilder.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Explicit LogicalName prevents name-mangling from folder names with spaces -->
+    <EmbeddedResource Include="TestResources\BreastStagingTest2v1.xml">
+      <LogicalName>BreastStagingTest2v1.xml</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TestResources\BreastStagingTest2v5.xml">
+      <LogicalName>BreastStagingTest2v5.xml</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TestResources\CompareTreesTestV1.xml">
+      <LogicalName>CompareTreesTestV1.xml</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TestResources\CompareTreesTestV2.xml">
+      <LogicalName>CompareTreesTestV2.xml</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

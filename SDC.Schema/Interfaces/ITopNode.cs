@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Xml.Serialization;
@@ -133,6 +134,14 @@ namespace SDC.Schema
 		/// </summary>
 		ReaderWriterLockSlim TreeRwLock { get; }
 
+		/// <summary>
+		/// Per-tree lock that serialises all mutations to _ChildNodes List&lt;BaseType&gt; values.
+		/// Use lock(_ChildNodesMutationLock) rather than per-list locks to avoid AB-BA deadlocks
+		/// when TreeSibComparer.Compare re-enters SortElementKids on a different parent's list.
+		/// Monitor is reentrant per-thread, so recursive re-entry from the same thread is safe.
+		/// </summary>
+		object _ChildNodesMutationLock { get; }
+
 		///<summary>
 		/// Internal base object for initializing IETnodes.<br/>
 		/// The contents of this list are copied (as a read-only collection) to the public IETnodes when the IETnodes property is accessed.
@@ -142,16 +151,16 @@ namespace SDC.Schema
         /// <summary>
         /// Internal Dictionary.  Given an Node ObjectGUID, returns the node's object reference.
         /// </summary>
-        Dictionary<Guid, BaseType> _Nodes { get; }
+        ConcurrentDictionary<Guid, BaseType> _Nodes { get; }
 
         /// <summary>
         /// Internal Dictionary.  Given a Node ObjectGUID, return the *parent* node's object reference
         /// </summary>
-        Dictionary<Guid, BaseType> _ParentNodes { get;}
+        ConcurrentDictionary<Guid, BaseType> _ParentNodes { get;}
         /// <summary>
         /// Internal Dictionary.  Given a NodeID ObjectGUID, return a list of the child nodes object reference
         /// </summary>
-        Dictionary<Guid, List<BaseType>> _ChildNodes { get;}
+        ConcurrentDictionary<Guid, List<BaseType>> _ChildNodes { get;}
 
         /// <summary>
         /// This internal HashSet contains the ObjectID of each parent node that has had its child nodes sorted by ITreeSibComparer. <br/>
@@ -176,4 +185,3 @@ namespace SDC.Schema
 		internal void _ClearDictionaries();
 	}
 }
-

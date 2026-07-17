@@ -1,0 +1,30 @@
+/* app.css — SDC.ScriptEngine.BlazorAsyncTests.Phase2 */
+
+*, *::before, *::after { box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: #f5f7fa; color: #222; }
+
+.test-result-passed  { color: #1a7f37; font-weight: bold; }
+.test-result-failed  { color: #cf222e; font-weight: bold; }
+.test-result-running { color: #0969da; font-style: italic; }
+.test-result-skipped { color: #6e7781; }
+.test-result-notrun  { color: #aaa; }
+
+.test-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: .9em; }
+.test-table th, .test-table td { border: 1px solid #d0d7de; padding: 6px 10px; text-align: left; }
+.test-table th { background: #f6f8fa; }
+.test-table tr:nth-child(even) td { background: #f9fafb; }
+
+.wasm-banner-threaded { background: #d4edda; border: 1px solid #28a745; border-radius: 4px; padding: 10px 14px; margin-bottom: 16px; font-size: .9em; }
+.wasm-banner-single   { background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 10px 14px; margin-bottom: 16px; font-size: .9em; }
+
+button.run-btn { background: #1b3a5c; color: #fff; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-size: .95em; margin-right: 8px; }
+button.run-btn:hover { background: #2d5a9e; }
+button.run-btn:disabled { background: #8ba1bf; cursor: not-allowed; }
+
+.loading-progress { position: relative; display: block; width: 8rem; height: 8rem; margin: 20vh auto 1rem; }
+.loading-progress circle { fill: none; stroke: #e0e0e0; stroke-width: 0.6rem; transform-origin: 50% 50%; transform: rotate(-90deg); transition: stroke-dashoffset 0.05s ease-in-out; }
+.loading-progress circle:last-child { stroke: #1b3a5c; stroke-dasharray: 100%; stroke-dashoffset: 0%; }
+.loading-progress-text::after { content: attr(class); }
+
+#blazor-error-ui { background: #fff3cd; bottom: 0; box-shadow: 0 -1px 2px rgba(0,0,0,.2); display: none; left: 0; padding: 0.6rem 1.25rem; position: fixed; width: 100%; z-index: 1000; }
+#blazor-error-ui .dismiss { cursor: pointer; position: absolute; right: 0.75rem; top: 0.5rem; }

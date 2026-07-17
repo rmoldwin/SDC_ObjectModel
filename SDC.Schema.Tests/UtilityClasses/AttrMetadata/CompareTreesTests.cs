@@ -118,7 +118,8 @@ namespace SDC.Schema.Tests.UtilityClasses.AttrMetadata
 
 
 		[TestMethod]
-		public void ChangeSummaryIETnodeTest()
+			[TestCategory("WasmPortable")]
+			public void ChangeSummaryIETnodeTest()
 		{
 			//SETUP-------------------------------------------------------------------
 			InitV1V5(); //init "comparer" (class CompareTrees) with 2 SDC XML doc versions: V1 & V5; There is no lineeage check in this code, so ensure that V5 derives from V1
@@ -185,7 +186,8 @@ namespace SDC.Schema.Tests.UtilityClasses.AttrMetadata
 		}
 
 		[TestMethod()]
-		public void ChangeSummaryTest()
+			[TestCategory("WasmPortable")]
+			public void ChangeSummaryTest()
 		{
 			//TODO:
 			//Add infor on PreviousIETnodeChanged, PreviousIETNode; For Moved: Current/Previous List positions, 

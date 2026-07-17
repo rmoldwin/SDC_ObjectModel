@@ -374,3 +374,6 @@ FodyWeavers.xsd
 # recurring merge conflicts). Only the explanatory README.md is tracked. See TestArtifacts/README.md.
 /TestArtifacts/*
 !/TestArtifacts/README.md
+
+# Phase2 publish output (generated; run dotnet publish to recreate)
+publish_out/
