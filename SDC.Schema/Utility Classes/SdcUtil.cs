@@ -8,6 +8,7 @@ using System.Buffers;
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -338,11 +339,11 @@ namespace SDC.Schema
 		}
 		#endregion
 
-		internal static Dictionary<Guid, BaseType> Get_Nodes(BaseType n)
+		internal static ConcurrentDictionary<Guid, BaseType> Get_Nodes(BaseType n)
 		{ return Get_ITopNode(n)._Nodes; }
-		internal static Dictionary<Guid, List<BaseType>> Get_ChildNodes(BaseType n)
+		internal static ConcurrentDictionary<Guid, List<BaseType>> Get_ChildNodes(BaseType n)
 		{ return Get_ITopNode(n)._ChildNodes; }
-		internal static Dictionary<Guid, BaseType> Get_ParentNodes(BaseType n)
+		internal static ConcurrentDictionary<Guid, BaseType> Get_ParentNodes(BaseType n)
 		{ return Get_ITopNode(n)._ParentNodes; }
 		internal static ObservableCollection<IdentifiedExtensionType> Get_IETnodes(BaseType n)
 		{ return Get_ITopNode(n)._IETnodes; }
@@ -390,11 +391,11 @@ namespace SDC.Schema
         /// <summary>
         /// Dictionary to cache PropertyInfo objects to speed reflection of SDC Element nodes
         /// </summary>
-        private static readonly Dictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfoElements = new();
+        private static readonly ConcurrentDictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfoElements = new();
 		/// <summary>
 		/// Dictionary to cache PropertyInfo objects to speed reflection of SDC Attribute nodes
 		/// </summary>
-		private static readonly Dictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfoAttributes = new();
+		private static readonly ConcurrentDictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfoAttributes = new();
 
 
 
@@ -408,23 +409,23 @@ namespace SDC.Schema
 		/// <summary>
 		/// Cache XmlRootAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<XmlRootAttribute>?> dXmlRootAtts = new();
+		private static readonly ConcurrentDictionary<Type, List<XmlRootAttribute>?> dXmlRootAtts = new();
 		/// <summary>
 		/// Cache XmlElementAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<XmlElementAttribute>?> dXmlElementAtts = new();
+		private static readonly ConcurrentDictionary<Type, List<XmlElementAttribute>?> dXmlElementAtts = new();
 		/// <summary>
 		/// Cache XmlChoiceIdentifierAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<XmlChoiceIdentifierAttribute>?> dXmlChoiceIdentifierAtts = new();
+		private static readonly ConcurrentDictionary<Type, List<XmlChoiceIdentifierAttribute>?> dXmlChoiceIdentifierAtts = new();
 		/// <summary>
 		/// Cache XmlAttributeAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<XmlAttributeAttribute>?> dXmlAttAtts = new();
+		private static readonly ConcurrentDictionary<Type, List<XmlAttributeAttribute>?> dXmlAttAtts = new();
 		/// <summary>
 		/// Cache XmlAttributeAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<AttributeInfo>?> dListAttInfo = new();
+		private static readonly ConcurrentDictionary<Type, List<AttributeInfo>?> dListAttInfo = new();
 
 
 
@@ -640,19 +641,13 @@ namespace SDC.Schema
 
 				while (s.Count > 0)
 				{
-					IEnumerable<PropertyInfo>? props;
 					Type sPop = s.Pop();
-
-					if (!dListPropInfoElements.TryGetValue(sPop, out props))
-					{
-						props = sPop.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-						.Where(p => p.IsDefined(typeof(XmlElementAttribute))).ToList();
+					var props = dListPropInfoElements.GetOrAdd(sPop, static type =>
+						type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+							.Where(p => p.IsDefined(typeof(XmlElementAttribute))).ToList()
 						//.OrderBy(p => p.GetCustomAttributes<XmlElementAttribute>()  //ordering is not currently needed to retrieve
 						//.First().Order)											  //properties in XML Element order, but this could change
-						;
-
-						dListPropInfoElements.Add(sPop, props);
-					}
+					);
 
 					foreach (var p in props)
 					{
@@ -710,7 +705,7 @@ namespace SDC.Schema
 					btProp.RegisterAll(parentNode, childNodesSort: false); //we are adding nodes in reflection-sorted order
 																		   //Debug.Print(btProp.sGuid + "; Obj ID: " + btProp.ObjectID);
 
-																		   //Adding is not thread-safe - need ConcurrentDictionary
+																		   //TS-3 fix applied: dictionaries are now ConcurrentDictionary (see PartialClasses.cs and ITopNode.cs)
 																		   //Mark parentNode as having its child nodes already sorted
 					TreeSort_Add(parentNode);  //Change ObjectID to ObjectGUID?  //Probably thread-safe, as it's a hashtable, but may need Concurrent Hashtable?
 					AssignSdcProperties(parentNode, piChildProperty, btProp, current_ITopNode, ref order, orderGap, print, sbTreeText, createNodeName);
@@ -1197,7 +1192,7 @@ namespace SDC.Schema
                         n.ObjectID = 0;
                     }
                     else
-                        n.ObjectID = ((_ITopNode)currentTopNode)._MaxObjectID++;
+                        n.ObjectID = ((_ITopNode)currentTopNode).AtomicNextObjectID();
 
 
                     if (refreshMode != RefreshMode.NoChange)
@@ -2121,12 +2116,9 @@ namespace SDC.Schema
 					continue;
 				}
 
-				if (!dListPropInfoAttributes.TryGetValue(t, out piIE))  //look in cache to bypass slow PropertyInfo lookup
-				{
-					piIE = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-							.Where(pi => pi.GetCustomAttributes<XmlAttributeAttribute>().Any());
-					dListPropInfoAttributes.Add(t, piIE); //cache for next time
-				}
+				piIE = dListPropInfoAttributes.GetOrAdd(t, static type =>
+					type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+						.Where(pi => pi.GetCustomAttributes<XmlAttributeAttribute>().Any()));  //look in cache to bypass slow PropertyInfo lookup
 				if (piIE is null) continue;
 
 				var anyAttrProps = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
@@ -2685,6 +2677,7 @@ namespace SDC.Schema
 			if (parentTarget.IsDescendantOf(newNode)) return false; //can't attach a node to itself or one of its descendants.
 
 			Type newNodeType = newNode.GetType();
+			var allProps = parentTarget.GetType().GetProperties().ToList();
 
 			//+Try to match newNode to a parentTarget property, based on newNode's Type
 			if (newNodeElementName.IsNullOrWhitespace())
@@ -2692,7 +2685,7 @@ namespace SDC.Schema
 				//This will be slower than using the elementName parameter, and will fail for some types
 				//(e.g., CallFuncBase, EventType...) where the elementName is critical.
 
-				var parentTargetProps = parentTarget.GetType().GetProperties().Where(n => n.GetCustomAttributes<XmlElementAttribute>().Any()).ToList();
+				var parentTargetProps = allProps.Where(n => n.GetCustomAttributes<XmlElementAttribute>().Any()).ToList();
 
 				piTargetProperty = parentTargetProps?.Where
 					(n =>
@@ -2735,8 +2728,7 @@ namespace SDC.Schema
 			}
 			else //this is the preferred approach, as we don't have to infer the caller's desired SDC node type
 			{//+Try to match newNode to a parent property, based on newNode's SDC XML elementName
-				piTargetProperty = parentTarget.GetType()
-					.GetProperties()
+				piTargetProperty = allProps
 					.Where(pi =>
 						pi.Name == newNodeElementName ||
 						pi.GetCustomAttributes<XmlElementAttribute>()
@@ -2756,10 +2748,6 @@ namespace SDC.Schema
 
 			//Try to find Item(s)ChoiceType object for piTarget, if it exists
 			//piChoiceEnum will tell us if Item(s)ChoiceType is defined as a property. choiceEnum will be non-null if Item(s)ChoiceType has been instantiated
-			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, parentTarget, out piChoiceEnum);
-
-			//+Try to find Item(s)ChoiceType object for piTarget, if it exists
-			//piChoiceEnum will tell us if Item(s)ChoiceType is defined as a property.  choiceEnum will be non-null if Item(s)ChoiceType has been instantiated
 			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, parentTarget, out piChoiceEnum);
 
 			return true;
@@ -3555,7 +3543,7 @@ namespace SDC.Schema
 
 			//regenerate ObjectID
 			if (bt.ObjectID == -1 && bt.TopNode is not null && bt is not ITopNode) 
-				bt.ObjectID = ((_ITopNode)bt.TopNode)._MaxObjectID++;
+				bt.ObjectID = ((_ITopNode)bt.TopNode).AtomicNextObjectID();
 
 			if (! forceNewGuid && ShortGuid.TryParse(bt.sGuid, out Guid guid)) //reuse existing sGuid, if possible; then generate baseName
 			{
@@ -3612,10 +3600,30 @@ namespace SDC.Schema
 
 			if (kids is not null)
 			{
-				if (!TreeSort_IsSorted(parentItem) || forceSort)
+				var _mutLock = (Get_ITopNode(parentItem) as _ITopNode)?._ChildNodesMutationLock;
+				if (_mutLock is not null)
 				{
-					kids.Sort(new TreeSibComparer());
-					TreeSort_Add(parentItem);
+					lock (_mutLock) // Sprint D Fix2: per-tree lock, reentrant-safe
+					{
+						if (!TreeSort_IsSorted(parentItem) || forceSort)
+						{
+							kids.Sort(new TreeSibComparer());
+							TreeSort_Add(parentItem);
+						}
+					}
+				}
+				else // Sprint E Fix C: orphan node (TopNode not yet set, e.g. during deserialization).
+				     // Use lock(kids) as a per-list fallback so concurrent deserialization workers cannot
+				     // run kids.Sort() simultaneously on the same list (which threw Arg_LongerThanDestArray).
+				{
+					lock (kids)
+					{
+						if (!TreeSort_IsSorted(parentItem) || forceSort)
+						{
+							kids.Sort(new TreeSibComparer());
+							TreeSort_Add(parentItem);
+						}
+					}
 				}
 			}
 			return kids;

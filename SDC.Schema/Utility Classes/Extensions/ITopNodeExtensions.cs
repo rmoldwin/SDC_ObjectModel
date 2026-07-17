@@ -1,6 +1,7 @@
 ﻿using CSharpVitamins;
 using SDC.Schema;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
@@ -33,7 +34,7 @@ namespace SDC.Schema.Extensions
 		/// </summary>
 		/// <param name="itn"></param>
 		/// <returns></returns>
-		private static Dictionary<Guid, BaseType> _Nodes(this ITopNode itn)
+		private static ConcurrentDictionary<Guid, BaseType> _Nodes(this ITopNode itn)
 		{ return ((_ITopNode)itn)._Nodes; }
 
 		/// <summary>

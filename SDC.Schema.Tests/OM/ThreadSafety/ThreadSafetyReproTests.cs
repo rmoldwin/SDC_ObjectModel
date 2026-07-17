@@ -102,6 +102,7 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
         /// </summary>
         [TestMethod()]
         [TestCategory("ThreadSafetyRepro")]
+        [TestCategory("ThreadRequired")]
         [Timeout(10000)]
         public void Repro_NonAtomicMaxObjectID_ConcurrentCreation_ProducesDuplicateObjectIDs()
         {
@@ -162,6 +163,7 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
         /// </summary>
         [TestMethod()]
         [TestCategory("ThreadSafetyRepro")]
+        [TestCategory("ThreadRequired")]
         [Timeout(10000)]
         public void Repro_ConcurrentChildrenSameParent_CorruptsParentChildConsistency()
         {
@@ -242,6 +244,7 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
         /// </summary>
         [TestMethod()]
         [TestCategory("ThreadSafetyRepro")]
+        [TestCategory("ThreadRequired")]
         [Timeout(12000)]
         public void Repro_ConcurrentMoves_UnprotectedListMutations_CorruptListIntegrity()
         {
@@ -342,6 +345,7 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
         /// </summary>
         [TestMethod()]
         [TestCategory("ThreadSafetyRepro")]
+        [TestCategory("ThreadRequired")]
         [Timeout(12000)]
         public void Repro_ConcurrentCrossTreeMoves_DoNotDeadlock()
         {
@@ -408,6 +412,7 @@ namespace SDC.Schema.Tests.OM.ThreadSafety
         /// </summary>
         [TestMethod()]
         [TestCategory("ThreadSafetyRepro")]
+        [TestCategory("ThreadRequired")]
         [Timeout(30000)]
         public void Repro_ConcurrentCrossTreeMoves_UpdateNodeIdentityPath_NoCorruption()
         {
