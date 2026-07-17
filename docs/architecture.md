@@ -44,8 +44,7 @@ own file. See [glossary.md](glossary.md) for every initialism used below.
     helpers, navigation/traversal helpers, Extensible Markup Language (XML) reflection, naming, and
     attachment support.
 
-Chapters marked with a file link above already exist as stub or migrated content; chapters shown
-without a link are planned but not yet created — tracked in [roadmap.md](roadmap.md).
+All chapters listed above link to existing content. Planned future chapters are tracked in [roadmap.md](roadmap.md).
 
 ## Docs vs. wiki
 

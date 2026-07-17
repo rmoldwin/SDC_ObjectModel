@@ -1,8 +1,8 @@
 # CompareTrees
 
 > **Status:** Living document. This chapter describes the `CompareTrees<T>` implementation currently
-> present on the `origin/Features/NET10/Net10Main` baseline used by this worktree. A separate,
-> not-yet-merged branch, `origin/Features/CompareTrees`, is ahead with additional work, so this
+> present on the `Features/NET10/Net10Main` baseline used by this worktree. A separate,
+> not-yet-merged branch, `Features/CompareTrees`, is ahead with additional work, so this
 > chapter intentionally documents only the behavior visible in the current baseline.
 
 ## Summary

@@ -2,7 +2,7 @@
 
 > **Status:** `SDC.ScriptEngine` already supports browser-hosted execution of pre-compiled Intermediate Language (IL) bytes, and this repository contains two browser-side compile/run prototypes. Production WebAssembly hosting is still incomplete.
 >
-> **Unmerged hardening work:** A read-only `git log --oneline origin/Features/NET10/Net10Main..origin/Features/NET10/ILandWASM/Main` check from this worktree shows substantial WebAssembly-specific hardening ahead of `Net10Main`, including Sprint C through Sprint F commits for concurrent-dictionary migration, read/write lock coverage, per-tree child-node mutation locking, deferred child sorting, thread-safe unique-ID handling, and consolidated threading notes. That work lives on `Features/NET10/ILandWASM/Main` and related sprint branches and is **not yet merged** into `Net10Main`.
+> **Unmerged hardening work:** A read-only `git log --oneline Features/NET10/Net10Main..Features/NET10/ILandWASM/Main` check from this worktree shows substantial WebAssembly-specific hardening ahead of `Features/NET10/Net10Main`, including Sprint C through Sprint F commits for concurrent-dictionary migration, read/write lock coverage, per-tree child-node mutation locking, deferred child sorting, thread-safe unique-ID handling, and consolidated threading notes. That work lives on `Features/NET10/ILandWASM/Main` and related sprint branches and is **not yet merged** into `Features/NET10/Net10Main`.
 
 This chapter is about the script-hosting story around `SDC.ScriptEngine`, not the general browser rendering story for the Structured Data Capture (SDC) Object Model (OM).
 
