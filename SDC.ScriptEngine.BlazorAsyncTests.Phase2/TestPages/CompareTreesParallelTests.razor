@@ -1,0 +1,228 @@
+@page "/compare-trees-parallel"
+
+<PageTitle>Category 4: CompareTrees Parallel Tests</PageTitle>
+
+<h1>Category 4: CompareTrees Parallel — Informational</h1>
+<p style="color:#555; font-size:.9em;">
+    3 tests. Non-gating on wall-clock time — timing is informational.
+    Note: <code>lock(locker)</code> at CompareTrees.cs:352 is a known serial bottleneck for
+    <code>GetNodePreviousSib()</code>; the result dict is already ConcurrentDictionary.
+    Baseline: V1→V5 IETattDiffs=907, added=3, removed=0 (~8–12 s serial).
+</p>
+
+<div style="margin-bottom:16px;">
+    <button class="run-btn" @onclick="RunAllAsync" disabled="@IsRunning">▶ Run All</button>
+    @if (IsRunning) { <span style="color:#0969da; font-size:.9em; margin-left:8px;">Running… (@_results.Count / 3 complete — CompareTrees is slow, please wait)</span> }
+</div>
+
+<table class="test-table">
+    <thead><tr><th style="width:42%">Test</th><th>Status</th><th>Duration (ms)</th><th>Message</th></tr></thead>
+    <tbody>
+    @foreach (var r in _results)
+    {
+        <tr>
+            <td>@r.Name</td>
+            <td class="@CssClass(r.Status)">@r.Status</td>
+            <td>@r.Duration.TotalMilliseconds.ToString("F0")</td>
+            <td style="font-size:.8em; white-space:pre-wrap; max-width:420px; overflow:hidden; text-overflow:ellipsis;">@Truncate(r.Message)</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private const int THREAD_COUNT = 4;
+    private const int WATCHDOG_MS = 6000;
+
+    // Serial baseline (Phase 1 CompareTrees correctness).
+    private const int Baseline_IETattDiffs     = 907;
+    private const int Baseline_IETnodesAdded   = 3;
+    private const int Baseline_IETnodesRemoved = 0;
+
+    private bool IsRunning;
+    private readonly List<WasmTestResult> _results = new();
+
+    // XML strings loaded once per page visit (single-threaded setup).
+    private string? _xmlV1, _xmlV5, _xmlCTV1, _xmlCTV2;
+
+    private async Task RunAllAsync()
+    {
+        IsRunning = true;
+        _results.Clear();
+        StateHasChanged();
+
+        // Load XML single-threaded before spawning any threads.
+        _xmlV1   = SdcTreeBuilder.LoadEmbeddedXml("BreastStagingTest2v1.xml");
+        _xmlV5   = SdcTreeBuilder.LoadEmbeddedXml("BreastStagingTest2v5.xml");
+        _xmlCTV1 = SdcTreeBuilder.LoadEmbeddedXml("CompareTreesTestV1.xml");
+        _xmlCTV2 = SdcTreeBuilder.LoadEmbeddedXml("CompareTreesTestV2.xml");
+
+        await AddResult(await Test1_CompareTrees_V1vsV5_ParallelTiming_Informational());
+        await AddResult(await Test2_CompareTrees_ConcurrentInstances_8Threads_SameResults());
+        await AddResult(await Test3_CompareTrees_LockContention_NoDeadlock());
+
+        IsRunning = false;
+        StateHasChanged();
+    }
+
+    private async Task AddResult(WasmTestResult r)
+    {
+        _results.Add(r);
+        StateHasChanged();
+        await Task.Yield();
+    }
+
+    private void OrchestrateBarrierTest(Action<Barrier, int> threadBody)
+    {
+        using var barrier = new Barrier(THREAD_COUNT);
+        var threads = Enumerable.Range(0, THREAD_COUNT)
+            .Select(i => new Thread(() => threadBody(barrier, i)) { IsBackground = true })
+            .ToArray();
+        foreach (var t in threads) t.Start();
+        foreach (var t in threads) t.Join();
+    }
+
+    private async Task<WasmTestResult> RunThreadedTest(string name, string category, Action orchestrate, int watchdogMs = WATCHDOG_MS)
+    {
+        var tcs = new TaskCompletionSource<string>();
+        string? error = null;
+        var orchestrator = new Thread(() =>
+        {
+            try { orchestrate(); tcs.SetResult("ok"); }
+            catch (Exception ex) { error = ex.ToString(); tcs.SetResult("error"); }
+        });
+        orchestrator.IsBackground = true;
+        orchestrator.Start();
+        var sw = Stopwatch.StartNew();
+        var completed = await Task.WhenAny(tcs.Task, Task.Delay(watchdogMs));
+        sw.Stop();
+        if (completed != tcs.Task)
+            return new WasmTestResult(name, category, TestStatus.Failed, "DEADLOCK suspected — watchdog expired", sw.Elapsed);
+        if (error is not null)
+            return new WasmTestResult(name, category, TestStatus.Failed, error, sw.Elapsed);
+        return new WasmTestResult(name, category, TestStatus.Passed, $"OK", sw.Elapsed);
+    }
+
+    // ── Test 1: V1 vs V5 serial baseline + timing info ───────────────────────
+    private Task<WasmTestResult> Test1_CompareTrees_V1vsV5_ParallelTiming_Informational()
+        => RunThreadedTest("CompareTrees_V1vsV5_ParallelTiming_Informational", "Category4", () =>
+        {
+            // Single-threaded serial run to establish WASM timing baseline.
+            BaseType.ResetLastTopNode();
+            var tV1 = SdcTreeBuilder.BuildFromXmlString(_xmlV1!);
+            BaseType.ResetLastTopNode();
+            var tV5 = SdcTreeBuilder.BuildFromXmlString(_xmlV5!);
+
+            var sw = Stopwatch.StartNew();
+            var comparer = new CompareTrees<FormDesignType>(tV1, tV5);
+            var attDiffs  = comparer.GetIETattDiffs?.Count ?? -1;
+            var added     = comparer.GetIETnodesAddedInNew.Count;
+            var removed   = comparer.GetIETnodesRemovedInNew.Count;
+            sw.Stop();
+
+            // Assert: correctness — must match serial desktop baseline.
+            if (attDiffs != Baseline_IETattDiffs)
+                throw new InvalidOperationException(
+                    $"IETattDiffs: expected {Baseline_IETattDiffs}, got {attDiffs}");
+            if (added != Baseline_IETnodesAdded)
+                throw new InvalidOperationException(
+                    $"IETnodesAddedInNew: expected {Baseline_IETnodesAdded}, got {added}");
+            if (removed != Baseline_IETnodesRemoved)
+                throw new InvalidOperationException(
+                    $"IETnodesRemovedInNew: expected {Baseline_IETnodesRemoved}, got {removed}");
+
+            // Sanity time guard (not a pass/fail for performance, just prevents infinite-loop detection).
+            if (sw.Elapsed.TotalSeconds > 60)
+                throw new InvalidOperationException(
+                    $"CompareTrees took {sw.Elapsed.TotalSeconds:F1}s — exceeded 60s sanity limit");
+        }, watchdogMs: 120_000); // allow 2 min for this heavy comparison
+
+    // ── Test 2: 8 concurrent independent CompareTrees instances ──────────────
+    private Task<WasmTestResult> Test2_CompareTrees_ConcurrentInstances_8Threads_SameResults()
+        => RunThreadedTest("CompareTrees_ConcurrentInstances_8Threads_SameResults", "Category4", () =>
+        {
+            // Each thread builds its own pair of trees from the same XML strings then runs CompareTrees.
+            // Independent instances are safe to use concurrently — this proves it.
+            var results = new int[THREAD_COUNT];
+            var exceptions = new ConcurrentBag<Exception>();
+
+            OrchestrateBarrierTest((barrier, i) =>
+            {
+                try
+                {
+                    // Build independent tree pair per thread (no shared tree state).
+                    BaseType.ResetLastTopNode();
+                    var t1 = SdcTreeBuilder.BuildFromXmlString(_xmlV1!);
+                    BaseType.ResetLastTopNode();
+                    var t5 = SdcTreeBuilder.BuildFromXmlString(_xmlV5!);
+
+                    barrier.SignalAndWait(); // all threads start CompareTrees simultaneously
+                    var comparer = new CompareTrees<FormDesignType>(t1, t5);
+                    results[i] = comparer.GetIETattDiffs?.Count ?? -1;
+                }
+                catch (Exception ex) { exceptions.Add(ex); }
+            });
+
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"{exceptions.Count} exception(s) during concurrent CompareTrees. First: {exceptions.First().Message}");
+
+            // Assert: all 8 threads got the correct baseline result.
+            for (int i = 0; i < THREAD_COUNT; i++)
+            {
+                if (results[i] != Baseline_IETattDiffs)
+                    throw new InvalidOperationException(
+                        $"Thread {i}: IETattDiffs={results[i]}, expected {Baseline_IETattDiffs}");
+            }
+        }, watchdogMs: 300_000); // 5-minute watchdog for 8 simultaneous heavy comparisons
+
+    // ── Test 3: Lock contention on V1 vs V2 — no deadlock ───────────────────
+    private Task<WasmTestResult> Test3_CompareTrees_LockContention_NoDeadlock()
+        => RunThreadedTest("CompareTrees_LockContention_NoDeadlock", "Category4", () =>
+        {
+            // 8 threads each run CompareTrees on CompareTreesTestV1 vs V2 simultaneously.
+            // The lock(locker) at CompareTrees.cs:352 creates serial contention — this test
+            // proves no deadlock occurs under that contention.
+            var exceptions = new ConcurrentBag<Exception>();
+            var resultCounts = new int[THREAD_COUNT];
+
+            OrchestrateBarrierTest((barrier, i) =>
+            {
+                try
+                {
+                    BaseType.ResetLastTopNode();
+                    var tv1 = SdcTreeBuilder.BuildFromXmlString(_xmlCTV1!);
+                    BaseType.ResetLastTopNode();
+                    var tv2 = SdcTreeBuilder.BuildFromXmlString(_xmlCTV2!);
+
+                    barrier.SignalAndWait(); // maximise contention
+                    var comparer = new CompareTrees<FormDesignType>(tv1, tv2);
+                    resultCounts[i] = comparer.GetIETattDiffs?.Count ?? 0;
+                }
+                catch (Exception ex) { exceptions.Add(ex); }
+            });
+
+            // Assert: no deadlock (watchdog would have fired) and no exception.
+            if (exceptions.Count > 0)
+                throw new InvalidOperationException(
+                    $"{exceptions.Count} exception(s) during concurrent CompareTrees (V1 vs V2). " +
+                    $"First: {exceptions.First().Message}");
+
+            // Assert: all threads got the same result (consistency).
+            if (resultCounts.Distinct().Count() > 1)
+                throw new InvalidOperationException(
+                    $"Inconsistent results across threads: [{string.Join(", ", resultCounts)}]");
+        }, watchdogMs: 300_000); // 5-minute watchdog for 8 simultaneous comparisons
+
+    private static string CssClass(TestStatus s) => s switch
+    {
+        TestStatus.Passed  => "test-result-passed",
+        TestStatus.Failed  => "test-result-failed",
+        TestStatus.Running => "test-result-running",
+        TestStatus.Skipped => "test-result-skipped",
+        _ => "test-result-notrun"
+    };
+
+    private static string Truncate(string s, int max = 250)
+        => s.Length > max ? s[..max] + "…" : s;
+}

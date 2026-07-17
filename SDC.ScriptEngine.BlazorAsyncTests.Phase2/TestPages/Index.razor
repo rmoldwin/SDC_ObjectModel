@@ -1,0 +1,93 @@
+@page "/"
+
+<PageTitle>SDC BlazorAsyncTests Phase 2 — Dashboard</PageTitle>
+
+<h1>SDC OM Multi-threaded WASM — Phase 2 Dashboard</h1>
+
+@* ── Threading Mode Banner ────────────────────────────────────────────────── *@
+@if (_crossOriginIsolated.HasValue && !_crossOriginIsolated.Value)
+{
+    <div class="wasm-banner-single">
+        ⚠ <strong>crossOriginIsolated = false.</strong>
+        COOP/COEP headers are missing. Run via:
+        <code>dotnet run --project SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server</code>
+    </div>
+}
+else if (ThreadsEnabled)
+{
+    <div class="wasm-banner-threaded">
+        ✅ <strong>Multi-threaded WASM mode active.</strong>
+        <code>Environment.ProcessorCount = @ProcessorCount</code> ·
+        <code>crossOriginIsolated = @(_crossOriginIsolated?.ToString() ?? "checking…")</code>
+    </div>
+}
+else
+{
+    <div class="wasm-banner-single">
+        ⚠ <strong>Single-threaded mode detected.</strong>
+        <code>Environment.ProcessorCount = 1</code>. Threading tests require
+        <code>WasmEnableThreads=true</code> and the Phase2.Server host.
+    </div>
+}
+
+@* ── Category 1: Environment Info ────────────────────────────────────────── *@
+@if (_jsError is not null)
+{
+    <div style="background:#ffeef0; border:1px solid #cf222e; border-radius:4px; padding:8px 14px; margin-bottom:12px; font-size:.85em;">
+        ⚠ JS helper error (non-fatal): <code>@_jsError</code>
+    </div>
+}
+<h2>Category 1: Threading Verification</h2>
+<table class="test-table" style="max-width:650px; margin-bottom:24px;">
+    <tbody>
+        <tr><th>OperatingSystem.IsBrowser()</th><td>@IsBrowser</td></tr>
+        <tr><th>Environment.ProcessorCount</th><td>@ProcessorCount</td></tr>
+        <tr><th>RuntimeInformation.OSDescription</th><td>@OSDescription</td></tr>
+        <tr><th>WasmEnableThreads</th><td>@ThreadsEnabled (ProcessorCount > 1)</td></tr>
+        <tr><th>WasmPThreadPoolSize (config)</th><td>4</td></tr>
+        <tr><th>crossOriginIsolated (JS)</th><td>@(_crossOriginIsolated?.ToString() ?? "loading…")</td></tr>
+        <tr>
+            <th>Phase 1 serial baseline (CompareTrees V1→V5)</th>
+            <td>~8–12 s (IETattDiffs=907, added=3, removed=0)</td>
+        </tr>
+    </tbody>
+</table>
+
+@* ── Test Page Links ──────────────────────────────────────────────────────── *@
+<h2>Test Pages</h2>
+<ul style="line-height:2; font-size:1.05em;">
+    <li><a href="/barrier-tests">Category 2: Barrier Tests (7 tests)</a> — Concurrent node operations via System.Threading.Barrier, THREAD_COUNT=4</li>
+    <li><a href="/ts-repro-tests">Category 3: ThreadSafetyRepro Tests (4 tests)</a> — TS1–TS4 port from desktop repro harness</li>
+    <li><a href="/compare-trees-parallel">Category 4: CompareTrees Parallel (3 tests)</a> — Informational timing; proves independent instances run concurrently</li>
+    <li><a href="/shared-topnode-tests">Category 5: Shared TopNode Tests (3 tests)</a> — Single shared TopNode race surface (green after TS-3 Sprint A fix)</li>
+</ul>
+
+@code {
+    [Inject] IJSRuntime JS { get; set; } = default!;
+
+    private bool IsBrowser => OperatingSystem.IsBrowser();
+    private int ProcessorCount => Environment.ProcessorCount;
+    private bool ThreadsEnabled => ProcessorCount > 1;
+    private string OSDescription => RuntimeInformation.OSDescription;
+
+    private bool? _crossOriginIsolated;
+    private string? _jsError;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                // Use named window function (defined in index.html) — avoids eval and CSP warnings.
+                _crossOriginIsolated = await JS.InvokeAsync<bool>("sdcGetCrossOriginIsolated");
+            }
+            catch (Exception ex)
+            {
+                _crossOriginIsolated = null;
+                _jsError = ex.Message;
+            }
+            StateHasChanged();
+        }
+    }
+}

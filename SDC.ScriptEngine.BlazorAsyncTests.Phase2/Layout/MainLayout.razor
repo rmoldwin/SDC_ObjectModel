@@ -1,0 +1,26 @@
+@* MainLayout.razor — SDC.ScriptEngine.BlazorAsyncTests.Phase2
+   Top nav bar with links to all Phase 2 test pages. *@
+
+@inherits LayoutComponentBase
+
+<div style="max-width:1200px; margin:0 auto; padding:0 16px;">
+    <header style="background:#1b3a5c; color:#fff; padding:10px 16px; margin-bottom:20px;">
+        <strong>SDC.ScriptEngine.BlazorAsyncTests</strong>
+        <span style="font-size:.85em; opacity:.75; margin-left:12px;">
+            Phase 2 — Multi-threaded WASM (WasmEnableThreads=true)
+        </span>
+        <nav style="margin-top:6px; font-size:.9em; line-height:1.8;">
+            <a href="/" style="color:#8bf; margin-right:14px;">Dashboard</a>
+            <a href="/barrier-tests" style="color:#8bf; margin-right:14px;">Cat 2: Barrier Tests</a>
+            <a href="/ts-repro-tests" style="color:#8bf; margin-right:14px;">Cat 3: TS Repro</a>
+            <a href="/compare-trees-parallel" style="color:#8bf; margin-right:14px;">Cat 4: CompareTrees Parallel</a>
+            <a href="/shared-topnode-tests" style="color:#8bf;">Cat 5: Shared TopNode</a>
+        </nav>
+    </header>
+    <main>
+        @Body
+    </main>
+    <footer style="margin-top:40px; font-size:.8em; color:#888; border-top:1px solid #ddd; padding:12px 0;">
+        SDC.ScriptEngine.BlazorAsyncTests · Phase 2 · .NET 10 WASM Multi-threaded Mode
+    </footer>
+</div>
