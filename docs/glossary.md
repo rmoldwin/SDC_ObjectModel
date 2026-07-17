@@ -27,6 +27,7 @@ anywhere in this project must be added here before (or at the same time as) its 
 | JSON | JavaScript Object Notation | A lightweight text format for representing structured data. |
 | LINQ | Language Integrated Query | A .NET feature for querying collections with SQL-like syntax. |
 | MsgPack | MessagePack | A compact binary serialization format, alternative to JSON/BSON. |
+| MSTest | Microsoft Test (framework) | The unit-testing framework used across the SDC.Schema test projects. |
 | .NET | .NET | Microsoft's software development platform/runtime. |
 | OM | Object Model | The in-memory class hierarchy (SDC.Schema) representing an SDC form. |
 | PLINQ | Parallel LINQ | A version of LINQ that runs queries across multiple CPU cores. |
