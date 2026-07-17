@@ -79,7 +79,7 @@
         return new WasmTestResult(name, category, TestStatus.Passed, "OK", sw.Elapsed);
     }
 
-    // ── Test 1: 10 threads × 50 nodes on one shared FormDesignType ───────────
+    // ── Test 1: 4 threads × 50 nodes on one shared FormDesignType ───────────
     private Task<WasmTestResult> Test1_ConcurrentNodeConstruction_SingleTopNode_NoIdDuplication()
         => RunThreadedTest("ConcurrentNodeConstruction_SingleTopNode_NoIdDuplication", "Category5", () =>
         {
@@ -125,7 +125,7 @@
                 throw new InvalidOperationException(
                     $"{exceptions.Count} exception(s) during concurrent node construction. First: {exceptions.First().Message}");
 
-            // Assert: all 500 ObjectIDs are unique (TS-3 Interlocked.Increment).
+            // Assert: all TOTAL_NODES ObjectIDs are unique (TS-3 Interlocked.Increment).
             int totalIds  = allObjectIds.Count;
             int uniqueIds = allObjectIds.Distinct().Count();
             if (uniqueIds != TOTAL_NODES || totalIds != TOTAL_NODES)
@@ -133,7 +133,7 @@
                     $"ObjectID: expected {TOTAL_NODES} unique, got {totalIds} total, {uniqueIds} unique. " +
                     $"TS-3 REGRESSION: duplicate IDs from non-atomic counter.");
 
-            // Assert: all 500 ObjectGUIDs are unique (Guid.NewGuid() must be race-free).
+            // Assert: all TOTAL_NODES ObjectGUIDs are unique (Guid.NewGuid() must be race-free).
             int totalGuids  = allObjectGuids.Count;
             int uniqueGuids = allObjectGuids.Distinct().Count();
             if (uniqueGuids != TOTAL_NODES || totalGuids != TOTAL_NODES)
@@ -214,7 +214,7 @@
             const int DURATION_MS = 3000;
 
             using var barrier = new Barrier(READERS + WRITERS);
-            var cts = new CancellationTokenSource(DURATION_MS);
+            using var cts = new CancellationTokenSource(DURATION_MS);
             var threads = new List<Thread>();
 
             // 7 reader threads continuously enumerate Nodes.Keys for 3 seconds.

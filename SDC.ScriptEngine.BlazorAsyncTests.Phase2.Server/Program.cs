@@ -1,8 +1,8 @@
 // Program.cs — SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server
 // Thin ASP.NET Core host that injects COOP/COEP headers required for SharedArrayBuffer
-// (needed by WasmEnableThreads=true in the Phase2 client). Run with:
-//   dotnet run --project SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server
-
+// (needed by WasmEnableThreads=true in the Phase2 client). For multi-threaded WASM, publish and run the output:
+//   dotnet publish SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server -c Release -o publish_out
+//   cd publish_out && dotnet SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server.dll
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseStaticWebAssets(); // required in dev (dotnet run) to discover WASM client wwwroot
 var app = builder.Build();

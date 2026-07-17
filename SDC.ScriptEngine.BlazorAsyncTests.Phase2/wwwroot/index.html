@@ -46,8 +46,8 @@
             document.getElementById('app').innerHTML =
                 '<div style="color:red;padding:20px"><b>Cannot start multi-threaded WASM.</b><br/>' +
                 'COOP/COEP headers are missing (window.crossOriginIsolated = false).<br/><br/>' +
-                'Run via: <code>dotnet run --project SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server</code><br/>' +
-                'Do NOT use the Blazor DevServer for this project.</div>';
+                'Run via:<br/><code>dotnet publish SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server -c Release -o publish_out</code><br/>' +
+                'Then: <code>cd publish_out &amp;&amp; dotnet SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server.dll</code><br/>Do NOT use the Blazor DevServer for this project.</div>';
             throw new Error('crossOriginIsolated is false — aborting Blazor boot');
         }
         // Named helper so C# JSInterop doesn't need eval (avoids CSP warnings).

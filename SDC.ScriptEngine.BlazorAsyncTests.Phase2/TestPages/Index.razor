@@ -9,8 +9,8 @@
 {
     <div class="wasm-banner-single">
         ⚠ <strong>crossOriginIsolated = false.</strong>
-        COOP/COEP headers are missing. Run via:
-        <code>dotnet run --project SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server</code>
+        COOP/COEP headers are missing. Multi-threaded WASM requires published output. Run:
+        <code>dotnet publish SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server -c Release -o publish_out</code><br /><code>cd publish_out &amp;&amp; dotnet SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server.dll</code>
     </div>
 }
 else if (ThreadsEnabled)

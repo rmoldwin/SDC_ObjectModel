@@ -58,7 +58,7 @@
         _xmlCTV2 = SdcTreeBuilder.LoadEmbeddedXml("CompareTreesTestV2.xml");
 
         await AddResult(await Test1_CompareTrees_V1vsV5_ParallelTiming_Informational());
-        await AddResult(await Test2_CompareTrees_ConcurrentInstances_8Threads_SameResults());
+        await AddResult(await Test2_CompareTrees_ConcurrentInstances_4Threads_SameResults());
         await AddResult(await Test3_CompareTrees_LockContention_NoDeadlock());
 
         IsRunning = false;
@@ -137,9 +137,9 @@
                     $"CompareTrees took {sw.Elapsed.TotalSeconds:F1}s — exceeded 60s sanity limit");
         }, watchdogMs: 120_000); // allow 2 min for this heavy comparison
 
-    // ── Test 2: 8 concurrent independent CompareTrees instances ──────────────
-    private Task<WasmTestResult> Test2_CompareTrees_ConcurrentInstances_8Threads_SameResults()
-        => RunThreadedTest("CompareTrees_ConcurrentInstances_8Threads_SameResults", "Category4", () =>
+    // ── Test 2: 4 concurrent independent CompareTrees instances ──────────────
+    private Task<WasmTestResult> Test2_CompareTrees_ConcurrentInstances_4Threads_SameResults()
+        => RunThreadedTest("CompareTrees_ConcurrentInstances_4Threads_SameResults", "Category4", () =>
         {
             // Each thread builds its own pair of trees from the same XML strings then runs CompareTrees.
             // Independent instances are safe to use concurrently — this proves it.
@@ -167,7 +167,7 @@
                 throw new InvalidOperationException(
                     $"{exceptions.Count} exception(s) during concurrent CompareTrees. First: {exceptions.First().Message}");
 
-            // Assert: all 8 threads got the correct baseline result.
+            // Assert: all threads got the correct baseline result.
             for (int i = 0; i < THREAD_COUNT; i++)
             {
                 if (results[i] != Baseline_IETattDiffs)
@@ -180,7 +180,7 @@
     private Task<WasmTestResult> Test3_CompareTrees_LockContention_NoDeadlock()
         => RunThreadedTest("CompareTrees_LockContention_NoDeadlock", "Category4", () =>
         {
-            // 8 threads each run CompareTrees on CompareTreesTestV1 vs V2 simultaneously.
+            // THREAD_COUNT threads each run CompareTrees on CompareTreesTestV1 vs V2 simultaneously.
             // The lock(locker) at CompareTrees.cs:352 creates serial contention — this test
             // proves no deadlock occurs under that contention.
             var exceptions = new ConcurrentBag<Exception>();
