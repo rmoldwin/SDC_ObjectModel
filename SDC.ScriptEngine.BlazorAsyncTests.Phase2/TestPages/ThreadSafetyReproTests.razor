@@ -100,7 +100,7 @@
     private Task<WasmTestResult> TS1_LastTopNode_ThreadStatic_Isolated()
         => RunThreadedTest("TS1_LastTopNode_ThreadStatic_IsolatedPerThread", "Category3", () =>
         {
-            // 8 threads each build an independent tree using new Thread() (not Task.Run/ThreadPool)
+            // THREAD_COUNT threads each build an independent tree using new Thread() (not Task.Run/ThreadPool)
             // to guarantee each gets a fresh [ThreadStatic] TLS slot for LastTopNode.
             var trees = new FormDesignType?[THREAD_COUNT];
             var exceptions = new ConcurrentBag<Exception>();
