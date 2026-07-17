@@ -198,7 +198,7 @@
     private Task<WasmTestResult> TS3_NodeDictionary_ConcurrentAddRemove_NoCorruption()
         => RunThreadedTest("TS3_NodeDictionary_ConcurrentAddRemove_NoCorruption", "Category3", () =>
         {
-            // Part A: 8 threads each create 25 nodes on SEPARATE TopNodes.
+            // Part A: THREAD_COUNT threads each create 25 nodes on SEPARATE TopNodes.
             // Assert each thread's topNode.Nodes.Count == 25 (+ 1 for the DataElementType itself).
             var perThreadTrees = new DataElementType[THREAD_COUNT];
             var exceptions = new ConcurrentBag<Exception>();
