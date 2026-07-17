@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SDC.ScriptEngine.BlazorAsyncTests — Phase 2</title>
+    <base href="/" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <!-- No scoped .razor.css files — styles bundle omitted to avoid 404 -->
+</head>
+<body>
+    <div id="app">
+        <svg class="loading-progress">
+            <circle r="40%" cx="50%" cy="50%" />
+            <circle r="40%" cx="50%" cy="50%" />
+        </svg>
+        <div class="loading-progress-text"></div>
+    </div>
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">&#x2715;</span>
+    </div>
+    <script>
+        // Boot-level error display: catches JS/WASM errors before Blazor starts.
+        // Shows errors directly on the page so DevTools aren't needed.
+        window.addEventListener('error', function (e) {
+            var d = document.createElement('div');
+            d.style.cssText = 'position:fixed;top:0;left:0;right:0;background:red;color:#fff;padding:12px;z-index:9999;font-family:monospace;font-size:12px;white-space:pre-wrap;';
+            d.textContent = 'JS ERROR: ' + (e.message || '') + '\n' + (e.filename || '') + ':' + e.lineno + '\n' + (e.error && e.error.stack ? e.error.stack : '');
+            document.body.appendChild(d);
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+            var d = document.createElement('div');
+            d.style.cssText = 'position:fixed;top:80px;left:0;right:0;background:darkred;color:#fff;padding:12px;z-index:9999;font-family:monospace;font-size:12px;white-space:pre-wrap;';
+            d.textContent = 'UNHANDLED PROMISE: ' + (e.reason ? (e.reason.message || e.reason) : 'unknown') + '\n' + (e.reason && e.reason.stack ? e.reason.stack : '');
+            document.body.appendChild(d);
+        });
+    </script>
+    <script>
+        // Pre-boot guard: WasmEnableThreads=true requires SharedArrayBuffer, which is only
+        // available when COOP/COEP headers are present. If missing, the .NET runtime fails
+        // to load before any C# code runs. Show a readable error here instead.
+        if (!self.crossOriginIsolated) {
+            document.getElementById('app').innerHTML =
+                '<div style="color:red;padding:20px"><b>Cannot start multi-threaded WASM.</b><br/>' +
+                'COOP/COEP headers are missing (window.crossOriginIsolated = false).<br/><br/>' +
+                'Run via:<br/><code>dotnet publish SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server -c Release -o publish_out</code><br/>' +
+                'Then: <code>cd publish_out &amp;&amp; dotnet SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server.dll</code><br/>Do NOT use the Blazor DevServer for this project.</div>';
+            throw new Error('crossOriginIsolated is false — aborting Blazor boot');
+        }
+        // Named helper so C# JSInterop doesn't need eval (avoids CSP warnings).
+        window.sdcGetCrossOriginIsolated = function () { return self.crossOriginIsolated === true; };
+    </script>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+</html>
