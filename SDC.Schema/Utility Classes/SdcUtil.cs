@@ -707,7 +707,8 @@ namespace SDC.Schema
 
 																		   //TS-3 fix applied: dictionaries are now ConcurrentDictionary (see PartialClasses.cs and ITopNode.cs)
 																		   //Mark parentNode as having its child nodes already sorted
-					TreeSort_Add(parentNode);  //Change ObjectID to ObjectGUID?  //Probably thread-safe, as it's a hashtable, but may need Concurrent Hashtable?
+					var tn = Get_ITopNode(parentNode);
+					lock (tn._ChildNodesMutationLock) TreeSort_Add(parentNode);  // _TreeSort_NodeIds is HashSet<int>; protect with per-tree lock
 					AssignSdcProperties(parentNode, piChildProperty, btProp, current_ITopNode, ref order, orderGap, print, sbTreeText, createNodeName);
 				}
 
