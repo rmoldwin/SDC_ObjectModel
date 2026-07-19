@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <WasmEnableWebcil>false</WasmEnableWebcil>
+    <WasmEnableThreads>true</WasmEnableThreads>
+    <WasmEnableInterpreter>true</WasmEnableInterpreter>
+    <WasmPThreadPoolSize>4</WasmPThreadPoolSize>
+    <RunAOTCompilation>false</RunAOTCompilation>
+    <PublishTrimmed>false</PublishTrimmed>
+    <!-- No DevServer package — Phase2.Server hosts this project with COOP/COEP headers -->
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.8" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SDC.Schema\SDC.Schema.csproj" />
+    <ProjectReference Include="..\SDC.ScriptEngine.BlazorAsyncTests.Shared\SDC.ScriptEngine.BlazorAsyncTests.Shared.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Explicit LogicalName prevents name-mangling from folder names with spaces -->
+    <EmbeddedResource Include="TestResources\BreastStagingTest2v1.xml">
+      <LogicalName>BreastStagingTest2v1.xml</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TestResources\BreastStagingTest2v5.xml">
+      <LogicalName>BreastStagingTest2v5.xml</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TestResources\CompareTreesTestV1.xml">
+      <LogicalName>CompareTreesTestV1.xml</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TestResources\CompareTreesTestV2.xml">
+      <LogicalName>CompareTreesTestV2.xml</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

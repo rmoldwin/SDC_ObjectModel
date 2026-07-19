@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace SDC.Schema
@@ -115,8 +116,16 @@ namespace SDC.Schema
 				_attributes = new List<AttributeInfo>(4);
 				int order = 0;
 
+				// Bug fix: mark each XmlAnyAttribute-derived entry explicitly so mixed schema/ad-hoc attributes
+				// on the same node can be distinguished reliably by callers.
 				if (n.ShouldSerializeAnyAttr() && !(attributesToExclude?.Contains("AnyAttr") ?? false))
-					_attributes.Add(new(n, n.AnyAttr, null, order++, "AnyAttr"));
+				{
+					foreach (XmlAttribute xa in n.AnyAttr)
+					{
+						if (attributesToExclude?.Contains(xa.LocalName) ?? false) continue;
+						_attributes.Add(new(n, xa.Value, null, order++, xa.LocalName, isAdHocAttribute: true));
+					}
+				}
 				return _attributes;
 			}
 			return null;

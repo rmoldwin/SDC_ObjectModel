@@ -21,6 +21,10 @@ namespace SDC.Schema.Extensions
 		public static string GetJson<T>(this T tn, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10) where T : ITopNode
 		=> TopNodeSerializer<T>.GetJson(tn, refreshSdc, createNameDelegate, orderStart, orderGap);
 
+			///<inheritdoc cref="TopNodeSerializer{T}.GetJsonXml(T, bool, SdcUtil.CreateName?, int, int)"/>
+			public static string GetJsonXml<T>(this T tn, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10) where T : ITopNode
+			=> TopNodeSerializer<T>.GetJsonXml(tn, refreshSdc, createNameDelegate, orderStart, orderGap);
+
 		///<inheritdoc cref="TopNodeSerializer{T}.GetBson(T, bool, SdcUtil.CreateName?, int, int)"/>
 		public static string GetBson<T>(this T tn, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10) where T : ITopNode
 		=> TopNodeSerializer<T>.GetBson(tn, refreshSdc, createNameDelegate, orderStart, orderGap);
@@ -41,6 +45,13 @@ namespace SDC.Schema.Extensions
 		{
 			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateCAPname;
 			TopNodeSerializer<T>.SaveJsonToFile(tn, path, refreshSdc, createNameDelegate, orderStart, orderGap);
+		}
+
+		///<inheritdoc cref="TopNodeSerializer{T}.SaveJsonXmlToFile(T, string, bool, SdcUtil.CreateName?, int, int)"/>
+		public static void SaveJsonXmlToFile<T>(this T tn, string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10) where T : ITopNode
+		{
+			if (createNameDelegate is null) createNameDelegate = SdcUtil.CreateCAPname;
+			TopNodeSerializer<T>.SaveJsonXmlToFile(tn, path, refreshSdc, createNameDelegate, orderStart, orderGap);
 		}
 
 		///<inheritdoc cref="TopNodeSerializer{T}.SaveBsonToFile(T, string, bool, SdcUtil.CreateName?, int, int)"/>

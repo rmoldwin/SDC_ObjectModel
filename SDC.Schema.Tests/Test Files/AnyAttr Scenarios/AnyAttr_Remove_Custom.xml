@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Remove scenario fixture.
+  Relative to AnyAttr_Add_Custom.xml, this removes qa:* ad-hoc attributes while preserving node identities.
+-->
+<FormDesign xmlns="urn:ihe:qrph:sdc:2016"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:qa="urn:sdc:test:anyattr"
+			xsi:schemaLocation="urn:ihe:qrph:sdc:2016 ../../../sdc-schema-package/SDCFormDesign.xsd"
+			lineage="AnyAttrBaseline"
+			filename="AnyAttr_Remove_Custom.xml"
+			baseURI="www.cap.org/eCC"
+			formTitle="AnyAttr Remove"
+			ID="AnyAttr.Base"
+			fullURI="_baseURI=www.cap.org/eCC&amp;_lineage=AnyAttrBaseline&amp;_version=1.0&amp;_docType=sdcFDF"
+			version="1.0"
+			sGuid="-UECEzCgqkqPq84fjQo7_A"
+			order="0">
+  <Body name="Body" ID="AnyAttrBase.Body" sGuid="gt7h9SdQdkuInHP93_90Vw" order="10">
+	<ChildItems name="ch_Body" sGuid="QEiPn-W4qkqprHTIacVn5Q" order="20">
+	  <DisplayedItem name="DI_Baseline" ID="AnyAttrBase.DI" title="Baseline Item" sGuid="QxTmcR7JIEC3zqJrgDPFEA" order="30" />
+	</ChildItems>
+  </Body>
+</FormDesign>

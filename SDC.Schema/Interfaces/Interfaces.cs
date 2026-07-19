@@ -31,7 +31,7 @@ namespace SDC.Schema
         /// If an ID value has already been used, it will appear in this HashSet.<br/>
         /// ID properties occur most prominently in in <see cref="IdentifiedExtensionType"/> (IET) and <see cref="FormDesignType"/> (FD) nodes.<br/>
         /// </summary>
-        internal HashSet<string> _UniqueIDs { get; }
+        internal ThreadSafeSet<string> _UniqueIDs { get; }
     }
     /// <summary>
     /// Implemented by nodes that contain a ChildItems node.

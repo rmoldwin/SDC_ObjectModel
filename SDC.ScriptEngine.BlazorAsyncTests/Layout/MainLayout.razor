@@ -1,0 +1,25 @@
+@* MainLayout.razor — SDC.ScriptEngine.BlazorAsyncTests
+   Minimal layout: top nav bar with links to test pages, then body. *@
+
+@inherits LayoutComponentBase
+
+<div style="max-width:1100px; margin:0 auto; padding:0 16px;">
+    <header style="background:#1e3a5f; color:#fff; padding:10px 16px; margin-bottom:20px;">
+        <strong>SDC.ScriptEngine.BlazorAsyncTests</strong>
+        <span style="font-size:.85em; opacity:.75; margin-left:12px;">
+            Phase 1 — Single-threaded WASM async/parallel correctness tests
+        </span>
+        <nav style="margin-top:6px; font-size:.9em;">
+            <a href="/" style="color:#8bf; margin-right:14px;">Dashboard</a>
+            <a href="/concurrency-tests" style="color:#8bf; margin-right:14px;">Category 2: Async Fallback</a>
+            <a href="/compare-trees-tests" style="color:#8bf; margin-right:14px;">Category 3: CompareTrees</a>
+            <a href="/complex-mutation-tests" style="color:#8bf;">Category 4+5: Mutations &amp; WASM Risk</a>
+        </nav>
+    </header>
+    <main>
+        @Body
+    </main>
+    <footer style="margin-top:40px; font-size:.8em; color:#888; border-top:1px solid #ddd; padding:12px 0;">
+        SDC.ScriptEngine.BlazorAsyncTests · Phase 1 · .NET 10 WASM Single-threaded Mode
+    </footer>
+</div>

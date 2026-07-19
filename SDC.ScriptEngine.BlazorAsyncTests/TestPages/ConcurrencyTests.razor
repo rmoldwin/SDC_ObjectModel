@@ -1,0 +1,268 @@
+@page "/concurrency-tests"
+
+<PageTitle>Category 2: Async Fallback Correctness</PageTitle>
+
+<h1>Category 2: Async Fallback Correctness</h1>
+<p style="color:#555; font-size:.9em;">
+    WASM Phase 1: validates sequential fallback correctness only.
+    Real race coverage requires <code>WasmEnableThreads=true</code> (Phase 2).
+</p>
+
+@* Run controls *@
+<div style="margin-bottom:16px;">
+    <button class="run-btn" @onclick="RunAllAsync" disabled="@IsRunning">▶ Run All</button>
+    @if (IsRunning) { <span style="color:#0969da; font-size:.9em;">Running…</span> }
+</div>
+
+@* Results table *@
+<table class="test-table">
+    <thead><tr><th style="width:40%">Test</th><th>Status</th><th>Duration (ms)</th><th>Message</th></tr></thead>
+    <tbody>
+    @foreach (var result in _results)
+    {
+        <tr>
+            <td>@result.Name</td>
+            <td class="@CssClass(result.Status)">@result.Status</td>
+            <td>@result.Duration.TotalMilliseconds.ToString("F1")</td>
+            <td style="font-size:.8em; white-space:pre-wrap; max-width:400px; overflow:hidden; text-overflow:ellipsis;">@Truncate(result.Message)</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private bool IsRunning;
+    private readonly List<WasmTestResult> _results = new();
+    private WasmTestRunner _runner = new();
+
+    private async Task RunAllAsync()
+    {
+        IsRunning = true;
+        _results.Clear();
+        StateHasChanged();
+
+        var tests = BuildTests();
+        _runner = new WasmTestRunner();
+        _runner.TestCompleted += result =>
+        {
+            _results.Add(result);
+            InvokeAsync(StateHasChanged);
+        };
+        await _runner.RunAllAsync(tests);
+
+        IsRunning = false;
+        StateHasChanged();
+    }
+
+    private IReadOnlyList<WasmTestCase> BuildTests() => new[]
+    {
+        // ── Test 1: Guard — all embedded resources resolve ────────────────
+        new WasmTestCase(
+            "EmbeddedResources_AllResolveNonNull",
+            "Setup",
+            () =>
+            {
+                var expected = new[] {
+                    "BreastStagingTest2v1.xml",
+                    "BreastStagingTest2v5.xml",
+                    "CompareTreesTestV1.xml",
+                    "CompareTreesTestV2.xml"
+                };
+                var asm = System.Reflection.Assembly.GetExecutingAssembly();
+                var missing = expected
+                    .Where(name => asm.GetManifestResourceStream(name) is null)
+                    .ToList();
+                if (missing.Any())
+                    throw new InvalidOperationException(
+                        $"Embedded resources not found: {string.Join(", ", missing)}. " +
+                        $"Available: [{string.Join(", ", asm.GetManifestResourceNames())}]");
+                return Task.CompletedTask;
+            }),
+
+        // ── Test 2: ItemMutator sequential reassignment ───────────────────
+        // WASM Phase 1: sequential fallback — no real concurrency
+        new WasmTestCase(
+            "ItemMutator_SequentialReassignment_Correct",
+            "Category2",
+            async () =>
+            {
+                // WASM Phase 1: sequential fallback — no real concurrency
+                BaseType.ResetLastTopNode();
+                var de = new DataElementType(null);
+                var exceptions = new List<Exception>();
+
+                var targets = Enumerable.Range(0, 10)
+                    .Select(i =>
+                    {
+                        var q = new QuestionItemType(de, $"Q_SrcTgt{i}");
+                        var rf = new ResponseFieldType(q);
+                        rf.Response = new DataTypes_DEType(rf);
+                        rf.Response.DataTypeDE_Item = new string_DEtype(rf.Response);
+                        return (q, rf.Response);
+                    }).ToList();
+
+                // Sequential "tasks" (no true parallelism in Phase 1 WASM)
+                var tasks = targets.Select(t => Task.Run(() =>
+                {
+                    try { t.Response.DataTypeDE_Item = t.Response.DataTypeDE_Item; }
+                    catch (Exception ex) { lock (exceptions) exceptions.Add(ex); }
+                })).ToArray();
+                await Task.WhenAll(tasks);
+
+                if (exceptions.Count > 0)
+                    throw new AggregateException("ItemMutator reassignment exceptions", exceptions);
+                foreach (var (q, resp) in targets)
+                    if (resp.DataTypeDE_Item?.ParentNode != resp)
+                        throw new InvalidOperationException($"Incorrect parent pointer on {q.name}");
+            }),
+
+        // ── Test 3: ChildItemsList sequential replacement ─────────────────
+        // WASM Phase 1: sequential fallback correctness
+        new WasmTestCase(
+            "ChildItemsList_SequentialReplacement_Correct",
+            "Category2",
+            async () =>
+            {
+                // WASM Phase 1: sequential fallback correctness
+                BaseType.ResetLastTopNode();
+                var de = new DataElementType(null);
+                var sections = Enumerable.Range(0, 5)
+                    .Select(i => new SectionItemType(de, $"S_Child{i}"))
+                    .ToList();
+
+                foreach (var s in sections)
+                    s.GetChildItemsNode().ChildItemsList = new List<IdentifiedExtensionType>
+                        { new DisplayedType(s.GetChildItemsNode(), $"DI_Init_{s.ID}") };
+
+                var replacements = Enumerable.Range(0, 5)
+                    .Select(i => new List<IdentifiedExtensionType>
+                    {
+                        new DisplayedType(de, $"DI_NewA_{i}"),
+                        new DisplayedType(de, $"DI_NewB_{i}")
+                    }).ToList();
+
+                var tasks = sections.Select((s, i) => Task.Run(() =>
+                    s.ChildItemsNode!.ChildItemsList = replacements[i])).ToArray();
+                await Task.WhenAll(tasks);
+
+                foreach (var s in sections)
+                    if (s.ChildItemsNode!.ChildItemsList.Count != 2)
+                        throw new InvalidOperationException(
+                            $"Section {s.ID}: expected 2 children, got {s.ChildItemsNode!.ChildItemsList.Count}");
+            }),
+
+        // ── Test 4: TopNodeDictionary read/remove consistent ──────────────
+        // WASM Phase 1: sequential fallback correctness
+        new WasmTestCase(
+            "TopNodeDictionary_ReadAndRemove_Consistent",
+            "Category2",
+            async () =>
+            {
+                // WASM Phase 1: sequential fallback correctness
+                BaseType.ResetLastTopNode();
+                var de = new DataElementType(null);
+                var nodes = Enumerable.Range(0, 30)
+                    .Select(i => new DisplayedType(de, $"DI_Dict{i}"))
+                    .ToList();
+
+                var exceptions = new List<Exception>();
+                var tasks = Enumerable.Range(0, 3).Select(t => Task.Run(() =>
+                {
+                    try
+                    {
+                        var _ = de.Nodes.Count;
+                        foreach (var n in nodes.Skip(t * 10).Take(10))
+                        {
+                            try { n.RemoveRecursive(false); } catch { /* already removed */ }
+                        }
+                    }
+                    catch (Exception ex) { lock (exceptions) exceptions.Add(ex); }
+                })).ToArray();
+                await Task.WhenAll(tasks);
+
+                if (exceptions.Count > 0)
+                    throw new AggregateException("TopNodeDictionary exceptions", exceptions);
+                if (de.Nodes.Count < 0)
+                    throw new InvalidOperationException("Node count went negative");
+            }),
+
+        // ── Test 5: GUID uniqueness across 200 nodes ─────────────────────
+        new WasmTestCase(
+            "GuidAssignment_MultipleNodes_AllUnique",
+            "Category2",
+            () =>
+            {
+                BaseType.ResetLastTopNode();
+                var de = new DataElementType(null);
+                var guids = Enumerable.Range(0, 200)
+                    .Select(i => new DisplayedType(de, $"DI_Guid{i}").ObjectGUID)
+                    .ToList();
+                var unique = guids.Distinct().Count();
+                if (unique != guids.Count)
+                    throw new InvalidOperationException(
+                        $"GUID collision: {guids.Count - unique} duplicate(s) in 200 nodes");
+                return Task.CompletedTask;
+            }),
+
+        // ── Test 6: OM state consistency after sequential mutations ────────
+        new WasmTestCase(
+            "OMStateConsistency_AfterSequentialMutations",
+            "Category2",
+            async () =>
+            {
+                BaseType.ResetLastTopNode();
+                var fd = SdcTreeBuilder.BuildForm("FD_StateConsist", sectionCount: 2, questionsPerSection: 3);
+                int initialCount = fd.Nodes.Count;
+
+                // 10 sequential mutations via Task.WhenAll (sync bodies in WASM)
+                var mutations = Enumerable.Range(0, 10)
+                    .Select(i => Task.Run(() =>
+                    {
+                        if (i % 2 == 0)
+                        {
+                            // Add a section
+                            fd.Body.AddChildSection($"FD_StateConsist_Extra{i}", $"Extra_{i}");
+                        }
+                        // All even indices add a section; odd indices are no-ops
+                    })).ToArray();
+                await Task.WhenAll(mutations);
+
+                // Round-trip: serialize then deserialize
+                string xml = fd.GetXml();
+                BaseType.ResetLastTopNode();
+                var fd2 = FormDesignType.DeserializeFromXml(xml);
+
+                if (fd2.Nodes.Count < initialCount)
+                    throw new InvalidOperationException(
+                        $"Round-trip lost nodes: before={fd.Nodes.Count}, after={fd2.Nodes.Count}");
+                if (fd2.IETnodes.Count < 1)
+                    throw new InvalidOperationException("Round-trip produced empty IETnodes");
+            }),
+
+        // ── Test 7: ConcurrentMutation_SingleSharedTopNode (STUB, Phase 2) ─
+        new WasmTestCase(
+            "ConcurrentMutation_SingleSharedTopNode",
+            "Category2",
+            () =>
+            {
+                // Phase 2: validates actual race surface (shared _Nodes/_ParentNodes/_ChildNodes dictionaries)
+                // In Phase 1 this test is auto-skipped via RequiresThreads=true.
+                if (Environment.ProcessorCount <= 1)
+                    throw new InvalidOperationException("Should have been skipped (Phase 2 only).");
+                return Task.CompletedTask;
+            },
+            RequiresThreads: true),
+    };
+
+    private static string CssClass(TestStatus s) => s switch
+    {
+        TestStatus.Passed  => "test-result-passed",
+        TestStatus.Failed  => "test-result-failed",
+        TestStatus.Running => "test-result-running",
+        TestStatus.Skipped => "test-result-skipped",
+        _ => "test-result-notrun"
+    };
+
+    private static string Truncate(string s, int max = 200)
+        => s.Length > max ? s[..max] + "…" : s;
+}

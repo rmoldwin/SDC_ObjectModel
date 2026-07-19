@@ -1,0 +1,20 @@
+@* MainLayout.razor — SDC.ScriptEngine.BlazorTest
+   Minimal layout: just a top nav bar and the page body.
+   No sidebar; the test harness is a single-page tool. *@
+
+@inherits LayoutComponentBase
+
+<div style="max-width:960px; margin:0 auto; padding:0 16px;">
+    <header style="background:#1e3a5f; color:#fff; padding:10px 16px; margin-bottom:20px;">
+        <strong>SDC.ScriptEngine.BlazorTest</strong>
+        <span style="font-size:.85em; opacity:.75; margin-left:12px;">
+            Phase 1 — Pre-compiled IL test harness
+        </span>
+    </header>
+    <main>
+        @Body
+    </main>
+    <footer style="margin-top:40px; font-size:.8em; color:#888; border-top:1px solid #ddd; padding:12px 0;">
+        SDC ScriptEngine · Phase 1 · .NET 10 WASM Interpreter Mode
+    </footer>
+</div>

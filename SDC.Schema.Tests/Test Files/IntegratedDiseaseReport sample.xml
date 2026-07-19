@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<IntegratedDiseaseReport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+						 xsi:schemaLocation="urn:ihe:qrph:sdc:2016 ../../../sdc-schema-package/SDC_IDR.xsd"
+						 xmlns="urn:ihe:qrph:sdc:2016"
+						 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+						 ID="IDR.Sample.001"
+						 order="0">
+  <Property propName="Sample" val="Placeholder IDR sample for unsupported top-node test" order="10" />
+</IntegratedDiseaseReport>

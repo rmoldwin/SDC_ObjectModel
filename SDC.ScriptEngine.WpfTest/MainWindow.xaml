@@ -1,0 +1,353 @@
+﻿<Window x:Class="SDC.ScriptEngine.WpfTest.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="SDC ScriptEngine — WPF Interactive Tester"
+        Height="900" Width="900"
+        MinHeight="700" MinWidth="750">
+
+    <!--
+    =====================================================================
+    MainWindow.xaml — SDC.ScriptEngine.WpfTest
+    =====================================================================
+
+    PURPOSE
+    _______
+    Interactive test harness for the SDC.ScriptEngine library running on a
+    desktop JIT runtime (.NET 10, Windows).  The app proves the full
+    IL load - compile - run - mutate-SDC-node pipeline without a browser.
+
+    LAYOUT OVERVIEW
+    _______________
+    The window is a single ScrollViewer containing a StackPanel with four
+    GroupBox sections stacked vertically:
+
+      1. Script Editor    — TextBox + action buttons
+      2. Hash Inspector   — shows computed / stored hash, match status
+      3. Results Panel    — outcome, timing, diagnostics
+      4. Security Model   — read-only informational text
+
+    WPF THEMING NOTE
+    ________________
+    All colours are set explicitly (not theme-inherited) so the UI looks
+    consistent across Windows 10 and Windows 11 regardless of the system
+    accent.
+    =====================================================================
+    -->
+
+    <Window.Resources>
+        <!-- Monospace style for the script editor TextBox -->
+        <Style x:Key="MonoTextBox" TargetType="TextBox">
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="AcceptsTab" Value="True"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="SpellCheck.IsEnabled" Value="False"/>
+            <Setter Property="Padding" Value="4"/>
+        </Style>
+
+        <!-- Read-only result TextBox style — light-gray background -->
+        <Style x:Key="ResultTextBox" TargetType="TextBox">
+            <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        </Style>
+
+        <!-- Standard action button style -->
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="MinWidth" Value="80"/>
+        </Style>
+    </Window.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="8">
+        <StackPanel Margin="4">
+
+            <!-- ═══════════════════════════════════════════════════════
+                 SECTION 1: Script Editor
+                 ═══════════════════════════════════════════════════════
+
+                 The developer writes (or edits) a C# script body here.
+                 The script body is the code that runs inside the engine's
+                 generated wrapper class, so it can freely reference:
+                   - sdc  (the BaseType node passed at runtime, cast as needed)
+                   - any type in the namespaces the engine's template imports
+                     (SDC.Schema, System, System.Collections.Generic, etc.)
+
+                 The demo script mutates q.name so the Results panel can
+                 show a clear before/after diff.
+            -->
+            <GroupBox Header="C# Script Body" Margin="0,0,0,8" Padding="8">
+                <StackPanel>
+                    <TextBox x:Name="TxtScript"
+                             Style="{StaticResource MonoTextBox}"
+                             Height="160"
+                             ToolTip="Write a C# script body. 'sdc' is the SDC OM node (BaseType) passed at run time."
+                             Text="// Cast the generic BaseType parameter to the concrete type we expect.&#xA;// The WPF host passes a QuestionItemType node; casting here is safe.&#xA;var q = (QuestionItemType)sdc;&#xA;&#xA;// Mutate the SDC OM node — the Results panel shows the before/after.&#xA;q.name = &quot;MUTATED_BY_SCRIPT&quot;;" />
+
+                    <!-- Button row — each button maps to a distinct engine code path -->
+                    <WrapPanel Margin="0,8,0,0" Orientation="Horizontal">
+                        <!--
+                            [Compile]
+                            Calls engine.CompileAsync(scriptText).
+                            Roslyn compiles the script body to IL bytes and returns
+                            SdcScriptCompileResult (Success, IL, hash, diagnostics).
+                            The result is cached in _lastCompileResult for [Run].
+                        -->
+                        <Button x:Name="BtnCompile"
+                                Style="{StaticResource ActionButton}"
+                                Content="_Compile"
+                                ToolTip="Compile the script with Roslyn and cache the IL. First compile is slow (Roslyn JIT); subsequent compiles are fast."
+                                Click="BtnCompile_Click"/>
+
+                        <!--
+                            [Run (use cached IL)]
+                            Skips recompilation and uses the IL bytes from the last
+                            [Compile] call.  Calls engine.RunAsync(il, hash, node).
+                            Requires a prior successful compile.
+                        -->
+                        <Button x:Name="BtnRun"
+                                Style="{StaticResource ActionButton}"
+                                Content="_Run (use cached IL)"
+                                ToolTip="Run the cached IL against a fresh SDC OM node. Requires a prior successful compile."
+                                Click="BtnRun_Click"/>
+
+                        <!--
+                            [Compile + Run]
+                            Convenience shortcut: compiles then immediately runs.
+                            Equivalent to clicking [Compile] then [Run].
+                        -->
+                        <Button x:Name="BtnCompileAndRun"
+                                Style="{StaticResource ActionButton}"
+                                Content="Compile + _Run"
+                                ToolTip="Compile and immediately run in sequence."
+                                Click="BtnCompileAndRun_Click"/>
+
+                        <!--
+                            [Test Pre-Compiled IL Path]
+                            Simulates what Blazor WASM does: the XML document already
+                            carries Base64 IL bytes and a stored hash, so the engine
+                            does NOT need to recompile — it loads the stored IL directly
+                            (zero compile time) and invokes it.
+                            Uses engine.ExecutePrecompiledAsync(source, storedHash,
+                                                                ilBase64, node).
+                        -->
+                        <Button x:Name="BtnTestPrecompiled"
+                                Style="{StaticResource ActionButton}"
+                                Content="_Test Pre-Compiled IL Path"
+                                ToolTip="Simulates the WASM pre-compiled path: loads stored IL without recompiling. Requires a prior compile."
+                                Click="BtnTestPrecompiled_Click"/>
+                    </WrapPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 SECTION 2: Hash Inspector
+                 ═══════════════════════════════════════════════════════
+
+                 SDC XML stores a canonical SHA-256 hash of the script source
+                 alongside the compiled IL bytes.  When the XML document is
+                 loaded, the engine recomputes the hash of the current source
+                 and compares it to the stored value.  A mismatch means the
+                 source was edited after the IL was generated; the stored IL
+                 is stale and must be discarded.
+
+                 This section lets the developer edit the script text above,
+                 hit [Re-check], and watch the status flip from MATCH to
+                 MISMATCH — exactly what the engine will see at load time.
+            -->
+            <GroupBox Header="Hash Inspector" Margin="0,0,0,8" Padding="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Row 0: computed hash of current script text -->
+                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"
+                               Text="Computed hash (current script):" Margin="0,2"/>
+                    <TextBox   Grid.Row="0" Grid.Column="1" x:Name="TxtComputedHash"
+                               Style="{StaticResource ResultTextBox}" Margin="4,2"
+                               ToolTip="SHA-256 canonical hash of the script text currently in the editor."/>
+                    <Button    Grid.Row="0" Grid.Column="2"
+                               Style="{StaticResource ActionButton}"
+                               Content="Copy" Margin="4,2"
+                               ToolTip="Copy computed hash to clipboard"
+                               Click="BtnCopyComputedHash_Click"/>
+
+                    <!-- Row 1: stored hash from the last SdcScriptNode that was built -->
+                    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
+                               Text="Stored hash (SdcScriptNode):" Margin="0,2"/>
+                    <TextBox   Grid.Row="1" Grid.Column="1" x:Name="TxtStoredHash"
+                               Style="{StaticResource ResultTextBox}" Margin="4,2"
+                               ToolTip="Hash stored in the SdcScriptNode after the last compile. Empty until you compile."/>
+                    <Button    Grid.Row="1" Grid.Column="2"
+                               Style="{StaticResource ActionButton}"
+                               Content="Copy" Margin="4,2"
+                               ToolTip="Copy stored hash to clipboard"
+                               Click="BtnCopyStoredHash_Click"/>
+
+                    <!-- Row 2: match/mismatch status label -->
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Status:" VerticalAlignment="Center" Margin="0,4"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" x:Name="TxtHashStatus"
+                               VerticalAlignment="Center" Margin="4,4"
+                               Text="(compile to populate)"
+                               FontWeight="SemiBold"/>
+
+                    <!-- Row 3: Re-check button — recomputes hash without invoking Roslyn -->
+                    <Button    Grid.Row="3" Grid.Column="1"
+                               HorizontalAlignment="Left"
+                               Style="{StaticResource ActionButton}"
+                               Content="_Re-check" Margin="4,6,4,2"
+                               ToolTip="Recompute the hash of the current script text and compare against the stored hash."
+                               Click="BtnRecheck_Click"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 SECTION 3: Results Panel
+                 ═══════════════════════════════════════════════════════
+
+                 Shows the outcome of the last engine operation:
+                   - Status        (Success / Failed / Hash Mismatch)
+                   - OM node name  before and after script execution
+                   - Timing        (compile ms, run ms)
+                   - IL byte size  (useful for diagnosing large IL blobs)
+                   - Canonical hash (matches what's in Hash Inspector)
+                   - Diagnostics   (Roslyn errors/warnings, script exceptions)
+            -->
+            <GroupBox Header="Results" Margin="0,0,0,8" Padding="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="130"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Status — colour-coded in code-behind -->
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Status:" VerticalAlignment="Center" Margin="0,3"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="TxtStatus"
+                               VerticalAlignment="Center" Margin="4,3"
+                               Text="—" FontWeight="Bold" FontSize="14"/>
+
+                    <!-- OM node name BEFORE script ran -->
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="OM node before:" VerticalAlignment="Center" Margin="0,3"/>
+                    <TextBox   Grid.Row="1" Grid.Column="1" x:Name="TxtBefore"
+                               Style="{StaticResource ResultTextBox}" Margin="4,3"
+                               ToolTip="The node's 'name' property before the script ran."/>
+
+                    <!-- OM node name AFTER script ran -->
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="OM node after:" VerticalAlignment="Center" Margin="0,3"/>
+                    <TextBox   Grid.Row="2" Grid.Column="1" x:Name="TxtAfter"
+                               Style="{StaticResource ResultTextBox}" Margin="4,3"
+                               ToolTip="The node's 'name' property after the script ran (should differ if script mutated it)."/>
+
+                    <!-- Compile time — 0 for pre-compiled path, non-zero when Roslyn ran -->
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Compile time:" VerticalAlignment="Center" Margin="0,3"/>
+                    <TextBox   Grid.Row="3" Grid.Column="1" x:Name="TxtCompileTime"
+                               Style="{StaticResource ResultTextBox}" Margin="4,3"
+                               ToolTip="Roslyn compile time in milliseconds. 0 ms on the pre-compiled path (IL loaded directly)."/>
+
+                    <!-- Run time — time to load IL into ALC and invoke Execute() -->
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Run time:" VerticalAlignment="Center" Margin="0,3"/>
+                    <TextBox   Grid.Row="4" Grid.Column="1" x:Name="TxtRunTime"
+                               Style="{StaticResource ResultTextBox}" Margin="4,3"
+                               ToolTip="Script execution time in milliseconds (ALC load + method invocation)."/>
+
+                    <!-- IL byte size — useful to confirm IL was actually loaded -->
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="IL size:" VerticalAlignment="Center" Margin="0,3"/>
+                    <TextBox   Grid.Row="5" Grid.Column="1" x:Name="TxtILSize"
+                               Style="{StaticResource ResultTextBox}" Margin="4,3"
+                               ToolTip="Size of the compiled IL bytes in bytes."/>
+
+                    <!-- Canonical hash from compile result -->
+                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Canonical hash:" VerticalAlignment="Center" Margin="0,3"/>
+                    <TextBox   Grid.Row="6" Grid.Column="1" x:Name="TxtCanonicalHash"
+                               Style="{StaticResource ResultTextBox}" Margin="4,3"
+                               ToolTip="The canonical SHA-256 hash stored by the engine alongside the IL bytes."/>
+
+                    <!-- Diagnostics — Roslyn errors/warnings and script runtime exceptions -->
+                    <TextBlock Grid.Row="7" Grid.Column="0" Text="Diagnostics:" VerticalAlignment="Top" Margin="0,3"/>
+                    <TextBox   Grid.Row="7" Grid.Column="1" x:Name="TxtDiagnostics"
+                               Style="{StaticResource ResultTextBox}"
+                               Margin="4,3" Height="80"
+                               Text="(none)"
+                               ToolTip="Compiler errors/warnings and script runtime exceptions."/>
+                </Grid>
+            </GroupBox>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 SECTION 4: Security Model (read-only informational)
+                 ═══════════════════════════════════════════════════════
+
+                 These notes are shown to remind developers (and reviewers)
+                 of the security guarantees and limitations of Phase 1.
+                 The text mirrors the SECURITY NOTE in SdcScriptEngine.cs.
+
+                 KEY POINTS
+                 __________
+                 Scripts run in-process (same trust level as the host app).
+                 No OS sandbox in .NET 10 (CAS was removed years ago).
+                 allowUnsafe: false blocks pointer arithmetic.
+                 A restrictive ISdcScriptReferenceProvider can exclude
+                 System.IO, System.Net, etc. from the available assemblies.
+                 Phase 2 will add a Roslyn diagnostic analyzer to ban
+                 specific APIs at compile time.
+            -->
+            <GroupBox Header="Security Model (informational)" Margin="0,0,0,8" Padding="8">
+                <Border Background="#FFFDF0" BorderBrush="#E0C060" BorderThickness="1" Padding="8">
+                    <StackPanel>
+                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,4" FontWeight="SemiBold">
+                            ℹ Scripts run in-process with host application trust level.
+                        </TextBlock>
+                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,4">
+                            No OS-level sandbox is applied in .NET 10.  Code Access Security (CAS) was
+                            removed in .NET Core.  Scripts compiled by this engine can access any type
+                            or resource visible to the host process.
+                        </TextBlock>
+                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,4" FontWeight="SemiBold">
+                            Active guards (Phase 1):
+                        </TextBlock>
+                        <TextBlock TextWrapping="Wrap" Margin="16,0,0,4">
+                            • <Bold>unsafe code blocked</Bold> — allowUnsafe: false in CSharpCompilationOptions; pointer
+                              arithmetic and fixed-statement blocks are compile errors.
+                        </TextBlock>
+                        <TextBlock TextWrapping="Wrap" Margin="16,0,0,4">
+                            • <Bold>System.IO / System.Net / System.Diagnostics.Process restricted</Bold> — the
+                              AppDomainReferenceProvider can be replaced with a restrictive provider that
+                              excludes specific assemblies from MetadataReferences.
+                        </TextBlock>
+                        <TextBlock TextWrapping="Wrap" Margin="0,4,0,0" FontStyle="Italic">
+                            Trust model: scripts are trusted institutional content authored by form designers,
+                            not arbitrary end-user input.  Phase 2 will add a Roslyn diagnostic analyzer
+                            (SdcScriptSecurityAnalyzer) for defense-in-depth.
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </GroupBox>
+
+        </StackPanel>
+    </ScrollViewer>
+</Window>

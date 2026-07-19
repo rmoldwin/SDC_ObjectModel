@@ -1,10 +1,11 @@
-﻿
+
 using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +13,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+using System.Collections.Concurrent;
+using System.Threading;
 using System.Text.RegularExpressions;
 using CSharpVitamins;
 using System.Reflection.Emit;
@@ -81,16 +84,7 @@ namespace SDC.Schema
         [XmlIgnore]
 		[JsonIgnore]
         public uint RepeatCounter { get; set; } = 0;
-        HashSet<string> _IUniqueIDs._UniqueIDs
-		{
-			get
-			{
-				if (p_UniqueIDs is null) p_UniqueIDs = new();
-				return p_UniqueIDs;
-
-            }
-		}
-		HashSet<string>? p_UniqueIDs;
+        ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
         #region ITopNode 
 
@@ -101,12 +95,9 @@ namespace SDC.Schema
         {
             get
             {
-                if (p_NodesRO is null)
-                    p_NodesRO = new(((_ITopNode)this)._Nodes);
-                return p_NodesRO;
+                return new(((_ITopNode)this)._Nodes);
             }
         }
-        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
 
         /// <inheritdoc/>
         [XmlIgnore]
@@ -152,40 +143,57 @@ namespace SDC.Schema
 		}
 
 
-        #region _ITopNode
+		#region Thread Safety Infrastructure
 
-        /// <inheritdoc/>		
-        int _ITopNode._MaxObjectID { get; set; } = 0;
+		// Option C: single-writer / multiple-reader per TopNode tree.
+		// SupportsRecursion is REQUIRED: the OM does read-in-read (FindRootNode -> ParentNode)
+		// and write-in-write (InitAfterTreeAdd -> RegisterAll). NEVER perform a read->write upgrade
+		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
+		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
+		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
 
-		Dictionary<Guid, BaseType> _ITopNode._Nodes
+		#endregion
+
+		#region _ITopNode
+
+		/// <inheritdoc/>		
+		// TS-3 fix: explicit backing field so Interlocked.Increment can atomically assign unique ObjectIDs
+		// under concurrent node construction. The property setter is only called during single-threaded init.
+		int _maxObjectID_FD = 0;
+		int _ITopNode._MaxObjectID { get => _maxObjectID_FD; set => _maxObjectID_FD = value; }
+		int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_FD);
+
+		ConcurrentDictionary<Guid, BaseType> _ITopNode._Nodes
+		{
+			get
+			{
+				// Bug fix: lazy-init guard was accidentally removed during TS-3 refactor.
+				Interlocked.CompareExchange(ref p_Nodes, new ConcurrentDictionary<Guid, BaseType>(), null);
+				return p_Nodes;
+			}
+		}
+		ConcurrentDictionary<Guid, BaseType>? p_Nodes;
+
+        ConcurrentDictionary<Guid, BaseType> _ITopNode._ParentNodes
         {
             get
             {
-                if (p_Nodes is null) p_Nodes = new();
-                return p_Nodes;
-            }
-        }
-        Dictionary<Guid, BaseType>? p_Nodes;
-
-        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
-        {
-            get
-            {
-                if (p_ParentNodes is null) p_ParentNodes = new();
+                Interlocked.CompareExchange(ref p_ParentNodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_ParentNodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_ParentNodes;
+        ConcurrentDictionary<Guid, BaseType>? p_ParentNodes;
 
-        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        ConcurrentDictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
         {
             get
             {
-                if (p_ChildNodes is null) p_ChildNodes = new();
+                Interlocked.CompareExchange(ref p_ChildNodes, new ConcurrentDictionary<Guid, List<BaseType>>(), null);
                 return p_ChildNodes;
             }
         }
-        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
+        ConcurrentDictionary<Guid, List<BaseType>>? p_ChildNodes;
 
         HashSet<int> _ITopNode._TreeSort_NodeIds
         {
@@ -235,7 +243,6 @@ namespace SDC.Schema
 			topNode._ChildNodes.Clear();
 			topNode._IETnodes.Clear();
 			p_IETnodesRO = null;
-			p_NodesRO = null;
 			topNode._IETnodes.Clear();
 		}
 
@@ -365,99 +372,111 @@ namespace SDC.Schema
 			{ return Items; }
 			set
 			{
-				Items = ItemsMutator(Items, value);
+				Items = ItemsMutator(() => Items, value);
 			}
 		}
-        HashSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
+		ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
-        #region ITopNode 
+		#region Thread Safety Infrastructure
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public ReadOnlyDictionary<Guid, BaseType> Nodes
+		// Option C: single-writer / multiple-reader per TopNode tree.
+		// SupportsRecursion is REQUIRED: the OM does read-in-read (FindRootNode -> ParentNode)
+		// and write-in-write (InitAfterTreeAdd -> RegisterAll). NEVER perform a read->write upgrade
+		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
+		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
+		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
+
+		#endregion
+
+		#region ITopNode 
+
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyDictionary<Guid, BaseType> Nodes
+		{
+			get
+			{
+				return new(((_ITopNode)this)._Nodes);
+			}
+		}
+
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		{
+			get
+			{
+				if (p_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
+				}
+				return p_IETnodesRO;
+			}
+		}
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
+
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
+
+		/// <summary>
+		/// Allows re-importing an SDC XML file into an existing top node object.
+		/// Clears all dictionaries, sets topNodeTemp (which is a static property) to null, sets top level objects to null. <br/>
+		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
+		/// </summary>
+		public void ResetRootNode()
+		{
+			BaseType.ResetLastTopNode();
+			((_ITopNode)this)._ClearDictionaries();
+			((_ITopNode)this)._MaxObjectID = 0;
+			Property = null;
+			Extension = null;
+			Comment = null;
+		}
+
+
+		#region _ITopNode
+
+		/// <inheritdoc/>		
+		// TS-3 fix: explicit backing field for atomic ObjectID assignment under concurrent construction.
+		int _maxObjectID_DE = 0;
+        int _ITopNode._MaxObjectID { get => _maxObjectID_DE; set => _maxObjectID_DE = value; }
+        int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_DE);
+
+        ConcurrentDictionary<Guid, BaseType> _ITopNode._Nodes
         {
             get
             {
-                if (p_NodesRO is null)
-                    p_NodesRO = new(((_ITopNode)this)._Nodes);
-                return p_NodesRO;
-            }
-        }
-        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
-
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
-        {
-            get
-            {
-                if (p_IETnodesRO is null)
-                {
-                    if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
-                    p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
-                }
-                return p_IETnodesRO;
-            }
-        }
-        private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
-
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
-
-        /// <summary>
-        /// Allows re-importing an SDC XML file into an existing top node object.
-        /// Clears all dictionaries, sets topNodeTemp (which is a static property) to null, sets top level objects to null. <br/>
-        /// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
-        /// </summary>
-        public void ResetRootNode()
-        {
-            BaseType.ResetLastTopNode();
-            ((_ITopNode)this)._ClearDictionaries();
-            ((_ITopNode)this)._MaxObjectID = 0;
-            Property = null;
-            Extension = null;
-            Comment = null;
-        }
-
-
-        #region _ITopNode
-
-        /// <inheritdoc/>		
-        int _ITopNode._MaxObjectID { get; set; } = 0;
-
-        Dictionary<Guid, BaseType> _ITopNode._Nodes
-        {
-            get
-            {
-                if (p_Nodes is null) p_Nodes = new();
+                Interlocked.CompareExchange(ref p_Nodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_Nodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_Nodes;
+        ConcurrentDictionary<Guid, BaseType>? p_Nodes;
 
-        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
+        ConcurrentDictionary<Guid, BaseType> _ITopNode._ParentNodes
         {
             get
             {
-                if (p_ParentNodes is null) p_ParentNodes = new();
+                Interlocked.CompareExchange(ref p_ParentNodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_ParentNodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_ParentNodes;
+        ConcurrentDictionary<Guid, BaseType>? p_ParentNodes;
 
-        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        ConcurrentDictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
         {
             get
             {
-                if (p_ChildNodes is null) p_ChildNodes = new();
+                Interlocked.CompareExchange(ref p_ChildNodes, new ConcurrentDictionary<Guid, List<BaseType>>(), null);
                 return p_ChildNodes;
             }
         }
-        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
+        ConcurrentDictionary<Guid, List<BaseType>>? p_ChildNodes;
 
         HashSet<int> _ITopNode._TreeSort_NodeIds
         {
@@ -509,7 +528,6 @@ namespace SDC.Schema
             topNode._ChildNodes.Clear();
             topNode._IETnodes.Clear();
             p_IETnodesRO = null;
-            p_NodesRO = null;
             topNode._IETnodes.Clear();
         }
 
@@ -555,7 +573,7 @@ namespace SDC.Schema
 
 	}
 	public partial class RetrieveFormPackageType : _ITopNode, ITopNodeDeserialize<RetrieveFormPackageType>, _IUniqueIDs
-    {
+	{
 		protected RetrieveFormPackageType() : base()
 		{ Init(); }
 		public RetrieveFormPackageType(RetrieveFormPackageType? parentNode, string packageID, int position = -1) : base(parentNode, position, "SDCPackage")
@@ -572,60 +590,60 @@ namespace SDC.Schema
 			this.ComplianceRule = new();
 			this.SDCPackage = new();
 		}
-        HashSet<string> _IUniqueIDs._UniqueIDs
-        {
-            get
-            {
-                if (p_UniqueIDs is null) p_UniqueIDs = new();
-                return p_UniqueIDs;
+		ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
-            }
-        }
-        HashSet<string>? p_UniqueIDs;
+		#region Thread Safety Infrastructure
 
-        #region ITopNode 
+		// Option C: single-writer / multiple-reader per TopNode tree.
+		// SupportsRecursion is REQUIRED: the OM does read-in-read (FindRootNode -> ParentNode)
+		// and write-in-write (InitAfterTreeAdd -> RegisterAll). NEVER perform a read->write upgrade
+		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
+		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
+		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public ReadOnlyDictionary<Guid, BaseType> Nodes
-        {
-            get
-            {
-                if (p_NodesRO is null)
-                    p_NodesRO = new(((_ITopNode)this)._Nodes);
-                return p_NodesRO;
-            }
-        }
-        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
+		#endregion
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
-        {
-            get
-            {
-                if (p_IETnodesRO is null)
-                {
-                    if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
-                    p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
-                }
-                return p_IETnodesRO;
-            }
-        }
-        private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
+		#region ITopNode 
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyDictionary<Guid, BaseType> Nodes
+		{
+			get
+			{
+				return new(((_ITopNode)this)._Nodes);
+			}
+		}
 
-        /// <summary>
-        /// Clears all dictionaries, sets top level objects to new(). <br/>
-        /// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
-        /// </summary>
-        public void ResetRootNode()
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		{
+			get
+			{
+				if (p_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
+				}
+				return p_IETnodesRO;
+			}
+		}
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
+
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
+
+		/// <summary>
+		/// Clears all dictionaries, sets top level objects to new(). <br/>
+		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
+		/// </summary>
+		public void ResetRootNode()
 		{
 			BaseType.ResetLastTopNode();
 			((_ITopNode)this)._ClearDictionaries();
@@ -635,46 +653,49 @@ namespace SDC.Schema
 			Comment = new();
 
 			Items = new();
-			SubmissionRule = new();
-			ComplianceRule = new();
-			SDCPackage = new();
-		}
+				SubmissionRule = new();
+				ComplianceRule = new();
+				SDCPackage = new();
+			}
 
 
-        #region _ITopNode
+			#region _ITopNode
 
-        /// <inheritdoc/>		
-        int _ITopNode._MaxObjectID { get; set; } = 0;
+			/// <inheritdoc/>		
+			// TS-3 fix: explicit backing field for atomic ObjectID assignment under concurrent construction.
+			int _maxObjectID_RFP = 0;
+			int _ITopNode._MaxObjectID { get => _maxObjectID_RFP; set => _maxObjectID_RFP = value; }
+			int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_RFP);
 
-        Dictionary<Guid, BaseType> _ITopNode._Nodes
+			ConcurrentDictionary<Guid, BaseType> _ITopNode._Nodes
         {
             get
             {
-                if (p_Nodes is null) p_Nodes = new();
+                Interlocked.CompareExchange(ref p_Nodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_Nodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_Nodes;
+        ConcurrentDictionary<Guid, BaseType>? p_Nodes;
 
-        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
+        ConcurrentDictionary<Guid, BaseType> _ITopNode._ParentNodes
         {
             get
             {
-                if (p_ParentNodes is null) p_ParentNodes = new();
+                Interlocked.CompareExchange(ref p_ParentNodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_ParentNodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_ParentNodes;
+        ConcurrentDictionary<Guid, BaseType>? p_ParentNodes;
 
-        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        ConcurrentDictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
         {
             get
             {
-                if (p_ChildNodes is null) p_ChildNodes = new();
+                Interlocked.CompareExchange(ref p_ChildNodes, new ConcurrentDictionary<Guid, List<BaseType>>(), null);
                 return p_ChildNodes;
             }
         }
-        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
+        ConcurrentDictionary<Guid, List<BaseType>>? p_ChildNodes;
 
         HashSet<int> _ITopNode._TreeSort_NodeIds
         {
@@ -726,7 +747,6 @@ namespace SDC.Schema
             topNode._ChildNodes.Clear();
             topNode._IETnodes.Clear();
             p_IETnodesRO = null;
-            p_NodesRO = null;
             topNode._IETnodes.Clear();
         }
 
@@ -814,16 +834,7 @@ namespace SDC.Schema
 			ElementName = "XMLPackage";
 			ElementPrefix = "xmlPkg";
 		}
-        HashSet<string> _IUniqueIDs._UniqueIDs
-        {
-            get
-            {
-                if (p_UniqueIDs is null) p_UniqueIDs = new();
-                return p_UniqueIDs;
-
-            }
-        }
-        HashSet<string>? p_UniqueIDs;
+        ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
     }
     public partial class PackageItemType : ExtensionBaseType
 	{
@@ -840,7 +851,7 @@ namespace SDC.Schema
 	}
 
 	public partial class PackageListType : _ITopNode, ITopNodeDeserialize<PackageListType>, _IUniqueIDs
-    {
+	{
 		protected PackageListType() : base()
 		{ Init(); }
 		public PackageListType(PackageListType? parentNode, int position = -1) : base(parentNode, position, "SDCPackageList")
@@ -852,60 +863,60 @@ namespace SDC.Schema
 			ElementName = "SDCPackageList";
 			ElementPrefix = "PL";
 		}
-        HashSet<string> _IUniqueIDs._UniqueIDs
-        {
-            get
-            {
-                if (p_UniqueIDs is null) p_UniqueIDs = new();
-                return p_UniqueIDs;
+		ThreadSafeSet<string> _IUniqueIDs._UniqueIDs { get; } = new();
 
-            }
-        }
-        HashSet<string>? p_UniqueIDs;
+		#region Thread Safety Infrastructure
 
-        #region ITopNode 
+		// Option C: single-writer / multiple-reader per TopNode tree.
+		// SupportsRecursion is REQUIRED: the OM does read-in-read (FindRootNode -> ParentNode)
+		// and write-in-write (InitAfterTreeAdd -> RegisterAll). NEVER perform a read->write upgrade
+		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
+		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
+		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public ReadOnlyDictionary<Guid, BaseType> Nodes
-        {
-            get
-            {
-                if (p_NodesRO is null)
-                    p_NodesRO = new(((_ITopNode)this)._Nodes);
-                return p_NodesRO;
-            }
-        }
-        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
+		#endregion
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
-        {
-            get
-            {
-                if (p_IETnodesRO is null)
-                {
-                    if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
-                    p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
-                }
-                return p_IETnodesRO;
-            }
-        }
-        private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
+		#region ITopNode 
 
-        /// <inheritdoc/>
-        [XmlIgnore]
-        [JsonIgnore]
-        public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyDictionary<Guid, BaseType> Nodes
+		{
+			get
+			{
+				return new(((_ITopNode)this)._Nodes);
+			}
+		}
 
-        /// <summary>
-        /// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
-        /// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
-        /// </summary>
-        public void ResetRootNode()
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public ReadOnlyObservableCollection<IdentifiedExtensionType> IETnodes
+		{
+			get
+			{
+				if (p_IETnodesRO is null)
+				{
+					if (TopNode is null) throw new NullReferenceException("TopNode cannot be null");
+					p_IETnodesRO = new(((_ITopNode)TopNode)._IETnodes);
+				}
+				return p_IETnodesRO;
+			}
+		}
+		private ReadOnlyObservableCollection<IdentifiedExtensionType>? p_IETnodesRO;
+
+		/// <inheritdoc/>
+		[XmlIgnore]
+		[JsonIgnore]
+		public bool GlobalAutoNameFlag { get; set; } = true; //TEST: Document and test GlobalAutoNameFlag
+
+		/// <summary>
+		/// Clears all dictionaries, sets topNodeTemp to null, sets top level objects to null. <br/>
+		/// Does <b>not</b> reset <b>TopNode</b> - this must be done by the calling code for nested top nodes, if needed .
+		/// </summary>
+		public void ResetRootNode()
 		{
 			BaseType.ResetLastTopNode();
 			((_ITopNode)this)._ClearDictionaries();
@@ -914,43 +925,46 @@ namespace SDC.Schema
 			Extension = null;
 			Comment = null;
 			this.SDCPackageList = null;
-			this.PackageItem = null;
-			this.HTML = null;
-		}
-        #region _ITopNode
+				this.PackageItem = null;
+				this.HTML = null;
+			}
+			#region _ITopNode
 
-        /// <inheritdoc/>		
-        int _ITopNode._MaxObjectID { get; set; } = 0;
+			/// <inheritdoc/>		
+			// TS-3 fix: explicit backing field for atomic ObjectID assignment under concurrent construction.
+			int _maxObjectID_PL = 0;
+			int _ITopNode._MaxObjectID { get => _maxObjectID_PL; set => _maxObjectID_PL = value; }
+			int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_PL);
 
-        Dictionary<Guid, BaseType> _ITopNode._Nodes
+			ConcurrentDictionary<Guid, BaseType> _ITopNode._Nodes
         {
             get
             {
-                if (p_Nodes is null) p_Nodes = new();
+                Interlocked.CompareExchange(ref p_Nodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_Nodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_Nodes;
+        ConcurrentDictionary<Guid, BaseType>? p_Nodes;
 
-        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
+        ConcurrentDictionary<Guid, BaseType> _ITopNode._ParentNodes
         {
             get
             {
-                if (p_ParentNodes is null) p_ParentNodes = new();
+                Interlocked.CompareExchange(ref p_ParentNodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_ParentNodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_ParentNodes;
+        ConcurrentDictionary<Guid, BaseType>? p_ParentNodes;
 
-        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        ConcurrentDictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
         {
             get
             {
-                if (p_ChildNodes is null) p_ChildNodes = new();
+                Interlocked.CompareExchange(ref p_ChildNodes, new ConcurrentDictionary<Guid, List<BaseType>>(), null);
                 return p_ChildNodes;
             }
         }
-        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
+        ConcurrentDictionary<Guid, List<BaseType>>? p_ChildNodes;
 
         HashSet<int> _ITopNode._TreeSort_NodeIds
         {
@@ -1002,7 +1016,6 @@ namespace SDC.Schema
             topNode._ChildNodes.Clear();
             topNode._IETnodes.Clear();
             p_IETnodesRO = null;
-            p_NodesRO = null;
             topNode._IETnodes.Clear();
         }
 
@@ -1052,6 +1065,17 @@ namespace SDC.Schema
 	}
 	public partial class MappingType : _ITopNode, ITopNodeDeserialize<MappingType>
 	{
+		#region Thread Safety Infrastructure
+
+		// Option C: single-writer / multiple-reader per TopNode tree.
+		// SupportsRecursion is REQUIRED: the OM does read-in-read (FindRootNode -> ParentNode)
+		// and write-in-write (InitAfterTreeAdd -> RegisterAll). NEVER perform a read->write upgrade
+		// (see ThreadSafety_RemediationPlan_OptionC.md §1 Rule C).
+		private readonly ReaderWriterLockSlim _treeRwLock = new(LockRecursionPolicy.SupportsRecursion);
+		public ReaderWriterLockSlim TreeRwLock => _treeRwLock;
+		object _ITopNode._ChildNodesMutationLock { get; } = new object();
+
+		#endregion
 		protected MappingType() : base()
 		{ Init(); }
 		/// <summary>
@@ -1083,12 +1107,9 @@ namespace SDC.Schema
         {
             get
             {
-                if (p_NodesRO is null)
-                    p_NodesRO = new(((_ITopNode)this)._Nodes);
-                return p_NodesRO;
+                return new(((_ITopNode)this)._Nodes);
             }
         }
-        private ReadOnlyDictionary<Guid, BaseType>? p_NodesRO;
 
         /// <inheritdoc/>
         [XmlIgnore]
@@ -1125,42 +1146,45 @@ namespace SDC.Schema
 			Extension = null;
 			Comment = null;
 			this.ItemMap = null;
-			this.DefaultCodeSystem = null;
-		}
-        #region _ITopNode
+				this.DefaultCodeSystem = null;
+			}
+			#region _ITopNode
 
-        /// <inheritdoc/>		
-        int _ITopNode._MaxObjectID { get; set; } = 0;
+			/// <inheritdoc/>		
+			// TS-3 fix: explicit backing field for atomic ObjectID assignment under concurrent construction.
+			int _maxObjectID_MT = 0;
+			int _ITopNode._MaxObjectID { get => _maxObjectID_MT; set => _maxObjectID_MT = value; }
+			int _ITopNode.AtomicNextObjectID() => Interlocked.Increment(ref _maxObjectID_MT);
 
-        Dictionary<Guid, BaseType> _ITopNode._Nodes
+			ConcurrentDictionary<Guid, BaseType> _ITopNode._Nodes
         {
             get
             {
-                if (p_Nodes is null) p_Nodes = new();
+                Interlocked.CompareExchange(ref p_Nodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_Nodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_Nodes;
+        ConcurrentDictionary<Guid, BaseType>? p_Nodes;
 
-        Dictionary<Guid, BaseType> _ITopNode._ParentNodes
+        ConcurrentDictionary<Guid, BaseType> _ITopNode._ParentNodes
         {
             get
             {
-                if (p_ParentNodes is null) p_ParentNodes = new();
+                Interlocked.CompareExchange(ref p_ParentNodes, new ConcurrentDictionary<Guid, BaseType>(), null);
                 return p_ParentNodes;
             }
         }
-        Dictionary<Guid, BaseType>? p_ParentNodes;
+        ConcurrentDictionary<Guid, BaseType>? p_ParentNodes;
 
-        Dictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
+        ConcurrentDictionary<Guid, List<BaseType>> _ITopNode._ChildNodes
         {
             get
             {
-                if (p_ChildNodes is null) p_ChildNodes = new();
+                Interlocked.CompareExchange(ref p_ChildNodes, new ConcurrentDictionary<Guid, List<BaseType>>(), null);
                 return p_ChildNodes;
             }
         }
-        Dictionary<Guid, List<BaseType>>? p_ChildNodes;
+        ConcurrentDictionary<Guid, List<BaseType>>? p_ChildNodes;
 
         HashSet<int> _ITopNode._TreeSort_NodeIds
         {
@@ -1212,7 +1236,6 @@ namespace SDC.Schema
             topNode._ChildNodes.Clear();
             topNode._IETnodes.Clear();
             p_IETnodesRO = null;
-            p_NodesRO = null;
             topNode._IETnodes.Clear();
         }
 
@@ -1287,6 +1310,11 @@ namespace SDC.Schema
 		public InjectFormType(BaseType parentNode, string id = "", int position = -1) : base(parentNode, id, position, "InjectForm")
 		{
 			Init();
+		}
+		internal InjectFormType(BaseType parentNode, string id, int position, string elementName) : base(parentNode, id, position, elementName)
+		{
+			Init();
+			if (!elementName.IsNullOrWhitespace()) ElementName = elementName;
 		}
 		private void Init()
 		{
@@ -1450,7 +1478,7 @@ namespace SDC.Schema
 			{return this.Items; }
 			set
 			{
-				Items = ItemsMutator(Items, value);
+				Items = ItemsMutator(() => Items, value);
 			}
 		}
 	}
@@ -1658,6 +1686,32 @@ namespace SDC.Schema
 	public partial class BaseType : IBaseType //IBaseType inherits IMoveRemove and INavigate
 	{
 		/// <summary>
+		/// Values that were <b>rejected</b> by this node's setters (soft-reject, issue #8) and therefore
+		/// never stored in their strongly-typed backing fields, keyed by property name. Use this to
+		/// surface invalid input to the user for correction. Empty when nothing was rejected.<br/>
+		/// Backed by an out-of-band store (<see cref="SdcUtil.GetRejectedValues(BaseType)"/>), so it is
+		/// never serialized.
+		/// </summary>
+		[System.Xml.Serialization.XmlIgnore]
+		[Newtonsoft.Json.JsonIgnore]
+		public IReadOnlyDictionary<string, SdcRejectedValue> RejectedValues => SdcUtil.GetRejectedValues(this);
+
+		/// <summary><see langword="true"/> when this node has at least one rejected (unstored) value.</summary>
+		[System.Xml.Serialization.XmlIgnore]
+		[Newtonsoft.Json.JsonIgnore]
+		public bool HasRejectedValues => SdcUtil.HasRejectedValues(this);
+
+		/// <summary>
+		/// Clears the recorded rejected value for <paramref name="propertyName"/> (e.g., after the user
+		/// supplies a valid value). Returns <see langword="true"/> if a rejected value was removed.
+		/// </summary>
+		public bool ClearRejectedValue(string propertyName) => SdcUtil.ClearRejectedValue(this, propertyName);
+
+		/// <summary>Clears all recorded rejected values for this node.</summary>
+		public void ClearRejectedValues() => SdcUtil.ClearRejectedValues(this);
+
+
+		/// <summary>
 		/// This constructor is used only to deserialize SDC classes with the SDC.Schema serializers.<br/>
 		///		Parent Nodes cannot be assigned through this constructor. <br/>
 		///		Node dictionaries cannot be populated here either.<br/>
@@ -1687,10 +1741,11 @@ namespace SDC.Schema
                 }
             }//not ITopNode below here
 			else if (LastTopNode is not null)
-			{
-				TopNode = LastTopNode;
-				ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
-			}
+				{
+					TopNode = LastTopNode;
+					// TS-3 fix: use AtomicNextObjectID() to prevent duplicate ObjectIDs under concurrent construction.
+					ObjectID = ((_ITopNode)TopNode).AtomicNextObjectID();
+				}
 			else if (LastTopNode is null) 
 			{//the caller is instantiating a new node that is not descended from an ITopNode node.
 				//ObjectID will need to be incremented if & when the node is grafted onto another node that is ITopNode, or has an ITopNode ancestor
@@ -1769,12 +1824,14 @@ namespace SDC.Schema
 				if (parentNode is ITopNode ptn)
 				{
 					this.TopNode = (_ITopNode)parentNode;
-					this.ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
+					// TS-3 fix: atomic increment — see AtomicNextObjectID().
+					this.ObjectID = ((_ITopNode)TopNode).AtomicNextObjectID();
 				}
 				else if (parentNode.TopNode is not null)
 				{
 					this.TopNode = (_ITopNode)parentNode.TopNode;
-					this.ObjectID = ((_ITopNode)TopNode)._MaxObjectID++;
+					// TS-3 fix: atomic increment — see AtomicNextObjectID().
+					this.ObjectID = ((_ITopNode)TopNode).AtomicNextObjectID();
 				}
 				else
 				{ //this node descends form an "illegal" non-ITopNode root node; it cannot be added to ITopNode dictionaries without a TopNode,
@@ -1811,24 +1868,28 @@ namespace SDC.Schema
         /// //This code is intended to run in the BaseType parameterized constructor.
         /// </summary>
         /// <param name="parentNode"></param>
-        internal void InitAfterTreeAdd(BaseType? parentNode)
+		internal void InitAfterTreeAdd(BaseType? parentNode)
 		{
-			if (this.TopNode is not null)
-			{   //a node with a null TopNode will not be registered in any TopNode dictionaries.
-				this.RegisterAll(parentNode);
-
-				//The following code requires that the current node is first added
-				//to the ParentNodes dictionary.  Thus, these statements must come
-				//*after* the dictionaries are populated (in RegisterNodeAndParent)
-
-				this.AssignOrder(orderGap: 10);
-                //SdcUtil.CreateCAPname(this,"",SdcUtil.NameChangeEnum.Normal); //This won't work until the node is fully initialized (including BaseType.ID for IET nodes), after adding it to the SDC tree.
-                
-				
+		if (this.TopNode is not null)
+		{   //a node with a null TopNode will not be registered in any TopNode dictionaries.
+			_ITopNode tn = (_ITopNode)this.TopNode;
+			// TS-2: WriteLockScope replaces lock(_SyncRoot) — unified ReaderWriterLockSlim per tree.
+			// RegisterAll acquires the same lock internally; SupportsRecursion allows the nesting.
+			using var _writeLock = new WriteLockScope(tn.TreeRwLock);
+			{
+				// TS-7: Assign order BEFORE RegisterAll so that RegisterParentNode.RegisterAll can use
+				// the order value as a cheap O(1) insertion hint (via TreeOrderComparer) when
+				// childNodesSort:false, avoiding the O(N²·reflection) SibComparer sort cliff.
+				// ObjectID is monotonically increasing with construction order; for normal top-down
+				// tree construction, this matches tree document order exactly.
+				this.order = this.ObjectID;
+				this.RegisterAll(parentNode, childNodesSort: false);
+				//SdcUtil.CreateCAPname(this,"",SdcUtil.NameChangeEnum.Normal); //This won't work until the node is fully initialized (including BaseType.ID for IET nodes), after adding it to the SDC tree.
 				//ElementPrefix is assigned later in the top-level constructor. It will be empty here, unless we make it a constant
-                //Thus the simple name below will start with "_" instead of the ElementPrefix.
-                this.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
+				//Thus the simple name below will start with "_" instead of the ElementPrefix.
+				this.AssignSimpleName(); //add options to keep original imported name, or to only create a new name when the original name is null.
 			}
+		}
 		}
 		
 
@@ -1836,12 +1897,11 @@ namespace SDC.Schema
 
 		#region  Local Members
 		//internal static int LastObjectID { get => lastObjectID; private set => lastObjectID = value; }
-		internal void StoreError(string errorMsg) //TODO: Replace with event that logs each error
+		internal void StoreError(string errorMsg, string? propertyName = null, object? attemptedValue = null) //TODO: Replace with event that logs each error
 		{
-			var exData = new Exception();
-			exData.Data.Add("QuestionID: ", ParentIETnode?.ID.ToString() ?? "null");
-			exData.Data.Add("Error: ", errorMsg);
-			ExceptionList.Add(exData);
+			var ctx = new ValidationContext(this) { MemberName = propertyName ?? "value" };
+			var results = new List<ValidationResult> { new ValidationResult(errorMsg) };
+			SdcUtil.RaiseAndRecord(ctx, attemptedValue, results);
 		}
 
 		/// <summary>
@@ -2157,18 +2217,39 @@ namespace SDC.Schema
 		/// <param name="elementName"></param>
 		protected internal T? ItemMutator<T>(T? item, T? valueNew, string elementName = "") where T : BaseType?
 		{
+			// If we are in deserialization mode, avoid performing tree mutations (Move/Register/RemoveRecursive)
+			// because the deserializer reconstructs the object graph and ReflectRefreshTree will
+			// rebuild parent/child registrations after deserialization completes.
+			if (SdcUtil.IsDeserializing.Value)
+			{
+				return valueNew;
+			}
 			if (item == valueNew) 
 				return valueNew;  //this will prevent running item.RemoveRecursive when we are reassigning the same object.
 
 			if (item is not null)
 				item.RemoveRecursive(false);
 
-			if (valueNew is not null && valueNew.TopNode != this.TopNode)
+			if (valueNew is not null && valueNew.ParentNode != this)
 			{
-				//we have a node or subtree that is being grafted from a different SDC tree.
-				//in most cases like this, we will want new sGuid, ObjectID, ObjectGUID, name, ID
-				//Later, we can also reorder the entire tree.
-				valueNew.Move(this, -1, true, SdcUtil.RefreshMode.UpdateNodeIdentity); //checks if  ParentNode is allowed
+				// Bug fix: same-tree property reassignment (for example replacing Response.DataTypeDE_Item)
+				// cannot always be expressed through Move(), because some single-value attachment paths do not
+				// resolve to a reflected BaseType/IList target. For same-tree assignments, detach from the old
+				// parent object and update ParentNodes directly; for cross-tree grafts, continue using Move().
+				if (valueNew.TopNode == this.TopNode)
+				{
+					// For same-tree reparenting, preserve top-node _Nodes registration while updating parent mappings.
+					// Unregister only parent/child/IET relationships and then re-register under the new parent.
+					var bt = (BaseType)valueNew;
+					// Remove from its old parent (clears parent's property) and unregister dictionaries,
+					// then register under the new parent within the same top-node.
+					bt.RemoveRecursive(false);
+					bt.RegisterAll(this, childNodesSort: true, addIETnodesRecursively: true);
+				}
+				else
+				{
+					valueNew.Move(this, -1, true, SdcUtil.RefreshMode.UpdateNodeIdentity); //checks if ParentNode is allowed
+				}
 			}
 			return valueNew;
 		}
@@ -2176,30 +2257,85 @@ namespace SDC.Schema
 		/// A method to update ITopNode dictionaries, if needed, when setting values in SDC property lists.
 		/// 
 		/// </summary>
-		/// <typeparam name="L">A generic List type for <b><paramref name="itemsListOld"/></b> and <b><paramref name="valueListNew"/></b></typeparam>
-		/// <typeparam name="T">The type held by <paramref name="itemsListOld"/> and <paramref name="valueListNew"/></typeparam>
-		/// <param name="itemsListOld">The current source List to be repaced by <paramref name="valueListNew"/>.  This List is often named "Items"</param>
-		/// <param name="valueListNew">The incoming List to replace <paramref name="itemsListOld"/></param>
-		protected List<T>? ItemsMutator<T> (List<T>? itemsListOld, List<T>? valueListNew)
-			//where L : List<T>?  //the List is often null
+		/// <typeparam name="T">The type held by the old and new lists.</typeparam>
+		/// <param name="itemsListOldGetter">
+		/// A getter delegate that returns the current (old) list value.
+		/// It is evaluated <em>inside</em> the <see cref="WriteLockScope"/> so that the snapshot of the
+		/// old list is always consistent with the tree state at mutation time, eliminating the TOCTOU race
+		/// that occurs when the caller evaluates <c>Items</c> before the lock is held and a concurrent
+		/// thread has already deregistered those nodes in the meantime (TS-2 fix).
+		/// </param>
+		/// <param name="valueListNew">The incoming List to replace the old list.</param>
+		protected List<T>? ItemsMutator<T> (Func<List<T>?> itemsListOldGetter, List<T>? valueListNew)
 			where T : BaseType  //we do not allow nulls in the list
 		{
-			if(itemsListOld == valueListNew)
-				return valueListNew;  //this will prevent running RemoveRecursive when we are reassigning the same object.
-
-			if (itemsListOld is not null  && itemsListOld.Count > 0)
-				foreach (T n in itemsListOld) n.RemoveRecursive(false);
-
-			if (valueListNew is not null)
+			// Thread-safety: TS-2 — acquire the per-tree WriteLockScope so that FindRootNode (which reads
+			// _ParentNodes) cannot observe a concurrent write from another thread, preventing a false
+			// sameRoot=false result that would take the wrong UpdateNodeIdentity path and throw from UnRegisterAll.
+			// WriteLockScope uses SupportsRecursion, so nested RegisterAll/UnRegisterAll write scopes are safe.
+			// The old-list getter is evaluated inside the lock (not before) to close the TOCTOU gap: without
+			// this, Thread B could capture Items *before* Thread A's mutation finishes, then attempt to remove
+			// nodes that Thread A already deregistered (ParentNode → null → "ParentNode cannot be null").
+			var rw = TopNode is _ITopNode itn ? itn.TreeRwLock : null;
+			if (rw is not null)
 			{
-				if (valueListNew.Count > 0)
-				{
-					foreach (T n in valueListNew) n.Move(this); //We may wish to use RemoveRecursive instead
-					return valueListNew;
-				}
-				throw new InvalidOperationException($"The supplied {nameof(valueListNew)} could not be used to set {nameof(itemsListOld)}.");
+				using var _writeLock = new WriteLockScope(rw);
+				return DoMutate(itemsListOldGetter());
 			}
-			return null; //value will be allowed to have a null value until compiler null-checking is enabled globally, and we can reliably exclude all nulls from this method at compile time and runtime
+			return DoMutate(itemsListOldGetter());
+
+			List<T>? DoMutate(List<T>? itemsListOld)
+				{
+					if (itemsListOld == valueListNew)
+						return valueListNew;  //this will prevent running RemoveRecursive when we are reassigning the same object.
+
+					// Bug fix TS-4: compute the intersection of the old and new lists so that nodes appearing
+					// in both are neither removed nor re-moved.  Previously, RemoveRecursive was called on every
+					// node in itemsListOld (including nodes that also appear in valueListNew), which fully
+					// deregistered those nodes and set their ParentNode to null.  The subsequent Move(this) then
+					// found sameRoot=false (because ParentNode was null) → UpdateNodeIdentity →
+					// ReflectRefreshSubtreeList → UnRegisterAll → exception (node already deregistered).
+					var newSet = (valueListNew is not null && valueListNew.Count > 0)
+						? new HashSet<T>(valueListNew, ReferenceEqualityComparer.Instance)
+						: null;
+
+					// Remove only old nodes that are NOT being retained in the new list.
+					if (itemsListOld is not null && itemsListOld.Count > 0)
+					{
+						T[] oldSnapshot = itemsListOld.ToArray();
+						foreach (T n in oldSnapshot)
+						{
+							if (newSet is null || !newSet.Contains(n))
+								n.RemoveRecursive(false);
+						}
+					}
+
+					if (valueListNew is not null)
+					{
+						if (valueListNew.Count > 0)
+						{
+							// Build the set of already-retained nodes so we can skip Move for them.
+							// These nodes are still registered in the tree and correctly parented.
+							var oldSet = (itemsListOld is not null && itemsListOld.Count > 0)
+								? new HashSet<T>(itemsListOld, ReferenceEqualityComparer.Instance)
+								: null;
+
+							// Bug fix: snapshot to avoid collection-modified-during-enumeration when Move
+							// detaches a node from its original parent collection (which could be valueListNew).
+							T[] snapshot = valueListNew.ToArray();
+							foreach (T n in snapshot)
+							{
+								// Skip Move for nodes that were already in the old list; they remain correctly
+								// parented to this node and their dictionary entries are intact.
+								if (oldSet is not null && oldSet.Contains(n)) continue;
+								n.Move(this);
+							}
+							return valueListNew;
+						}
+						throw new InvalidOperationException($"The supplied {nameof(valueListNew)} could not be used to set the old list.");
+					}
+					return null; //value will be allowed to have a null value until compiler null-checking is enabled globally, and we can reliably exclude all nulls from this method at compile time and runtime
+				}
 		}
 
 
@@ -2221,10 +2357,14 @@ namespace SDC.Schema
                     if (!SdcUtil.IsValidVariableName(value))
                         throw new InvalidOperationException($"The name \"{value}\" is not a legal variable name.");
 
-                    _ITopNode tn = (_ITopNode)this.TopNode;
-                    if (tn._UniqueBaseNames.Add(value) == false)
-                        throw new InvalidOperationException($"The name \"{value}\" already exists within the TopNode's tree.  A unique value is required.");
-					tn._UniqueBaseNames.Remove(baseName); //remove the old name
+					_ITopNode tn = (_ITopNode)this.TopNode;
+					// TS-2: WriteLockScope replaces lock(_SyncRoot) for BaseName setter
+					using var _writeLock = new WriteLockScope(tn.TreeRwLock);
+					{
+						if (tn._UniqueBaseNames.Add(value) == false)
+							throw new InvalidOperationException($"The name \"{value}\" already exists within the TopNode's tree.  A unique value is required.");
+						tn._UniqueBaseNames.Remove(baseName); //remove the old name
+					}
                 }
                 baseName = value;
             }
@@ -2253,6 +2393,12 @@ namespace SDC.Schema
 		private string _elementName = "";
 		private string _elementPrefix = "";
 		private RetrieveFormPackageType? _PackageNode;
+		// TS-1 fix: [ThreadStatic] isolates LastTopNode per thread, preventing cross-tree contamination
+		// during concurrent construction/deserialization on separate threads. Each thread sees its own
+		// LastTopNode; the static field is still shared across trees built serially on the same thread,
+		// which is the correct original behavior. Use AsyncLocal<T> instead only if a build path is
+		// ever made async and crosses thread boundaries mid-build (none currently exist).
+		[ThreadStatic]
 		private static ITopNode? LastTopNode;
 		//private static BaseType? LastAddedNode;
 		//private static int lastObjectID = 0;
@@ -2452,7 +2598,7 @@ namespace SDC.Schema
 			get { return this.Items; } 
 			set
 			{
-				Items = ItemsMutator(Items, value);
+				Items = ItemsMutator(() => Items, value);
 			}
 		}
 	}
@@ -2616,6 +2762,7 @@ namespace SDC.Schema
 		/// any *_DEType data type
 		/// </summary>
 		[XmlIgnore]
+		[JsonIgnore]
 		public BaseType DataTypeDE_Item
 		{
 			get { return this.Item; }
@@ -4985,13 +5132,14 @@ namespace SDC.Schema
 			Items = new();
 		}
 		[XmlIgnore]
+		[JsonIgnore]
 		public List<ExtensionBaseType> ActAction_Items
 		{
 			get
 			{ return Items; } 
 			set
 			{
-				Items = ItemsMutator(Items, value);
+				Items = ItemsMutator(() => Items, value);
 			}
 		}
 	}
@@ -5024,7 +5172,7 @@ namespace SDC.Schema
 	public partial class ActInjectType : InjectFormType
 	{
 		protected ActInjectType() { Init(); }
-		public ActInjectType(ActionsType parentNode, string id = "", int position = -1) : base(parentNode, id, position)
+		public ActInjectType(ActionsType parentNode, string id = "", int position = -1) : base(parentNode, id, position, "Inject")
 		{
 			Init();
 		}
@@ -5062,13 +5210,13 @@ namespace SDC.Schema
 		}
 
 		internal List<ExtensionBaseType> Email_Phone_WebSvc_List
-	{
-		get { return this.Items; }
-		set
 		{
-			Items = ItemsMutator(Items, value);
+			get { return this.Items; }
+			set
+			{
+				Items = ItemsMutator(() => Items, value);
+			}
 		}
-	}
 	}
 	public partial class ActSendMessageType
 	{
@@ -5078,13 +5226,13 @@ namespace SDC.Schema
 		/// </summary>
 		/// <param name="parentNode"></param>
 		/// <param name="position"></param>
-		public ActSendMessageType(ActionsType parentNode, int position = -1) : base(parentNode, position, "SendMessage")
+		public ActSendMessageType(ActionsType parentNode, int position = -1) : base(parentNode, position, "SendMessage111")
 		{
 			Init();
 		} 
 		private void Init()
 		{
-			ElementName = "SendMessage";  //"SendMessage111"  this type may be removed
+			ElementName = "SendMessage111";
 			ElementPrefix = "actSndMsg";
 			Items = new();
 		}
@@ -5098,7 +5246,7 @@ namespace SDC.Schema
 
 			set
 			{
-				Items = ItemsMutator(Items, value);
+				Items = ItemsMutator(() => Items, value);
 			}
 		}
 	}
@@ -5131,7 +5279,7 @@ namespace SDC.Schema
 	public partial class ActSetBoolAttributeValueCodeType
 	{
 		protected ActSetBoolAttributeValueCodeType() { Init(); }
-		public ActSetBoolAttributeValueCodeType(ActionsType parentNode, int position = -1) : base(parentNode, position)
+		public ActSetBoolAttributeValueCodeType(ActionsType parentNode, int position = -1) : base(parentNode, position, "SetBoolAttributeValueCode")
 		{
 			Init();
 		}
@@ -5999,5 +6147,25 @@ namespace SDC.Schema
 
 	#endregion
 
-}
+	#region FractionDigitsAttribute extensions
 
+	/// <summary>
+	/// Custom extensions for <see cref="FractionDigitsAttribute"/> that live outside the generated file.
+	/// </summary>
+	public partial class FractionDigitsAttribute
+	{
+		/// <summary>The maximum number of fractional digits this attribute enforces.</summary>
+		public uint DecimalPrecision => _decimalPrecision;
+
+		/// <inheritdoc/>
+		public override string FormatErrorMessage(string name)
+		{
+			return _decimalPrecision == 0
+				? $"The field '{name}' must be a whole number with no fractional digits (e.g. 42, not 42.5)."
+				: $"The field '{name}' must have at most {_decimalPrecision} fractional digit(s) after the decimal point (e.g. at most {_decimalPrecision} digits after '.')." ;
+		}
+	}
+
+	#endregion
+
+}

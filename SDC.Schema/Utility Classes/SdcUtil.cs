@@ -1,5 +1,4 @@
-﻿using CSharpVitamins;
-using MsgPack.Serialization;
+using CSharpVitamins;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SDC.Schema;
@@ -9,10 +8,12 @@ using System.Buffers;
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Data.SqlTypes;
 using System.Diagnostics;
@@ -41,11 +42,308 @@ namespace SDC.Schema
 	public static class SdcUtil
 	{
 		#region Local
-		internal static Dictionary<Guid, BaseType> Get_Nodes(BaseType n)
+
+		#region Serialization
+		/// <summary>
+		/// Tracks whether the current async flow is actively deserializing an SDC object graph.
+		/// </summary>
+		/// <remarks>
+		/// This flag is stored in <see cref="System.Threading.AsyncLocal{T}"/>, so each thread/async
+		/// context gets its own value. Serializers set it to <see langword="true"/> while rebuilding
+		/// object graphs so setters and mutators can skip runtime side effects that assume a fully
+		/// connected tree. It is independent from <see cref="SuppressValidation"/>: deserialization
+		/// state and validation suppression often move together, but they are not the same control.
+		/// </remarks>
+		/// <seealso cref="SuppressValidation"/>
+		public static System.Threading.AsyncLocal<bool> IsDeserializing { get; } = new System.Threading.AsyncLocal<bool>();
+		#endregion
+
+		#region Validation
+		/// <summary>
+		/// Controls whether validation failures are surfaced through events and reports in the current async flow.
+		/// </summary>
+		/// <remarks>
+		/// This flag is stored in <see cref="System.Threading.AsyncLocal{T}"/>, so it is isolated per
+		/// thread/async context. When <see langword="true"/>, validation helpers still reject invalid
+		/// values, but they suppress <see cref="SdcValidationEvents.ValidationOccurred"/> and
+		/// <see cref="ValidationCollector"/> output. Serializers typically set this during normal
+		/// non-validating deserialization; validating-deserialize overloads leave it
+		/// <see langword="false"/> so the same setters can populate reports.
+		/// </remarks>
+		/// <seealso cref="IsDeserializing"/>
+		/// <seealso cref="ValidationCollector"/>
+		public static System.Threading.AsyncLocal<bool> SuppressValidation { get; } = new System.Threading.AsyncLocal<bool>();
+
+		/// <summary>
+		/// Holds the active validation report for the current async flow, when one is being collected.
+		/// </summary>
+		/// <remarks>
+		/// This value is stored in <see cref="System.Threading.AsyncLocal{T}"/>, so each thread/async
+		/// context can collect into a different report without cross-talk. When non-<see langword="null"/>,
+		/// validation helpers append <see cref="SdcNodeValidationIssue"/> entries here in addition to
+		/// raising <see cref="SdcValidationEvents.ValidationOccurred"/>. Validating-deserialize overloads
+		/// and explicit sweeps such as <see cref="SdcValidate.ValidateTree"/> set this to gather a
+		/// structured <see cref="SdcValidationReport"/> during the main pass.
+		/// </remarks>
+		/// <seealso cref="SuppressValidation"/>
+		public static System.Threading.AsyncLocal<SdcValidationReport?> ValidationCollector { get; } = new System.Threading.AsyncLocal<SdcValidationReport?>();
+
+		// Out-of-band per-node store of values that were rejected by a setter (soft-reject, issue #8).
+		// Keyed by node, then by property name (last invalid attempt per property wins). Held in a
+		// ConditionalWeakTable so it is never serialized and is GC'd together with the owning node.
+		private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<BaseType, Dictionary<string, SdcRejectedValue>> _rejectedValues = new();
+
+		/// <summary>
+		/// Records a value that was rejected by a setter on <paramref name="node"/> so it can be
+		/// surfaced to the user for correction. The most recent rejected attempt per property wins.
+		/// </summary>
+		/// <param name="node">The node that rejected the value.</param>
+		/// <param name="rejected">The rejected-value payload to record for later inspection.</param>
+		/// <remarks>
+		/// This is the durable part of the soft-reject contract: invalid values are never stored on the
+		/// typed property, but the user's last rejected attempt is preserved out-of-band even when
+		/// <see cref="SuppressValidation"/> silences events and report collection.
+		/// </remarks>
+		/// <seealso cref="GetRejectedValues(BaseType)"/>
+		internal static void RecordRejectedValue(BaseType node, SdcRejectedValue rejected)
+		{
+			if (node is null || string.IsNullOrEmpty(rejected.PropertyName)) return;
+			var map = _rejectedValues.GetOrCreateValue(node);
+			lock (map) { map[rejected.PropertyName] = rejected; }
+		}
+
+		/// <summary>
+		/// Returns the values that were rejected (and therefore not stored) on
+		/// <paramref name="node"/>, keyed by property name. Empty when the node has no rejected values.
+		/// </summary>
+		/// <param name="node">The node whose rejected values should be returned.</param>
+		/// <returns>
+		/// A snapshot of the rejected values currently recorded for <paramref name="node"/>, keyed by
+		/// property name, or an empty dictionary when nothing has been rejected.
+		/// </returns>
+		/// <remarks>
+		/// The returned dictionary is a defensive copy so callers can enumerate it without mutating the
+		/// backing store.
+		/// </remarks>
+		/// <seealso cref="RecordRejectedValue(BaseType, SdcRejectedValue)"/>
+		public static IReadOnlyDictionary<string, SdcRejectedValue> GetRejectedValues(BaseType node)
+		{
+			if (node is not null && _rejectedValues.TryGetValue(node, out var map))
+			{
+				lock (map) { return new Dictionary<string, SdcRejectedValue>(map); }
+			}
+			return EmptyRejected;
+		}
+
+		private static readonly IReadOnlyDictionary<string, SdcRejectedValue> EmptyRejected =
+			new Dictionary<string, SdcRejectedValue>();
+
+		/// <summary><see langword="true"/> when <paramref name="node"/> has at least one rejected value.</summary>
+		public static bool HasRejectedValues(BaseType node) =>
+			node is not null && _rejectedValues.TryGetValue(node, out var map) && map.Count > 0;
+
+		/// <summary>
+		/// Clears the recorded rejected value for a single property on <paramref name="node"/>
+		/// (e.g., after the user supplies a valid value). Returns <see langword="true"/> if one was removed.
+		/// </summary>
+		public static bool ClearRejectedValue(BaseType node, string propertyName)
+		{
+			if (node is not null && propertyName is not null && _rejectedValues.TryGetValue(node, out var map))
+			{
+				lock (map) { return map.Remove(propertyName); }
+			}
+			return false;
+		}
+
+		/// <summary>Clears all recorded rejected values for <paramref name="node"/>.</summary>
+		public static void ClearRejectedValues(BaseType node)
+		{
+			if (node is not null) _rejectedValues.Remove(node);
+		}
+
+		/// <summary>
+		/// Non-throwing property validator implementing the <b>soft-reject</b> contract (issue #8):
+		/// runs DataAnnotations validation on <paramref name="value"/> and returns whether it is valid.<br/>
+		/// • Returns <see langword="true"/> when the value is valid — the caller (generated setter)
+		///   then assigns <c>_field = value</c>.<br/>
+		/// • Returns <see langword="false"/> when the value is invalid — the caller <b>must not</b>
+		///   assign it (the prior/unset value is retained). On failure this method <b>always</b>:<br/>
+		///   &#160;&#160;– records the offending value on the node via
+		///   <see cref="RecordRejectedValue"/> (so it can be surfaced for correction), and<br/>
+		///   &#160;&#160;– when <see cref="SuppressValidation"/> is <see langword="false"/>, appends an
+		///   <see cref="SdcNodeValidationIssue"/> to <see cref="ValidationCollector"/> (if active) and
+		///   fires <see cref="SdcValidationEvents.ValidationOccurred"/>.<br/>
+		/// Rejection and rejected-value recording are <b>unconditional</b>; <see cref="SuppressValidation"/>
+		/// only suppresses event/report <em>noise</em> (e.g., during plain, non-validating deserialization)
+		/// — it never permits an invalid value to be stored.<br/>
+		/// The produced message always includes the offending value.
+		/// </summary>
+		/// <param name="value">The incoming property value to validate.</param>
+		/// <param name="ctx">
+		/// A <see cref="ValidationContext"/> with <see cref="ValidationContext.MemberName"/>
+		/// set to the property name.
+		/// </param>
+		/// <returns><see langword="true"/> if the value is valid and may be assigned; otherwise <see langword="false"/>.</returns>
+		/// <remarks>
+		/// This method is the main setter-facing entry point. It first honors any registered override
+		/// rules from <see cref="SdcValidationRuleRegistry"/> and otherwise falls back to the
+		/// DataAnnotations declared on the property itself. Callers should only assign the incoming
+		/// value when this method returns <see langword="true"/>.
+		/// </remarks>
+		/// <seealso cref="ValidateLexicalAndRaise(BaseType, string, string?, XsdDateKind)"/>
+		public static bool ValidateAndRaise(object? value, ValidationContext ctx)
+		{
+			var results = new List<ValidationResult>();
+			bool ok;
+			// Registered rules replace generated-property attributes without editing auto-generated files.
+			if (ctx.ObjectInstance is not null && ctx.MemberName is string member
+				&& SdcValidationRuleRegistry.TryGet(ctx.ObjectInstance.GetType(), member, out var registered))
+			{
+				ok = Validator.TryValidateValue(value!, ctx, results, registered);
+			}
+			// Fall back to the DataAnnotations physically declared on the property.
+			else
+			{
+				ok = Validator.TryValidateProperty(value, ctx, results);
+			}
+
+			if (ok)
+			{
+				// A valid value supersedes any prior rejection recorded for this property.
+				if (ctx.ObjectInstance is BaseType okNode && ctx.MemberName is string okProp)
+					ClearRejectedValue(okNode, okProp);
+				return true;
+			}
+
+			return RaiseAndRecord(ctx, value, results);
+		}
+
+		/// <summary>
+		/// Soft-reject entry point for a raw XSD <b>lexical string</b> (used by the DateTime-backed
+		/// date types' <c>SetLexicalValue</c> methods and by the datatype-builder parse path).
+		/// Validates <paramref name="lexical"/> against <paramref name="kind"/>; on success clears any
+		/// prior rejection for <paramref name="memberName"/> and returns <see langword="true"/>; on
+		/// failure records the offending value (and, when not suppressed, raises the validation event)
+		/// and returns <see langword="false"/> — exactly mirroring
+		/// <see cref="ValidateAndRaise(object?, ValidationContext)"/>.
+		/// </summary>
+		/// <param name="node">The node whose lexical value is being updated.</param>
+		/// <param name="memberName">The property name to report in validation messages.</param>
+		/// <param name="lexical">The raw lexical string to validate against the XSD grammar.</param>
+		/// <param name="kind">The XSD date/date-part kind that determines the lexical grammar.</param>
+		/// <returns><see langword="true"/> when the lexical string is valid; otherwise <see langword="false"/>.</returns>
+		/// <remarks>
+		/// Unlike <see cref="ValidateAndRaise(object?, ValidationContext)"/>, this method validates the
+		/// raw string representation directly instead of a parsed CLR value.
+		/// </remarks>
+		/// <seealso cref="ValidateAndRaise(object?, ValidationContext)"/>
+		public static bool ValidateLexicalAndRaise(BaseType node, string memberName, string? lexical, XsdDateKind kind)
+		{
+			var ctx = new ValidationContext(node) { MemberName = memberName };
+			var results = new List<ValidationResult>();
+			// Check the raw lexical token against the XSD grammar before any parsed value is committed.
+			if (Validator.TryValidateValue(lexical ?? string.Empty, ctx, results,
+					new ValidationAttribute[] { new XsdDateLexicalAttribute(kind) }))
+			{
+				// A valid lexical update supersedes any earlier rejected raw string for the same member.
+				ClearRejectedValue(node, memberName);
+				return true;
+			}
+			return RaiseAndRecord(ctx, lexical, results);
+		}
+
+		/// <summary>
+		/// Shared failure path for validation helpers that need to reject a value without throwing.
+		/// </summary>
+		/// <param name="ctx">Validation context describing the member that failed.</param>
+		/// <param name="value">The offending value that was rejected.</param>
+		/// <param name="results">Validation results explaining why the value failed.</param>
+		/// <returns>Always returns <see langword="false"/> so callers can return it directly.</returns>
+		/// <remarks>
+		/// This helper always records the rejected value. Event firing and report collection remain gated
+		/// by <see cref="SuppressValidation"/>, which keeps non-validating deserialization quiet without
+		/// ever storing the invalid value.
+		/// </remarks>
+		/// <seealso cref="RecordRejectedValue(BaseType, SdcRejectedValue)"/>
+		internal static bool RaiseAndRecord(ValidationContext ctx, object? value, List<ValidationResult> results)
+		{
+			string nodeID   = (ctx.ObjectInstance as BaseType)?.sGuid ?? "(unknown)";
+			string nodeType = ctx.ObjectInstance?.GetType().Name ?? "(unknown)";
+			string detail   = string.Join("; ", results.Select(r => r.ErrorMessage ?? "(validation error)"));
+			string message  = $"Value '{value ?? "null"}' is invalid for '{ctx.MemberName}': {detail}";
+
+			// Always preserve the rejected attempt so UI/tests can surface it later.
+			if (ctx.ObjectInstance is BaseType node && ctx.MemberName is string prop)
+			{
+				RecordRejectedValue(node, new SdcRejectedValue
+				{
+					PropertyName   = prop,
+					AttemptedValue = value,
+					Message        = message,
+					RejectedAt     = System.DateTimeOffset.Now,
+					Results        = results.AsReadOnly()
+				});
+			}
+
+			// Suppressing validation silences event/report noise, but it never changes the rejection outcome.
+			if (!SuppressValidation.Value)
+			{
+				var issue = new SdcNodeValidationIssue
+				{
+					NodeID         = nodeID,
+					NodeType       = nodeType,
+					PropertyName   = ctx.MemberName,
+					AttemptedValue = value,
+					Message        = message,
+					Severity       = SdcValidationSeverity.Error,
+					Results        = results.AsReadOnly()
+				};
+
+				// Collect into report if a collector is active (validating-deserialization or sweep)
+				ValidationCollector.Value?.Add(issue);
+
+				// Fire the event hub so subscribers (UI, loggers, test fixtures) are notified
+				SdcValidationEvents.Raise(new SdcValidationEventArgs
+				{
+					NodeID         = nodeID,
+					PropertyName   = ctx.MemberName,
+					AttemptedValue = value,
+					Message        = message,
+					Severity       = SdcValidationSeverity.Error,
+					Results        = results.AsReadOnly()
+				});
+			}
+
+			return false;
+		}
+
+		/// <summary>
+		/// Check if the supplied string can be used as a legal variable name in C#.<br/>
+		/// Does not check for reserved words or other variables in use.
+		/// </summary>
+		/// <param name="newString">The string to check.</param>
+		/// <returns></returns>
+		internal static bool IsValidVariableName(this string newString)
+		{
+			if (string.IsNullOrEmpty(newString))
+				return false;
+
+			if (!char.IsLetter(newString[0]) && newString[0] != '_')
+				return false;
+
+			for (int i = 1; i < newString.Length; i++)
+				if (!char.IsLetterOrDigit(newString[i]) && newString[i] != '_')
+					return false;
+
+			return true;
+		}
+		#endregion
+
+		internal static ConcurrentDictionary<Guid, BaseType> Get_Nodes(BaseType n)
 		{ return Get_ITopNode(n)._Nodes; }
-		internal static Dictionary<Guid, List<BaseType>> Get_ChildNodes(BaseType n)
+		internal static ConcurrentDictionary<Guid, List<BaseType>> Get_ChildNodes(BaseType n)
 		{ return Get_ITopNode(n)._ChildNodes; }
-		internal static Dictionary<Guid, BaseType> Get_ParentNodes(BaseType n)
+		internal static ConcurrentDictionary<Guid, BaseType> Get_ParentNodes(BaseType n)
 		{ return Get_ITopNode(n)._ParentNodes; }
 		internal static ObservableCollection<IdentifiedExtensionType> Get_IETnodes(BaseType n)
 		{ return Get_ITopNode(n)._IETnodes; }
@@ -73,22 +371,31 @@ namespace SDC.Schema
 			_topNode._TreeSort_NodeIds.Add(parentItem.ObjectID);
 		}
 
-        private static void TreeSort_Remove(BaseType parentItem)
-        {
-            var _topNode = Get_ITopNode(parentItem);
-            if (_topNode is null) throw new NullReferenceException($"{nameof(_topNode)} cannot be null");
+		private static void TreeSort_Remove(BaseType parentItem)
+		{
+			var _topNode = Get_ITopNode(parentItem);
+			if (_topNode is null) throw new NullReferenceException($"{nameof(_topNode)} cannot be null");
 			if(_topNode._TreeSort_NodeIds.Contains(parentItem.ObjectID))
 				_topNode._TreeSort_NodeIds.Remove(parentItem.ObjectID);
-        }
+		}
+
+		// TS-7: exposed as internal so IMoveRemoveExtensions.RegisterParentNode can invalidate
+		// the sort-flag after each childNodesSort:false append, allowing SortElementKids to
+		// re-sort exactly once per parent on first demand rather than on every insert.
+		internal static void TreeSort_Invalidate(BaseType parentItem) => TreeSort_Remove(parentItem);
+
+		// TS-7: mark a parent's kids list as sorted in treeSibComparer order after a binary-search
+		// insert, so SortElementKids skips the redundant re-sort when GetPrevSibElement is called.
+		internal static void TreeSort_MarkSorted(BaseType parentItem) => TreeSort_Add(parentItem);
 
         /// <summary>
         /// Dictionary to cache PropertyInfo objects to speed reflection of SDC Element nodes
         /// </summary>
-        private static readonly Dictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfoElements = new();
+        private static readonly ConcurrentDictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfoElements = new();
 		/// <summary>
 		/// Dictionary to cache PropertyInfo objects to speed reflection of SDC Attribute nodes
 		/// </summary>
-		private static readonly Dictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfoAttributes = new();
+		private static readonly ConcurrentDictionary<Type, IEnumerable<PropertyInfo>?> dListPropInfoAttributes = new();
 
 
 
@@ -102,23 +409,23 @@ namespace SDC.Schema
 		/// <summary>
 		/// Cache XmlRootAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<XmlRootAttribute>?> dXmlRootAtts = new();
+		private static readonly ConcurrentDictionary<Type, List<XmlRootAttribute>?> dXmlRootAtts = new();
 		/// <summary>
 		/// Cache XmlElementAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<XmlElementAttribute>?> dXmlElementAtts = new();
+		private static readonly ConcurrentDictionary<Type, List<XmlElementAttribute>?> dXmlElementAtts = new();
 		/// <summary>
 		/// Cache XmlChoiceIdentifierAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<XmlChoiceIdentifierAttribute>?> dXmlChoiceIdentifierAtts = new();
+		private static readonly ConcurrentDictionary<Type, List<XmlChoiceIdentifierAttribute>?> dXmlChoiceIdentifierAtts = new();
 		/// <summary>
 		/// Cache XmlAttributeAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<XmlAttributeAttribute>?> dXmlAttAtts = new();
+		private static readonly ConcurrentDictionary<Type, List<XmlAttributeAttribute>?> dXmlAttAtts = new();
 		/// <summary>
 		/// Cache XmlAttributeAttribute objects
 		/// </summary>
-		private static readonly Dictionary<Type, List<AttributeInfo>?> dListAttInfo = new();
+		private static readonly ConcurrentDictionary<Type, List<AttributeInfo>?> dListAttInfo = new();
 
 
 
@@ -334,19 +641,13 @@ namespace SDC.Schema
 
 				while (s.Count > 0)
 				{
-					IEnumerable<PropertyInfo>? props;
 					Type sPop = s.Pop();
-
-					if (!dListPropInfoElements.TryGetValue(sPop, out props))
-					{
-						props = sPop.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-						.Where(p => p.IsDefined(typeof(XmlElementAttribute))).ToList();
+					var props = dListPropInfoElements.GetOrAdd(sPop, static type =>
+						type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+							.Where(p => p.IsDefined(typeof(XmlElementAttribute))).ToList()
 						//.OrderBy(p => p.GetCustomAttributes<XmlElementAttribute>()  //ordering is not currently needed to retrieve
 						//.First().Order)											  //properties in XML Element order, but this could change
-						;
-
-						dListPropInfoElements.Add(sPop, props);
-					}
+					);
 
 					foreach (var p in props)
 					{
@@ -404,9 +705,10 @@ namespace SDC.Schema
 					btProp.RegisterAll(parentNode, childNodesSort: false); //we are adding nodes in reflection-sorted order
 																		   //Debug.Print(btProp.sGuid + "; Obj ID: " + btProp.ObjectID);
 
-																		   //Adding is not thread-safe - need ConcurrentDictionary
+																		   //TS-3 fix applied: dictionaries are now ConcurrentDictionary (see PartialClasses.cs and ITopNode.cs)
 																		   //Mark parentNode as having its child nodes already sorted
-					TreeSort_Add(parentNode);  //Change ObjectID to ObjectGUID?  //Probably thread-safe, as it's a hashtable, but may need Concurrent Hashtable?
+					var tn = Get_ITopNode(parentNode);
+					lock (tn._ChildNodesMutationLock) TreeSort_Add(parentNode);  // _TreeSort_NodeIds is HashSet<int>; protect with per-tree lock
 					AssignSdcProperties(parentNode, piChildProperty, btProp, current_ITopNode, ref order, orderGap, print, sbTreeText, createNodeName);
 				}
 
@@ -891,7 +1193,7 @@ namespace SDC.Schema
                         n.ObjectID = 0;
                     }
                     else
-                        n.ObjectID = ((_ITopNode)currentTopNode)._MaxObjectID++;
+                        n.ObjectID = ((_ITopNode)currentTopNode).AtomicNextObjectID();
 
 
                     if (refreshMode != RefreshMode.NoChange)
@@ -1310,18 +1612,22 @@ namespace SDC.Schema
         /// /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public static IdentifiedExtensionType? ReflectPrevElementIET(BaseType n)
+		public static IdentifiedExtensionType? ReflectPrevElementIET(BaseType n)
 		{
 			BaseType? bt = n;
+			var visited = new HashSet<Guid>();
 			do
 			{
-				bt = ReflectPrevElement(n);
+				//FIX: Always advance traversal cursor from the previously returned node (bt),
+				//not the original input node, and break any cyclic traversal to prevent hangs.
+				if (!visited.Add(bt.ObjectGUID)) return null;
+				bt = ReflectPrevElement(bt);
 				if (bt is IdentifiedExtensionType iet) return iet;
 
 			} while (bt is not null);
 
 			return null;
-        }
+		}
         /// <summary>
         /// Retrieve the next <see cref="IdentifiedExtensionType"/> SDC element node by reflection.<br/>
         /// This node may be a distal sibling, or a non-sibling node lower in the SDC tree <br/>
@@ -1332,9 +1638,13 @@ namespace SDC.Schema
         public static IdentifiedExtensionType? ReflectNextElementIET(BaseType n)
         {
             BaseType? bt = n;
+            var visited = new HashSet<Guid>();
             do
             {
-                bt = ReflectNextElement(n);
+                //FIX: Always advance traversal cursor from the previously returned node (bt),
+                //not the original input node, and break any cyclic traversal to prevent hangs.
+                if (!visited.Add(bt.ObjectGUID)) return null;
+                bt = ReflectNextElement(bt);
                 if (bt is IdentifiedExtensionType iet) return iet;
 
             } while (bt is not null);
@@ -1349,7 +1659,7 @@ namespace SDC.Schema
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public static BaseType? ReflectPrevElement(BaseType n)
+		public static BaseType? ReflectPrevElement(BaseType n)
 		{
 			if (n is null) return null;
 			BaseType? par = n.ParentNode;
@@ -1365,9 +1675,8 @@ namespace SDC.Schema
 
 			if (par is null) return null; //item is the top node
 
-			lastDesc = ReflectLastDescendantElement(par);
-			if (lastDesc is not null) return lastDesc;
-
+			//FIX: when no previous sibling exists, the previous node is the parent.
+			//Returning the parent's last descendant can re-return the current node and create reflection traversal cycles.
 			return par;
 		}
 		/// <summary>
@@ -1751,7 +2060,9 @@ namespace SDC.Schema
 		private static AttributeMethods attMethods = new();
 
 		/// <summary>
-		/// 
+		/// Reflects XML attributes for <paramref name="n"/> that are eligible for serialization.
+		/// Attribute results include both schema-based attributes (for example, properties marked with <see cref="XmlAttributeAttribute"/>)
+		/// and ad-hoc attributes contributed through <see cref="XmlAnyAttributeAttribute"/> collections.
 		/// </summary>
 		/// <param name="n">The see<see cref="BaseType"/> node for which attribtues will be determined</param>
 		/// <param name="getAllXmlAttributes"></param>
@@ -1806,13 +2117,13 @@ namespace SDC.Schema
 					continue;
 				}
 
-				if (!dListPropInfoAttributes.TryGetValue(t, out piIE))  //look in cache to bypass slow PropertyInfo lookup
-				{
-					piIE = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-							.Where(pi => pi.GetCustomAttributes<XmlAttributeAttribute>().Any());
-					dListPropInfoAttributes.Add(t, piIE); //cache for next time
-				}
+				piIE = dListPropInfoAttributes.GetOrAdd(t, static type =>
+					type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+						.Where(pi => pi.GetCustomAttributes<XmlAttributeAttribute>().Any()));  //look in cache to bypass slow PropertyInfo lookup
 				if (piIE is null) continue;
+
+				var anyAttrProps = t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+					.Where(pi => pi.GetCustomAttributes<XmlAnyAttributeAttribute>().Any());
 
 				foreach (var p in piIE)
 				{
@@ -1873,6 +2184,23 @@ namespace SDC.Schema
 					{
 						nodeIndex++;
 						attributes.Add(FillAttributeInfo(p, n));
+					}
+				}
+
+				foreach (var pAny in anyAttrProps)
+				{
+					if (attributesToExclude is not null && attributesToExclude.Contains(pAny.Name)) continue;
+					if (pAny.GetValue(n) is not IEnumerable<XmlAttribute> anyAttrs) continue;
+
+					foreach (var xa in anyAttrs)
+					{
+						if (string.IsNullOrWhiteSpace(xa.LocalName)) continue;
+						if (attributesToExclude is not null && (attributesToExclude.Contains(xa.LocalName) || attributesToExclude.Contains(xa.Name))) continue;
+						if (attributesToInclude is not null && !attributesToInclude.Contains(xa.LocalName) && !attributesToInclude.Contains(xa.Name) && !attributesToInclude.Contains(pAny.Name)) continue;
+
+						nodeIndex++;
+						// Bug fix: preserve ad-hoc origin per attribute so schema-defined attributes on the same node are not misclassified.
+						attributes.Add(new AttributeInfo(n, xa.Value, null, nodeIndex, xa.LocalName, isAdHocAttribute: true));
 					}
 				}
 			}
@@ -2292,7 +2620,7 @@ namespace SDC.Schema
 		private static string? GetElementNameFromItemChoiceEnum(PropertyInfo piItem, BaseType item, BaseType parentNode, ref int itemIndex, out string? errorMsg)
 		{
 			errorMsg = null;
-			object? choiceIdentifierObject = GetItemChoiceEnumFromItemChoiceIdentifier(piItem, item, out _);
+			object? choiceIdentifierObject = GetItemChoiceEnumFromItemChoiceIdentifier(piItem, item, parentNode, out _);
 			if (choiceIdentifierObject is null)
 				return null; //An enum is not used to determine the XML Element name			
 
@@ -2311,13 +2639,13 @@ namespace SDC.Schema
 			return null;
 		}
 
-		private static object? GetItemChoiceEnumFromItemChoiceIdentifier(PropertyInfo piItem, BaseType item, out PropertyInfo? piChoiceEnum)
+		private static object? GetItemChoiceEnumFromItemChoiceIdentifier(PropertyInfo piItem, BaseType item, BaseType parentNode, out PropertyInfo? piChoiceEnum)
 		{//old name: ItemChoiceEnum
 			string? enumName = GetItemChoiceEnumFromAttribute(piItem);
 			piChoiceEnum = null;
 			if (enumName == null) return null!;
-			piChoiceEnum = item.ParentNode?.GetType()?.GetProperty(enumName);
-			var choiceEnumObj = piChoiceEnum?.GetValue(item.ParentNode);
+			piChoiceEnum = parentNode.GetType().GetProperty(enumName);
+			var choiceEnumObj = piChoiceEnum?.GetValue(parentNode);
 			if (choiceEnumObj is Enum e) return e;
 			if (choiceEnumObj is IEnumerable ie) return ie;
 			return null;
@@ -2350,6 +2678,7 @@ namespace SDC.Schema
 			if (parentTarget.IsDescendantOf(newNode)) return false; //can't attach a node to itself or one of its descendants.
 
 			Type newNodeType = newNode.GetType();
+			var allProps = parentTarget.GetType().GetProperties().ToList();
 
 			//+Try to match newNode to a parentTarget property, based on newNode's Type
 			if (newNodeElementName.IsNullOrWhitespace())
@@ -2357,7 +2686,7 @@ namespace SDC.Schema
 				//This will be slower than using the elementName parameter, and will fail for some types
 				//(e.g., CallFuncBase, EventType...) where the elementName is critical.
 
-				var parentTargetProps = parentTarget.GetType().GetProperties().Where(n => n.GetCustomAttributes<XmlElementAttribute>().Any()).ToList();
+				var parentTargetProps = allProps.Where(n => n.GetCustomAttributes<XmlElementAttribute>().Any()).ToList();
 
 				piTargetProperty = parentTargetProps?.Where
 					(n =>
@@ -2400,8 +2729,7 @@ namespace SDC.Schema
 			}
 			else //this is the preferred approach, as we don't have to infer the caller's desired SDC node type
 			{//+Try to match newNode to a parent property, based on newNode's SDC XML elementName
-				piTargetProperty = parentTarget.GetType()
-					.GetProperties()
+				piTargetProperty = allProps
 					.Where(pi =>
 						pi.Name == newNodeElementName ||
 						pi.GetCustomAttributes<XmlElementAttribute>()
@@ -2421,11 +2749,7 @@ namespace SDC.Schema
 
 			//Try to find Item(s)ChoiceType object for piTarget, if it exists
 			//piChoiceEnum will tell us if Item(s)ChoiceType is defined as a property. choiceEnum will be non-null if Item(s)ChoiceType has been instantiated
-			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, out piChoiceEnum);
-
-			//+Try to find Item(s)ChoiceType object for piTarget, if it exists
-			//piChoiceEnum will tell us if Item(s)ChoiceType is defined as a property.  choiceEnum will be non-null if Item(s)ChoiceType has been instantiated
-			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, out piChoiceEnum);
+			choiceEnum = GetItemChoiceEnumFromItemChoiceIdentifier(piTargetProperty, newNode, parentTarget, out piChoiceEnum);
 
 			return true;
 		}
@@ -2481,14 +2805,74 @@ namespace SDC.Schema
 			{
 				if (choiceEnum is null)
 				{ //Create a new Enum or List<Enum> object, and attach it to parentTarget:
-					choiceEnum = Activator.CreateInstance(piChoiceEnum.PropertyType);
+					if (piChoiceEnum.PropertyType.IsArray)
+					{
+						Type elementType = piChoiceEnum.PropertyType.GetElementType()!;
+						choiceEnum = Array.CreateInstance(elementType, 0);
+					}
+					else
+					{
+						choiceEnum = Activator.CreateInstance(piChoiceEnum.PropertyType);
+					}
 					piChoiceEnum.SetValue(parentTarget, choiceEnum);
 				}
 
-				if (choiceEnum is IList itemsChoiceType) //itemsChoiceType is always List<EnumSubtype> 
+				string elementNameForChoice = newNodeElementName;
+				if (string.IsNullOrWhiteSpace(elementNameForChoice))
 				{
-					Type enumType = itemsChoiceType.GetType().GetElementType()!;
-					bool result = Enum.TryParse(enumType!, newNodeElementName, out object? newEnumObj);
+					var newNodeType = newNode.GetType();
+					var choiceXmlElements = piTargetProperty.GetCustomAttributes<XmlElementAttribute>(true)
+						.Where(att => att.Type == newNodeType || att.Type.IsAssignableFrom(newNodeType) || newNodeType.IsAssignableFrom(att.Type))
+						.ToArray();
+					if (choiceXmlElements.Length == 1 && !string.IsNullOrWhiteSpace(choiceXmlElements[0].ElementName))
+						elementNameForChoice = choiceXmlElements[0].ElementName;
+				}
+
+				if (choiceEnum is Array itemsChoiceArray)
+				{
+					Type enumType = itemsChoiceArray.GetType().GetElementType()!;
+					bool result = Enum.TryParse(enumType, elementNameForChoice, out object? newEnumObj);
+					if (!result) return false;
+
+					Array nodeArray;
+					if (targetPropertyObject is null)
+					{
+						Type nodeElementType = piTargetProperty.PropertyType.GetElementType()!;
+						nodeArray = Array.CreateInstance(nodeElementType, 0);
+					}
+					else nodeArray = (Array)targetPropertyObject;
+
+					var enumList = itemsChoiceArray.Cast<object?>().ToList();
+					var nodeList = nodeArray.Cast<object?>().ToList();
+
+					if (insertPosition == -1 || insertPosition > nodeList.Count - 1)
+					{
+						enumList.Add(newEnumObj);
+						nodeList.Add(newNode);
+					}
+					else
+					{
+						enumList.Insert(insertPosition, newEnumObj);
+						nodeList.Insert(insertPosition, newNode);
+					}
+
+					Array newChoiceArray = Array.CreateInstance(enumType, enumList.Count);
+					for (int i = 0; i < enumList.Count; i++) newChoiceArray.SetValue(enumList[i], i);
+					Type targetElementType = piTargetProperty.PropertyType.GetElementType()!;
+					Array newNodeArray = Array.CreateInstance(targetElementType, nodeList.Count);
+					for (int i = 0; i < nodeList.Count; i++) newNodeArray.SetValue(nodeList[i], i);
+
+					piChoiceEnum.SetValue(parentTarget, newChoiceArray);
+					piTargetProperty.SetValue(parentTarget, newNodeArray);
+					choiceEnum = newChoiceArray;
+					targetPropertyObject = newNodeArray;
+					return true;
+				}
+				else if (choiceEnum is IList itemsChoiceType) //itemsChoiceType is always List<EnumSubtype> 
+				{
+					Type enumType = itemsChoiceType.GetType().GetGenericArguments().FirstOrDefault()
+						?? itemsChoiceType.GetType().GetElementType()!;
+					bool result = Enum.TryParse(enumType, elementNameForChoice, out object? newEnumObj);
 					if (result)
 					{
 						//Create target List object if not present
@@ -2501,7 +2885,7 @@ namespace SDC.Schema
 						IList tpoList = (IList)targetPropertyObject!;
 
 						if (insertPosition == -1 || insertPosition > tpoList.Count - 1)
-						{ 
+						{
 							itemsChoiceType.Add(newEnumObj);
 							tpoList.Add(newNode);
 						}
@@ -2517,8 +2901,9 @@ namespace SDC.Schema
 				else if (choiceEnum is Enum itemChoiceType) //itemChoiceType is a simple Enum subtype.
 				{
 					Type enumType = itemChoiceType.GetType();
-					bool result = Enum.TryParse(enumType, newNodeElementName, out object? newEnumObj);
-					
+					// Bug fix: use the resolved XML element name (derived from type when caller omits elementName) so ItemChoice enums bind correctly for single-choice nodes like DataTypes_DEType.Item.
+					bool result = Enum.TryParse(enumType, elementNameForChoice, out object? newEnumObj);
+
 					if (result)
 					{
 						piChoiceEnum.SetValue(parentTarget, newEnumObj);
@@ -2791,15 +3176,8 @@ namespace SDC.Schema
 		/// <returns></returns>
 		public static T[] RemoveArrayNullsNew<T>(T[] array) where T : class
 		{
-			int i = 0;
-			var newarray = new T[array.Length - 1];
-
-			foreach (var n in array)
-			{
-				if (n != null) newarray[i] = n;
-				i++;
-			}
-			return newarray;
+			if (array is null) throw new ArgumentNullException(nameof(array));
+			return array.Where(n => n is not null).ToArray();
 		}
 
 		#endregion
@@ -3166,7 +3544,7 @@ namespace SDC.Schema
 
 			//regenerate ObjectID
 			if (bt.ObjectID == -1 && bt.TopNode is not null && bt is not ITopNode) 
-				bt.ObjectID = ((_ITopNode)bt.TopNode)._MaxObjectID++;
+				bt.ObjectID = ((_ITopNode)bt.TopNode).AtomicNextObjectID();
 
 			if (! forceNewGuid && ShortGuid.TryParse(bt.sGuid, out Guid guid)) //reuse existing sGuid, if possible; then generate baseName
 			{
@@ -3191,20 +3569,23 @@ namespace SDC.Schema
 			return tempName;
 		}
 
-        /// <summary>
-        /// Given a parent SDC node, this method will sort the child nodes (kids)
-        /// This method is used to keep lists of sibling nodes in the same order as the SDC object tree
-        /// </summary>
-        /// <param name="parentItem">The parent SDC node</param>
-        /// <param name="kids">"kids" is a List&lt;BaseType> containing all the child nodes under parentItem.
-        /// This is generally obtained from the parentItem using the _ITopNode._ChildNodes Dictionary object
-        /// If it is not supplied, it will be obtained below from parentItem</param>
-        /// <param name="forceSort">By default, child nodes will not be resorted if they have been previously sorted<br/>
+		/// <summary>
+		/// Given a parent SDC node, this method will sort the child nodes (kids)
+		/// This method is used to keep lists of sibling nodes in the same order as the SDC object tree.<br/>
+		/// Call this ONCE after a bulk-add sequence rather than on every individual insert —
+		/// use <c>childNodesSort=false</c> in <see cref="SDC.Schema.Extensions.IMoveRemoveExtensions.RegisterAll"/>
+		/// during bulk-add to defer sorting to a single post-add call (TS-7: eliminates the O(N²·reflection) cliff).
+		/// </summary>
+		/// <param name="parentItem">The parent SDC node</param>
+		/// <param name="kids">"kids" is a List&lt;BaseType> containing all the child nodes under parentItem.
+		/// This is generally obtained from the parentItem using the _ITopNode._ChildNodes Dictionary object
+		/// If it is not supplied, it will be obtained below from parentItem</param>
+		/// <param name="forceSort">By default, child nodes will not be resorted if they have been previously sorted<br/>
 		/// because they are flagged as already sorted in TreeSort_NodeIds.<br/>
 		/// In some scenarios, we may want to force a resorting of the child nodes, by setting this flag to True."
 		/// </param>
-        /// <returns>List&lt;BaseType>? containing ordered list of child nodes, or null if no child nodes are present</returns>
-        private static List<BaseType>? SortElementKids(BaseType parentItem, List<BaseType>? kids = null, bool forceSort = false)
+		/// <returns>List&lt;BaseType>? containing ordered list of child nodes, or null if no child nodes are present</returns>
+		internal static List<BaseType>? SortElementKids(BaseType parentItem, List<BaseType>? kids = null, bool forceSort = false)
 		{
 			//Sorting uses reflection, and this is an expensive operation, so we only sort once per parent node
 			//TreeSort_NodeIds is a SortedSet that holds the ObjectIDs of parent nodes whose children have already been sorted.
@@ -3220,10 +3601,30 @@ namespace SDC.Schema
 
 			if (kids is not null)
 			{
-				if (!TreeSort_IsSorted(parentItem) || forceSort)
+				var _mutLock = (Get_ITopNode(parentItem) as _ITopNode)?._ChildNodesMutationLock;
+				if (_mutLock is not null)
 				{
-					kids.Sort(new TreeSibComparer());
-					TreeSort_Add(parentItem);
+					lock (_mutLock) // Sprint D Fix2: per-tree lock, reentrant-safe
+					{
+						if (!TreeSort_IsSorted(parentItem) || forceSort)
+						{
+							kids.Sort(new TreeSibComparer());
+							TreeSort_Add(parentItem);
+						}
+					}
+				}
+				else // Sprint E Fix C: orphan node (TopNode not yet set, e.g. during deserialization).
+				     // Use lock(kids) as a per-list fallback so concurrent deserialization workers cannot
+				     // run kids.Sort() simultaneously on the same list (which threw Arg_LongerThanDestArray).
+				{
+					lock (kids)
+					{
+						if (!TreeSort_IsSorted(parentItem) || forceSort)
+						{
+							kids.Sort(new TreeSibComparer());
+							TreeSort_Add(parentItem);
+						}
+					}
 				}
 			}
 			return kids;
@@ -3282,26 +3683,6 @@ namespace SDC.Schema
 			if (n is _ITopNode itn) return itn;
 			return n.TopNode as _ITopNode;
 		}
-        /// <summary>
-		/// Check if the supplied string can be used as a legal variable name in C#.<br/>
-		/// Does not check for reserved words or other variables in use.
-		/// </summary>
-		/// <param name="newString">The string to check.</param>
-		/// <returns></returns>
-		internal static bool IsValidVariableName(this string newString)
-        {
-            if (string.IsNullOrEmpty(newString))
-                return false;
-
-            if (!char.IsLetter(newString[0]) && newString[0] != '_')
-                return false;
-
-            for (int i = 1; i < newString.Length; i++)
-                if (!char.IsLetterOrDigit(newString[i]) && newString[i] != '_')
-                    return false;
-
-            return true;
-        }
 
         #endregion
         #region Retired

@@ -1,0 +1,23 @@
+{
+  // NOTE: 'dotnet run' does NOT work for this project.
+  // WasmEnableThreads=true requires the wasm-tools workload's thread-enabled
+  // native WASM binary, which is only produced by 'dotnet publish'.
+  //
+  // Correct workflow:
+  //   dotnet publish SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server -c Release -o publish_out
+  //   cd publish_out
+  //   dotnet SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server.dll
+  //
+  // This profile is provided for IDE tooling only (launch URL, port reference).
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

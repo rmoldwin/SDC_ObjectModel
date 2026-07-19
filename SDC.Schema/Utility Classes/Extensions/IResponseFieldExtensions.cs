@@ -4,15 +4,30 @@
 namespace SDC.Schema.Extensions
 {
 	/// <summary>
-	/// 
+	/// Extension methods providing the public API for adding typed SDC response datatypes,
+	/// units, and trailing text to a <see cref="ResponseFieldType"/> node.
 	/// </summary>
 	public static class IResponseFieldExtensions
 	{
+		/// <summary>
+		/// Adds a typed response datatype node to the response field and optionally applies an initial value.
+		/// </summary>
+		/// <param name="rf">The response field that will own the datatype container.</param>
+		/// <param name="dataType">The XSD-backed datatype to create. Defaults to <c>string</c>.</param>
+		/// <param name="dtQuant">The comparison quantifier to store on datatypes that support one.</param>
+		/// <param name="valDefault">Optional initial value to parse and validate for the created datatype.</param>
+		/// <returns>The datatype container attached to <paramref name="rf"/>.</returns>
+		/// <remarks>
+		/// This is the public entry point for response-datatype construction. It delegates to
+		/// <see cref="SdcDataTypeBuilder.AddDataTypesDE"/> which creates the concrete datatype node and
+		/// routes invalid initial values through the validation soft-reject pipeline instead of throwing.
+		/// </remarks>
+		/// <seealso cref="SdcDataTypeBuilder.AddDataTypesDE"/>
 		public static DataTypes_DEType AddDataType(this ResponseFieldType rf,
 			ItemChoiceType dataType = ItemChoiceType.@string,
 			dtQuantEnum dtQuant = dtQuantEnum.EQ,
 			object? valDefault = null)
-			=> IDataHelpers.AddDataTypesDE(rf, dataType, dtQuant, valDefault);  //Convert to generic type for valDefault
+			=> SdcDataTypeBuilder.AddDataTypesDE(rf, dataType, dtQuant, valDefault);
 
 		/// <summary>
 		/// 

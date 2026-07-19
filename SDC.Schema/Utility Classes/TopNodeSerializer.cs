@@ -100,12 +100,12 @@ namespace SDC.Schema
 		/// The default value is 10.<br/></param>
 		/// <returns>SDC object tree</returns>
 		public static T DeserializeFromJson(string sdcJson, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
-        {
-            T obj = SdcSerializerJson<T>.DeserializeJson<T>(sdcJson);
-            //return InitParentNodesFromXml<T>(sdcXml, obj);
-            if (refreshSdc) SdcUtil.ReflectRefreshTree(obj, out _, false, refreshSdc, createNameDelegate, orderStart, orderGap);
-            return obj;
-        }
+		{
+			T obj = SdcSerializerJson<T>.DeserializeJson<T>(sdcJson);
+			//return InitParentNodesFromXml<T>(sdcXml, obj);
+			if (refreshSdc) SdcUtil.ReflectRefreshTree(obj, out _, false, refreshSdc, createNameDelegate, orderStart, orderGap);
+			return obj;
+		}
 		/// <summary>
 		/// Serialize the current SDC object tree to an SDC Json string.
 		/// </summary>
@@ -122,6 +122,57 @@ namespace SDC.Schema
             if (refreshSdc) SdcUtil.ReflectRefreshTree(tn, out _, false, refreshSdc, createNameDelegate, orderStart, orderGap);
             return SdcSerializerJson<T>.SerializeJson(tn);
         }
+		//!+JsonXml
+
+		/// <summary>
+		/// Read an SDC XML-isomorphic JSON file and return an SDC object model tree.<br/><br/>
+		/// <inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		/// </summary>
+		/// <param name="path">File path and name of the XML-isomorphic JSON file to deserialize.</param>
+		/// <param name="refreshSdc">If true, the method calls <see cref="SdcUtil.ReflectRefreshTree"/></param>
+		/// <param name="createNameDelegate">A method used to create names for each node in the SDC tree.  See <see cref="SdcUtil.CreateName"/></param>
+		/// <param name="orderStart">The starting number for the @order attribute.</param>
+		/// <param name="orderGap">A multiplier for the @order atttribute.</param>
+		/// <returns>SDC object tree</returns>
+		public static T DeserializeFromJsonXmlPath(string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+		{
+			string sdcJsonXml = File.ReadAllText(path);
+			return DeserializeFromJsonXml(sdcJsonXml, refreshSdc, createNameDelegate, orderStart, orderGap);
+		}
+
+		/// <summary>
+		/// Read an SDC XML-isomorphic JSON string and return an SDC object model tree.<br/><br/>
+		/// <inheritdoc cref="TopNodeSerializer{T}.DeserializeFromXmlPath(string, bool, SdcUtil.CreateName?, int, int)"/>
+		/// </summary>
+		/// <param name="sdcJsonXml">XML-isomorphic JSON string to deserialize.</param>
+		/// <param name="refreshSdc">If true, the method calls <see cref="SdcUtil.ReflectRefreshTree"/></param>
+		/// <param name="createNameDelegate">A method used to create names for each node in the SDC tree.  See <see cref="SdcUtil.CreateName"/></param>
+		/// <param name="orderStart">The starting number for the @order attribute.</param>
+		/// <param name="orderGap">A multiplier for the @order atttribute.</param>
+		/// <returns>SDC object tree</returns>
+		public static T DeserializeFromJsonXml(string sdcJsonXml, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+		{
+			T obj = SdcSerializerJsonXml<T>.DeserializeJsonXml(sdcJsonXml);
+			if (refreshSdc) SdcUtil.ReflectRefreshTree(obj, out _, false, refreshSdc, createNameDelegate, orderStart, orderGap);
+			return obj;
+		}
+
+		/// <summary>
+		/// Serialize the current SDC object tree to an XML-isomorphic JSON string.<br/>
+		/// XML element names become JSON keys; XML attributes are prefixed with <c>"@"</c>;
+		/// repeated sibling elements with the same tag name become JSON arrays.
+		/// </summary>
+		/// <param name="tn">An SDC ITopNode object - the top node (root) of the SDC tree to serialize.</param>
+		/// <param name="refreshSdc">If true, the method calls <see cref="SdcUtil.ReflectRefreshTree"/></param>
+		/// <param name="createNameDelegate">A method used to create names for each node in the SDC tree.  See <see cref="SdcUtil.CreateName"/></param>
+		/// <param name="orderStart">The starting number for the @order attribute.</param>
+		/// <param name="orderGap">A multiplier for the @order atttribute.</param>
+		/// <returns>XML-isomorphic JSON string</returns>
+		public static string GetJsonXml(T tn, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+		{
+			if (refreshSdc) SdcUtil.ReflectRefreshTree(tn, out _, false, refreshSdc, createNameDelegate, orderStart, orderGap);
+			return SdcSerializerJsonXml<T>.SerializeJsonXml(tn);
+		}
 		//!+BSON
 
 		/// <summary>
@@ -266,6 +317,20 @@ namespace SDC.Schema
             if (refreshSdc) SdcUtil.ReflectRefreshTree(tn, out _, false, refreshSdc, createNameDelegate, orderStart, orderGap);
             SdcSerializerJson<T>.SaveToFileJson(path, tn);
         }
+		/// <summary>
+		/// Save the current SDC object tree to an XML-isomorphic JSON file at a known location (path).
+		/// </summary>
+		/// <param name="tn">An SDC ITopNode object - the top node (root) of the SDC tree to serialize.</param>
+		/// <param name="path">File path and name of the output JSON file.</param>
+		/// <param name="refreshSdc">If true, the method calls <see cref="SdcUtil.ReflectRefreshTree"/></param>
+		/// <param name="createNameDelegate">A method used to create names for each node in the SDC tree.  See <see cref="SdcUtil.CreateName"/></param>
+		/// <param name="orderStart">The starting number for the @order attribute.</param>
+		/// <param name="orderGap">A multiplier for the @order atttribute.</param>
+		public static void SaveJsonXmlToFile(T tn, string path, bool refreshSdc = true, SdcUtil.CreateName? createNameDelegate = null, int orderStart = 0, int orderGap = 10)
+		{
+			if (refreshSdc) SdcUtil.ReflectRefreshTree(tn, out _, false, refreshSdc, createNameDelegate, orderStart, orderGap);
+			SdcSerializerJsonXml<T>.SaveToFileJsonXml(tn, path);
+		}
 		/// <summary>
 		/// Save the current SDC object tree to an SDC Bson file at a known location (path)
 		/// </summary>

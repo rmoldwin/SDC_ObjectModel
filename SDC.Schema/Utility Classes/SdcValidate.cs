@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SDC.Schema.Extensions;
 using System.Xml;
 using System.Xml.Schema;
@@ -8,7 +9,37 @@ using System.Xml.Schema;
 //using SDC;
 namespace SDC.Schema
 {
-	public static class SdcValidate
+	/// <summary>
+	/// Hand-written validation helpers that enforce rules the object model and XML Schema cannot
+	/// express on their own.
+	/// </summary>
+	/// <remarks>
+	/// <b>Numeric ResponseType range divergences (XSD vs .NET).</b> Numeric <c>val</c> and constraint
+	/// facets are validated by the generated <c>[Range]</c>/<c>[MaxDigits]</c> attributes, not here, but
+	/// the following known divergences affect what these validators can rely on. Full detail and the
+	/// characterization tests live in <c>SDC.Schema.Tests/Documentation/NumericRange_XSD_vs_NET.md</c>:
+	/// <list type="bullet">
+	/// <item><description><b>A.</b> Integer-family <c>MaxDigitsAttribute(29)</c> counts the sign, so
+	/// negatives are capped at 28 significant digits and positives at 29 (<c>decimal.MinValue</c>
+	/// is soft-rejected; <c>decimal.MaxValue</c> is accepted).</description></item>
+	/// <item><description><b>B.</b> <c>long_DEtype</c> exclusive facets use the
+	/// <c>RangeAttribute(double,double)</c> overload and cannot be enforced at <c>long.MaxValue</c>
+	/// (double precision collapse).</description></item>
+	/// <item><description><b>C.</b> Sign of zero (<c>−0</c>) is not preserved when assigned to a fresh
+	/// float/double node (the setter's <c>Equals</c> change-guard treats <c>+0</c>/<c>−0</c> as
+	/// equal).</description></item>
+	/// <item><description><b>D.</b> JSON cannot round-trip large whole-number decimal/integer-family
+	/// values beyond ulong range (deserialized as BigInteger → InvalidCastException). XML preserves
+	/// them.</description></item>
+	/// <item><description><b>E.</b> BSON cannot serialize <c>ulong</c> values above
+	/// <c>long.MaxValue</c> (no unsigned support).</description></item>
+	/// <item><description><b>F.</b> BSON loses precision on high-precision decimals (encoded as IEEE
+	/// double).</description></item>
+	/// </list>
+	/// Integer-family and decimal types additionally narrow the unbounded XSD value spaces to the .NET
+	/// <c>decimal</c> range (≈ ±7.92e28), which is the binding constraint.
+	/// </remarks>
+	public static partial class SdcValidate
 	{
 
 		/// <summary>
@@ -152,9 +183,190 @@ namespace SDC.Schema
 
 		public static string GetXmlFromJson(string json)
 		{
-			var doc = JsonConvert.DeserializeXmlNode(json);
-			return doc?.OuterXml??"";
+			if (string.IsNullOrWhiteSpace(json)) return string.Empty;
+
+			try
+			{
+				var doc = JsonConvert.DeserializeXmlNode(json);
+				if (doc is not null) return doc.OuterXml;
+			}
+			catch (JsonSerializationException)
+			{
+				// Fall back for JSON payloads with multiple root properties by wrapping in a synthetic root.
+			}
+
+			var token = JToken.Parse(json);
+			var wrapped = token is JObject
+				? JsonConvert.SerializeObject(new JObject { ["Root"] = token })
+				: JsonConvert.SerializeObject(new JObject { ["Root"] = new JArray(token) });
+
+			var wrappedDoc = JsonConvert.DeserializeXmlNode(wrapped);
+			return wrappedDoc?.OuterXml ?? string.Empty;
 		}
 
+	}
+}
+
+// ─── SDC imperative object-model validation sweep ─────────────────────────────
+
+namespace SDC.Schema
+{
+	using System.ComponentModel.DataAnnotations;
+
+	public static partial class SdcValidate
+	{
+		/// <summary>
+		/// Validates all SDC nodes in <paramref name="topNode"/>'s tree using DataAnnotations
+		/// attributes (FractionDigits, MaxDigits, Range, RegularExpression, StringLength, etc.)
+		/// declared on each node's most-derived type, and also performs a cross-property coherence
+		/// sweep (<c>val</c> vs. runtime constraint facets) for each node that has a <c>val</c>
+		/// property.<br/>
+		/// <br/>
+		/// No XML Schema (XSD) validation is performed; for XSD validation use
+		/// <see cref="ValidateSdcObjectTree"/>.<br/>
+		/// <br/>
+		/// The coherence sweep is post-reportorial only: stored values are never discarded, only
+		/// flagged. <see cref="SuppressValidation"/> is forced to <see langword="false"/> for the
+		/// duration of the call so that coherence issues always populate the returned report,
+		/// regardless of ambient caller state. When <paramref name="recurseSubTrees"/> is
+		/// <see langword="true"/>, any node that is itself an <see cref="ITopNode"/> is also
+		/// walked recursively.
+		/// </summary>
+		/// <param name="topNode">The SDC top node whose tree will be validated.</param>
+		/// <param name="recurseSubTrees">
+		/// When <see langword="true"/>, sub-TopNode trees (e.g. injected forms) are also validated.
+		/// </param>
+		/// <returns>
+		/// An <see cref="SdcValidationReport"/> that is <see cref="SdcValidationReport.IsValid"/>
+		/// when no Error-severity issues were found.
+		/// </returns>
+		public static SdcValidationReport ValidateTree(this ITopNode topNode, bool recurseSubTrees = false)
+		{
+			var report = new SdcValidationReport();
+			SdcUtil.ValidationCollector.Value = report;
+			// Force SuppressValidation=false so coherence checks always flow into the report.
+			// ValidateTree is an explicit sweep — callers expect results regardless of ambient state.
+			var prevSuppress = SdcUtil.SuppressValidation.Value;
+			SdcUtil.SuppressValidation.Value = false;
+			try
+			{
+				var visited = new System.Collections.Generic.HashSet<object>(ReferenceEqualityComparer.Instance);
+				ValidateTreeInto(topNode, report, recurseSubTrees, visited);
+			}
+			finally
+			{
+				SdcUtil.ValidationCollector.Value = null;
+				SdcUtil.SuppressValidation.Value = prevSuppress;
+			}
+			return report;
+		}
+
+		private static void ValidateTreeInto(
+			ITopNode topNode,
+			SdcValidationReport report,
+			bool recurseSubTrees,
+			System.Collections.Generic.HashSet<object> visited)
+		{
+			if (!visited.Add(topNode)) return; // guard against cyclic sub-TopNode references
+
+			foreach (var node in topNode.Nodes.Values)
+			{
+				if (node is BaseType bt)
+				{
+					ValidateNodeInto(bt, report);
+					// Post-sweep coherence: check val against runtime constraints already stored on the node.
+					// IsDeserializing is false here (post-deserialization sweep), so CheckValAgainstConstraints runs.
+					// Values are NOT discarded — this is purely reportorial.
+					var valProp = bt.GetType().GetProperty("val");
+					if (valProp != null)
+					{
+						var currentVal = valProp.GetValue(bt);
+						if (currentVal != null)
+							SdcValidate.CheckValAgainstConstraints(bt, "val", currentVal);
+					}
+				}
+
+				// Recurse into sub-TopNodes if requested (e.g. InjectedForm references)
+				if (recurseSubTrees && node is ITopNode subTopNode && !ReferenceEquals(subTopNode, topNode))
+					ValidateTreeInto(subTopNode, report, recurseSubTrees: true, visited);
+			}
+
+			foreach (var rule in SdcCoherenceRuleRegistry.ActiveRules)
+			{
+				var issues = rule.Evaluate(topNode) ?? Enumerable.Empty<SdcNodeValidationIssue>();
+				foreach (var issue in issues)
+				{
+					report.Add(issue);
+					SdcValidationEvents.Raise(new SdcValidationEventArgs
+					{
+						NodeID         = issue.NodeID,
+						PropertyName   = issue.PropertyName,
+						AttemptedValue = issue.AttemptedValue,
+						RuleCode       = issue.RuleCode,
+						Message        = issue.Message,
+						Severity       = issue.Severity,
+						Results        = issue.Results
+					});
+				}
+			}
+		}
+
+		/// <summary>
+		/// Validates a single SDC node using DataAnnotations attributes on its most-derived type.
+		/// All properties with validation attributes are checked simultaneously via
+		/// <see cref="Validator.TryValidateObject"/>.<br/>
+		/// <br/>
+		/// Validation events are <em>not</em> fired for issues found here; results are returned
+		/// only in the report. Subscribe to <see cref="SdcValidationEvents.ValidationOccurred"/>
+		/// to receive live events during programmatic setter mutations.
+		/// </summary>
+		/// <param name="node">The SDC node to validate.</param>
+		/// <returns>
+		/// An <see cref="SdcValidationReport"/> for this single node.
+		/// </returns>
+		public static SdcValidationReport ValidateNode(this BaseType node)
+		{
+			var report = new SdcValidationReport();
+			ValidateNodeInto(node, report);
+			return report;
+		}
+
+		private static void ValidateNodeInto(BaseType node, SdcValidationReport report)
+		{
+			var results = new System.Collections.Generic.List<ValidationResult>();
+			var ctx = new ValidationContext(node, null, null);
+			try
+			{
+				// validateAllProperties: true — check every property with any ValidationAttribute,
+				// not just those decorated with [Required].
+				Validator.TryValidateObject(node, ctx, results, validateAllProperties: true);
+			}
+			catch (Exception ex)
+			{
+				// Some ValidationAttribute implementations may throw on unexpected value types.
+				// Capture as an informational issue rather than crashing the sweep.
+				report.Add(new SdcNodeValidationIssue
+				{
+					NodeID         = node.sGuid,
+					NodeType       = node.GetType().Name,
+					Message        = $"Unexpected exception during validation: {ex.Message}",
+					Severity       = SdcValidationSeverity.Warning
+				});
+				return;
+			}
+
+			foreach (var r in results)
+			{
+				report.Add(new SdcNodeValidationIssue
+				{
+					NodeID         = node.sGuid,
+					NodeType       = node.GetType().Name,
+					PropertyName   = r.MemberNames.FirstOrDefault(),
+					Message        = r.ErrorMessage ?? "(validation error — no message provided)",
+					Severity       = SdcValidationSeverity.Error,
+					Results        = new[] { r }
+				});
+			}
+		}
 	}
 }

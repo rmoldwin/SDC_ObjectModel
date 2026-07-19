@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- ProjectReference to the WASM client causes UseBlazorFrameworkFiles to serve client assets -->
+    <ProjectReference Include="..\SDC.ScriptEngine.BlazorAsyncTests.Phase2\SDC.ScriptEngine.BlazorAsyncTests.Phase2.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.8" />
+  </ItemGroup>
+</Project>
