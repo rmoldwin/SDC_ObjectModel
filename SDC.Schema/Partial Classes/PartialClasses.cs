@@ -2773,12 +2773,16 @@ namespace SDC.Schema
 
 		public string ValXmlString
 		{
-			get => val.ToString();
+			// Fixed pre-existing bug: `val.ToString()` on a byte[] produced the literal string
+			// "System.Byte[]" instead of a base64 encoding, and the setter's destination Span<byte> was
+			// always zero-length (guaranteeing TryFromBase64String would fail for any non-empty input).
+			// Convert.ToBase64String/FromBase64String correctly implement the XSD base64Binary lexical form.
+			get => val is null ? string.Empty : Convert.ToBase64String(val);
 			set
 			{
-				var s64 = new Span<byte>();
-				if (Convert.TryFromBase64String(value, s64, out int bytesWritten)) val = s64.ToArray();
-				else StoreError("Supplied value parameter was not in base64Binary string format");
+				if (value is null) { StoreError("Supplied value parameter was null"); return; }
+				try { val = Convert.FromBase64String(value); }
+				catch (FormatException fex) { StoreError(fex.Message); }
 			}
 		}
 	}
@@ -2815,11 +2819,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => val.ToString();
+			// Fixed pre-existing bug: `val.ToString()` on a bool produced .NET's capitalized "True"/"False"
+			// instead of XSD boolean's required lowercase "true"/"false" lexical form, which would silently
+			// write non-conformant, non-round-tripping content back to XML. XmlConvert.ToString/ToBoolean
+			// correctly implement the XSD boolean lexical form.
+			get => XmlConvert.ToString(val);
 			set
 			{
-				if (Boolean.TryParse(value, out bool result)) val = result;
-				else StoreError("Supplied value parameter was not in boolean string format");
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToBoolean, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid boolean format");
 			}
 		}
 	}
