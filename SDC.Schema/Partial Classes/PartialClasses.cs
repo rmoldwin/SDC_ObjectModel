@@ -21,6 +21,7 @@ using System.Reflection.Emit;
 using System.Data;
 using System.Reflection.PortableExecutable;
 using System.Xml.Linq;
+using System.ComponentModel.DataAnnotations;
 using SDC.Schema.Extensions;
 using static SDC.Schema.SdcUtil;
 
@@ -2919,12 +2920,16 @@ namespace SDC.Schema
 
 		public string ValXmlString
 		{
-			get => val.ToString();
+			// Fixed pre-existing bug: `val.ToString()` on a byte[] produced the literal string
+			// "System.Byte[]" instead of a base64 encoding, and the setter's destination Span<byte> was
+			// always zero-length (guaranteeing TryFromBase64String would fail for any non-empty input).
+			// Convert.ToBase64String/FromBase64String correctly implement the XSD base64Binary lexical form.
+			get => val is null ? string.Empty : Convert.ToBase64String(val);
 			set
 			{
-				var s64 = new Span<byte>();
-				if (Convert.TryFromBase64String(value, s64, out int bytesWritten)) val = s64.ToArray();
-				else StoreError("Supplied value parameter was not in base64Binary string format", "val", value);
+				if (value is null) { StoreError("Supplied value parameter was null"); return; }
+				try { val = Convert.FromBase64String(value); }
+				catch (FormatException fex) { StoreError(fex.Message); }
 			}
 		}
 	}
@@ -2961,13 +2966,66 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => val.ToString();
+			// Fixed pre-existing bug: `val.ToString()` on a bool produced .NET's capitalized "True"/"False"
+			// instead of XSD boolean's required lowercase "true"/"false" lexical form, which would silently
+			// write non-conformant, non-round-tripping content back to XML. XmlConvert.ToString/ToBoolean
+			// correctly implement the XSD boolean lexical form.
+			get => XmlConvert.ToString(val);
 			set
 			{
-				if (Boolean.TryParse(value, out bool result)) val = result;
-				else StoreError("Supplied value parameter was not in boolean string format", "val", value);
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToBoolean, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid boolean format");
 			}
 		}
+	}
+
+	/// <summary>
+	/// Shared helper for the fixed-width numeric <see cref="IVal.ValXmlString"/> implementations
+	/// (byte/short/int/long/unsignedByte/unsignedShort/unsignedInt/unsignedLong/float/double/decimal _Stype
+	/// classes). Delegates to <see cref="XmlConvert"/>'s Toxxx/ToString methods, which already produce and
+	/// parse the canonical XSD lexical representations for these primitive types (including special
+	/// floating-point tokens like "INF"/"-INF"/"NaN"), so no bespoke formatting logic is needed here.
+	/// </summary>
+	internal static class NumericXmlHelper
+	{
+		internal static bool TryConvert<T>(string? value, Func<string, T> parse, out T result, out string? error)
+		{
+			result = default!;
+			error = null;
+			if (value is null)
+			{
+				error = "Supplied value parameter was null";
+				return false;
+			}
+			try
+			{
+				result = parse(value);
+				return true;
+			}
+			catch (Exception ex) when (ex is FormatException or OverflowException)
+			{
+				error = $"Supplied value parameter was not in valid {typeof(T).Name} format: {ex.Message}";
+				return false;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Validates the raw XSD "duration" lexical form ("-?PnYnMnDTnHnMnS", any subset of designators, at least
+	/// one required) for <see cref="duration_Stype"/>'s <see cref="IVal.ValXmlString"/> implementation.<br/>
+	/// Unlike <see cref="dayTimeDuration_Stype"/>/<see cref="yearMonthDuration_Stype"/>, the generated
+	/// duration_Stype.val setter has no format-validating attribute at all (val is an unconstrained string),
+	/// so this check is performed here to keep the "no illegal input accepted" contract consistent.
+	/// </summary>
+	internal static class DurationXmlHelper
+	{
+		// '(?=[0-9T])' after 'P' requires at least one Y/M/D digit or an immediate 'T' section (rejects bare "P").
+		// '(?=[0-9])' after 'T' requires at least one H/M/S digit in the time section (rejects a bare "PT").
+		private static readonly Regex DurationPattern = new(
+			@"^-?P(?=[0-9T])(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+D)?(?:T(?=[0-9])(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+(?:\.[0-9]+)?S)?)?$",
+			RegexOptions.Compiled);
+
+		internal static bool IsValidDuration(string value) => DurationPattern.IsMatch(value);
 	}
 
 	public partial class byte_DEtype : IDataType_DEType
@@ -3006,12 +3064,63 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToSByte, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid sbyte format");
 			}
 		}
+	}
+
+	/// <summary>
+	/// Shared helper for parsing/formatting the timezone-suffixed XSD date/time lexical forms
+	/// (date, dateTime, dateTimeStamp, time) used by the <see cref="IVal.ValXmlString"/> implementations
+	/// for <see cref="date_Stype"/>, <see cref="dateTime_Stype"/>, <see cref="dateTimeStamp_Stype"/>, and <see cref="time_Stype"/>.<br/>
+	/// The XSD timezone suffix ('Z' or '&#177;hh:mm') is optional and, when absent, means "timezone unspecified" --
+	/// a distinct state from UTC or the local machine's timezone. To preserve perfect round-trip fidelity without
+	/// ever performing offset arithmetic (which would silently reinterpret the value through the local machine's
+	/// timezone), the suffix is stored verbatim in each type's generated <c>timeZone</c> string property, while
+	/// <c>val</c> holds only the literal wall-clock digits.<br/>
+	/// See SDC.Schema/Documentation/IVal_DateTime_ValXmlString_Design.md for the full design rationale.
+	/// </summary>
+	internal static class DateTimeXmlHelper
+	{
+		private static readonly Regex TzSuffix = new(@"(Z|[+-](?:(?:0[0-9]|1[0-3]):[0-5][0-9]|14:00))$", RegexOptions.Compiled);
+
+		/// <summary>
+		/// Splits an XSD date/time lexical string into its wall-clock digits (parsed via <paramref name="format"/>)
+		/// and its literal timezone suffix text (or null if no suffix is present). The timezone text is preserved
+		/// exactly as written -- no offset arithmetic is performed on it.
+		/// </summary>
+		internal static bool TryParse(string? value, string format, out DateTime dt, out string? timeZone, out string? error)
+		{
+			dt = default;
+			timeZone = null;
+			error = null;
+			if (value is null)
+			{
+				error = "Supplied value parameter was null";
+				return false;
+			}
+			var m = TzSuffix.Match(value);
+			timeZone = m.Success ? m.Value : null;
+			string dtPart = m.Success ? value[..^m.Value.Length] : value;
+			if (!DateTime.TryParseExact(dtPart, format, System.Globalization.CultureInfo.InvariantCulture,
+				System.Globalization.DateTimeStyles.NoCurrentDateDefault, out dt))
+			{
+				error = $"Supplied value parameter was not in the expected '{format}[timezone]' string format";
+				return false;
+			}
+			return true;
+		}
+
+		/// <summary>
+		/// Formats the wall-clock digits of <paramref name="val"/> per <paramref name="format"/> and appends
+		/// the literal <paramref name="timeZone"/> suffix text verbatim (if any).
+		/// </summary>
+		internal static string Format(DateTime val, string? timeZone, string format)
+			=> val.ToString(format, System.Globalization.CultureInfo.InvariantCulture) + (timeZone ?? "");
 	}
 
 	public partial class date_DEtype : IDataType_DEType
@@ -3050,10 +3159,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => DateTimeXmlHelper.Format(val, timeZone, "yyyy-MM-dd");
 			set
 			{
-				throw new NotImplementedException();
+				if (DateTimeXmlHelper.TryParse(value, "yyyy-MM-dd", out var dt, out var tz, out var error))
+				{
+					val = dt;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in date string format");
 			}
 		}
 	}
@@ -3094,10 +3208,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => DateTimeXmlHelper.Format(val, timeZone, "yyyy-MM-ddTHH:mm:ss.FFFFFFF");
 			set
 			{
-				throw new NotImplementedException();
+				if (DateTimeXmlHelper.TryParse(value, "yyyy-MM-ddTHH:mm:ss.FFFFFFF", out var dt, out var tz, out var error))
+				{
+					val = dt;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in dateTime string format");
 			}
 		}
 	}
@@ -3129,14 +3248,47 @@ namespace SDC.Schema
 		{
 			ElementPrefix = "dtsS";
 		}
+
+		/// <summary>
+		/// Holds the literal XSD timezone suffix text ("Z" or an explicit "&#177;hh:mm" offset) for this dateTimeStamp value.
+		/// Unlike date_Stype/dateTime_Stype/time_Stype, the generated dateTimeStamp_Stype class has no separate
+		/// timeZone field, so it is added here in the customization layer solely to support ValXmlString round-tripping.
+		/// dateTimeStamp requires an explicit timezone per the XSD spec, so this is never null/empty after a successful set.
+		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		public string? timeZone { get; set; }
+
 		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => DateTimeXmlHelper.Format(val, timeZone, "yyyy-MM-ddTHH:mm:ss.FFFFFFF");
 			set
 			{
-				throw new NotImplementedException();
+				if (DateTimeXmlHelper.TryParse(value, "yyyy-MM-ddTHH:mm:ss.FFFFFFF", out var dt, out var tz, out var error))
+				{
+					if (string.IsNullOrEmpty(tz))
+					{
+						StoreError("dateTimeStamp requires an explicit timezone ('Z' or an offset); none was supplied");
+						return;
+					}
+					// NOTE: The generated val setter (SDC Unmodified Classes\dateTimeStamp_Stype.cs) applies
+					// [RegularExpressionAttribute(".*(Z|(\+|-)[0-9][0-9]:[0-9][0-9])")] to val's DateTime value.
+					// RegularExpressionAttribute validates the *string form* of the value (via val.ToString()),
+					// but a plain DateTime.ToString() never contains a literal "Z" or "+/-hh:mm" offset token
+					// (that concept belongs to DateTimeOffset, not DateTime) -- so this generated validator can
+					// never pass, for any DateTime value. Rather than edit the protected auto-generated file,
+					// we set the private backing field (_val) directly here, which is legal because this partial
+					// class definition is part of the same compiled type and so shares access to private members.
+					// This bypasses only the broken regex check; OnPropertyChanged is still raised for parity
+					// with the generated setter's change-notification behavior.
+					_val = dt;
+					_shouldSerializeval = true;
+					OnPropertyChanged("val", dt);
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in dateTimeStamp string format");
 			}
 		}
 	}
@@ -3177,10 +3329,16 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val ?? string.Empty;
 			set
 			{
-				throw new NotImplementedException();
+				// val's CLR type is already string (the raw XSD lexical duration text), and the generated
+				// setter enforces the dayTimeDuration facet ([^YM]*[DT].* -- no Y/M designators, and a D or
+				// T section must be present) via Validator.ValidateProperty, throwing ValidationException
+				// on violation. Caught here and routed through StoreError so no exception escapes the setter.
+				if (value is null) { StoreError("Supplied value parameter was null"); return; }
+				try { val = value; }
+				catch (ValidationException vex) { StoreError(vex.Message); }
 			}
 		}
 	}
@@ -3221,10 +3379,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToDecimal, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid decimal format");
 			}
 		}
 	}
@@ -3265,10 +3424,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToDouble, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid double format");
 			}
 		}
 	}
@@ -3309,10 +3469,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val ?? string.Empty;
 			set
 			{
-				throw new NotImplementedException();
+				// Unlike dayTimeDuration_Stype/yearMonthDuration_Stype, the generated val setter for the
+				// unrestricted duration_Stype has no format-validating attribute at all, so ValXmlString
+				// performs its own XSD "duration" lexical-form check (DurationXmlHelper.IsValidDuration)
+				// before assigning, to keep the no-illegal-input-accepted contract consistent across the group.
+				if (value != null && DurationXmlHelper.IsValidDuration(value)) val = value;
+				else StoreError("Supplied value parameter was not in valid XSD duration string format");
 			}
 		}
 	}
@@ -3353,10 +3518,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToSingle, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid float format");
 			}
 		}
 	}
@@ -3380,8 +3546,48 @@ namespace SDC.Schema
 		}
 	}
 
+	/// <summary>
+	/// Validates and splits the "gDate" family lexical strings (gYear, gYearMonth, gMonth, gDay, gMonthDay)
+	/// used by <see cref="gYear_Stype"/>, <see cref="gYearMonth_Stype"/>, <see cref="gMonth_Stype"/>,
+	/// <see cref="gDay_Stype"/>, and <see cref="gMonthDay_Stype"/>'s <see cref="IVal.ValXmlString"/>
+	/// implementations.<br/>
+	/// Like the date/time family, the optional XSD timezone suffix ('Z' or '&#177;hh:mm') is stored verbatim
+	/// in each type's already-generated <c>timeZone</c> string property (no offset arithmetic is performed),
+	/// while <c>val</c> holds only the literal numeric-designator text validated against
+	/// <paramref name="numericPattern"/> (each gDate subtype has no CLR type that can represent a
+	/// year-less/day-less partial calendar date, so <c>val</c> remains a raw string here, unlike the
+	/// DateTime-typed date/time family).
+	/// </summary>
+	internal static class GDateXmlHelper
+	{
+		private static readonly Regex TzSuffix = new(@"(Z|[+-](?:(?:0[0-9]|1[0-3]):[0-5][0-9]|14:00))$", RegexOptions.Compiled);
+
+		internal static bool TryParse(string? value, Regex numericPattern, out string numericPart, out string? timeZone, out string? error)
+		{
+			numericPart = "";
+			timeZone = null;
+			error = null;
+			if (value is null)
+			{
+				error = "Supplied value parameter was null";
+				return false;
+			}
+			var m = TzSuffix.Match(value);
+			timeZone = m.Success ? m.Value : null;
+			numericPart = m.Success ? value[..^m.Value.Length] : value;
+			if (!numericPattern.IsMatch(numericPart))
+			{
+				error = $"Supplied value parameter's numeric portion '{numericPart}' was not in the expected lexical format";
+				return false;
+			}
+			return true;
+		}
+	}
+
 	public partial class gDay_Stype : IVal
 	{
+		private static readonly Regex GDayPattern = new(@"^---(0[1-9]|[12][0-9]|3[01])$", RegexOptions.Compiled);
+
 		protected gDay_Stype() { Init(); }
 		public gDay_Stype(BaseType parentNode) : base(parentNode)
 		{
@@ -3397,10 +3603,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val + (timeZone ?? "");
 			set
 			{
-				throw new NotImplementedException();
+				if (GDateXmlHelper.TryParse(value, GDayPattern, out var numericPart, out var tz, out var error))
+				{
+					val = numericPart;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid gDay format");
 			}
 		}
 	}
@@ -3426,6 +3637,8 @@ namespace SDC.Schema
 
 	public partial class gMonth_Stype : IVal
 	{
+		private static readonly Regex GMonthPattern = new(@"^--(0[1-9]|1[0-2])$", RegexOptions.Compiled);
+
 		protected gMonth_Stype() { Init(); }
 		public gMonth_Stype(BaseType parentNode) : base(parentNode)
 		{
@@ -3441,10 +3654,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val + (timeZone ?? "");
 			set
 			{
-				throw new NotImplementedException();
+				if (GDateXmlHelper.TryParse(value, GMonthPattern, out var numericPart, out var tz, out var error))
+				{
+					val = numericPart;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid gMonth format");
 			}
 		}
 	}
@@ -3471,6 +3689,8 @@ namespace SDC.Schema
 
 	public partial class gMonthDay_Stype : IVal
 	{
+		private static readonly Regex GMonthDayPattern = new(@"^--(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", RegexOptions.Compiled);
+
 		protected gMonthDay_Stype() { Init(); }
 		public gMonthDay_Stype(BaseType parentNode) : base(parentNode)
 		{
@@ -3486,10 +3706,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val + (timeZone ?? "");
 			set
 			{
-				throw new NotImplementedException();
+				if (GDateXmlHelper.TryParse(value, GMonthDayPattern, out var numericPart, out var tz, out var error))
+				{
+					val = numericPart;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid gMonthDay format");
 			}
 		}
 	}
@@ -3515,6 +3740,8 @@ namespace SDC.Schema
 
 	public partial class gYear_Stype : IVal
 	{
+		private static readonly Regex GYearPattern = new(@"^-?\d{4,}$", RegexOptions.Compiled);
+
 		protected gYear_Stype() { Init(); }
 		public gYear_Stype(BaseType parentNode) : base(parentNode)
 		{
@@ -3530,10 +3757,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val + (timeZone ?? "");
 			set
 			{
-				throw new NotImplementedException();
+				if (GDateXmlHelper.TryParse(value, GYearPattern, out var numericPart, out var tz, out var error))
+				{
+					val = numericPart;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid gYear format");
 			}
 		}
 	}
@@ -3558,6 +3790,8 @@ namespace SDC.Schema
 	}
 	public partial class gYearMonth_Stype : IVal
 	{
+		private static readonly Regex GYearMonthPattern = new(@"^-?\d{4,}-(0[1-9]|1[0-2])$", RegexOptions.Compiled);
+
 		protected gYearMonth_Stype() { Init(); }
 		public gYearMonth_Stype(BaseType parentNode) : base(parentNode)
 		{
@@ -3573,10 +3807,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val + (timeZone ?? "");
 			set
 			{
-				throw new NotImplementedException();
+				if (GDateXmlHelper.TryParse(value, GYearMonthPattern, out var numericPart, out var tz, out var error))
+				{
+					val = numericPart;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid gYearMonth format");
 			}
 		}
 	}
@@ -3614,10 +3853,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			// val's CLR type is byte[]; Convert.ToHexString/FromHexString natively implement the XSD
+			// "hexBinary" lexical form (pairs of hex digits). ToHexString always produces uppercase, and
+			// FromHexString accepts either case on input, consistent with hexBinary's case-insensitive spec.
+			get => val is null ? string.Empty : Convert.ToHexString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (value is null) { StoreError("Supplied value parameter was null"); return; }
+				try { val = Convert.FromHexString(value); }
+				catch (FormatException fex) { StoreError(fex.Message); }
 			}
 		}
 
@@ -3711,10 +3955,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToInt32, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid int format");
 			}
 		}
 	}
@@ -3754,10 +3999,21 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				// val's CLR type is decimal (arbitrary-precision XSD integer is approximated by decimal's
+				// larger-than-Int64 range here), constrained by generated [FractionDigitsAttribute(0)],
+				// [MaxDigitsAttribute(29)], and [RangeAttribute] facets. The generated val setter enforces
+				// these via Validator.ValidateProperty, throwing ValidationException on violation (e.g. a
+				// non-integral value, or too many significant digits) -- caught here and routed through
+				// StoreError so no exception escapes this setter, consistent with the other IVal types.
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToDecimal, out var v, out var error))
+				{
+					try { val = v; }
+					catch (ValidationException vex) { StoreError(vex.Message); }
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid integer format");
 			}
 		}
 
@@ -3831,10 +4087,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToInt64, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid long format");
 			}
 		}
 	}
@@ -3875,10 +4132,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToDecimal, out var v, out var error))
+				{
+					try { val = v; }
+					catch (ValidationException vex) { StoreError(vex.Message); }
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid negativeInteger format");
 			}
 		}
 	}
@@ -3919,10 +4181,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToDecimal, out var v, out var error))
+				{
+					try { val = v; }
+					catch (ValidationException vex) { StoreError(vex.Message); }
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid nonNegativeInteger format");
 			}
 		}
 	}
@@ -3963,10 +4230,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToDecimal, out var v, out var error))
+				{
+					try { val = v; }
+					catch (ValidationException vex) { StoreError(vex.Message); }
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid nonPositiveInteger format");
 			}
 		}
 	}
@@ -4007,10 +4279,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToDecimal, out var v, out var error))
+				{
+					try { val = v; }
+					catch (ValidationException vex) { StoreError(vex.Message); }
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid positiveInteger format");
 			}
 		}
 	}
@@ -4032,16 +4309,9 @@ namespace SDC.Schema
 			this._allowLTE = false;
 			this._allowAPPROX = false;
 		}
-		[XmlIgnore]
-		[JsonIgnore]
-		public string ValXmlString
-		{
-			get => throw new NotImplementedException();
-			set
-			{
-				throw new NotImplementedException();
-			}
-		}
+		// ValXmlString is intentionally not redeclared here: short_DEtype derives from short_Stype
+		// (see SDC.Schema/SDC.Schema/SDC Constructor Removed/.../short_DEtype.cs), which already
+		// implements ValXmlString -- this class inherits that implementation directly.
 	}
 
 	public partial class short_Stype : IVal, IValNumeric, IFraction, IInteger
@@ -4061,10 +4331,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToInt16, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid short format");
 			}
 		}
 	}
@@ -4080,7 +4351,7 @@ namespace SDC.Schema
 		{ }
 	}
 
-	public partial class string_Stype
+	public partial class string_Stype : IVal
 	{
 		protected string_Stype() { Init(); }
 		public string_Stype(BaseType parentNode, int position = -1, string elementName = "") : base(parentNode, position, elementName)
@@ -4097,10 +4368,13 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			// val's CLR type is already string, and the XSD "string" type imposes no lexical-form
+			// restriction, so ValXmlString is a direct pass-through (no parsing/formatting needed).
+			get => val ?? string.Empty;
 			set
 			{
-				throw new NotImplementedException();
+				if (value is null) { StoreError("Supplied value parameter was null"); return; }
+				val = value;
 			}
 		}
 	}
@@ -4141,10 +4415,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => DateTimeXmlHelper.Format(val, timeZone, "HH:mm:ss.FFFFFFF");
 			set
 			{
-				throw new NotImplementedException();
+				if (DateTimeXmlHelper.TryParse(value, "HH:mm:ss.FFFFFFF", out var dt, out var tz, out var error))
+				{
+					val = dt;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in time string format");
 			}
 		}
 	}
@@ -4185,10 +4464,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToByte, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid unsignedByte format");
 			}
 		}
 	}
@@ -4230,10 +4510,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToUInt32, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid unsignedInt format");
 			}
 		}
 	}
@@ -4274,10 +4555,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToUInt64, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid unsignedLong format");
 			}
 		}
 	}
@@ -4318,10 +4600,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToUInt16, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid unsignedShort format");
 			}
 		}
 	}
@@ -4404,10 +4687,16 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val ?? string.Empty;
 			set
 			{
-				throw new NotImplementedException();
+				// val's CLR type is already string, and the generated setter enforces the yearMonthDuration
+				// facet ([^DT]* -- no D or T section allowed, i.e. no day/hour/minute/second components)
+				// via Validator.ValidateProperty, throwing ValidationException on violation. Caught here and
+				// routed through StoreError so no exception escapes the setter.
+				if (value is null) { StoreError("Supplied value parameter was null"); return; }
+				try { val = value; }
+				catch (ValidationException vex) { StoreError(vex.Message); }
 			}
 		}
 
