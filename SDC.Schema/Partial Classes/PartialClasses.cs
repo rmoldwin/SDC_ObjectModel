@@ -2823,6 +2823,37 @@ namespace SDC.Schema
 		}
 	}
 
+	/// <summary>
+	/// Shared helper for the fixed-width numeric <see cref="IVal.ValXmlString"/> implementations
+	/// (byte/short/int/long/unsignedByte/unsignedShort/unsignedInt/unsignedLong/float/double/decimal _Stype
+	/// classes). Delegates to <see cref="XmlConvert"/>'s Toxxx/ToString methods, which already produce and
+	/// parse the canonical XSD lexical representations for these primitive types (including special
+	/// floating-point tokens like "INF"/"-INF"/"NaN"), so no bespoke formatting logic is needed here.
+	/// </summary>
+	internal static class NumericXmlHelper
+	{
+		internal static bool TryConvert<T>(string? value, Func<string, T> parse, out T result, out string? error)
+		{
+			result = default!;
+			error = null;
+			if (value is null)
+			{
+				error = "Supplied value parameter was null";
+				return false;
+			}
+			try
+			{
+				result = parse(value);
+				return true;
+			}
+			catch (Exception ex) when (ex is FormatException or OverflowException)
+			{
+				error = $"Supplied value parameter was not in valid {typeof(T).Name} format: {ex.Message}";
+				return false;
+			}
+		}
+	}
+
 	public partial class byte_DEtype : IDataType_DEType
 	{
 		protected byte_DEtype() { Init(); }
@@ -2859,10 +2890,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToSByte, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid sbyte format");
 			}
 		}
 	}
@@ -3167,10 +3199,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToDecimal, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid decimal format");
 			}
 		}
 	}
@@ -3211,10 +3244,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToDouble, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid double format");
 			}
 		}
 	}
@@ -3299,10 +3333,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToSingle, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid float format");
 			}
 		}
 	}
@@ -3657,10 +3692,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToInt32, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid int format");
 			}
 		}
 	}
@@ -3777,10 +3813,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToInt64, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid long format");
 			}
 		}
 	}
@@ -3978,16 +4015,9 @@ namespace SDC.Schema
 			this._allowLTE = false;
 			this._allowAPPROX = false;
 		}
-		[XmlIgnore]
-		[JsonIgnore]
-		public string ValXmlString
-		{
-			get => throw new NotImplementedException();
-			set
-			{
-				throw new NotImplementedException();
-			}
-		}
+		// ValXmlString is intentionally not redeclared here: short_DEtype derives from short_Stype
+		// (see SDC.Schema/SDC.Schema/SDC Constructor Removed/.../short_DEtype.cs), which already
+		// implements ValXmlString -- this class inherits that implementation directly.
 	}
 
 	public partial class short_Stype : IVal, IValNumeric, IFraction, IInteger
@@ -4007,10 +4037,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToInt16, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid short format");
 			}
 		}
 	}
@@ -4136,10 +4167,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToByte, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid unsignedByte format");
 			}
 		}
 	}
@@ -4181,10 +4213,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToUInt32, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid unsignedInt format");
 			}
 		}
 	}
@@ -4225,10 +4258,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToUInt64, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid unsignedLong format");
 			}
 		}
 	}
@@ -4269,10 +4303,11 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToUInt16, out var v, out var error)) val = v;
+				else StoreError(error ?? "Supplied value parameter was not in valid unsignedShort format");
 			}
 		}
 	}
