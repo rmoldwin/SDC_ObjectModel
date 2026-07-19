@@ -43,6 +43,12 @@ own file. See [glossary.md](glossary.md) for every initialism used below.
     Inventory of the central `SdcUtil` helper class: validation plumbing, tree refresh/rebuild
     helpers, navigation/traversal helpers, Extensible Markup Language (XML) reflection, naming, and
     attachment support.
+12. **Tree Operations: Copy, Paste, Graft, Move, Clone-and-Repeat, Inject** — [architecture/tree-operations.md](architecture/tree-operations.md)
+    How subtrees are moved, copied/pasted/grafted, repeated, and injected (same-tree or
+    cross-tree, `InjectForm`-style), how Globally Unique Identifier (GUID)/`ID`/`name` identity is
+    regenerated, the `RepeatCounter`-based suffix scheme, and how response-value stripping is
+    achieved by cloning from the source Form Design File (FDF) template instead of an active
+    strip pass.
 
 All chapters listed above link to existing content. Planned future chapters are tracked in [roadmap.md](roadmap.md).
 

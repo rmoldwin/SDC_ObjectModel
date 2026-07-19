@@ -1,9 +1,10 @@
 # CompareTrees
 
-> **Status:** Living document. This chapter describes the `CompareTrees<T>` implementation currently
-> present on the `Features/NET10/Net10Main` baseline used by this worktree. A separate,
-> not-yet-merged branch, `Features/CompareTrees`, is ahead with additional work, so this
-> chapter intentionally documents only the behavior visible in the current baseline.
+> **Status:** Living document. This chapter describes the `CompareTrees<T>` implementation
+> currently present in the project. Related subtree copy/repeat/inject work that builds on the
+> same node-matching concepts (`CopyPaste`, `Graft`, `InjectSubtree`,
+> `InjectSubtreeFromTemplate`) is documented separately in
+> [Tree Operations](tree-operations.md).
 
 ## Summary
 
