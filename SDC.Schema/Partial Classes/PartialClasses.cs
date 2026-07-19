@@ -4196,7 +4196,7 @@ namespace SDC.Schema
 		{ }
 	}
 
-	public partial class string_Stype
+	public partial class string_Stype : IVal
 	{
 		protected string_Stype() { Init(); }
 		public string_Stype(BaseType parentNode, int position = -1, string elementName = "") : base(parentNode, position, elementName)
@@ -4213,10 +4213,13 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			// val's CLR type is already string, and the XSD "string" type imposes no lexical-form
+			// restriction, so ValXmlString is a direct pass-through (no parsing/formatting needed).
+			get => val;
 			set
 			{
-				throw new NotImplementedException();
+				if (value is null) { StoreError("Supplied value parameter was null"); return; }
+				val = value;
 			}
 		}
 	}
