@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.7.11925.98 stable
+VisualStudioVersion = 18.7.11925.98
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDC.Schema", "SDC.Schema\SDC.Schema.csproj", "{3B1B985A-7094-4FC5-966D-C032571443E8}"
 EndProject
@@ -26,7 +26,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDC.Schema.QA.ExampleGenera
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{87DB0F58-599C-4AD5-9974-3CF93E666F78}"
 	ProjectSection(SolutionItems) = preProject
-		SDC.Schema\docs\Changes to AttInfoDif, DifNodeIET and DifNodeIET2 June-July 2026.md = SDC.Schema\docs\Changes to AttInfoDif, DifNodeIET and DifNodeIET2 June-July 2026.md
+		docs\architecture.md = docs\architecture.md
+		docs\conventions.md = docs\conventions.md
+		docs\glossary.md = docs\glossary.md
+		docs\roadmap.md = docs\roadmap.md
+		docs\summary.md = docs\summary.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDC.ScriptEngine.BlazorAsyncTests", "SDC.ScriptEngine.BlazorAsyncTests\SDC.ScriptEngine.BlazorAsyncTests.csproj", "{D8B5A782-0863-4129-A3DF-B12B93EC5729}"
@@ -36,6 +40,35 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDC.ScriptEngine.BlazorAsyncTests.Phase2", "SDC.ScriptEngine.BlazorAsyncTests.Phase2\SDC.ScriptEngine.BlazorAsyncTests.Phase2.csproj", "{0358A897-9FE0-4BBA-9363-CA8AC1785408}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server", "SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server\SDC.ScriptEngine.BlazorAsyncTests.Phase2.Server.csproj", "{79BF9956-B170-4349-B590-B1F23B0A65F3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "skills", "skills", "{B616931D-A469-4F55-84BD-B942F981E7A9}"
+	ProjectSection(SolutionItems) = preProject
+		docs\skills\README.md = docs\skills\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "changes", "changes", "{628636F2-1178-4418-A8CC-DFD61E5B27CE}"
+	ProjectSection(SolutionItems) = preProject
+		docs\changes\2026-06_AttInfoDif_DifNodeIET.md = docs\changes\2026-06_AttInfoDif_DifNodeIET.md
+		docs\changes\2026-07-14_SDAC_SDS_NotificationDesign_v1_EarlyDraft.md = docs\changes\2026-07-14_SDAC_SDS_NotificationDesign_v1_EarlyDraft.md
+		docs\changes\2026-07-14_SDAC_SDS_NotificationDesign_v2_Refined.md = docs\changes\2026-07-14_SDAC_SDS_NotificationDesign_v2_Refined.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Architecture", "Architecture", "{62922B6F-1BD7-4D8E-8DAF-96FDFCDE3C48}"
+	ProjectSection(SolutionItems) = preProject
+		docs\architecture\compare-trees.md = docs\architecture\compare-trees.md
+		docs\architecture\modeling-best-practices.md = docs\architecture\modeling-best-practices.md
+		docs\architecture\object-model-overview.md = docs\architecture\object-model-overview.md
+		docs\architecture\qa-best-practices.md = docs\architecture\qa-best-practices.md
+		docs\architecture\rules.md = docs\architecture\rules.md
+		docs\architecture\sdc-util.md = docs\architecture\sdc-util.md
+		docs\architecture\serialization.md = docs\architecture\serialization.md
+		docs\architecture\thread-safety.md = docs\architecture\thread-safety.md
+		docs\architecture\tree-operations.md = docs\architecture\tree-operations.md
+		docs\architecture\tree-stability.md = docs\architecture\tree-stability.md
+		docs\architecture\validation.md = docs\architecture\validation.md
+		docs\architecture\wasm-blazor.md = docs\architecture\wasm-blazor.md
+		docs\architecture\xsd-dotnet-type-mapping.md = docs\architecture\xsd-dotnet-type-mapping.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -230,6 +263,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B616931D-A469-4F55-84BD-B942F981E7A9} = {87DB0F58-599C-4AD5-9974-3CF93E666F78}
+		{628636F2-1178-4418-A8CC-DFD61E5B27CE} = {87DB0F58-599C-4AD5-9974-3CF93E666F78}
+		{62922B6F-1BD7-4D8E-8DAF-96FDFCDE3C48} = {87DB0F58-599C-4AD5-9974-3CF93E666F78}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5D8CBFE4-3773-4108-AC73-03AC6AF357ED}

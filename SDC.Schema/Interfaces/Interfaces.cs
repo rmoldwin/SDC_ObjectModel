@@ -95,12 +95,12 @@ namespace SDC.Schema
        // bool IsValid(out string message);
 
 
-    } //Implemented by numeric data types, which have a strongly-type val attribute.
+    } //Implemented by numeric data types, which have a strongly-typed val attribute.
     public interface IValDateTime : IVal 
     {
         bool IsValid(out string message);
         
-    } //Implemented by DateTime data types, which have a strongly-type val attribute.
+    } //Implemented by DateTime data types, which have a strongly-typed val attribute.
 
     public interface IValDuration : IVal
     {
