@@ -18,6 +18,7 @@ using System.Reflection.Emit;
 using System.Data;
 using System.Reflection.PortableExecutable;
 using System.Xml.Linq;
+using System.ComponentModel.DataAnnotations;
 using SDC.Schema.Extensions;
 using static SDC.Schema.SdcUtil;
 
@@ -3736,10 +3737,21 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				// val's CLR type is decimal (arbitrary-precision XSD integer is approximated by decimal's
+				// larger-than-Int64 range here), constrained by generated [FractionDigitsAttribute(0)],
+				// [MaxDigitsAttribute(29)], and [RangeAttribute] facets. The generated val setter enforces
+				// these via Validator.ValidateProperty, throwing ValidationException on violation (e.g. a
+				// non-integral value, or too many significant digits) -- caught here and routed through
+				// StoreError so no exception escapes this setter, consistent with the other IVal types.
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToDecimal, out var v, out var error))
+				{
+					try { val = v; }
+					catch (ValidationException vex) { StoreError(vex.Message); }
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid integer format");
 			}
 		}
 
@@ -3858,10 +3870,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToDecimal, out var v, out var error))
+				{
+					try { val = v; }
+					catch (ValidationException vex) { StoreError(vex.Message); }
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid negativeInteger format");
 			}
 		}
 	}
@@ -3902,10 +3919,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToDecimal, out var v, out var error))
+				{
+					try { val = v; }
+					catch (ValidationException vex) { StoreError(vex.Message); }
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid nonNegativeInteger format");
 			}
 		}
 	}
@@ -3946,10 +3968,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToDecimal, out var v, out var error))
+				{
+					try { val = v; }
+					catch (ValidationException vex) { StoreError(vex.Message); }
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid nonPositiveInteger format");
 			}
 		}
 	}
@@ -3990,10 +4017,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => XmlConvert.ToString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (NumericXmlHelper.TryConvert(value, XmlConvert.ToDecimal, out var v, out var error))
+				{
+					try { val = v; }
+					catch (ValidationException vex) { StoreError(vex.Message); }
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid positiveInteger format");
 			}
 		}
 	}
