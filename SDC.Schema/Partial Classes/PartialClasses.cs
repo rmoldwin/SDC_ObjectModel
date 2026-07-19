@@ -2855,6 +2855,24 @@ namespace SDC.Schema
 		}
 	}
 
+	/// <summary>
+	/// Validates the raw XSD "duration" lexical form ("-?PnYnMnDTnHnMnS", any subset of designators, at least
+	/// one required) for <see cref="duration_Stype"/>'s <see cref="IVal.ValXmlString"/> implementation.<br/>
+	/// Unlike <see cref="dayTimeDuration_Stype"/>/<see cref="yearMonthDuration_Stype"/>, the generated
+	/// duration_Stype.val setter has no format-validating attribute at all (val is an unconstrained string),
+	/// so this check is performed here to keep the "no illegal input accepted" contract consistent.
+	/// </summary>
+	internal static class DurationXmlHelper
+	{
+		// '(?=[0-9T])' after 'P' requires at least one Y/M/D digit or an immediate 'T' section (rejects bare "P").
+		// '(?=[0-9])' after 'T' requires at least one H/M/S digit in the time section (rejects a bare "PT").
+		private static readonly Regex DurationPattern = new(
+			@"^-?P(?=[0-9T])(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+D)?(?:T(?=[0-9])(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+(?:\.[0-9]+)?S)?)?$",
+			RegexOptions.Compiled);
+
+		internal static bool IsValidDuration(string value) => DurationPattern.IsMatch(value);
+	}
+
 	public partial class byte_DEtype : IDataType_DEType
 	{
 		protected byte_DEtype() { Init(); }
@@ -3156,10 +3174,16 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val;
 			set
 			{
-				throw new NotImplementedException();
+				// val's CLR type is already string (the raw XSD lexical duration text), and the generated
+				// setter enforces the dayTimeDuration facet ([^YM]*[DT].* -- no Y/M designators, and a D or
+				// T section must be present) via Validator.ValidateProperty, throwing ValidationException
+				// on violation. Caught here and routed through StoreError so no exception escapes the setter.
+				if (value is null) { StoreError("Supplied value parameter was null"); return; }
+				try { val = value; }
+				catch (ValidationException vex) { StoreError(vex.Message); }
 			}
 		}
 	}
@@ -3290,10 +3314,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val;
 			set
 			{
-				throw new NotImplementedException();
+				// Unlike dayTimeDuration_Stype/yearMonthDuration_Stype, the generated val setter for the
+				// unrestricted duration_Stype has no format-validating attribute at all, so ValXmlString
+				// performs its own XSD "duration" lexical-form check (DurationXmlHelper.IsValidDuration)
+				// before assigning, to keep the no-illegal-input-accepted contract consistent across the group.
+				if (value != null && DurationXmlHelper.IsValidDuration(value)) val = value;
+				else StoreError("Supplied value parameter was not in valid XSD duration string format");
 			}
 		}
 	}
@@ -4422,10 +4451,16 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val;
 			set
 			{
-				throw new NotImplementedException();
+				// val's CLR type is already string, and the generated setter enforces the yearMonthDuration
+				// facet ([^DT]* -- no D or T section allowed, i.e. no day/hour/minute/second components)
+				// via Validator.ValidateProperty, throwing ValidationException on violation. Caught here and
+				// routed through StoreError so no exception escapes the setter.
+				if (value is null) { StoreError("Supplied value parameter was null"); return; }
+				try { val = value; }
+				catch (ValidationException vex) { StoreError(vex.Message); }
 			}
 		}
 
