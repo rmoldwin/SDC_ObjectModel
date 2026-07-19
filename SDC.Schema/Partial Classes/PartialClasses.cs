@@ -3698,10 +3698,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			// val's CLR type is byte[]; Convert.ToHexString/FromHexString natively implement the XSD
+			// "hexBinary" lexical form (pairs of hex digits). ToHexString always produces uppercase, and
+			// FromHexString accepts either case on input, consistent with hexBinary's case-insensitive spec.
+			get => val is null ? string.Empty : Convert.ToHexString(val);
 			set
 			{
-				throw new NotImplementedException();
+				if (value is null) { StoreError("Supplied value parameter was null"); return; }
+				try { val = Convert.FromHexString(value); }
+				catch (FormatException fex) { StoreError(fex.Message); }
 			}
 		}
 
