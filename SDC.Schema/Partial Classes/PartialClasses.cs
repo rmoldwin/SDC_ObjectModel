@@ -3391,8 +3391,48 @@ namespace SDC.Schema
 		}
 	}
 
+	/// <summary>
+	/// Validates and splits the "gDate" family lexical strings (gYear, gYearMonth, gMonth, gDay, gMonthDay)
+	/// used by <see cref="gYear_Stype"/>, <see cref="gYearMonth_Stype"/>, <see cref="gMonth_Stype"/>,
+	/// <see cref="gDay_Stype"/>, and <see cref="gMonthDay_Stype"/>'s <see cref="IVal.ValXmlString"/>
+	/// implementations.<br/>
+	/// Like the date/time family, the optional XSD timezone suffix ('Z' or '&#177;hh:mm') is stored verbatim
+	/// in each type's already-generated <c>timeZone</c> string property (no offset arithmetic is performed),
+	/// while <c>val</c> holds only the literal numeric-designator text validated against
+	/// <paramref name="numericPattern"/> (each gDate subtype has no CLR type that can represent a
+	/// year-less/day-less partial calendar date, so <c>val</c> remains a raw string here, unlike the
+	/// DateTime-typed date/time family).
+	/// </summary>
+	internal static class GDateXmlHelper
+	{
+		private static readonly Regex TzSuffix = new(@"(Z|[+-]\d{2}:\d{2})$", RegexOptions.Compiled);
+
+		internal static bool TryParse(string? value, Regex numericPattern, out string numericPart, out string? timeZone, out string? error)
+		{
+			numericPart = "";
+			timeZone = null;
+			error = null;
+			if (value is null)
+			{
+				error = "Supplied value parameter was null";
+				return false;
+			}
+			var m = TzSuffix.Match(value);
+			timeZone = m.Success ? m.Value : null;
+			numericPart = m.Success ? value[..^m.Value.Length] : value;
+			if (!numericPattern.IsMatch(numericPart))
+			{
+				error = $"Supplied value parameter's numeric portion '{numericPart}' was not in the expected lexical format";
+				return false;
+			}
+			return true;
+		}
+	}
+
 	public partial class gDay_Stype : IVal
 	{
+		private static readonly Regex GDayPattern = new(@"^---\d{2}$", RegexOptions.Compiled);
+
 		protected gDay_Stype() { Init(); }
 		public gDay_Stype(BaseType parentNode) : base(parentNode)
 		{
@@ -3408,10 +3448,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val + (timeZone ?? "");
 			set
 			{
-				throw new NotImplementedException();
+				if (GDateXmlHelper.TryParse(value, GDayPattern, out var numericPart, out var tz, out var error))
+				{
+					val = numericPart;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid gDay format");
 			}
 		}
 	}
@@ -3437,6 +3482,8 @@ namespace SDC.Schema
 
 	public partial class gMonth_Stype : IVal
 	{
+		private static readonly Regex GMonthPattern = new(@"^--\d{2}$", RegexOptions.Compiled);
+
 		protected gMonth_Stype() { Init(); }
 		public gMonth_Stype(BaseType parentNode) : base(parentNode)
 		{
@@ -3452,10 +3499,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val + (timeZone ?? "");
 			set
 			{
-				throw new NotImplementedException();
+				if (GDateXmlHelper.TryParse(value, GMonthPattern, out var numericPart, out var tz, out var error))
+				{
+					val = numericPart;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid gMonth format");
 			}
 		}
 	}
@@ -3482,6 +3534,8 @@ namespace SDC.Schema
 
 	public partial class gMonthDay_Stype : IVal
 	{
+		private static readonly Regex GMonthDayPattern = new(@"^--\d{2}-\d{2}$", RegexOptions.Compiled);
+
 		protected gMonthDay_Stype() { Init(); }
 		public gMonthDay_Stype(BaseType parentNode) : base(parentNode)
 		{
@@ -3497,10 +3551,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val + (timeZone ?? "");
 			set
 			{
-				throw new NotImplementedException();
+				if (GDateXmlHelper.TryParse(value, GMonthDayPattern, out var numericPart, out var tz, out var error))
+				{
+					val = numericPart;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid gMonthDay format");
 			}
 		}
 	}
@@ -3526,6 +3585,8 @@ namespace SDC.Schema
 
 	public partial class gYear_Stype : IVal
 	{
+		private static readonly Regex GYearPattern = new(@"^-?\d{4,}$", RegexOptions.Compiled);
+
 		protected gYear_Stype() { Init(); }
 		public gYear_Stype(BaseType parentNode) : base(parentNode)
 		{
@@ -3541,10 +3602,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val + (timeZone ?? "");
 			set
 			{
-				throw new NotImplementedException();
+				if (GDateXmlHelper.TryParse(value, GYearPattern, out var numericPart, out var tz, out var error))
+				{
+					val = numericPart;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid gYear format");
 			}
 		}
 	}
@@ -3569,6 +3635,8 @@ namespace SDC.Schema
 	}
 	public partial class gYearMonth_Stype : IVal
 	{
+		private static readonly Regex GYearMonthPattern = new(@"^-?\d{4,}-\d{2}$", RegexOptions.Compiled);
+
 		protected gYearMonth_Stype() { Init(); }
 		public gYearMonth_Stype(BaseType parentNode) : base(parentNode)
 		{
@@ -3584,10 +3652,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => val + (timeZone ?? "");
 			set
 			{
-				throw new NotImplementedException();
+				if (GDateXmlHelper.TryParse(value, GYearMonthPattern, out var numericPart, out var tz, out var error))
+				{
+					val = numericPart;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in valid gYearMonth format");
 			}
 		}
 	}
