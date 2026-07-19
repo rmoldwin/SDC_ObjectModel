@@ -349,7 +349,6 @@ namespace SDC.Schema.Extensions
             List<BaseType>? sourceNodeList;
             if (refreshMode == RefreshMode.CloneAndRepeatSubtree)
             {  //TODO: do we need to process donor node/branch: baseURI?, Link?, Codes, events?, rule targets (name)?	
-				newListIndex = -1;  //Repeats are always added at the end of the attachment site (ChildItemsType) list, even if set by the caller to specific value
 
                 if (btSource is not IdentifiedExtensionType iet)
                     throw new InvalidOperationException(
@@ -361,46 +360,52 @@ namespace SDC.Schema.Extensions
                      $"When using {nameof(RefreshMode.CloneAndRepeatSubtree)}, " +
                      $"the {nameof(newParent)} hosting the cloned subtree must be of type {nameof(ChildItemsType)}");
 
-
-                newListIndex = iet.GetListIndex() + 1;
-
-                IdentifiedExtensionType? nxt = btSource.GetNodeNextSib() as IdentifiedExtensionType;
-                const string repeatSuffixPattern = @"__\d+$";
-				//Find the last repeat of this subtree, if one exists:
-				//TODO: Needs more testing on locating last repeatSuffix for copying/repeating subtrees in instance docs
-				while  (nxt is not null)
-					{
-						Match suffixMatch = Regex.Match(nxt.ID, repeatSuffixPattern);
-						if (suffixMatch.Success)
-						{
-							int suffixStartPos = suffixMatch.Index;
-							string idPart = nxt.ID.Substring(0, suffixStartPos);
-							if (iet.ID == idPart)
-								newListIndex++;
-						}
-						else break;
-
-						nxt = nxt.GetNodeNextSib() as IdentifiedExtensionType;
-						if (nxt is null) break;
-					};
-
-
-                IdentifiedExtensionType clone;
-                if (sameRoot)
-                    //clone the subtree from the same tree as a copy; we will overwrite its identifiers in ReflectRefreshSubtreeList
-                    clone = (IdentifiedExtensionType)btSource.Clone(); //the clone retains the original sGuid, name, ID... at this point
-				else
-                    throw new InvalidOperationException(
-                         $"When using {nameof(RefreshMode.CloneAndRepeatSubtree)}, " +
-                         $"the root of the subtree to clone ({nameof(btSource)}) must be a member of the same SDC tree as {nameof(newParent)}");
-
                 if (newParent.TopNode is not FormDesignType fd)
 					throw new InvalidOperationException(
 					 $"When using {nameof(RefreshMode.CloneAndRepeatSubtree)}, " +
-				
 					 $"the TopNode of the cloned subtree must be of type {nameof(FormDesignType)}");
-				else 
-					fd.RepeatCounter++;
+
+                // The donor (iet/btSource) may live in the same tree as newParent (a same-tree repeat,
+                // e.g. Copy()), a different live instance tree, or a separately-loaded FDF template tree
+                // (e.g. InjectSubtree()). Regardless of donor tree, the insertion point and repeat-suffix
+                // numbering are always driven by the TARGET tree's own existing content and its own
+                // FormDesignType.RepeatCounter -- never by the donor's position/siblings in its own
+                // (possibly foreign) tree. This also allows injections anywhere in the target tree, not
+                // just appended at the end.
+                const string repeatSuffixPattern = @"^(.*)__\d+$";
+
+                // The donor's "base" ID: its own ID with any pre-existing repeat/injection suffix
+                // stripped. Donor IDs (especially from an FDF template) normally carry no suffix at all;
+                // stripping defensively guards against a donor ID that already happens to carry one
+                // (e.g. an FDF template that was incorrectly authored with a pre-suffixed ID) so that
+                // repeat-detection still matches correctly instead of silently creating an orphan series.
+                Match donorBaseIdMatch = Regex.Match(iet.ID, repeatSuffixPattern);
+                string donorBaseID = donorBaseIdMatch.Success ? donorBaseIdMatch.Groups[1].Value : iet.ID;
+
+                // Scan the target's existing children for the last node whose own base ID (similarly
+                // stripped) matches the donor's base ID. The new repeat/injected copy is always inserted
+                // immediately after the last such match (i.e., after the last existing repeat), or at the
+                // caller-supplied newListIndex (or the end of the list) if this is the first occurrence of
+                // this subtree at this target location.
+                List<IdentifiedExtensionType> targetItems = citTarget.Items;
+                int insertIndex = (newListIndex < 0 || newListIndex > targetItems.Count) ? targetItems.Count : newListIndex;
+                for (int i = 0; i < targetItems.Count; i++)
+                {
+                    string childID = targetItems[i].ID;
+                    Match childBaseIdMatch = Regex.Match(childID, repeatSuffixPattern);
+                    string childBaseID = childBaseIdMatch.Success ? childBaseIdMatch.Groups[1].Value : childID;
+                    if (childBaseID == donorBaseID)
+                        insertIndex = i + 1;
+                }
+                newListIndex = insertIndex;
+
+                //Clone the donor subtree. This works whether the donor is in the same tree as newParent or
+                //a different (instance or template) tree, since Clone() always produces a fully independent
+                //copy via XML serialize/deserialize round-trip (see BaseTypeExtensions.Clone<T>()) with no
+                //reference back to its originating tree.
+                IdentifiedExtensionType clone = (IdentifiedExtensionType)btSource.Clone(); //the clone retains the original sGuid, name, ID... at this point
+
+				fd.RepeatCounter++;
 
 				btSource = clone;  //btSource must be reset to the clone so that MoveSingleNode processes the new subtree correctly
 
@@ -444,7 +449,15 @@ namespace SDC.Schema.Extensions
 						// dictionaries with new GUIDs. Now we must attach it to the parent's property.
 						if (piTargetProperty != null)
 						{
-							if (targetPropertyObject is BaseType)
+							// A single-node slot may currently be empty (null) rather than occupied by an
+							// existing BaseType instance (e.g., CopyPaste()-ing into a previously-unpopulated
+							// single-node property). Detect that case via the declared property type, mirroring
+							// the equivalent fix in MoveSingleNode(), so attachment isn't silently skipped.
+							bool targetIsSingleNodeSlot = targetPropertyObject is BaseType
+								|| (targetPropertyObject is null
+									&& typeof(BaseType).IsAssignableFrom(piTargetProperty.PropertyType));
+
+							if (targetIsSingleNodeSlot)
 							{
 								// Single-property attachment
 								piTargetProperty.SetValue(newParent, btSource);
@@ -497,9 +510,33 @@ namespace SDC.Schema.Extensions
 
             bool MoveSingleNode()
 			{
-				if (targetPropertyObject is BaseType)
+				// A single-node slot may currently be empty (null) rather than occupied by an existing
+				// BaseType instance. Detect that case via the declared property type so we can attach
+				// into a previously-unpopulated slot instead of falling through to the "invalid targetObj"
+				// exception below (bug fix ported from Features/CompareTrees).
+				bool targetIsSingleNodeSlot = targetPropertyObject is BaseType
+					|| (targetPropertyObject is null && piTargetProperty is not null
+						&& typeof(BaseType).IsAssignableFrom(piTargetProperty.PropertyType));
+
+				if (targetIsSingleNodeSlot)
 				{   //btSource can be attached directly to targetObj
-					targetPropertyObject = btSource;
+					if (refreshMode == RefreshMode.NoChange)
+					{
+						var sourceParent = btSource.ParentNode;
+						if (sourceParent is not null)
+						{
+							_ = SdcUtil.IsAttachNodeAllowed(btSource, btSource.ElementName
+								, sourceParent, out _, out object? sourceAttachmentObject
+								, out _, out _, out errorMsg);
+
+							if (sourceAttachmentObject is BaseType par)
+								par.RemoveNodeObject();
+							else if (sourceAttachmentObject is IList objList)
+								objList.Remove(btSource);
+						}
+					}
+
+					piTargetProperty!.SetValue(newParent, btSource);
 					btSource.MoveInDictionaries(targetParent: newParent);
 					btSource.AssignOrder(); //Requires that dictionaries are first populated for the entire btSource subtree
 
@@ -572,8 +609,11 @@ namespace SDC.Schema.Extensions
 
         /// <summary>
         /// For FDF-R instance versions, copy an SDC data element subtree with user responses and insert it after the <br/>
-        /// source block, but without user responses, so that the user may add new responses in the repeated block.<br/>
-        /// The name and ID properties receive a repeat suffix, and sGuid, ObjectGUID and ObjectID all receive new values.
+        /// last existing repeat of the source block (or immediately after the source block itself, if no repeats <br/>
+        /// exist yet), but without user responses, so that the user may add new responses in the repeated block.<br/>
+        /// The name and ID properties receive a repeat suffix, and sGuid, ObjectGUID and ObjectID all receive new values.<br/>
+        /// This is a same-tree convenience wrapper over <see cref="InjectSubtree(IdentifiedExtensionType, ChildItemsType, int)"/>;
+        /// see that method for the cross-tree (instance-to-instance or template-to-instance) equivalent.
         /// </summary>
         /// <param name="btSource">The root node of the SDC subtree to copy</param>
         /// <returns></returns>
@@ -581,8 +621,107 @@ namespace SDC.Schema.Extensions
 		{
 			var par = btSource.ParentNode;
 			if(par is null) throw new NullReferenceException($"The ParentNode of {nameof(btSource)} was null");
+			if (par is not ChildItemsType citPar) throw new InvalidOperationException($"The ParentNode of {nameof(btSource)} must be of type {nameof(ChildItemsType)}");
 
-			return btSource.Move(par, -1, false, SdcUtil.RefreshMode.CloneAndRepeatSubtree);
+			return btSource.InjectSubtree(citPar, -1);
+        }
+
+        /// <summary>
+        /// Clones <paramref name="donorNode"/> and inserts the clone into <paramref name="targetParent"/>, always
+        /// assigning a fresh repeat suffix (<c>"__N"</c>, driven by the target tree's own
+        /// <see cref="FormDesignType.RepeatCounter"/>) to the clone's root ID and name, exactly as a repeating-node
+        /// clone would receive. <paramref name="donorNode"/> is never modified or moved.<br/>
+        /// <br/>
+        /// Unlike <see cref="Copy(IdentifiedExtensionType)"/> (a same-tree-only repeat convenience method),
+        /// <b><paramref name="donorNode"/> may be a member of the same tree as <paramref name="targetParent"/>,
+        /// a different live instance OM tree, or a separately-loaded FDF template OM tree</b> (e.g. loaded via
+        /// <see cref="LoadSourceFormDesign(BaseType)"/>). The insertion point and repeat-suffix numbering are
+        /// always determined by <paramref name="targetParent"/>'s own existing children and its own tree's
+        /// <see cref="FormDesignType.RepeatCounter"/> -- never by the donor's position in its own (possibly
+        /// foreign) tree. If nodes matching the donor's base ID already exist among <paramref name="targetParent"/>'s
+        /// children, the clone is inserted immediately after the last such match (mirroring repeat semantics);
+        /// otherwise it is inserted at <paramref name="newListIndex"/> (or appended at the end if unspecified).
+        /// </summary>
+        /// <param name="donorNode">The node/subtree root to clone. May live in any SDC tree: the same tree as
+        /// <paramref name="targetParent"/>, a different instance tree, or a separately-loaded FDF template tree.</param>
+        /// <param name="targetParent">The <see cref="ChildItemsType"/> node in the recipient tree that will contain
+        /// the injected clone.</param>
+        /// <param name="newListIndex">Desired insertion index, used only when no existing repeat of this subtree
+        /// is already present among <paramref name="targetParent"/>'s children; ignored (and computed automatically)
+        /// otherwise.</param>
+        /// <returns>True for success, false for failure.</returns>
+        public static bool InjectSubtree(this IdentifiedExtensionType donorNode, ChildItemsType targetParent, int newListIndex = -1)
+        {
+            return donorNode.Move(targetParent, newListIndex, false, SdcUtil.RefreshMode.CloneAndRepeatSubtree);
+        }
+
+        /// <summary>
+        /// The recommended entry point for repeating or injecting a subtree <b>from a live FDF-R (Form Design
+        /// Form - Response) instance</b>. By default, clones from the node's <b>source FDF template</b> (see
+        /// <see cref="LoadSourceFormDesign(BaseType)"/>/<see cref="FindNodeByTemplateID(FormDesignType, string)"/>)
+        /// rather than from the live instance node itself, so the injected/repeated copy is automatically free of
+        /// user-entered response data -- a template has none by definition -- while any <c>@readOnly</c>-locked
+        /// default <c>@selected</c>/<c>@val</c> content is automatically preserved, because it is literally present
+        /// in the template.<br/><br/>
+        /// <b>Important, by-design limitation:</b> because the default-mode clone is sourced from the
+        /// <i>template's</i> version of the subtree, any content that exists <i>only</i> in the live instance --
+        /// most notably nested repeats/injections added under <paramref name="instanceDonorNode"/> after the
+        /// instance was created from the template -- is <b>not</b> reproduced in the copy. This is a deliberate
+			/// structural reset to the template's shape, not a bug: the alternative (diff-based cloning of a cleaned
+			/// live-instance copy) is an explicitly out-of-scope fallback for now — see
+			/// <c>docs/architecture/tree-operations.md</c>.<br/><br/>
+        /// Set <paramref name="preserveInstanceData"/> to <see langword="true"/> to instead clone
+        /// <paramref name="instanceDonorNode"/> directly (same as calling
+        /// <see cref="InjectSubtree(IdentifiedExtensionType, ChildItemsType, int)"/>), keeping whatever response
+        /// data (including nested repeats) currently exists on the live node, without any cross-check against the
+        /// template -- this mode trusts the instance's current state as-is, for every node including
+        /// <c>readOnly</c> ones.
+        /// </summary>
+        /// <param name="instanceDonorNode">The live FDF-R instance node/subtree root to repeat or inject.</param>
+        /// <param name="targetParent">The <see cref="ChildItemsType"/> node in the recipient tree that will
+        /// contain the injected/repeated clone.</param>
+        /// <param name="newListIndex">Desired insertion index, used only when no existing repeat of this subtree
+        /// is already present among <paramref name="targetParent"/>'s children.</param>
+        /// <param name="preserveInstanceData">If <see langword="true"/>, clone the live instance node directly
+        /// (preserving its current response data) instead of resolving and cloning from the source FDF template.
+        /// Defaults to <see langword="false"/> (clone from source FDF template).</param>
+        /// <returns>True for success, false for failure.</returns>
+        /// <exception cref="InvalidOperationException">Thrown (via <see cref="LoadSourceFormDesign(BaseType)"/>)
+        /// if the source FDF cannot be located/loaded, or if no node with a matching (suffix-stripped) <c>ID</c>
+        /// exists in the loaded template -- e.g. because <paramref name="instanceDonorNode"/> was renamed, or
+        /// added to the instance after the template was last saved. In that case, consider
+        /// <paramref name="preserveInstanceData"/>: <see langword="true"/> instead.</exception>
+        public static bool InjectSubtreeFromTemplate(
+            this IdentifiedExtensionType instanceDonorNode,
+            ChildItemsType targetParent,
+            int newListIndex = -1,
+            bool preserveInstanceData = false)
+        {
+            if (preserveInstanceData)
+                return instanceDonorNode.InjectSubtree(targetParent, newListIndex);
+
+            FormDesignType sourceFd;
+            IdentifiedExtensionType? templateNode;
+            try
+            {
+                sourceFd = instanceDonorNode.LoadSourceFormDesign();
+                templateNode = sourceFd.FindNodeByTemplateID(instanceDonorNode.ID);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"{nameof(InjectSubtreeFromTemplate)} failed to resolve the source FDF template counterpart " +
+                    $"of instance node ID='{instanceDonorNode.ID}'. Consider preserveInstanceData: true instead.", ex);
+            }
+
+            if (templateNode is null)
+                throw new InvalidOperationException(
+                    $"No node with ID '{instanceDonorNode.ID.StripRepeatSuffix()}' was found in the source FDF " +
+                    $"template referenced by instance node ID='{instanceDonorNode.ID}'. The instance node may have " +
+                    $"been renamed, or added after the template was last saved. Consider preserveInstanceData: " +
+                    $"true instead.");
+
+            return templateNode.InjectSubtree(targetParent, newListIndex);
         }
         /// <summary>
 		/// Clone and then copy (graft) a subtree from one SDC template to another.  All identifiers will be replaced with new values,<br/>
@@ -596,6 +735,22 @@ namespace SDC.Schema.Extensions
 		public static bool Graft(this BaseType btSource, BaseType newParent, int newListIndex = -1)
         {
             return btSource.Move(newParent, newListIndex, false, SdcUtil.RefreshMode.UpdateNodeIdentity);
+        }
+
+        /// <summary>
+        /// Clone a subtree and move the clone (not the original) to a new parent, leaving <paramref name="btSource"/> in place.<br/>
+        /// All identifiers on the clone will be replaced with new values, including sGuid, ObjectGUID, name, ID, and ObjectID.<br/>
+        /// Use this for copy/paste style operations where the original node must remain untouched.
+        /// </summary>
+        /// <param name="btSource">The source node or subtree root to clone; this node itself is not moved or modified.</param>
+        /// <param name="newParent">The target parent node that will subsume the cloned subtree.</param>
+        /// <param name="newListIndex">If <paramref name="newParent"/> contains a List of subsumed SDC nodes, then <paramref name="newListIndex"/> <br/>
+        /// contains the index of the pasted (cloned) subtree in that List.</param>
+        /// <returns>True for success, false for failure.</returns>
+        public static bool CopyPaste(this BaseType btSource, BaseType newParent, int newListIndex = -1)
+        {
+            BaseType copy = btSource.Clone();
+            return copy.Move(newParent, newListIndex, false, SdcUtil.RefreshMode.UpdateNodeIdentity);
         }
         
         /// <summary>

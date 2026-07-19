@@ -33,6 +33,17 @@ see [skills/](skills/)).
 | Planned | Thread the existing parse-error list through the public `AddDataType`/`AddQuestionResponseField` overloads, and add a consistent logging/error-collection mechanism for malformed or out-of-range numeric input (currently silently dropped in the public API) | [#6](https://github.com/rmoldwin/SDC_ObjectModel/issues/6) |
 | Planned | Fix five confirmed numeric `ResponseType` round-trip/validation divergences between XML Schema Definition (XSD) and .NET/the serializers (JSON can't round-trip large whole-number decimals; BSON loses precision on high-precision decimals and rejects unsigned values above `long.MaxValue`; the digit-count and exclusive-range facet checks are slightly off at extreme values) | [#7](https://github.com/rmoldwin/SDC_ObjectModel/issues/7) |
 | Planned | Ensure no code path (setter or deserialization, any format) ever stores a value that fails validation — always keep the prior/unset value and raise an event naming the offending value ("soft-reject", extending the existing contract to fully cover deserialization) | [#8](https://github.com/rmoldwin/SDC_ObjectModel/issues/8) |
+| Planned | Implement a working `IVal.ValXmlString` (generic "value as text" accessor) for the ~32 of ~35 SDC data types where it currently throws instead of working, and add the missing `IVal` interface declaration to `string_Stype` (see [architecture/tree-operations.md](architecture/tree-operations.md#known-pre-existing-unrelated-gap-surfaced-by-this-work)) | [#46](https://github.com/rmoldwin/SDC_ObjectModel/issues/46) |
+| Planned | Audit and complete validation logic + automated test coverage for every SDC data type (not just `IVal.ValXmlString`) — inventory current gaps, fix them, and add boundary/validation tests for every type lacking one | [#47](https://github.com/rmoldwin/SDC_ObjectModel/issues/47) |
+
+## Tree operations (copy/paste/graft/repeat/inject)
+
+| Status | Item | Issue |
+|---|---|---|
+| Done | Fix a null-target-slot bug in the shared `Move()` attach path used by `CopyPaste()`/`Graft()`, and add regression tests for it plus `CopyPaste()` deep-clone correctness (see [architecture/tree-operations.md](architecture/tree-operations.md)) | — |
+| Done | Add `InjectSubtree()` (general-purpose same-tree/cross-tree subtree injection, e.g. for `InjectForm`-style composition) with `RepeatCounter`-based suffix assignment and full test coverage | — |
+| Done | Add `InjectSubtreeFromTemplate()` so injected/repeated subtrees are response-free by construction (cloned from the source Form Design File, or FDF, template rather than the live instance) | — |
+
 
 ## Thread safety (WebAssembly, or WASM, multi-threading — separate from the completed desktop investigation)
 

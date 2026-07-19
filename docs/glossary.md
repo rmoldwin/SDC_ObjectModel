@@ -22,10 +22,11 @@ anywhere in this project must be added here before (or at the same time as) its 
 | CSP | Content-Security-Policy | An HTTP header that restricts what scripts/resources a page may load or execute (e.g. blocking inline `eval`); referenced in the Phase2 WASM test harness, which avoids `eval`-based JavaScript interop specifically to prevent CSP warnings. |
 | DE | Data Element | An SDC schema building block representing one piece of data. |
 | DevServer | (Blazor WebAssembly Development Server) | The lightweight local web server the Blazor WebAssembly SDK spins up for `dotnet run`. It does not send the COOP/COEP headers multi-threaded WASM requires, so the Phase2 multi-threaded test harness must be run via `dotnet publish` + a real ASP.NET Core host instead. See [WASM/Blazor](architecture/wasm-blazor.md). |
-| FDF | Form Design File | The SDC file format that defines a form's structure and rules. |
+| FDF | Form Design File | The SDC file format that defines a form's structure and rules. Also read as "Form Design Form" in some design notes — same meaning: the pristine *template*, with no user-entered data. |
+| FDF-R | Form Design File - Response (or "Form Design Form - Response") | An FDF instance that has been filled in with user responses (answers) — i.e., a completed or in-progress form, as opposed to the blank template. See [Tree Operations](architecture/tree-operations.md). |
 | FIXME | "Fix me" marker | A source-code comment tag used to mark a known problem that still needs correction. |
 | GC | Garbage Collector | The .NET subsystem that automatically frees unused memory. |
-| GUID | Globally Unique Identifier | A 128-bit value used to uniquely identify objects. |
+| GUID | Globally Unique Identifier | A 128-bit value used to uniquely identify objects. In this object model, every node's full `ObjectGUID` has a shortened, string-encoded form called `sGuid`, used as a compact per-node identifier. |
 | HTML | HyperText Markup Language | The standard markup language for web pages and self-contained browser-rendered reports. |
 | ID | Identifier | A value used to name/reference a specific object. |
 | IEEE | Institute of Electrical and Electronics Engineers | Standards body (referenced for floating-point/number formats). |
@@ -33,6 +34,7 @@ anywhere in this project must be added here before (or at the same time as) its 
 | IL | Intermediate Language | The .NET bytecode emitted by the compiler and loaded/executed by the runtime. |
 | IRI | Internationalized Resource Identifier | Like a URI/URL but supports non-ASCII characters. |
 | ISO 8601 | International Organization for Standardization, standard 8601 | The international standard for representing dates and times as text. |
+| IVal | Interface: Value | The shared C# interface (`IVal`) implemented by every SDC simple-value data type class (e.g. `int_Stype`, `date_Stype`), meant to let code read/write any response value generically via a text property (`ValXmlString`) without special-casing every concrete type. See [architecture/validation.md](architecture/validation.md) and [GitHub issue #46](https://github.com/rmoldwin/SDC_ObjectModel/issues/46). |
 | JSInterop | JavaScript Interop | The Blazor mechanism that lets C# code call JavaScript functions (and vice versa) in the browser. The Phase2 WASM test harness uses a named JavaScript helper function via JSInterop instead of `eval(...)`, specifically to avoid CSP (Content-Security-Policy) warnings. |
 | JSON | JavaScript Object Notation | A lightweight text format for representing structured data. |
 | LINQ | Language Integrated Query | A .NET feature for querying collections with SQL-like syntax. |
