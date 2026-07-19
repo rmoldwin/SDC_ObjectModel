@@ -638,6 +638,75 @@ namespace SDC.Schema.Extensions
         {
             return donorNode.Move(targetParent, newListIndex, false, SdcUtil.RefreshMode.CloneAndRepeatSubtree);
         }
+
+        /// <summary>
+        /// The recommended entry point for repeating or injecting a subtree <b>from a live FDF-R (Form Design
+        /// Form - Response) instance</b>. By default, clones from the node's <b>source FDF template</b> (see
+        /// <see cref="LoadSourceFormDesign(BaseType)"/>/<see cref="FindNodeByTemplateID(FormDesignType, string)"/>)
+        /// rather than from the live instance node itself, so the injected/repeated copy is automatically free of
+        /// user-entered response data -- a template has none by definition -- while any <c>@readOnly</c>-locked
+        /// default <c>@selected</c>/<c>@val</c> content is automatically preserved, because it is literally present
+        /// in the template.<br/><br/>
+        /// <b>Important, by-design limitation:</b> because the default-mode clone is sourced from the
+        /// <i>template's</i> version of the subtree, any content that exists <i>only</i> in the live instance --
+        /// most notably nested repeats/injections added under <paramref name="instanceDonorNode"/> after the
+        /// instance was created from the template -- is <b>not</b> reproduced in the copy. This is a deliberate
+        /// structural reset to the template's shape, not a bug: the alternative (diff-based cloning of a cleaned
+        /// live-instance copy) is an explicitly out-of-scope fallback for now -- see
+        /// <c>CopyPasteInject_ResponseStripping_Design.md</c>.<br/><br/>
+        /// Set <paramref name="preserveInstanceData"/> to <see langword="true"/> to instead clone
+        /// <paramref name="instanceDonorNode"/> directly (same as calling
+        /// <see cref="InjectSubtree(IdentifiedExtensionType, ChildItemsType, int)"/>), keeping whatever response
+        /// data (including nested repeats) currently exists on the live node, without any cross-check against the
+        /// template -- this mode trusts the instance's current state as-is, for every node including
+        /// <c>readOnly</c> ones.
+        /// </summary>
+        /// <param name="instanceDonorNode">The live FDF-R instance node/subtree root to repeat or inject.</param>
+        /// <param name="targetParent">The <see cref="ChildItemsType"/> node in the recipient tree that will
+        /// contain the injected/repeated clone.</param>
+        /// <param name="newListIndex">Desired insertion index, used only when no existing repeat of this subtree
+        /// is already present among <paramref name="targetParent"/>'s children.</param>
+        /// <param name="preserveInstanceData">If <see langword="true"/>, clone the live instance node directly
+        /// (preserving its current response data) instead of resolving and cloning from the source FDF template.
+        /// Defaults to <see langword="false"/> (clone from source FDF template).</param>
+        /// <returns>True for success, false for failure.</returns>
+        /// <exception cref="InvalidOperationException">Thrown (via <see cref="LoadSourceFormDesign(BaseType)"/>)
+        /// if the source FDF cannot be located/loaded, or if no node with a matching (suffix-stripped) <c>ID</c>
+        /// exists in the loaded template -- e.g. because <paramref name="instanceDonorNode"/> was renamed, or
+        /// added to the instance after the template was last saved. In that case, consider
+        /// <paramref name="preserveInstanceData"/>: <see langword="true"/> instead.</exception>
+        public static bool InjectSubtreeFromTemplate(
+            this IdentifiedExtensionType instanceDonorNode,
+            ChildItemsType targetParent,
+            int newListIndex = -1,
+            bool preserveInstanceData = false)
+        {
+            if (preserveInstanceData)
+                return instanceDonorNode.InjectSubtree(targetParent, newListIndex);
+
+            FormDesignType sourceFd;
+            IdentifiedExtensionType? templateNode;
+            try
+            {
+                sourceFd = instanceDonorNode.LoadSourceFormDesign();
+                templateNode = sourceFd.FindNodeByTemplateID(instanceDonorNode.ID);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"{nameof(InjectSubtreeFromTemplate)} failed to resolve the source FDF template counterpart " +
+                    $"of instance node ID='{instanceDonorNode.ID}'. Consider preserveInstanceData: true instead.", ex);
+            }
+
+            if (templateNode is null)
+                throw new InvalidOperationException(
+                    $"No node with ID '{instanceDonorNode.ID.StripRepeatSuffix()}' was found in the source FDF " +
+                    $"template referenced by instance node ID='{instanceDonorNode.ID}'. The instance node may have " +
+                    $"been renamed, or added after the template was last saved. Consider preserveInstanceData: " +
+                    $"true instead.");
+
+            return templateNode.InjectSubtree(targetParent, newListIndex);
+        }
         /// <summary>
 		/// Clone and then copy (graft) a subtree from one SDC template to another.  All identifiers will be replaced with new values,<br/>
 		/// including sGuid, ObjectGUID, name, ID, and ObjectID)
