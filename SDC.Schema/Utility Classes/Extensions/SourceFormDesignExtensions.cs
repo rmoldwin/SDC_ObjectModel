@@ -62,7 +62,7 @@ namespace SDC.Schema.Extensions
 					$"The FDF-R instance's TopNode (ID='{instanceFd.ID}', fullURI='{instanceFd.fullURI}') " +
 					$"does not carry a {nameof(FormDesignType.filename)} reference to its source FDF, so the source " +
 					$"FDF cannot be located and loaded. Consider the fallback (clean-copy-of-live-instance) path " +
-					$"instead when no source FDF is available -- see CopyPasteInject_ResponseStripping_Design.md.");
+					$"instead when no source FDF is available — see docs/architecture/tree-operations.md.");
 
 			FormDesignType sourceFd;
 			try
