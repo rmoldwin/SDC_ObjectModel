@@ -651,9 +651,9 @@ namespace SDC.Schema.Extensions
         /// <i>template's</i> version of the subtree, any content that exists <i>only</i> in the live instance --
         /// most notably nested repeats/injections added under <paramref name="instanceDonorNode"/> after the
         /// instance was created from the template -- is <b>not</b> reproduced in the copy. This is a deliberate
-        /// structural reset to the template's shape, not a bug: the alternative (diff-based cloning of a cleaned
-        /// live-instance copy) is an explicitly out-of-scope fallback for now -- see
-        /// <c>CopyPasteInject_ResponseStripping_Design.md</c>.<br/><br/>
+			/// structural reset to the template's shape, not a bug: the alternative (diff-based cloning of a cleaned
+			/// live-instance copy) is an explicitly out-of-scope fallback for now — see
+			/// <c>docs/architecture/tree-operations.md</c>.<br/><br/>
         /// Set <paramref name="preserveInstanceData"/> to <see langword="true"/> to instead clone
         /// <paramref name="instanceDonorNode"/> directly (same as calling
         /// <see cref="InjectSubtree(IdentifiedExtensionType, ChildItemsType, int)"/>), keeping whatever response
