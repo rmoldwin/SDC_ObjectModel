@@ -2939,7 +2939,7 @@ namespace SDC.Schema
 	/// </summary>
 	internal static class DateTimeXmlHelper
 	{
-		private static readonly Regex TzSuffix = new(@"(Z|[+-]\d{2}:\d{2})$", RegexOptions.Compiled);
+		private static readonly Regex TzSuffix = new(@"(Z|[+-](?:(?:0[0-9]|1[0-3]):[0-5][0-9]|14:00))$", RegexOptions.Compiled);
 
 		/// <summary>
 		/// Splits an XSD date/time lexical string into its wall-clock digits (parsed via <paramref name="format"/>)
@@ -3182,7 +3182,7 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => val;
+			get => val ?? string.Empty;
 			set
 			{
 				// val's CLR type is already string (the raw XSD lexical duration text), and the generated
@@ -3322,7 +3322,7 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => val;
+			get => val ?? string.Empty;
 			set
 			{
 				// Unlike dayTimeDuration_Stype/yearMonthDuration_Stype, the generated val setter for the
@@ -3413,7 +3413,7 @@ namespace SDC.Schema
 	/// </summary>
 	internal static class GDateXmlHelper
 	{
-		private static readonly Regex TzSuffix = new(@"(Z|[+-]\d{2}:\d{2})$", RegexOptions.Compiled);
+		private static readonly Regex TzSuffix = new(@"(Z|[+-](?:(?:0[0-9]|1[0-3]):[0-5][0-9]|14:00))$", RegexOptions.Compiled);
 
 		internal static bool TryParse(string? value, Regex numericPattern, out string numericPart, out string? timeZone, out string? error)
 		{
@@ -3439,7 +3439,7 @@ namespace SDC.Schema
 
 	public partial class gDay_Stype : IVal
 	{
-		private static readonly Regex GDayPattern = new(@"^---\d{2}$", RegexOptions.Compiled);
+		private static readonly Regex GDayPattern = new(@"^---(0[1-9]|[12][0-9]|3[01])$", RegexOptions.Compiled);
 
 		protected gDay_Stype() { Init(); }
 		public gDay_Stype(BaseType parentNode) : base(parentNode)
@@ -3490,7 +3490,7 @@ namespace SDC.Schema
 
 	public partial class gMonth_Stype : IVal
 	{
-		private static readonly Regex GMonthPattern = new(@"^--\d{2}$", RegexOptions.Compiled);
+		private static readonly Regex GMonthPattern = new(@"^--(0[1-9]|1[0-2])$", RegexOptions.Compiled);
 
 		protected gMonth_Stype() { Init(); }
 		public gMonth_Stype(BaseType parentNode) : base(parentNode)
@@ -3542,7 +3542,7 @@ namespace SDC.Schema
 
 	public partial class gMonthDay_Stype : IVal
 	{
-		private static readonly Regex GMonthDayPattern = new(@"^--\d{2}-\d{2}$", RegexOptions.Compiled);
+		private static readonly Regex GMonthDayPattern = new(@"^--(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", RegexOptions.Compiled);
 
 		protected gMonthDay_Stype() { Init(); }
 		public gMonthDay_Stype(BaseType parentNode) : base(parentNode)
@@ -3643,7 +3643,7 @@ namespace SDC.Schema
 	}
 	public partial class gYearMonth_Stype : IVal
 	{
-		private static readonly Regex GYearMonthPattern = new(@"^-?\d{4,}-\d{2}$", RegexOptions.Compiled);
+		private static readonly Regex GYearMonthPattern = new(@"^-?\d{4,}-(0[1-9]|1[0-2])$", RegexOptions.Compiled);
 
 		protected gYearMonth_Stype() { Init(); }
 		public gYearMonth_Stype(BaseType parentNode) : base(parentNode)
@@ -4223,7 +4223,7 @@ namespace SDC.Schema
 		{
 			// val's CLR type is already string, and the XSD "string" type imposes no lexical-form
 			// restriction, so ValXmlString is a direct pass-through (no parsing/formatting needed).
-			get => val;
+			get => val ?? string.Empty;
 			set
 			{
 				if (value is null) { StoreError("Supplied value parameter was null"); return; }
@@ -4540,7 +4540,7 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => val;
+			get => val ?? string.Empty;
 			set
 			{
 				// val's CLR type is already string, and the generated setter enforces the yearMonthDuration
