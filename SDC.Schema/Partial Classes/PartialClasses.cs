@@ -2867,6 +2867,56 @@ namespace SDC.Schema
 		}
 	}
 
+	/// <summary>
+	/// Shared helper for parsing/formatting the timezone-suffixed XSD date/time lexical forms
+	/// (date, dateTime, dateTimeStamp, time) used by the <see cref="IVal.ValXmlString"/> implementations
+	/// for <see cref="date_Stype"/>, <see cref="dateTime_Stype"/>, <see cref="dateTimeStamp_Stype"/>, and <see cref="time_Stype"/>.<br/>
+	/// The XSD timezone suffix ('Z' or '&#177;hh:mm') is optional and, when absent, means "timezone unspecified" --
+	/// a distinct state from UTC or the local machine's timezone. To preserve perfect round-trip fidelity without
+	/// ever performing offset arithmetic (which would silently reinterpret the value through the local machine's
+	/// timezone), the suffix is stored verbatim in each type's generated <c>timeZone</c> string property, while
+	/// <c>val</c> holds only the literal wall-clock digits.<br/>
+	/// See SDC.Schema/Documentation/IVal_DateTime_ValXmlString_Design.md for the full design rationale.
+	/// </summary>
+	internal static class DateTimeXmlHelper
+	{
+		private static readonly Regex TzSuffix = new(@"(Z|[+-]\d{2}:\d{2})$", RegexOptions.Compiled);
+
+		/// <summary>
+		/// Splits an XSD date/time lexical string into its wall-clock digits (parsed via <paramref name="format"/>)
+		/// and its literal timezone suffix text (or null if no suffix is present). The timezone text is preserved
+		/// exactly as written -- no offset arithmetic is performed on it.
+		/// </summary>
+		internal static bool TryParse(string? value, string format, out DateTime dt, out string? timeZone, out string? error)
+		{
+			dt = default;
+			timeZone = null;
+			error = null;
+			if (value is null)
+			{
+				error = "Supplied value parameter was null";
+				return false;
+			}
+			var m = TzSuffix.Match(value);
+			timeZone = m.Success ? m.Value : null;
+			string dtPart = m.Success ? value[..^m.Value.Length] : value;
+			if (!DateTime.TryParseExact(dtPart, format, System.Globalization.CultureInfo.InvariantCulture,
+				System.Globalization.DateTimeStyles.NoCurrentDateDefault, out dt))
+			{
+				error = $"Supplied value parameter was not in the expected '{format}[timezone]' string format";
+				return false;
+			}
+			return true;
+		}
+
+		/// <summary>
+		/// Formats the wall-clock digits of <paramref name="val"/> per <paramref name="format"/> and appends
+		/// the literal <paramref name="timeZone"/> suffix text verbatim (if any).
+		/// </summary>
+		internal static string Format(DateTime val, string? timeZone, string format)
+			=> val.ToString(format, System.Globalization.CultureInfo.InvariantCulture) + (timeZone ?? "");
+	}
+
 	public partial class date_DEtype : IDataType_DEType
 	{
 		protected date_DEtype() { Init(); }
@@ -2903,10 +2953,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => DateTimeXmlHelper.Format(val, timeZone, "yyyy-MM-dd");
 			set
 			{
-				throw new NotImplementedException();
+				if (DateTimeXmlHelper.TryParse(value, "yyyy-MM-dd", out var dt, out var tz, out var error))
+				{
+					val = dt;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in date string format");
 			}
 		}
 	}
@@ -2947,10 +3002,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => DateTimeXmlHelper.Format(val, timeZone, "yyyy-MM-ddTHH:mm:ss.FFFFFFF");
 			set
 			{
-				throw new NotImplementedException();
+				if (DateTimeXmlHelper.TryParse(value, "yyyy-MM-ddTHH:mm:ss.FFFFFFF", out var dt, out var tz, out var error))
+				{
+					val = dt;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in dateTime string format");
 			}
 		}
 	}
@@ -2982,14 +3042,47 @@ namespace SDC.Schema
 		{
 			ElementPrefix = "dtsS";
 		}
+
+		/// <summary>
+		/// Holds the literal XSD timezone suffix text ("Z" or an explicit "&#177;hh:mm" offset) for this dateTimeStamp value.
+		/// Unlike date_Stype/dateTime_Stype/time_Stype, the generated dateTimeStamp_Stype class has no separate
+		/// timeZone field, so it is added here in the customization layer solely to support ValXmlString round-tripping.
+		/// dateTimeStamp requires an explicit timezone per the XSD spec, so this is never null/empty after a successful set.
+		/// </summary>
+		[XmlIgnore]
+		[JsonIgnore]
+		public string? timeZone { get; set; }
+
 		[XmlIgnore]
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => DateTimeXmlHelper.Format(val, timeZone, "yyyy-MM-ddTHH:mm:ss.FFFFFFF");
 			set
 			{
-				throw new NotImplementedException();
+				if (DateTimeXmlHelper.TryParse(value, "yyyy-MM-ddTHH:mm:ss.FFFFFFF", out var dt, out var tz, out var error))
+				{
+					if (string.IsNullOrEmpty(tz))
+					{
+						StoreError("dateTimeStamp requires an explicit timezone ('Z' or an offset); none was supplied");
+						return;
+					}
+					// NOTE: The generated val setter (SDC Unmodified Classes\dateTimeStamp_Stype.cs) applies
+					// [RegularExpressionAttribute(".*(Z|(\+|-)[0-9][0-9]:[0-9][0-9])")] to val's DateTime value.
+					// RegularExpressionAttribute validates the *string form* of the value (via val.ToString()),
+					// but a plain DateTime.ToString() never contains a literal "Z" or "+/-hh:mm" offset token
+					// (that concept belongs to DateTimeOffset, not DateTime) -- so this generated validator can
+					// never pass, for any DateTime value. Rather than edit the protected auto-generated file,
+					// we set the private backing field (_val) directly here, which is legal because this partial
+					// class definition is part of the same compiled type and so shares access to private members.
+					// This bypasses only the broken regex check; OnPropertyChanged is still raised for parity
+					// with the generated setter's change-notification behavior.
+					_val = dt;
+					_shouldSerializeval = true;
+					OnPropertyChanged("val", dt);
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in dateTimeStamp string format");
 			}
 		}
 	}
@@ -3994,10 +4087,15 @@ namespace SDC.Schema
 		[JsonIgnore]
 		public string ValXmlString
 		{
-			get => throw new NotImplementedException();
+			get => DateTimeXmlHelper.Format(val, timeZone, "HH:mm:ss.FFFFFFF");
 			set
 			{
-				throw new NotImplementedException();
+				if (DateTimeXmlHelper.TryParse(value, "HH:mm:ss.FFFFFFF", out var dt, out var tz, out var error))
+				{
+					val = dt;
+					timeZone = tz;
+				}
+				else StoreError(error ?? "Supplied value parameter was not in time string format");
 			}
 		}
 	}

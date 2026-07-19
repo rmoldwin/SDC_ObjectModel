@@ -106,3 +106,30 @@ omits the time-of-day component).
 Round-trip tests for this family must assert **exact string equality** after a set/get cycle for all
 three timezone-suffix cases (`Z`, explicit offset, none), not just that the parsed `DateTime` values
 are equal — the `timeZone` string must also be asserted to confirm no offset conversion occurred.
+
+## `dateTimeStamp_Stype` implementation notes
+
+Two generated-code quirks specific to `dateTimeStamp_Stype` required customization-layer workarounds
+(no auto-generated files were edited):
+
+1. **Missing `timeZone` field.** Unlike `date_Stype`/`dateTime_Stype`/`time_Stype`, the generated
+   `dateTimeStamp_Stype` class has no `timeZone` property. A `public string? timeZone { get; set; }`
+   auto-property was added directly in the partial class (customization layer) solely to support this
+   round-trip design.
+
+2. **Unconditionally-failing `val` validator (pre-existing bug).** The generated `val` setter
+   (`SDC Unmodified Classes\dateTimeStamp_Stype.cs`) carries
+   `[RegularExpressionAttribute(".*(Z|(\+|-)[0-9][0-9]:[0-9][0-9])")]`. `RegularExpressionAttribute`
+   validates the *string form* of the value (`Convert.ToString(value, CultureInfo.CurrentCulture)`),
+   but `val`'s type is `System.DateTime`, whose default `ToString()` never contains a literal `"Z"` or
+   `"±hh:mm"` offset token (that concept only exists on `DateTimeOffset`). Consequently this regex can
+   never match for *any* `DateTime` value — assigning to `val` via its public setter always throws
+   `ValidationException`, independent of anything this feature does. Since this file is auto-generated
+   and protected, and fixing/removing the attribute there was out of scope for this change, the
+   `ValXmlString` setter instead assigns the private backing field `_val` directly (legal, since the
+   customization-layer partial class definition is part of the same compiled type and therefore shares
+   access to private members), bypassing only the broken regex check while still raising
+   `OnPropertyChanged` for parity with the generated setter. This is a targeted workaround for a single
+   call site, not a general fix — any other code that sets `dateTimeStamp_Stype.val` directly will still
+   hit the same bug. A follow-up issue should be filed to fix or remove the regex attribute in the
+   generated schema/template.
