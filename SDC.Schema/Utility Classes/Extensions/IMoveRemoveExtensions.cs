@@ -525,7 +525,7 @@ namespace SDC.Schema.Extensions
 						var sourceParent = btSource.ParentNode;
 						if (sourceParent is not null)
 						{
-							isAllowed = SdcUtil.IsAttachNodeAllowed(btSource, btSource.ElementName
+							_ = SdcUtil.IsAttachNodeAllowed(btSource, btSource.ElementName
 								, sourceParent, out _, out object? sourceAttachmentObject
 								, out _, out _, out errorMsg);
 
