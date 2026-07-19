@@ -520,6 +520,22 @@ namespace SDC.Schema.Extensions
 
 				if (targetIsSingleNodeSlot)
 				{   //btSource can be attached directly to targetObj
+					if (refreshMode == RefreshMode.NoChange)
+					{
+						var sourceParent = btSource.ParentNode;
+						if (sourceParent is not null)
+						{
+							isAllowed = SdcUtil.IsAttachNodeAllowed(btSource, btSource.ElementName
+								, sourceParent, out _, out object? sourceAttachmentObject
+								, out _, out _, out errorMsg);
+
+							if (sourceAttachmentObject is BaseType par)
+								par.RemoveNodeObject();
+							else if (sourceAttachmentObject is IList objList)
+								objList.Remove(btSource);
+						}
+					}
+
 					piTargetProperty!.SetValue(newParent, btSource);
 					btSource.MoveInDictionaries(targetParent: newParent);
 					btSource.AssignOrder(); //Requires that dictionaries are first populated for the entire btSource subtree
