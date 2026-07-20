@@ -5,8 +5,8 @@
 <h1>Category 4: CompareTrees Parallel — Informational</h1>
 <p style="color:#555; font-size:.9em;">
     3 tests. Non-gating on wall-clock time — timing is informational.
-    Note: <code>lock(locker)</code> at CompareTrees.cs:352 is a known serial bottleneck for
-    <code>GetNodePreviousSib()</code>; the result dict is already ConcurrentDictionary.
+    CompareTrees serializes traversal helpers such as <code>GetNodePreviousSib()</code>
+    behind a shared traversal gate; the result dict is already ConcurrentDictionary.
     Baseline: V1→V5 IETattDiffs=907, added=3, removed=0. Historical serial run was
     ~8–12 s; current published references measured 1.572 s in Firefox and 1.219 s
     in the embedded browser canvas.
