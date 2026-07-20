@@ -4,7 +4,7 @@ This template standardizes GitHub issue bodies for the SDC_ObjectModel repositor
 assistants and humans can scan, prioritize, and execute issues with minimal extra context-gathering.
 It formalizes the structure already used successfully by issues like #7, #8, and #47. Apply it to
 every new issue; apply it retroactively to existing issues when they are next touched (see the
-recurring `docs-issue-refresh` process in [`skills/DocsIssueHygiene.md`](../skills/DocsIssueHygiene.md)).
+recurring `docs-hygiene` process in [`skills/DocsIssueHygiene.md`](../skills/DocsIssueHygiene.md)).
 
 ## Title
 

@@ -10,13 +10,13 @@
 - The program creates an output root, then writes:
   - `xml\01-construction-basic-form.xml` and `json\01-construction-basic-form.json` for a basic construction example in Extensible Markup Language (XML) and JavaScript Object Notation (JSON).
   - `xml\02-mutation-before-move.xml` and `xml\02-mutation-after-move.xml` for a move/mutation example.
-  - `xml\03-adhoc-attributes-mixed-namespaces.xml` for the mixed-namespace ad-hoc attribute example described in `..docs\architecture\qa-best-practices.md`.
+  - `xml\03-adhoc-attributes-mixed-namespaces.xml` for the mixed-namespace ad-hoc attribute example described in [`../..docs/architecture/qa-best-practices.md`](../..docs/architecture/qa-best-practices.md).
   - sample Markdown and HyperText Markup Language (HTML) QA reports in a sibling `reports\` folder by running `SDC.Schema.QA.Rules.QaEngine`.
 - The project file `SDC.Schema.QA.ExampleGenerator.csproj` references both `..\SDC.Schema\SDC.Schema.csproj` and `..\SDC.Schema.QA\SDC.Schema.QA.csproj`. It depends on the core object model plus the QA engine; no other project takes a build-time dependency on this console application.
-- Although the generated artifacts live outside this project folder at runtime, the numbered-example set documented in `..docs\architecture\qa-best-practices.md` is conceptually downstream of this program.
+- Although the generated artifacts live outside this project folder at runtime, the numbered-example set documented in [`../..docs/architecture/qa-best-practices.md`](../..docs/architecture/qa-best-practices.md) is conceptually downstream of this program.
 
 ## State of completion
 
 - Rough scale: 1 C# source file implements the full generator, and the current observed output set covers three numbered examples plus two sample QA reports in both Markdown and HTML forms.
 - TODO and FIXME notes: no `TODO` or `FIXME` matches were found in this project folder during a text search.
-- Open roadmap issues clearly scoped to this project: none are called out directly in `..docs/roadmap.md`.
+- Open roadmap issues clearly scoped to this project: none are called out directly in [`../..docs/roadmap.md`](../..docs/roadmap.md).

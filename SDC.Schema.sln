@@ -24,7 +24,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDC.Schema.QA.Tests", "SDC.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDC.Schema.QA.ExampleGenerator", "SDC.Schema.QA.ExampleGenerator\SDC.Schema.QA.ExampleGenerator.csproj", "{991F4786-3F1A-47DE-B7F5-22F24CD5B34D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{87DB0F58-599C-4AD5-9974-3CF93E666F78}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "..docs", "..docs", "{87DB0F58-599C-4AD5-9974-3CF93E666F78}"
 	ProjectSection(SolutionItems) = preProject
 		..docs\architecture.md = ..docs\architecture.md
 		..docs\conventions.md = ..docs\conventions.md
