@@ -54,7 +54,7 @@ All chapters listed above link to existing content. Planned future chapters are 
 
 ## Docs vs. wiki
 
-This `docs/` folder holds **work-in-progress** technical material. Once a topic is settled and
+This `..docs/` folder holds **work-in-progress** technical material. Once a topic is settled and
 stable, its content should be copied into the project wiki with added explanation, images, and
 cross-links, per [summary.md](summary.md). Some topics (e.g., broad conceptual overviews, SDC
-Technical Reference Guide, or TRG, excerpts) may be wiki-only and never need a `docs/` chapter.
+Technical Reference Guide, or TRG, excerpts) may be wiki-only and never need a `..docs/` chapter.

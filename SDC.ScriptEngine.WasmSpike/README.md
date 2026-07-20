@@ -19,11 +19,11 @@
 - `SPIKE_RESULTS.md` is the companion results note describing the intended checks and current outcome.
 - Relationship to other projects:
   - direct project reference: `SDC.Schema`,
-  - conceptual precursor to the browser work described in [../docs/architecture/wasm-blazor.md](../docs/architecture/wasm-blazor.md).
+  - conceptual precursor to the browser work described in [../..docs/architecture/wasm-blazor.md](../..docs/architecture/wasm-blazor.md).
 
 ## State of completion
 
 - Rough scope: one spike page, one custom load-context file, and one results note.
 - `SPIKE_RESULTS.md` currently says build compilation succeeded but the browser-runtime checklist is still pending, so the project should be read as an active spike rather than a closed result.
 - No project-authored `TODO` or `FIXME` comments were found in the authored source files. Vendor files under `wwwroot\lib` do contain upstream `TODO` notes, but those are library baggage rather than project backlog.
-- Clearly relevant open issue: [#16](https://github.com/rmoldwin/SDC_ObjectModel/issues/16). For the broader hosting and concurrency context, see [../docs/architecture/wasm-blazor.md](../docs/architecture/wasm-blazor.md).
+- Clearly relevant open issue: [#16](https://github.com/rmoldwin/SDC_ObjectModel/issues/16). For the broader hosting and concurrency context, see [../..docs/architecture/wasm-blazor.md](../..docs/architecture/wasm-blazor.md).
