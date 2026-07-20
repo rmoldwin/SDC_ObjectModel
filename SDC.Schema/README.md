@@ -8,8 +8,8 @@ layered with hand-written customizations, partial classes, extension methods, va
 serializer code.
 
 This README is a project-level orientation guide for the library source folder. The repository-wide
-technical knowledge base lives in [`../docs/`](../docs/), which is explicitly work in progress and
-separate from the eventual project wiki; see [`../docs/summary.md`](../docs/summary.md).
+technical knowledge base lives in [`../..docs/`](../..docs/), which is explicitly work in progress and
+separate from the eventual project wiki; see [`../..docs/summary.md`](../..docs/summary.md).
 
 ## Folder layout
 
@@ -58,12 +58,12 @@ original generated class files on purpose.
 
 ## Architecture at a glance
 
-The authoritative chapter index is [`../docs/architecture.md`](../docs/architecture.md). The most
+The authoritative chapter index is [`../..docs/architecture.md`](../..docs/architecture.md). The most
 important chapters for this project are:
 
 ### Serialization
 
-[`../docs/architecture/serialization.md`](../docs/architecture/serialization.md) documents the four
+[`../..docs/architecture/serialization.md`](../..docs/architecture/serialization.md) documents the four
 supported serializer families: XML, JavaScript Object Notation (JSON), Binary JSON (BSON), and
 MessagePack (MsgPack). The XML path uses `XmlSerializer`; the JSON and BSON paths use
 Newtonsoft.Json with explicit polymorphism and non-public-constructor support; the MessagePack path
@@ -72,41 +72,41 @@ still has known fidelity gaps for deeply polymorphic Structured Data Capture (SD
 
 ### Validation
 
-[`../docs/architecture/validation.md`](../docs/architecture/validation.md) explains the core
+[`../..docs/architecture/validation.md`](../..docs/architecture/validation.md) explains the core
 validation pipeline, including `DataAnnotations`, soft-reject behavior for invalid setter input,
 deserialize-time validation, `SdcValidationReport`, and the bridge to the separate Quality
 Assurance (QA) engine.
 
 ### Rules engine
 
-[`../docs/architecture/rules.md`](../docs/architecture/rules.md) covers the built-in coherence-rule
+[`../..docs/architecture/rules.md`](../..docs/architecture/rules.md) covers the built-in coherence-rule
 extension point for Structured Data Assessment/Capture (SDAC) and Structured Data Specification
 (SDS) checks, plus the registry mechanism for custom rule implementations supplied by consuming
 applications.
 
 ### Tree stability and thread safety
 
-[`../docs/architecture/tree-stability.md`](../docs/architecture/tree-stability.md) and
-[`../docs/architecture/thread-safety.md`](../docs/architecture/thread-safety.md) capture the current
+[`../..docs/architecture/tree-stability.md`](../..docs/architecture/tree-stability.md) and
+[`../..docs/architecture/thread-safety.md`](../..docs/architecture/thread-safety.md) capture the current
 state of dictionary integrity, move/reparent correctness, and single-writer/multiple-reader locking.
 The desktop thread-safety pass is implemented and documented; several remaining concurrency issues
 for WebAssembly (WASM) multi-threaded use remain on the roadmap.
 
 ### Tree comparison
 
-[`../docs/architecture/compare-trees.md`](../docs/architecture/compare-trees.md) documents
+[`../..docs/architecture/compare-trees.md`](../..docs/architecture/compare-trees.md) documents
 `CompareTrees<T>`, the helper that compares two versions of an SDC tree and reports added,
 removed, moved, reparented, and attribute-changed nodes.
 
 ### `SdcUtil`
 
-[`../docs/architecture/sdc-util.md`](../docs/architecture/sdc-util.md) describes the large static
+[`../..docs/architecture/sdc-util.md`](../..docs/architecture/sdc-util.md) describes the large static
 utility class that underpins validation state, tree refresh/rebuild operations, navigation, XML
 reflection, naming, and attachment helpers across the library.
 
 ## State of completion and open core-library work
 
-The current backlog for this core library is summarized in [`../docs/roadmap.md`](../docs/roadmap.md).
+The current backlog for this core library is summarized in [`../..docs/roadmap.md`](../..docs/roadmap.md).
 For `SDC.Schema` itself, the open work items are:
 
 - **Serialization** — migrate `timeZone` to a stronger typed offset representation (`#9`), fix or
@@ -126,8 +126,8 @@ For `SDC.Schema` itself, the open work items are:
 
 ## Where to go next
 
-- Start with [`../docs/architecture.md`](../docs/architecture.md) for deeper implementation detail.
-- Use [`../docs/glossary.md`](../docs/glossary.md) when an SDC-specific term or short code is
+- Start with [`../..docs/architecture.md`](../..docs/architecture.md) for deeper implementation detail.
+- Use [`../..docs/glossary.md`](../..docs/glossary.md) when an SDC-specific term or short code is
   unfamiliar.
-- Use [`../docs/roadmap.md`](../docs/roadmap.md) to understand what is still incomplete or under
+- Use [`../..docs/roadmap.md`](../..docs/roadmap.md) to understand what is still incomplete or under
   investigation.

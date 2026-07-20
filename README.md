@@ -19,3 +19,9 @@ The SDC OM supports four serialization formats:
 | `SdcSerializerBson<T>` | BSON | `Newtonsoft.Json` (BsonDataWriter/BsonDataReader) |
 | `SdcSerializerMsgPack<T>` | MessagePack | `Newtonsoft.Msgpack` (MessagePackWriter/MessagePackReader) |
 
+## Documentation
+
+- [`..docs/summary.md`](..docs/summary.md) — start here: the technical knowledge base index (architecture, roadmap, glossary, conventions).
+- [`..docs/roadmap.md`](..docs/roadmap.md) — planned work, each item linked to a GitHub issue.
+- [`sessions/README.md`](sessions/README.md) — AI session continuity/handoff document index.
+
