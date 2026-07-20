@@ -82,6 +82,9 @@ see [skills/](skills/)).
 | Status | Item | Issue |
 |---|---|---|
 | Planned | Finish XML documentation-comment (`<summary>`) coverage across all public SDC.Schema members (see `sessions/XmlAnnotationPlan.md`) | [#37](https://github.com/rmoldwin/SDC_ObjectModel/issues/37) |
+| Planned | Verify the every-5-merged-PR `docs-issue-hygiene-reminder` GitHub Actions workflow actually fires correctly against a real merge (only YAML-validated so far, not exercised against real CI) | [#55](https://github.com/rmoldwin/SDC_ObjectModel/issues/55) |
+| Planned | Install `DocIssueHygiene_Portable.md` as a personal/user-level Copilot instruction so it auto-loads across all repos, not just this one (requires action outside this repo/session) | [#56](https://github.com/rmoldwin/SDC_ObjectModel/issues/56) |
+| Planned | Recurring hygiene: check and fix `SDC.Schema.sln`/`.csproj` mismatches against git-tracked files and folder structure (folded into the comprehensive docs-sync checklist) | [#57](https://github.com/rmoldwin/SDC_ObjectModel/issues/57) |
 
 All issue links above were verified against the live GitHub issue tracker on 2026-07-20 to avoid
 duplicates; only closed issues (already resolved) were excluded from this table. See
