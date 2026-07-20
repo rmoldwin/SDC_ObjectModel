@@ -14,7 +14,7 @@ see [skills/](skills/)).
 | Done | Consolidate `SDC.Schema.Tests/Documentation` technical docs (XML Schema Definition, or XSD, vs. .NET type divergence notes; OM tree-stability notes; thread-safety investigation notes; validation-pipeline unification notes; BSON/JSON serializer bug history) into `..docs/architecture/`, archiving the 12 fully-superseded originals into `SDC.Schema.Tests/Documentation/Archived Plans/` | — |
 | Done | Move session handoff/kickstart documents (13 files) out of `SDC.Schema.Tests/Documentation` into the top-level `sessions/` folder | — |
 | Planned | Create every-roadmap-item-has-an-issue GitHub issues and cross-link them here (this stage) | — |
-| Planned | Create a docs-sync AI skill that checks `..docs/`, `..docs/skills/`, plan documents, the wiki, and archived docs for consistency (including glossary completeness and roadmap/issue sync) | [#38](https://github.com/rmoldwin/SDC_ObjectModel/issues/38) |
+| In progress | Docs-sync AI skill implemented ([`..docs/skills/DocsIssueHygiene.md`](skills/DocsIssueHygiene.md) + [`ISSUE_TEMPLATE.md`](templates/ISSUE_TEMPLATE.md)/[`DOC_TEMPLATE.md`](templates/DOC_TEMPLATE.md)); leave open until it has run a real before-PR and every-5-PR cycle with no false positives | [#38](https://github.com/rmoldwin/SDC_ObjectModel/issues/38) |
 | Planned | Begin populating the project wiki with settled architecture content and images/links from the SDC Technical Reference Guide (TRG) | [#36](https://github.com/rmoldwin/SDC_ObjectModel/issues/36) |
 
 ## Serialization
