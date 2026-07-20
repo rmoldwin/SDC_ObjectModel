@@ -18,6 +18,7 @@ describe *how* and *when* work was done rather than the solution's architecture.
 | `Session_Summary_Complete_ItemMutator_To_Stability.md` | Summary spanning `ItemMutator` work through tree-stability completion |
 | `Session_Summary_DateTimeValidation_Complete.md` | Completion summary for date/time validation work — see [../..docs/architecture/xsd-dotnet-type-mapping.md](../..docs/architecture/xsd-dotnet-type-mapping.md) |
 | `Session_Summary_OMTreeStability_Setup.md` | Early setup summary for the OM tree-stability test suite |
+| `SESSION_SUMMARY_SdcUtil_Coverage_Pause.md` | Paused session summary for raising `SdcUtil.cs` test coverage (branch `SdcUtil-StubCoverage-RankedGaps`); lists template-driven coverage scenarios and the next-session gap-fill priorities |
 | `ThreadSafety_SessionHandoff.md` | Thread-safety investigation handoff — see [../..docs/architecture/thread-safety.md](../..docs/architecture/thread-safety.md) for the resulting architecture |
 | `ThreadSafety_SessionSummary_AND_Kickstart.md` | Thread-safety session summary + kickstart prompt |
 | `ThreadSafety_TS6_Complete_Handoff.md` | Handoff after fixing thread-safety defect TS-6 |

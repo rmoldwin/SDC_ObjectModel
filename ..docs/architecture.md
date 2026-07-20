@@ -49,6 +49,9 @@ own file. See [glossary.md](glossary.md) for every initialism used below.
     regenerated, the `RepeatCounter`-based suffix scheme, and how response-value stripping is
     achieved by cloning from the source Form Design File (FDF) template instead of an active
     strip pass.
+13. **Use Cases and Context** — [architecture/use-cases-and-context.md](architecture/use-cases-and-context.md)
+    High-level primary use cases (Data Entry Form design, data exchange messages, validation,
+    automated form generation), key design principles, and pointers to the relevant test suites.
 
 All chapters listed above link to existing content. Planned future chapters are tracked in [roadmap.md](roadmap.md).
 

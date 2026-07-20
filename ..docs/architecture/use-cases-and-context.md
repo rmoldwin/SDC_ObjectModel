@@ -1,7 +1,13 @@
-# SDC Object Model (OM) - Use Cases and Context
+# SDC Object Model (OM) — Use Cases and Context
+
+> Migrated from the root-level `SDC_OM_UseCases_Context.md` (2026-07-20) as part of the docs
+> restructuring, since its content is architecture material rather than a top-level repo file.
+> Stale cross-references from the original have been corrected below.
 
 ## Overview
-The SDC (Structured Data Capture) Object Model is a comprehensive framework for healthcare form design, data capture, and exchange.
+
+The SDC (Structured Data Capture) Object Model is a comprehensive framework for healthcare form
+design, data capture, and exchange.
 
 ## Primary Use Cases
 
@@ -53,7 +59,9 @@ The SDC (Structured Data Capture) Object Model is a comprehensive framework for 
 ### Thread Safety
 - The OM is **not thread-safe** in the current implementation
 - Concurrent modifications require external synchronization
-- See `SDC.Schema.Tests/Documentation/ThreadSafetyAnalysis.md` for details
+- See [thread-safety.md](thread-safety.md) for details (this chapter's original reference to
+  `SDC.Schema.Tests/Documentation/ThreadSafetyAnalysis.md` is stale — that content was migrated
+  here during the docs restructuring)
 
 ## Testing Strategy
 
@@ -89,4 +97,5 @@ The SDC (Structured Data Capture) Object Model is a comprehensive framework for 
 
 ---
 
-**Note:** This document provides high-level context for developers working with the SDC OM codebase. For detailed API documentation, see XML comments in the source code.
+**Note:** This document provides high-level context for developers working with the SDC OM codebase.
+For detailed API documentation, see XML comments in the source code.

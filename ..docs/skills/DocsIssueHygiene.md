@@ -76,7 +76,19 @@ Run all of the Selective checks above repo-wide, plus:
      with the repo owner whether it's abandoned before changing anything.
    - Every project GUID has a complete, non-duplicated set of
      `GlobalSection(ProjectConfigurationPlatforms)` entries, and no GUID appears twice.
-8. Record the pass in this file's **Run log** below (date, PR-count trigger or manual, summary of
+8. **Root-level file hygiene** (also part of the permanent #38 scope) — check for orphaned
+   documentation clutter at the repository root:
+   - No loose root-level `.md` files other than `README.md` — session/plan notes belong in
+     `sessions/`, architecture content belongs in `..docs/architecture/`, and one-time cleanup
+     audits should be deleted once confirmed executed (verify via `git branch -r` /
+     `git merge-base --is-ancestor` before deleting anything that references branch cleanup).
+   - Every project folder (i.e. every folder containing a `.csproj`) has its own `README.md`
+     following the house style (`# ProjectName` / `## What this project is` / `## Basic
+     architecture` / `## State of completion`).
+   - The root `README.md`'s project table lists every currently tracked `.csproj` (cross-check
+     with `git ls-files "*.csproj"`), grouped by area, with a one-line purpose blurb consistent
+     with that project's own README.
+9. Record the pass in this file's **Run log** below (date, PR-count trigger or manual, summary of
    fixes made) so future passes know what was already covered.
 
 ## Run log
@@ -87,4 +99,4 @@ Run all of the Selective checks above repo-wide, plus:
 | 2026-07-20 | Manual (PR #54 review follow-up) | Addressed 5 Copilot bot review comments on PR #54: renamed `docs-issue-refresh` → `docs-hygiene` in `ISSUE_TEMPLATE.md` for naming consistency; converted 3 backslash code-span doc references to real relative Markdown links in `SDC.Schema.QA/README.md` and `SDC.Schema.QA.ExampleGenerator/README.md`; renamed the `SDC.Schema.sln` solution folder node from `"docs"` to `"..docs"`. Replied to all 5 review threads confirming fixes. |
 | 2026-07-20 | Manual (solution-file audit) | Audited `SDC.Schema.sln` for drift against git-tracked files: added the missing `templates` solution folder (3 files) and the 2 missing `skills` folder entries; verified all 15 real projects' `.csproj` paths, build configs, and GUIDs are consistent with no duplicates. Opened #55 (verify docs-hygiene workflow after a real merge), #56 (install portable skill as a user-level Copilot instruction), and #57 (recurring solution/project-file consistency check, folded into this checklist as step 7). |
 | 2026-07-20 | Manual (issue consolidation) | Merged #57 into #38: the solution/project-file consistency check is now permanently tracked as part of #38 rather than a separate issue. #38 tagged with a new `permanent` label and given a banner explaining it stays open indefinitely as this skill's tracking anchor. #57 closed as not planned/duplicate, with a comment pointing to #38. |
-| 2026-07-20 | Manual (solution-file audit) | Audited `SDC.Schema.sln` for drift against git-tracked files: added the missing `templates` solution folder (3 files) and the 2 missing `skills` folder entries; verified all 15 real projects' `.csproj` paths, build configs, and GUIDs are consistent with no duplicates. Opened #55 (verify docs-hygiene workflow after a real merge), #56 (install portable skill as a user-level Copilot instruction), and #57 (recurring solution/project-file consistency check, folded into this checklist as step 7). |
+| 2026-07-20 | Manual (root-file reorganization) | Merged root `SDC_OM_UseCases_Context.md` into `..docs/architecture/use-cases-and-context.md` (chapter 13); moved `SESSION_SUMMARY_SdcUtil_Coverage_Pause.md` into `sessions/`; deleted the now-fully-executed `WORKTREE_BRANCH_CLEANUP.md` (confirmed its flagged branches no longer exist on `origin`); wrote missing READMEs for the 4 previously-undocumented `SDC.ScriptEngine.BlazorAsyncTests*` projects; rewrote the root `README.md`'s project table to cover all 15 real projects grouped by area (was previously only 3). Added step 8 to this checklist (root-level file hygiene: no orphaned root `.md` files, every project has a README, root README project table stays current). |
