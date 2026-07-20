@@ -9,12 +9,12 @@ see [skills/](skills/)).
 
 | Status | Item | Issue |
 |---|---|---|
-| Done | Migrate the two public GitHub gists ("SDC OM Validation" and "SDC OM Rules") into `docs/architecture/validation.md` and `docs/architecture/rules.md`, then delete the gists | — |
-| Done | Move `docs/` from inside the `SDC.Schema` project folder to the top level of the repository, alongside `sessions/` | — |
-| Done | Consolidate `SDC.Schema.Tests/Documentation` technical docs (XML Schema Definition, or XSD, vs. .NET type divergence notes; OM tree-stability notes; thread-safety investigation notes; validation-pipeline unification notes; BSON/JSON serializer bug history) into `docs/architecture/`, archiving the 12 fully-superseded originals into `SDC.Schema.Tests/Documentation/Archived Plans/` | — |
+| Done | Migrate the two public GitHub gists ("SDC OM Validation" and "SDC OM Rules") into `..docs/architecture/validation.md` and `..docs/architecture/rules.md`, then delete the gists | — |
+| Done | Move `..docs/` from inside the `SDC.Schema` project folder to the top level of the repository, alongside `sessions/` | — |
+| Done | Consolidate `SDC.Schema.Tests/Documentation` technical docs (XML Schema Definition, or XSD, vs. .NET type divergence notes; OM tree-stability notes; thread-safety investigation notes; validation-pipeline unification notes; BSON/JSON serializer bug history) into `..docs/architecture/`, archiving the 12 fully-superseded originals into `SDC.Schema.Tests/Documentation/Archived Plans/` | — |
 | Done | Move session handoff/kickstart documents (13 files) out of `SDC.Schema.Tests/Documentation` into the top-level `sessions/` folder | — |
 | Planned | Create every-roadmap-item-has-an-issue GitHub issues and cross-link them here (this stage) | — |
-| Planned | Create a docs-sync AI skill that checks `docs/`, `docs/skills/`, plan documents, the wiki, and archived docs for consistency (including glossary completeness and roadmap/issue sync) | [#38](https://github.com/rmoldwin/SDC_ObjectModel/issues/38) |
+| In progress | Docs-sync AI skill implemented ([`..docs/skills/DocsIssueHygiene.md`](skills/DocsIssueHygiene.md) + [`ISSUE_TEMPLATE.md`](templates/ISSUE_TEMPLATE.md)/[`DOC_TEMPLATE.md`](templates/DOC_TEMPLATE.md)); leave open until it has run a real before-PR and every-5-PR cycle with no false positives | [#38](https://github.com/rmoldwin/SDC_ObjectModel/issues/38) |
 | Planned | Begin populating the project wiki with settled architecture content and images/links from the SDC Technical Reference Guide (TRG) | [#36](https://github.com/rmoldwin/SDC_ObjectModel/issues/36) |
 
 ## Serialization
@@ -35,6 +35,8 @@ see [skills/](skills/)).
 | Planned | Ensure no code path (setter or deserialization, any format) ever stores a value that fails validation — always keep the prior/unset value and raise an event naming the offending value ("soft-reject", extending the existing contract to fully cover deserialization) | [#8](https://github.com/rmoldwin/SDC_ObjectModel/issues/8) |
 | Planned | Implement a working `IVal.ValXmlString` (generic "value as text" accessor) for the ~32 of ~35 SDC data types where it currently throws instead of working, and add the missing `IVal` interface declaration to `string_Stype` (see [architecture/tree-operations.md](architecture/tree-operations.md#known-pre-existing-unrelated-gap-surfaced-by-this-work)) | [#46](https://github.com/rmoldwin/SDC_ObjectModel/issues/46) |
 | Planned | Audit and complete validation logic + automated test coverage for every SDC data type (not just `IVal.ValXmlString`) — inventory current gaps, fix them, and add boundary/validation tests for every type lacking one | [#47](https://github.com/rmoldwin/SDC_ObjectModel/issues/47) |
+| Bug | Fix `dateTimeStamp_Stype.val` setter, which always throws a `ValidationException` due to a broken `RegularExpressionAttribute` (blocks legal `dateTimeStamp` values) | [#50](https://github.com/rmoldwin/SDC_ObjectModel/issues/50) |
+| Planned | Implement `IVal.ValXmlString` for `XML_Stype` and `HTML_Stype`, deferred from the ad hoc attribute (`AnyAtt`)/`IVal` work (companion to #46) | [#49](https://github.com/rmoldwin/SDC_ObjectModel/issues/49) |
 
 ## Tree operations (copy/paste/graft/repeat/inject)
 
@@ -64,6 +66,7 @@ see [skills/](skills/)).
 
 | Status | Item | Issue |
 |---|---|---|
+| Planned | Design and implement an adaptive multithreading optimizer for Blazor WASM clients that tunes active concurrency at runtime (device/browser capability unknown ahead of time), building on the Phase 2 findings in [architecture/wasm-blazor.md](architecture/wasm-blazor.md) | [#52](https://github.com/rmoldwin/SDC_ObjectModel/issues/52) |
 | Deferred (Phase 2) | Design an Object Model (OM)-level event model so scripts attached to IdentifiedExtensionType (IET) nodes can be triggered by user interaction (selection, value change, form entry/submission) | [#14](https://github.com/rmoldwin/SDC_ObjectModel/issues/14) |
 | Deferred (Phase 2) | Verify script hashes against a published, authoritative registry of approved hashes for known SDC template versions, to protect against a maliciously crafted SDC file where both the script source and its hash have been replaced together | [#15](https://github.com/rmoldwin/SDC_ObjectModel/issues/15) |
 | Deferred (Phase 2) | Support in-browser C# script compilation via the Roslyn compiler platform, including a `WasmReferenceProvider` that fetches reference assemblies from the WASM boot manifest instead of relying on desktop-only assembly discovery | [#16](https://github.com/rmoldwin/SDC_ObjectModel/issues/16) |
@@ -80,5 +83,7 @@ see [skills/](skills/)).
 |---|---|---|
 | Planned | Finish XML documentation-comment (`<summary>`) coverage across all public SDC.Schema members (see `sessions/XmlAnnotationPlan.md`) | [#37](https://github.com/rmoldwin/SDC_ObjectModel/issues/37) |
 
-All issue links above were verified against the live GitHub issue tracker on 2026-07-16 to avoid
-duplicates; only closed issues (already resolved) were excluded from this table.
+All issue links above were verified against the live GitHub issue tracker on 2026-07-20 to avoid
+duplicates; only closed issues (already resolved) were excluded from this table. See
+[`templates/ISSUES_EXECUTION_PLAN.md`](templates/ISSUES_EXECUTION_PLAN.md) for a prioritized,
+dependency-ordered execution plan across all currently open issues.

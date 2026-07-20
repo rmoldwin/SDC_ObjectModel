@@ -1,0 +1,43 @@
+name: Docs & Issue Hygiene Reminder
+
+# Fires every time a pull request is merged. Counts total merged PRs and, every 5th merge,
+# opens (or reuses) a tracking issue asking an AI coding agent to run the comprehensive
+# docs-sync pass described in ..docs/skills/DocsIssueHygiene.md. See that file and
+# .github/skills/DocIssueHygiene_Portable.md for the full checklist this issue asks for.
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  issues: write
+  pull-requests: read
+
+jobs:
+  maybe-open-hygiene-issue:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Count merged PRs and open reminder every 5th merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          merged_count=$(gh pr list --repo "$REPO" --state merged --limit 1000 --json number --jq 'length')
+          echo "Merged PR count: $merged_count"
+          if (( merged_count % 5 != 0 )); then
+            echo "Not a multiple of 5 merged PRs; skipping."
+            exit 0
+          fi
+          # Avoid duplicate open reminder issues.
+          existing=$(gh issue list --repo "$REPO" --state open --label "docs-hygiene" --json number --jq 'length')
+          if [ "$existing" -gt 0 ]; then
+            echo "An open docs-hygiene reminder issue already exists; skipping."
+            exit 0
+          fi
+          body=$(printf 'This is the automated every-5-merged-PR checkpoint (currently %s merged PRs).\n\nAn AI coding agent should run the **comprehensive** checklist in `..docs/skills/DocsIssueHygiene.md`, record the pass in that file'"'"'s Run log, and close this issue when done.' "$merged_count")
+          gh issue create --repo "$REPO" \
+            --title "Run comprehensive docs & issue hygiene pass (every-5-PR checkpoint, ${merged_count} merged PRs)" \
+            --label "docs-hygiene" \
+            --label "documentation" \
+            --body "$body"

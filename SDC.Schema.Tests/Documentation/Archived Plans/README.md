@@ -15,7 +15,7 @@ delete it" assertion, which is **false**: `TreeLock` is LIVE in `CompareTrees.cs
 
 ### Canonical thread-safety documents — use these instead
 
-Thread-safety content now lives at **[../../../docs/architecture/thread-safety.md](../../../docs/architecture/thread-safety.md)**,
+Thread-safety content now lives at **[../../../..docs/architecture/thread-safety.md](../../../..docs/architecture/thread-safety.md)**,
 which synthesizes the final implemented state (not a concatenation of the drafts below).
 
 ### Archived in this folder (thread-safety, superseded)
@@ -52,7 +52,7 @@ held the parsing and validation logic directly. That logic has since been extrac
 `SdcDataTypeBuilder` internal static class. `IDataHelpers` is now a thin `[Obsolete]` shim that
 delegates to `SdcDataTypeBuilder`. This content, and the completed 10-phase validation-pipeline
 unification it planned, is now consolidated in
-**[../../../docs/architecture/validation.md](../../../docs/architecture/validation.md)**
+**[../../../..docs/architecture/validation.md](../../../..docs/architecture/validation.md)**
 (see "Validation pipeline unification").
 
 ### Archived in this folder (IDataHelpers, superseded)
@@ -71,11 +71,11 @@ unification it planned, is now consolidated in
 
 | File | Why archived | Canonical replacement |
 |------|--------------|------------------------|
-| `AnyURI_XSD_vs_NET.md` | `anyURI` vs. `Uri` divergence notes; merged. | [`docs/architecture/xsd-dotnet-type-mapping.md`](../../../docs/architecture/xsd-dotnet-type-mapping.md) |
+| `AnyURI_XSD_vs_NET.md` | `anyURI` vs. `Uri` divergence notes; merged. | [`..docs/architecture/xsd-dotnet-type-mapping.md`](../../../..docs/architecture/xsd-dotnet-type-mapping.md) |
 | `NumericRange_XSD_vs_NET.md` | Numeric range divergence notes; merged. | same |
 | `DateTimeValidation_XSD_vs_NET.md` | Date/time-part divergence notes; merged. | same |
-| `BsonJsonSerializationBugReport.md` | BSON/JSON/MsgPack bug history + Xsd2Code++ serializer architecture notes; merged. | [`docs/architecture/serialization.md`](../../../docs/architecture/serialization.md) |
-| `OM_TreeStability_CurrentState.md` | Superseded snapshot (27/27 tests); final state is 38/38. | [`docs/architecture/tree-stability.md`](../../../docs/architecture/tree-stability.md) |
+| `BsonJsonSerializationBugReport.md` | BSON/JSON/MsgPack bug history + Xsd2Code++ serializer architecture notes; merged. | [`..docs/architecture/serialization.md`](../../../..docs/architecture/serialization.md) |
+| `OM_TreeStability_CurrentState.md` | Superseded snapshot (27/27 tests); final state is 38/38. | [`..docs/architecture/tree-stability.md`](../../../..docs/architecture/tree-stability.md) |
 | `OM_TreeStability_Implementation_Progress.md` | In-progress snapshot; superseded by the final consolidated chapter. | same |
 
 Related session-completion documents (`Session_OMTreeStability_Implementation_Complete.md`,

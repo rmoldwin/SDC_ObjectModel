@@ -12,7 +12,7 @@
 - `App.xaml` / `App.xaml.cs` provide the usual Windows desktop application startup shell.
 - Relationship to other projects:
   - it is the easiest direct desktop host for `SDC.ScriptEngine`,
-  - it provides the non-browser comparison point for the WebAssembly hosts documented in [../docs/architecture/wasm-blazor.md](../docs/architecture/wasm-blazor.md).
+  - it provides the non-browser comparison point for the WebAssembly hosts documented in [../..docs/architecture/wasm-blazor.md](../..docs/architecture/wasm-blazor.md).
 
 ## State of completion
 
