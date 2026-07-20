@@ -32,6 +32,8 @@ namespace SDC.Schema
 																						//foreach(var kvNewIET in slAttNew)
 		private SDCsGuidEqualityComparer<BaseType> _sGuidEqComparerBase = new();
 		private SDCsGuidEqualityComparer<IdentifiedExtensionType> _sGuidEqComparerIET = new();
+		// Static because CompareTrees can run in multiple concurrent instances while these traversal helpers use shared/static sibling navigation state.
+		private static readonly object TraversalLock = new();
 		#region     ctor   
 		/// <summary>
 		/// 
@@ -241,7 +243,6 @@ namespace SDC.Schema
 		private ConcurrentDictionary<string, DifNodeIET>? CompareVersionAttributes()
 		{
 			var eqAttCompare = new SdcSerializedAttComparer(); //should be thread-safe
-			var locker = new object();
 			if (_slAttNew is null || _slAttPrev is null) return null;
 			_dDifNodeIET.Clear();
 
@@ -298,9 +299,9 @@ namespace SDC.Schema
                     //if (sGuidNewIET == "7AHleBwmK0OI_VYX3jdVrQ") Debugger.Break();
 
 					//Check for added or removed subnodes, by comparing the the matching ietPrev node:
-					lock (locker) removedSubNodes = FindRemovedIETsubNodes(sGuidNewIET);
+					lock (TraversalLock) removedSubNodes = FindRemovedIETsubNodes(sGuidNewIET);
 					if (removedSubNodes is not null && removedSubNodes.Count > 0) hasRemovedSubNodes = true; 
-					lock (locker) addedSubNodes = FindAddedIETsubNodes(sGuidNewIET);
+					lock (TraversalLock) addedSubNodes = FindAddedIETsubNodes(sGuidNewIET);
 					if (addedSubNodes is not null && addedSubNodes.Count > 0) hasAddedSubNodes = true;  //this step is required to flag possibly changed attributes on IET subNodes.																										
 
 					var ietNew = _newVersion.Nodes[GuidIET] as IdentifiedExtensionType;
@@ -319,7 +320,7 @@ namespace SDC.Schema
 					//var util = new SdcUtilParallel();
 					//lock(locker) 	if (util.GetPrevSibElement(ietPrev)?.sGuid != util.GetPrevSibElement(ietNew)?.sGuid) //thread safe instance (?) method hierarchy with (hopefully) no shared state
 
-					lock (locker) if (ietPrev.GetNodePreviousSib()?.sGuid != ietNew!.GetNodePreviousSib()?.sGuid)  //static extension method needs locking
+					lock (TraversalLock) if (ietPrev.GetNodePreviousSib()?.sGuid != ietNew!.GetNodePreviousSib()?.sGuid)  //static extension method needs locking
 						{ isMovedIET = true; }
 
 					//Look for match in slAttPrev
@@ -471,7 +472,6 @@ namespace SDC.Schema
 		public DifNodeIET CompareIET(IdentifiedExtensionType ietNew)
 		{
 			var eqAttCompare = new SdcSerializedAttComparer(); //should be thread-safe
-			var locker = new object();
 			if (_slAttNew is null || _slAttPrev is null) throw new InvalidOperationException("_slAttNew or  is null");
 
 			var lai = SdcUtil.ReflectNodeXmlAttributes(ietNew, false);
@@ -511,9 +511,9 @@ namespace SDC.Schema
 			{
 
 				//Check for added or removed subnodes, by comparing the the matching ietPrev node:
-				lock (locker) removedSubNodes = FindRemovedIETsubNodes(sGuidNewIET);
+				lock (TraversalLock) removedSubNodes = FindRemovedIETsubNodes(sGuidNewIET);
 				if (removedSubNodes is not null && removedSubNodes.Count > 0) hasRemovedSubNodes = true;
-				lock (locker) addedSubNodes = FindAddedIETsubNodes(sGuidNewIET);
+				lock (TraversalLock) addedSubNodes = FindAddedIETsubNodes(sGuidNewIET);
 				if (addedSubNodes is not null && addedSubNodes.Count > 0) hasAddedSubNodes = true;  //this step is required to flag possibly changed attributes on IET subNodes.																										
 
 				//var ietNew = _newVersion.Nodes[GuidIET] as IdentifiedExtensionType;
@@ -523,7 +523,7 @@ namespace SDC.Schema
 				{ isParChangedIET = true; }
 
 
-				lock (locker) if (ietPrev.GetNodePreviousSib()?.sGuid != ietNew!.GetNodePreviousSib()?.sGuid)  //static extension method needs locking
+				lock (TraversalLock) if (ietPrev.GetNodePreviousSib()?.sGuid != ietNew!.GetNodePreviousSib()?.sGuid)  //static extension method needs locking
 					{ isMovedIET = true; }
 
 				//Look for match in slAttPrev

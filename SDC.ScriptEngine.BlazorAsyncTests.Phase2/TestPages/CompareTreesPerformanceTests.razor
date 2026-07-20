@@ -1,0 +1,213 @@
+@page "/compare-trees-performance"
+
+<PageTitle>Category 6: CompareTrees Performance Measurements</PageTitle>
+
+<h1>Category 6: CompareTrees Performance Measurements</h1>
+<p style="color:#555; font-size:.9em;">
+    Measurement-only tests for published 4-thread WASM. These do not gate correctness by
+    wall-clock speed; they report whether four independent CompareTrees workloads finish faster
+    when run concurrently than when run sequentially on the same browser session.
+</p>
+<p style="color:#555; font-size:.9em;">
+    The quick throughput run excludes XML parsing/tree construction from the timed region so it
+    measures CompareTrees throughput rather than setup cost. The heavy V1->V5 reference run is
+    optional because it can take several seconds and may increase browser memory pressure.
+</p>
+
+<div style="margin-bottom:16px;">
+    <button class="run-btn" @onclick="RunQuickThroughputAsync" disabled="@IsRunning">Run Quick Throughput</button>
+    <button class="run-btn" @onclick="RunHeavyReferenceAsync" disabled="@IsRunning" style="margin-left:8px;">Run Heavy V1->V5 Reference</button>
+    @if (IsRunning) { <span style="color:#0969da; font-size:.9em; margin-left:8px;">Running...</span> }
+</div>
+
+<table class="test-table">
+    <thead><tr><th style="width:28%">Measurement</th><th>Status</th><th>Duration (ms)</th><th>Message</th></tr></thead>
+    <tbody>
+    @foreach (var r in _results)
+    {
+        <tr>
+            <td>@r.Name</td>
+            <td class="@CssClass(r.Status)">@r.Status</td>
+            <td>@r.Duration.TotalMilliseconds.ToString("F0")</td>
+            <td style="font-size:.8em; white-space:pre-wrap; max-width:620px;">@r.Message</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private const int THREAD_COUNT = 4;
+    private const int Baseline_IETattDiffs = 907;
+
+    private bool IsRunning;
+    private readonly List<WasmTestResult> _results = new();
+
+    private async Task RunQuickThroughputAsync()
+    {
+        IsRunning = true;
+        _results.Clear();
+        StateHasChanged();
+
+        await AddResult(await RunMeasurementAsync(
+            "CompareTrees_V1vsV2_SequentialVs4Thread_Throughput",
+            MeasureQuickThroughput,
+            watchdogMs: 30_000));
+
+        IsRunning = false;
+        StateHasChanged();
+    }
+
+    private async Task RunHeavyReferenceAsync()
+    {
+        IsRunning = true;
+        _results.Clear();
+        StateHasChanged();
+
+        await AddResult(await RunMeasurementAsync(
+            "CompareTrees_V1vsV5_SingleRun_Reference",
+            MeasureHeavyReference,
+            watchdogMs: 120_000));
+
+        IsRunning = false;
+        StateHasChanged();
+    }
+
+    private async Task AddResult(WasmTestResult r)
+    {
+        _results.Add(r);
+        StateHasChanged();
+        await Task.Yield();
+    }
+
+    private async Task<WasmTestResult> RunMeasurementAsync(string name, Func<MeasurementResult> measure, int watchdogMs)
+    {
+        var tcs = new TaskCompletionSource<MeasurementResult>();
+        Exception? error = null;
+        var worker = new Thread(() =>
+        {
+            try { tcs.SetResult(measure()); }
+            catch (Exception ex)
+            {
+                error = ex;
+                tcs.SetResult(new MeasurementResult(TimeSpan.Zero, "error"));
+            }
+        });
+
+        worker.IsBackground = true;
+        worker.Start();
+        var completed = await Task.WhenAny(tcs.Task, Task.Delay(watchdogMs));
+
+        if (completed != tcs.Task)
+            return new WasmTestResult(name, "Category6", TestStatus.Failed, "Measurement watchdog expired", TimeSpan.FromMilliseconds(watchdogMs));
+        if (error is not null)
+            return new WasmTestResult(name, "Category6", TestStatus.Failed, error.ToString(), TimeSpan.Zero);
+
+        var result = await tcs.Task;
+        return new WasmTestResult(name, "Category6", TestStatus.Passed, result.Message, result.Duration);
+    }
+
+    private static MeasurementResult MeasureQuickThroughput()
+    {
+        var xmlV1 = SdcTreeBuilder.LoadEmbeddedXml("CompareTreesTestV1.xml");
+        var xmlV2 = SdcTreeBuilder.LoadEmbeddedXml("CompareTreesTestV2.xml");
+
+        var sequentialPairs = BuildPairs(xmlV1, xmlV2, THREAD_COUNT);
+        var parallelPairs = BuildPairs(xmlV1, xmlV2, THREAD_COUNT);
+
+        var sequentialCounts = new int[THREAD_COUNT];
+        var sequentialSw = Stopwatch.StartNew();
+        for (int i = 0; i < THREAD_COUNT; i++)
+            sequentialCounts[i] = Compare(sequentialPairs[i].OldTree, sequentialPairs[i].NewTree);
+        sequentialSw.Stop();
+
+        var parallelCounts = new int[THREAD_COUNT];
+        var exceptions = new ConcurrentBag<Exception>();
+        using var barrier = new Barrier(THREAD_COUNT);
+        var parallelSw = Stopwatch.StartNew();
+        var threads = Enumerable.Range(0, THREAD_COUNT)
+            .Select(i => new Thread(() =>
+            {
+                try
+                {
+                    barrier.SignalAndWait();
+                    parallelCounts[i] = Compare(parallelPairs[i].OldTree, parallelPairs[i].NewTree);
+                }
+                catch (Exception ex) { exceptions.Add(ex); }
+            }) { IsBackground = true })
+            .ToArray();
+
+        foreach (var t in threads) t.Start();
+        foreach (var t in threads) t.Join();
+        parallelSw.Stop();
+
+        if (!sequentialCounts.Concat(parallelCounts).All(c => c == sequentialCounts[0]))
+            throw new InvalidOperationException(
+                $"Inconsistent CompareTrees result counts. Sequential=[{string.Join(", ", sequentialCounts)}], Parallel=[{string.Join(", ", parallelCounts)}]");
+        if (!exceptions.IsEmpty)
+            throw new InvalidOperationException(
+                $"{exceptions.Count} exception(s) during parallel performance measurement. First: {exceptions.First().Message}");
+
+        var speedup = sequentialSw.Elapsed.TotalMilliseconds / Math.Max(1, parallelSw.Elapsed.TotalMilliseconds);
+        return new MeasurementResult(
+            parallelSw.Elapsed,
+            $"Sequential {THREAD_COUNT}x: {sequentialSw.Elapsed.TotalMilliseconds:F0} ms; " +
+            $"parallel {THREAD_COUNT}x: {parallelSw.Elapsed.TotalMilliseconds:F0} ms; " +
+            $"throughput ratio: {speedup:F2}x; IETattDiffs={sequentialCounts[0]}. " +
+            "Setup XML parsing/tree construction excluded from timed region.");
+    }
+
+    private static MeasurementResult MeasureHeavyReference()
+    {
+        var xmlV1 = SdcTreeBuilder.LoadEmbeddedXml("BreastStagingTest2v1.xml");
+        var xmlV5 = SdcTreeBuilder.LoadEmbeddedXml("BreastStagingTest2v5.xml");
+
+        BaseType.ResetLastTopNode();
+        var oldTree = SdcTreeBuilder.BuildFromXmlString(xmlV1);
+        BaseType.ResetLastTopNode();
+        var newTree = SdcTreeBuilder.BuildFromXmlString(xmlV5);
+
+        var sw = Stopwatch.StartNew();
+        var count = Compare(oldTree, newTree);
+        sw.Stop();
+
+        if (count != Baseline_IETattDiffs)
+            throw new InvalidOperationException($"IETattDiffs: expected {Baseline_IETattDiffs}, got {count}");
+
+        return new MeasurementResult(
+            sw.Elapsed,
+            $"Single heavy V1->V5 CompareTrees reference: {sw.Elapsed.TotalMilliseconds:F0} ms; IETattDiffs={count}.");
+    }
+
+    private static TreePair[] BuildPairs(string xmlOld, string xmlNew, int count)
+    {
+        var pairs = new TreePair[count];
+        for (int i = 0; i < count; i++)
+        {
+            BaseType.ResetLastTopNode();
+            var oldTree = SdcTreeBuilder.BuildFromXmlString(xmlOld);
+            BaseType.ResetLastTopNode();
+            var newTree = SdcTreeBuilder.BuildFromXmlString(xmlNew);
+            pairs[i] = new TreePair(oldTree, newTree);
+        }
+
+        return pairs;
+    }
+
+    private static int Compare(FormDesignType oldTree, FormDesignType newTree)
+    {
+        var comparer = new CompareTrees<FormDesignType>(oldTree, newTree);
+        return comparer.GetIETattDiffs?.Count ?? 0;
+    }
+
+    private static string CssClass(TestStatus s) => s switch
+    {
+        TestStatus.Passed  => "test-result-passed",
+        TestStatus.Failed  => "test-result-failed",
+        TestStatus.Running => "test-result-running",
+        TestStatus.Skipped => "test-result-skipped",
+        _ => "test-result-notrun"
+    };
+
+    private sealed record TreePair(FormDesignType OldTree, FormDesignType NewTree);
+    private sealed record MeasurementResult(TimeSpan Duration, string Message);
+}

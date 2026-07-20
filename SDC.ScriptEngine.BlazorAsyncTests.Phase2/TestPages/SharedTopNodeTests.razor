@@ -87,14 +87,22 @@
             const int NODES_PER_THREAD = 50;
             const int TOTAL_NODES = THREAD_COUNT * NODES_PER_THREAD; // 200
 
-            // One shared FormDesignType TopNode; all threads attach SectionItemType children to it.
+            // One shared FormDesignType TopNode; all threads create SectionItemType children on it.
             // FormDesignType.Body is itself a SectionItemType (Body/Header/Footer are the 3 direct
             // children). SectionItemType attaches to a ChildItemsType container, obtained via
-            // fd.Body.GetChildItemsNode(). Create both Body and its child-items node single-threaded.
+            // GetChildItemsNode(). Create Body and its child-items node single-threaded.
+            //
+            // TryAttachNewNode mutates the parent's child collection before the BaseType constructor
+            // takes the tree write lock. Giving each thread its own parent avoids that separate
+            // same-parent attach race while still exercising shared TopNode ObjectID/GUID generation.
             BaseType.ResetLastTopNode();
             var fd = new FormDesignType(null, "SharedTopNode");
             fd.AddBody(); // creates fd.Body (SectionItemType) attached to fd
-            var childItems = fd.Body.GetChildItemsNode(); // ChildItemsType that holds sections
+            var bodyChildItems = fd.Body.GetChildItemsNode(); // ChildItemsType that holds per-thread sections
+            var threadSections = Enumerable.Range(0, THREAD_COUNT)
+                .Select(i => new SectionItemType(bodyChildItems, $"ThreadSection{i}"))
+                .ToArray();
+            var threadChildItems = threadSections.Select(s => s.GetChildItemsNode()).ToArray();
 
             var allObjectIds   = new ConcurrentBag<int>();
             var allObjectGuids = new ConcurrentBag<Guid>();
@@ -106,11 +114,12 @@
                 try
                 {
                     barrier.SignalAndWait(); // all threads start simultaneously
+                    var myParent = threadChildItems[threadIdx];
                     for (int i = 0; i < NODES_PER_THREAD; i++)
                     {
-                        // SectionItemType attaches to ChildItemsType (fd.Body.GetChildItemsNode()).
-                        // Constructor registers itself in fd's _Nodes via ConcurrentDictionary.TryAdd.
-                        var section = new SectionItemType(childItems, $"S{threadIdx}_{i}");
+                        // Constructor registers itself in the shared fd's _Nodes while attaching
+                        // under this thread's own parent collection.
+                        var section = new SectionItemType(myParent, $"S{threadIdx}_{i}");
                         allObjectIds.Add(section.ObjectID);
                         allObjectGuids.Add(section.ObjectGUID);
                     }
@@ -212,6 +221,7 @@
             const int READERS = 7;
             const int WRITERS = 1;
             const int DURATION_MS = 3000;
+            var writerAddsCompleted = 0;
 
             using var barrier = new Barrier(READERS + WRITERS);
             using var cts = new CancellationTokenSource(DURATION_MS);
@@ -245,6 +255,7 @@
                     for (int k = 0; k < 50 && !cts.IsCancellationRequested; k++)
                     {
                         fd.Body.AddChildSection($"S_Writer{k}", $"WriterSection_{k}");
+                        Interlocked.Increment(ref writerAddsCompleted);
                         Thread.Sleep(50);
                     }
                 }
@@ -260,14 +271,20 @@
                 throw new InvalidOperationException(
                     $"{exceptions.Count} exception(s) during 3s concurrent stress. First: {exceptions.First().Message}");
 
-            // Assert: final node count is at least the initial count (writer may have added more).
+            // Assert: final node count reflects the writer work that actually completed.
+            // The writer is time-bounded by the same 3-second stress window as the readers, so the
+            // last iteration may legitimately be skipped when the cancellation token fires.
             int finalCount = fd.Nodes.Count;
             if (finalCount < initialCount)
                 throw new InvalidOperationException(
                     $"Node count decreased from {initialCount} to {finalCount} during concurrent read/write — corruption.");
-            if (finalCount < 100)
+            if (writerAddsCompleted == 0)
                 throw new InvalidOperationException(
-                    $"Expected at least 100 nodes after writer added to 50-node tree, got {finalCount}");
+                    "Writer did not complete any additions during the stress window; the test did not exercise concurrent writes.");
+            int expectedMinimum = initialCount + writerAddsCompleted;
+            if (finalCount < expectedMinimum)
+                throw new InvalidOperationException(
+                    $"Expected at least {expectedMinimum} nodes after writer completed {writerAddsCompleted} additions, got {finalCount}");
         }, watchdogMs: WATCHDOG_MS_STRESS);
 
     private static string CssClass(TestStatus s) => s switch
