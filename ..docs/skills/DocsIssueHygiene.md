@@ -1,7 +1,8 @@
 # DocsIssueHygiene Skill (docs-sync)
 
-Implements the "docs-sync" skill described below and tracked as
-[issue #38](https://github.com/rmoldwin/SDC_ObjectModel/issues/38). This is the canonical,
+Implements the "docs-sync" skill described below and tracked as the **permanent**
+[issue #38](https://github.com/rmoldwin/SDC_ObjectModel/issues/38) (tagged `permanent`; stays open
+indefinitely as a recurring-process anchor — see the banner on that issue). This is the canonical,
 repo-specific procedure an AI assistant should run (a) selectively before opening any PR, and
 (b) comprehensively every 5 merged PRs. See
 [`.github/copilot-instructions.md`](../../.github/copilot-instructions.md) for the always-loaded
@@ -60,8 +61,9 @@ Run all of the Selective checks above repo-wide, plus:
    [`..docs/templates/ISSUES_EXECUTION_PLAN.md`](../templates/ISSUES_EXECUTION_PLAN.md): remove
    closed issues, add newly opened ones into the right dependency tier, re-verify the "Depends on"
    column still holds.
-7. **Solution/project file consistency** (tracked in
-   [issue #57](https://github.com/rmoldwin/SDC_ObjectModel/issues/57)) — `SDC.Schema.sln` and
+7. **Solution/project file consistency** (tracked as part of the permanent
+   [issue #38](https://github.com/rmoldwin/SDC_ObjectModel/issues/38); originally opened separately
+   as #57, closed as merged into #38) — `SDC.Schema.sln` and
    `.csproj` files can silently drift from the actual git-tracked file/folder structure (observed
    directly during the PR #54 docs restructure: a stale solution-folder display name, an entirely
    missing solution folder for a new `..docs` subfolder, and two tracked `.csproj` files with no
@@ -83,4 +85,6 @@ Run all of the Selective checks above repo-wide, plus:
 |---|---|---|
 | 2026-07-20 | Manual (this session) | Renamed `docs/` → `..docs/` repo-wide and fixed all resulting links; created `..docs/templates/DOC_TEMPLATE.md` and `ISSUE_TEMPLATE.md`; added missing labels to issues #13,#17,#23,#24,#25,#29,#35,#36,#37,#38,#52; added #49,#50,#52 to `roadmap.md`; created `ISSUES_EXECUTION_PLAN.md` covering all 28 open issues; created this skill and the portable version under `.github/skills/`. |
 | 2026-07-20 | Manual (PR #54 review follow-up) | Addressed 5 Copilot bot review comments on PR #54: renamed `docs-issue-refresh` → `docs-hygiene` in `ISSUE_TEMPLATE.md` for naming consistency; converted 3 backslash code-span doc references to real relative Markdown links in `SDC.Schema.QA/README.md` and `SDC.Schema.QA.ExampleGenerator/README.md`; renamed the `SDC.Schema.sln` solution folder node from `"docs"` to `"..docs"`. Replied to all 5 review threads confirming fixes. |
+| 2026-07-20 | Manual (solution-file audit) | Audited `SDC.Schema.sln` for drift against git-tracked files: added the missing `templates` solution folder (3 files) and the 2 missing `skills` folder entries; verified all 15 real projects' `.csproj` paths, build configs, and GUIDs are consistent with no duplicates. Opened #55 (verify docs-hygiene workflow after a real merge), #56 (install portable skill as a user-level Copilot instruction), and #57 (recurring solution/project-file consistency check, folded into this checklist as step 7). |
+| 2026-07-20 | Manual (issue consolidation) | Merged #57 into #38: the solution/project-file consistency check is now permanently tracked as part of #38 rather than a separate issue. #38 tagged with a new `permanent` label and given a banner explaining it stays open indefinitely as this skill's tracking anchor. #57 closed as not planned/duplicate, with a comment pointing to #38. |
 | 2026-07-20 | Manual (solution-file audit) | Audited `SDC.Schema.sln` for drift against git-tracked files: added the missing `templates` solution folder (3 files) and the 2 missing `skills` folder entries; verified all 15 real projects' `.csproj` paths, build configs, and GUIDs are consistent with no duplicates. Opened #55 (verify docs-hygiene workflow after a real merge), #56 (install portable skill as a user-level Copilot instruction), and #57 (recurring solution/project-file consistency check, folded into this checklist as step 7). |

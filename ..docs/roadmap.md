@@ -14,7 +14,7 @@ see [skills/](skills/)).
 | Done | Consolidate `SDC.Schema.Tests/Documentation` technical docs (XML Schema Definition, or XSD, vs. .NET type divergence notes; OM tree-stability notes; thread-safety investigation notes; validation-pipeline unification notes; BSON/JSON serializer bug history) into `..docs/architecture/`, archiving the 12 fully-superseded originals into `SDC.Schema.Tests/Documentation/Archived Plans/` | — |
 | Done | Move session handoff/kickstart documents (13 files) out of `SDC.Schema.Tests/Documentation` into the top-level `sessions/` folder | — |
 | Planned | Create every-roadmap-item-has-an-issue GitHub issues and cross-link them here (this stage) | — |
-| In progress | Docs-sync AI skill implemented ([`..docs/skills/DocsIssueHygiene.md`](skills/DocsIssueHygiene.md) + [`ISSUE_TEMPLATE.md`](templates/ISSUE_TEMPLATE.md)/[`DOC_TEMPLATE.md`](templates/DOC_TEMPLATE.md)); leave open until it has run a real before-PR and every-5-PR cycle with no false positives | [#38](https://github.com/rmoldwin/SDC_ObjectModel/issues/38) |
+| Permanent (recurring) | Docs-sync AI skill implemented ([`..docs/skills/DocsIssueHygiene.md`](skills/DocsIssueHygiene.md) + [`ISSUE_TEMPLATE.md`](templates/ISSUE_TEMPLATE.md)/[`DOC_TEMPLATE.md`](templates/DOC_TEMPLATE.md)); stays open indefinitely by design as the tracking anchor for this recurring process (see the permanent banner on the issue) | [#38](https://github.com/rmoldwin/SDC_ObjectModel/issues/38) |
 | Planned | Begin populating the project wiki with settled architecture content and images/links from the SDC Technical Reference Guide (TRG) | [#36](https://github.com/rmoldwin/SDC_ObjectModel/issues/36) |
 
 ## Serialization
@@ -84,7 +84,6 @@ see [skills/](skills/)).
 | Planned | Finish XML documentation-comment (`<summary>`) coverage across all public SDC.Schema members (see `sessions/XmlAnnotationPlan.md`) | [#37](https://github.com/rmoldwin/SDC_ObjectModel/issues/37) |
 | Planned | Verify the every-5-merged-PR `docs-issue-hygiene-reminder` GitHub Actions workflow actually fires correctly against a real merge (only YAML-validated so far, not exercised against real CI) | [#55](https://github.com/rmoldwin/SDC_ObjectModel/issues/55) |
 | Planned | Install `DocIssueHygiene_Portable.md` as a personal/user-level Copilot instruction so it auto-loads across all repos, not just this one (requires action outside this repo/session) | [#56](https://github.com/rmoldwin/SDC_ObjectModel/issues/56) |
-| Planned | Recurring hygiene: check and fix `SDC.Schema.sln`/`.csproj` mismatches against git-tracked files and folder structure (folded into the comprehensive docs-sync checklist) | [#57](https://github.com/rmoldwin/SDC_ObjectModel/issues/57) |
 
 All issue links above were verified against the live GitHub issue tracker on 2026-07-20 to avoid
 duplicates; only closed issues (already resolved) were excluded from this table. See

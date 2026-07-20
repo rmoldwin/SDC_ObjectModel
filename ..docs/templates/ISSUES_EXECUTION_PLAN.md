@@ -61,10 +61,9 @@ other unless a "Depends on" note says otherwise.
 
 | # | Title | Labels | Depends on | Notes |
 |---|---|---|---|---|
-| [#38](https://github.com/rmoldwin/SDC_ObjectModel/issues/38) | AI skill to keep docs/plans/wiki/archives in sync | documentation | — | Substantially delivered by this session's work (`skills/DocsIssueHygiene.md`, this plan, the doc/issue templates); leave open until the skill has run through at least one real before-PR cycle to confirm no false positives, then close. |
+| [#38](https://github.com/rmoldwin/SDC_ObjectModel/issues/38) | AI skill to keep docs/plans/wiki/archives in sync (**permanent**) | documentation, permanent | — | Recurring process anchor — stays open indefinitely; now also covers the solution/project-file consistency check merged in from closed duplicate #57. |
 | [#37](https://github.com/rmoldwin/SDC_ObjectModel/issues/37) | Finish XML doc-comment coverage for public members | documentation | — | See `sessions/XmlAnnotationPlan.md`. |
 | [#36](https://github.com/rmoldwin/SDC_ObjectModel/issues/36) | Populate project wiki with settled architecture content | documentation | Stable content in `..docs/architecture/` | Pull from already-settled chapters first. |
-| [#57](https://github.com/rmoldwin/SDC_ObjectModel/issues/57) | Recurring hygiene: solution/project file mismatches vs. git-tracked files | documentation, docs-hygiene, tech-debt | — | Already folded into `DocsIssueHygiene.md`'s comprehensive checklist as step 7; run every comprehensive pass, not just once. |
 | [#55](https://github.com/rmoldwin/SDC_ObjectModel/issues/55) | Verify docs-issue-hygiene-reminder workflow fires on a real merge | documentation, docs-hygiene | — | Passive — just watch the next few PR merges and confirm/fix; no code change expected unless a bug surfaces. |
 | [#56](https://github.com/rmoldwin/SDC_ObjectModel/issues/56) | Install portable hygiene skill as a user-level Copilot instruction | documentation, docs-hygiene | — | Requires action outside this repo/session by the repo owner; not something an AI session working in this repo can complete alone. |
 
