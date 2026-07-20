@@ -43,7 +43,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDC.ScriptEngine.BlazorAsyn
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "skills", "skills", "{B616931D-A469-4F55-84BD-B942F981E7A9}"
 	ProjectSection(SolutionItems) = preProject
+		..docs\skills\DocsIssueHygiene.md = ..docs\skills\DocsIssueHygiene.md
 		..docs\skills\README.md = ..docs\skills\README.md
+		..docs\skills\RepoNavigationQuickRef.md = ..docs\skills\RepoNavigationQuickRef.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{AB0E875E-F7CE-4631-9CF0-F27A673DAF5C}"
+	ProjectSection(SolutionItems) = preProject
+		..docs\templates\DOC_TEMPLATE.md = ..docs\templates\DOC_TEMPLATE.md
+		..docs\templates\ISSUE_TEMPLATE.md = ..docs\templates\ISSUE_TEMPLATE.md
+		..docs\templates\ISSUES_EXECUTION_PLAN.md = ..docs\templates\ISSUES_EXECUTION_PLAN.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "changes", "changes", "{628636F2-1178-4418-A8CC-DFD61E5B27CE}"
@@ -268,6 +277,7 @@ Global
 		{B616931D-A469-4F55-84BD-B942F981E7A9} = {87DB0F58-599C-4AD5-9974-3CF93E666F78}
 		{628636F2-1178-4418-A8CC-DFD61E5B27CE} = {87DB0F58-599C-4AD5-9974-3CF93E666F78}
 		{62922B6F-1BD7-4D8E-8DAF-96FDFCDE3C48} = {87DB0F58-599C-4AD5-9974-3CF93E666F78}
+		{AB0E875E-F7CE-4631-9CF0-F27A673DAF5C} = {87DB0F58-599C-4AD5-9974-3CF93E666F78}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5D8CBFE4-3773-4108-AC73-03AC6AF357ED}
