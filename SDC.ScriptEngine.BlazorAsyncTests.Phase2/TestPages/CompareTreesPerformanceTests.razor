@@ -81,16 +81,11 @@
 
     private async Task<WasmTestResult> RunMeasurementAsync(string name, Func<MeasurementResult> measure, int watchdogMs)
     {
-        var tcs = new TaskCompletionSource<MeasurementResult>();
-        Exception? error = null;
+        var tcs = new TaskCompletionSource<MeasurementResult>(TaskCreationOptions.RunContinuationsAsynchronously);
         var worker = new Thread(() =>
         {
-            try { tcs.SetResult(measure()); }
-            catch (Exception ex)
-            {
-                error = ex;
-                tcs.SetResult(new MeasurementResult(TimeSpan.Zero, "error"));
-            }
+            try { tcs.TrySetResult(measure()); }
+            catch (Exception ex) { tcs.TrySetException(ex); }
         });
 
         worker.IsBackground = true;
@@ -99,11 +94,16 @@
 
         if (completed != tcs.Task)
             return new WasmTestResult(name, "Category6", TestStatus.Failed, "Measurement watchdog expired", TimeSpan.FromMilliseconds(watchdogMs));
-        if (error is not null)
-            return new WasmTestResult(name, "Category6", TestStatus.Failed, error.ToString(), TimeSpan.Zero);
 
-        var result = await tcs.Task;
-        return new WasmTestResult(name, "Category6", TestStatus.Passed, result.Message, result.Duration);
+        try
+        {
+            var result = await tcs.Task;
+            return new WasmTestResult(name, "Category6", TestStatus.Passed, result.Message, result.Duration);
+        }
+        catch (Exception ex)
+        {
+            return new WasmTestResult(name, "Category6", TestStatus.Failed, ex.ToString(), TimeSpan.Zero);
+        }
     }
 
     private static MeasurementResult MeasureQuickThroughput()

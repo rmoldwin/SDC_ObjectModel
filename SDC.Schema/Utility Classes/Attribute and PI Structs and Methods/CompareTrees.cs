@@ -32,8 +32,6 @@ namespace SDC.Schema
 																						//foreach(var kvNewIET in slAttNew)
 		private SDCsGuidEqualityComparer<BaseType> _sGuidEqComparerBase = new();
 		private SDCsGuidEqualityComparer<IdentifiedExtensionType> _sGuidEqComparerIET = new();
-		// Static because CompareTrees can run in multiple concurrent instances while these traversal helpers use shared/static sibling navigation state.
-		private static readonly object TraversalLock = new();
 		#region     ctor   
 		/// <summary>
 		/// 
@@ -299,9 +297,9 @@ namespace SDC.Schema
                     //if (sGuidNewIET == "7AHleBwmK0OI_VYX3jdVrQ") Debugger.Break();
 
 					//Check for added or removed subnodes, by comparing the the matching ietPrev node:
-					lock (TraversalLock) removedSubNodes = FindRemovedIETsubNodes(sGuidNewIET);
+					lock (CompareTreesTraversalLock.Gate) removedSubNodes = FindRemovedIETsubNodes(sGuidNewIET);
 					if (removedSubNodes is not null && removedSubNodes.Count > 0) hasRemovedSubNodes = true; 
-					lock (TraversalLock) addedSubNodes = FindAddedIETsubNodes(sGuidNewIET);
+					lock (CompareTreesTraversalLock.Gate) addedSubNodes = FindAddedIETsubNodes(sGuidNewIET);
 					if (addedSubNodes is not null && addedSubNodes.Count > 0) hasAddedSubNodes = true;  //this step is required to flag possibly changed attributes on IET subNodes.																										
 
 					var ietNew = _newVersion.Nodes[GuidIET] as IdentifiedExtensionType;
@@ -320,7 +318,7 @@ namespace SDC.Schema
 					//var util = new SdcUtilParallel();
 					//lock(locker) 	if (util.GetPrevSibElement(ietPrev)?.sGuid != util.GetPrevSibElement(ietNew)?.sGuid) //thread safe instance (?) method hierarchy with (hopefully) no shared state
 
-					lock (TraversalLock) if (ietPrev.GetNodePreviousSib()?.sGuid != ietNew!.GetNodePreviousSib()?.sGuid)  //static extension method needs locking
+					lock (CompareTreesTraversalLock.Gate) if (ietPrev.GetNodePreviousSib()?.sGuid != ietNew!.GetNodePreviousSib()?.sGuid)  //static extension method needs locking
 						{ isMovedIET = true; }
 
 					//Look for match in slAttPrev
@@ -511,9 +509,9 @@ namespace SDC.Schema
 			{
 
 				//Check for added or removed subnodes, by comparing the the matching ietPrev node:
-				lock (TraversalLock) removedSubNodes = FindRemovedIETsubNodes(sGuidNewIET);
+				lock (CompareTreesTraversalLock.Gate) removedSubNodes = FindRemovedIETsubNodes(sGuidNewIET);
 				if (removedSubNodes is not null && removedSubNodes.Count > 0) hasRemovedSubNodes = true;
-				lock (TraversalLock) addedSubNodes = FindAddedIETsubNodes(sGuidNewIET);
+				lock (CompareTreesTraversalLock.Gate) addedSubNodes = FindAddedIETsubNodes(sGuidNewIET);
 				if (addedSubNodes is not null && addedSubNodes.Count > 0) hasAddedSubNodes = true;  //this step is required to flag possibly changed attributes on IET subNodes.																										
 
 				//var ietNew = _newVersion.Nodes[GuidIET] as IdentifiedExtensionType;
@@ -523,7 +521,7 @@ namespace SDC.Schema
 				{ isParChangedIET = true; }
 
 
-				lock (TraversalLock) if (ietPrev.GetNodePreviousSib()?.sGuid != ietNew!.GetNodePreviousSib()?.sGuid)  //static extension method needs locking
+				lock (CompareTreesTraversalLock.Gate) if (ietPrev.GetNodePreviousSib()?.sGuid != ietNew!.GetNodePreviousSib()?.sGuid)  //static extension method needs locking
 					{ isMovedIET = true; }
 
 				//Look for match in slAttPrev
@@ -646,7 +644,7 @@ namespace SDC.Schema
 		/// <returns></returns>
 		public SortedList<string, Dictionary<string, List<AttributeInfo>>> FindSerializedXmlAttributesFromTree(ITopNode topNode)
 		{
-			lock (TraversalLock)
+			lock (CompareTreesTraversalLock.Gate)
 			{
 				SortedList<string, Dictionary<string, List<AttributeInfo>>> dictAttr = new();
 				char gt = ">"[0];
@@ -854,5 +852,11 @@ namespace SDC.Schema
 		public bool IsPrevNodeRemoved(BaseType prevNode, out BaseType? newNode)
 		=> _newVersion.Nodes.TryGetValue(prevNode.ObjectGUID, out newNode);
 
+	}
+
+	internal static class CompareTreesTraversalLock
+	{
+		// Non-generic so concurrent CompareTrees<T> instances for different TopNode types share the same traversal gate.
+		internal static readonly object Gate = new();
 	}
 }
