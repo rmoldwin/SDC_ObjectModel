@@ -35,10 +35,9 @@ jobs:
             echo "An open docs-hygiene reminder issue already exists; skipping."
             exit 0
           fi
+          body=$(printf 'This is the automated every-5-merged-PR checkpoint (currently %s merged PRs).\n\nAn AI coding agent should run the **comprehensive** checklist in `..docs/skills/DocsIssueHygiene.md`, record the pass in that file'"'"'s Run log, and close this issue when done.' "$merged_count")
           gh issue create --repo "$REPO" \
-            --title "Run comprehensive docs & issue hygiene pass (every-5-PR checkpoint, #${merged_count} merged PRs)" \
+            --title "Run comprehensive docs & issue hygiene pass (every-5-PR checkpoint, ${merged_count} merged PRs)" \
             --label "docs-hygiene" \
             --label "documentation" \
-            --body "This is the automated every-5-merged-PR checkpoint (currently ${merged_count} merged PRs).
-
-An AI coding agent should run the **comprehensive** checklist in [\`..docs/skills/DocsIssueHygiene.md\`](../blob/master/..docs/skills/DocsIssueHygiene.md), record the pass in that file's Run log, and close this issue when done."
+            --body "$body"
