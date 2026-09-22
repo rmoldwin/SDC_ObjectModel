@@ -1,8 +1,8 @@
 # Open Issues & Execution Plan
 
-Snapshot taken 2026-07-20 against the live GitHub issue tracker (31 open issues, updated after
-adding #55–#57). This is the
-dependency-ordered execution plan referenced from [`../roadmap.md`](../roadmap.md). Work tiers are
+Snapshot taken 2026-07-20 against the live GitHub issue tracker (30 open issues, after adding
+#55–#56 and consolidating #57 into the permanent #38). This is the dependency-ordered 
+execution plan referenced from [`../roadmap.md`](../roadmap.md). Work tiers are
 ordered so that foundational/blocking issues are resolved before issues that depend on them or
 would otherwise need to be re-tested afterward. Within a tier, issues are independent of each
 other unless a "Depends on" note says otherwise.
