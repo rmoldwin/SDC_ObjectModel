@@ -21,6 +21,7 @@ breakdown, and [roadmap.md](roadmap.md) for planned work and its linked GitHub i
   architecture/        — one file per architecture chapter (serialization, validation, etc.)
   changes/             — dated technical change logs (component-level design history)
   skills/              — AI skills specific to maintaining/using the SDC.Schema solution
+  templates/           — DOC_TEMPLATE.md, ISSUE_TEMPLATE.md, and the issues execution plan
 ```
 
 ## Related locations
