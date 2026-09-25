@@ -83,7 +83,7 @@ see [skills/](skills/)).
 |---|---|---|
 | Planned | Finish XML documentation-comment (`<summary>`) coverage across all public SDC.Schema members (see `sessions/XmlAnnotationPlan.md`) | [#37](https://github.com/rmoldwin/SDC_ObjectModel/issues/37) |
 | Planned | Verify the every-5-merged-PR `docs-issue-hygiene-reminder` GitHub Actions workflow actually fires correctly against a real merge (only YAML-validated so far, not exercised against real CI) | [#55](https://github.com/rmoldwin/SDC_ObjectModel/issues/55) |
-| Planned | Install `DocIssueHygiene_Portable.md` as a personal/user-level Copilot instruction so it auto-loads across all repos, not just this one (requires action outside this repo/session) | [#56](https://github.com/rmoldwin/SDC_ObjectModel/issues/56) |
+| In progress | Install `DocIssueHygiene_Portable.md` as a personal/user-level Copilot instruction so it auto-loads across all repos, not just this one. Done 2026-09-25 as the personal skill `docs-issue-hygiene` in `~/.copilot/skills/`; the portable file was removed. Remaining: confirm it loads in another repository | [#56](https://github.com/rmoldwin/SDC_ObjectModel/issues/56) |
 
 All issue links above were verified against the live GitHub issue tracker on 2026-07-20 to avoid
 duplicates; only closed issues (already resolved) were excluded from this table. See
