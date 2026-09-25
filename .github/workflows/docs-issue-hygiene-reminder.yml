@@ -3,7 +3,7 @@ name: Docs & Issue Hygiene Reminder
 # Fires every time a pull request is merged. Counts total merged PRs and, every 5th merge,
 # opens (or reuses) a tracking issue asking an AI coding agent to run the comprehensive
 # docs-sync pass described in ..docs/skills/DocsIssueHygiene.md. See that file and
-# .github/skills/DocIssueHygiene_Portable.md for the full checklist this issue asks for.
+# the personal docs-issue-hygiene skill (rmoldwin/AI_Organize skills/docs-issue-hygiene) for the full checklist this issue asks for.
 on:
   pull_request:
     types: [closed]

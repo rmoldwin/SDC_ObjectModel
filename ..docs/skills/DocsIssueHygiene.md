@@ -6,9 +6,9 @@ indefinitely as a recurring-process anchor — see the banner on that issue). Th
 repo-specific procedure an AI assistant should run (a) selectively before opening any PR, and
 (b) comprehensively every 5 merged PRs. See
 [`.github/copilot-instructions.md`](../../.github/copilot-instructions.md) for the always-loaded
-pointer that triggers this skill, and
-[`../../.github/skills/DocIssueHygiene_Portable.md`](../../.github/skills/DocIssueHygiene_Portable.md)
-for the repo-agnostic version of this procedure suitable for reuse in other repositories.
+pointer that triggers this skill, and the personal skill `docs-issue-hygiene`
+([source in rmoldwin/AI_Organize](https://github.com/rmoldwin/AI_Organize/blob/main/skills/docs-issue-hygiene/SKILL.md), installed in `~/.copilot/skills/`)
+for the repo-agnostic version of this procedure used in other repositories.
 
 ## When to run
 
@@ -100,3 +100,4 @@ Run all of the Selective checks above repo-wide, plus:
 | 2026-07-20 | Manual (solution-file audit) | Audited `SDC.Schema.sln` for drift against git-tracked files: added the missing `templates` solution folder (3 files) and the 2 missing `skills` folder entries; verified all 15 real projects' `.csproj` paths, build configs, and GUIDs are consistent with no duplicates. Opened #55 (verify docs-hygiene workflow after a real merge), #56 (install portable skill as a user-level Copilot instruction), and #57 (recurring solution/project-file consistency check, folded into this checklist as step 7). |
 | 2026-07-20 | Manual (issue consolidation) | Merged #57 into #38: the solution/project-file consistency check is now permanently tracked as part of #38 rather than a separate issue. #38 tagged with a new `permanent` label and given a banner explaining it stays open indefinitely as this skill's tracking anchor. #57 closed as not planned/duplicate, with a comment pointing to #38. |
 | 2026-07-20 | Manual (root-file reorganization) | Merged root `SDC_OM_UseCases_Context.md` into `..docs/architecture/use-cases-and-context.md` (chapter 13); moved `SESSION_SUMMARY_SdcUtil_Coverage_Pause.md` into `sessions/`; deleted the now-fully-executed `WORKTREE_BRANCH_CLEANUP.md` (confirmed its flagged branches no longer exist on `origin`); wrote missing READMEs for the 4 previously-undocumented `SDC.ScriptEngine.BlazorAsyncTests*` projects; rewrote the root `README.md`'s project table to cover all 15 real projects grouped by area (was previously only 3). Added step 8 to this checklist (root-level file hygiene: no orphaned root `.md` files, every project has a README, root README project table stays current). |
+| 2026-09-25 | Manual (#56) | Replaced `.github/skills/DocIssueHygiene_Portable.md` with the personal skill `docs-issue-hygiene` (source in rmoldwin/AI_Organize, installed in `~/.copilot/skills/`); updated the references in `.github/copilot-instructions.md`, this file, `..docs/roadmap.md` and `docs-issue-hygiene-reminder.yml`; `SDC.Schema.sln` did not list the removed file. |
